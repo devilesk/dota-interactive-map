@@ -1352,7 +1352,7 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
 
     // Load elevation map image then load map data
-    elevationImg.src = 'elevation.png';
+    /*elevationImg.src = 'elevation.png';
     elevationImg.onload = function() {
         getJSON(map_data_path, onMapDataLoad);
         //getJSON('vision.json', onVisionDataLoad);
@@ -1360,7 +1360,8 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
         canvas.width = elevationImg.width;
         canvas.height = elevationImg.height;
         canvas.getContext('2d').drawImage(elevationImg, 0, 0, elevationImg.width, elevationImg.height);
-    }
+    }*/
+    getJSON(map_data_path, onMapDataLoad);
     
     // Adjustment controls for fine-tuning map boundaries
     if (!DEBUG) {
