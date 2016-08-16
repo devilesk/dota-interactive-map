@@ -1,0 +1,20 @@
+{
+  "name": "dota-interactive-map",
+  "version": "1.0.0",
+  "description": "Interactive Dota 2 Map",
+  "main": "interactivemap.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dota",
+    "interactive",
+    "map"
+  ],
+  "author": "devilesk",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "openlayers": "^3.17.1"
+  }
+}
