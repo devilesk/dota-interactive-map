@@ -4,6 +4,10 @@ body {
 img[src="ward_observer.png"]:hover, img[src="ward_sentry.png"]:hover {
     cursor:pointer;
 }
+#map {
+    width: 100%;
+    height: 100%;
+}
 .controls-container {
     position:absolute;
     top:100px;
@@ -77,6 +81,7 @@ div.olControlZoom a:hover {
 }
 
 .controls-button {
+    position: absolute;
     top: 5px;
     transform: rotate(180deg);
 }
