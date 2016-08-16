@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.0">
+    <Document>
+        <Style id="myDefaultStyles">
+            <LineStyle>
+                <color>ff00ff00</color>
+                <width>1</width>
+            </LineStyle>
+            <PolyStyle>
+                <color>6600ff00</color>
+            </PolyStyle>
+        </Style>
+        <Folder>
+            <name>OpenLayers export</name>
+            <description>Exported on Wed May 20 2015 07:45:40 GMT-0400 (Eastern Daylight Time)</description>
+            <Placemark>
+                <name>OpenLayers_Feature_Vector_463</name>
+                <styleUrl>#myDefaultStyles</styleUrl>
+                <description>No description available</description>
+                <MultiGeometry>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>300,497 300,543 342,543 342,497 300,497</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>552,260 552,337 622,337 622,260 552,260</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>712,266 712,326 770,326 770,266 712,266</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>644,219 644,267 692,267 692,219 644,219</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>515,682 515,737 585,737 585,682 515,682</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>442,704 442,756 489,756 489,704 442,704</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>377,646 377,701 434,701 434,646 377,646</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>205,708 205,754 276,754 276,708 205,708</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>291,748 291,803 335,803 335,748 291,748</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>688,454 688,499 750,499 750,454 688,454</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>687,521 687,575 760,575 760,521 687,521</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>238,544 238,595 309,595 309,544 238,544</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>362,253 362,293 405,293 405,253 362,253</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                    <Polygon>
+                        <outerBoundaryIs>
+                          <LinearRing>
+                              <coordinates>431,322 431,364 493,364 493,322 431,322</coordinates>
+                          </LinearRing>
+                        </outerBoundaryIs>
+                    </Polygon>
+                </MultiGeometry>
+            </Placemark>
+        </Folder>
+    </Document>
+</kml>

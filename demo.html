@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<title>Dota 2 Interactive Map 2</title>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="interactivemap.css" />
+	</head>
+	<body>
+		<div style="width:100%; height:100%" id="map"></div>
+		<div id="controls">
+            <div id="controls-max" class="maximizeDiv olButton" style="position: absolute;"><img width="18" height="18" id="OpenLayers_Control_MaximizeDiv_innerImage" class="olAlphaImg" src="OpenLayers/img/layer-switcher-maximize.png" style="position: relative;"></div>
+            <div id="controls-min" class="minimizeDiv olButton" style="position: absolute;"><img width="18" height="18" id="OpenLayers_Control_MinimizeDiv_innerImage" class="olAlphaImg" src="OpenLayers/img/layer-switcher-minimize.png" style="position: relative;"></div>
+            <ul id="controls-list">
+                <b>Map Controls</b>
+                <li>
+                    <input type="radio" name="type" value="none" id="noneToggle" checked="checked" />
+                    <label for="noneToggle">Navigate</label>
+                </li>
+                <li>
+                    <input type="radio" name="type" value="line" id="lineToggle" />
+                    <label for="lineToggle">Measure Distance</label>
+                </li>
+                <li>
+                    <input type="radio" name="type" value="circle" id="circleToggle" />
+                    <label for="circleToggle">Measure Circle</label>
+                </li>
+                <li>
+                    <input type="radio" name="type" value="observerclick" id="observerToggle" />
+                    <label for="observerToggle">Place Observer Ward</label>
+                </li>
+                <li>
+                    <input type="radio" name="type" value="sentryclick" id="sentryToggle" />
+                    <label for="sentryToggle">Place Sentry Ward</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="coordControl" checked=true/>
+                    <label for="coordControl">Show Coordinates</label>
+                </li>
+            </ul>
+            <div id="output-panel">
+                <div id="output"></div>
+                <div id="traveltime-container" style="display: none">
+                    <div>Travel time: <span id="traveltime"></span>s</div>
+                    <div id="movespeed-container">with <input type="text" id="movespeed" value="300" /> ms</div>
+                </div>
+            </div>
+        </div>
+        <div id="coords" style="height: 1.5em;"></div>
+        <img id="elevation" style="display:none" src="elevation.png" /> 
+        <canvas style="display:none" id="elevation-canvas"></canvas> 
+        <canvas style="position:absolute;bottom:0;left:0" id="canvas"></canvas> 
+        <script src="OpenLayers/OpenLayers.js"></script>
+        <script src="javascript.util.js"></script>
+        <script src="jsts.js"></script>
+        <script src="rot.js"></script>
+        <script src="interactivemap.js"></script>
+	</body>
+</html>

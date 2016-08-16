@@ -1,0 +1,38 @@
+<html>
+	<head>
+        <link rel="shortcut icon" href="/media/favicon.png">
+		<title>Dota 2 Vision Simulation</title>
+        <meta name="description" content="Dota 2 Vision Simulation.">
+        <meta name="author" content="devilesk">
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+	</head>
+	<body>
+Move to show FOV. Click trees to toggle on/off. Radius: <input id="radius" type="text" size="6" value="1800" />. Zoom Level: <select id="zoom" name="zoom"/>
+<option value="1" selected="selected">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="8">8</option>
+</select>
+<br/>
+<img id="elevation" style="display:none" src="elevation.png" />
+<canvas style="display:none" id="elevation-canvas"></canvas>
+<canvas id="canvas"></canvas><br/>
+FOV: <span id="fov"></span>ms, draw: <span id="draw"></span>ms, X: <span id="x-coord"></span>, Y: <span id="y-coord"></span>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-39435120-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<script src="rot5.js"></script><script src="vision-simulation.js"></script>
+</body>
+</html>

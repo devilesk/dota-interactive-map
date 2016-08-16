@@ -1,0 +1,152 @@
+body {
+    margin:0;
+}
+img[src="ward_observer.png"]:hover, img[src="ward_sentry.png"]:hover {
+    cursor:pointer;
+}
+.arrow {
+    position: fixed;
+    z-index: 9999;
+    margin: 10px;
+}
+#close {
+    background: url('close.png') no-repeat center;
+    top: 0;
+    right: 0;
+    height: 58px;
+    width: 58px;
+}
+#arrow-right {
+    background: url('arrow-right.png') no-repeat center;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 58px;
+}
+#arrow-left {
+    background: url('arrow-left.png') no-repeat center;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 58px;
+}
+#arrow-top {
+    background: url('arrow-top.png') no-repeat center;
+    top: 0;
+    width: 100%;
+    height: 58px;
+}
+#arrow-bottom {
+    background: url('arrow-bottom.png') no-repeat center;
+    bottom: 0;
+    width: 100%;
+    height: 58px;
+}
+#laneView {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+#laneViewImageContainer {
+}
+#laneViewBackground {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background: black;
+    display: none;
+    z-index: 9997;
+    opacity: .8;
+}
+#laneView img{
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: auto;
+}
+.controls-container {
+    position:absolute;
+    top:100px;
+    z-index:1000;
+    color:white;
+}
+#controls img {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
+}
+#controls img:hover {
+	cursor:pointer;
+	cursor:hand;
+}
+#controls-max {
+	display:none;
+}
+#controls-list {
+	font-family:sans-serif;
+	font-weight:bold;
+	font-size:smaller;
+	list-style:none;
+	margin:0px;
+	padding:3px 10px 5px 25px;
+}
+#controls-list li{
+	padding:0px 5px;
+}
+div.olControlMousePosition {
+    position:absolute;
+    bottom:0px;
+    right:0px;
+    background-color:white;
+    color:black;
+    padding:3px 5px;
+}
+#output-panel {
+	padding:5px 10px 5px 25px;
+}
+#movespeed {
+    width: 40px;
+    padding: 0px;
+    text-align: right;
+}
+#movespeed-container {
+    padding-left: 49px;
+}
+
+div.olControlZoom a {
+    background-color: rgba(34, 34, 34, 0.7) !important; 
+}
+
+div.olControlZoom a:hover {
+    background-color: rgba(34, 34, 34, 0.9) !important; 
+}
+
+.olControlLayerSwitcher .layersDiv {
+    background-color: rgba(34, 34, 34, 0.7) !important; 
+    padding: 5px 10px;
+	border-radius: 15px 0 0 15px !important;
+}
+
+.controls {
+    background-color: rgba(34, 34, 34, 0.7) !important; 
+    padding: 5px 10px;
+	border-radius: 0 15px 15px 0 !important;
+}
+
+.controls-button {
+    top: 5px;
+    transform: rotate(180deg);
+}
+
+.maximizeDiv {
+    transform: rotate(90deg);
+}
