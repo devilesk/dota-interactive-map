@@ -77,7 +77,6 @@ $(function() {
         attackRangeLayer = new OpenLayers.Layer.Vector("Attack Range"),
         polygonLayer = new OpenLayers.Layer.Vector("Drawn Circles"),
         wardVisionLayer = new OpenLayers.Layer.Vector("Ward Vision"),
-        visionSimulationLayer = new OpenLayers.Layer.Vector("Ward Vision with Fog"),
         iconLayer = new OpenLayers.Layer.Markers("Placed Wards"),
         renderer = OpenLayers.Util.getParameters(window.location.href).renderer,
         drawControls,
@@ -115,26 +114,6 @@ $(function() {
         treeMarkers = {},
         jstsToOpenLayersParser = new jsts.io.OpenLayersParser(),
         geometryFactory = new jsts.geom.GeometryFactory(),
-        canvas = document.getElementById("elevation-canvas"),
-        elevationCtx = canvas.getContext("2d"),
-        walls = {},
-        lights = {},
-        tree_relations,
-        trees,
-        tree_blocks = {},
-        invalid_blocks = {},
-        ent_fow_blocker_nodes,
-        ent_fow_blocker_nodes_blocks = {},
-        trigger_no_wards_blocks = {},
-        tree_elevations = {
-            "high2": {},
-            "high": {},
-            "middle": {},
-            "low": {},
-            "uber": {}
-        },
-        elevations,
-        elevationImg = new Image(),
         assetsLoaded = 1;
 console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
     /***********************************
@@ -325,18 +304,11 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             if (!skipQueryStringUpdate) addQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
 
             var lonlat = worldToLatLon(e.object.tower_loc.x, e.object.tower_loc.y);
-
-            if (VISION_SIMULATION) {
-                updateVisibility(new OpenLayers.LonLat(lonlat.x, lonlat.y), e.object, TOWER_DAY_VISION_RADIUS);
-            }
         } else {
             dayRangeLayer.removeFeatures(e.object.day_vision_feature);
             nightRangeLayer.removeFeatures(e.object.night_vision_feature);
             trueSightRangeLayer.removeFeatures(e.object.true_sight_feature);
             attackRangeLayer.removeFeatures(e.object.attack_range_feature);
-
-            if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
-            if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
 
             if (!skipQueryStringUpdate) removeQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
         }
@@ -372,18 +344,11 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             marker.ward_loc = qs_value_worldXY;
         }
 
-        // run vision simulation
-        if (VISION_SIMULATION) {
-            if (entityName == 'observer') updateVisibility(latlon, marker, entity.radius);
-        }
-
         return marker;
     }
 
     function wardMarkerRemove(event) {
         if (event.object.radius_feature) wardVisionLayer.removeFeatures(event.object.radius_feature);
-        if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
-        if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
         iconLayer.removeMarker(event.object);
         console.log(event.object);
         OpenLayers.Event.stop(event);
@@ -462,21 +427,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             out += "Distance: " + calculateDistance(event.order, event.units, event.measure).toFixed(0) + " units<sup>2</" + "sup>";
         }
         element.innerHTML = out;
-    }
-
-    function handleTreeMarkerClick(event) {
-        var worldXY = latLonToWorld(event.object.lonlat.lon, event.object.lonlat.lat),
-            gnvXY = worldToGNVCoordinates(worldXY.x, worldXY.y);
-
-        event.object.treeVisible = !event.object.treeVisible
-        event.object.setOpacity(event.object.treeVisible ? 1 : .4);
-        toggleTree(gnvXY.x, gnvXY.y)
-
-        if (event.object.treeVisible) {
-            removeQueryStringValue('cut_trees', event.object.tree_loc);
-        } else {
-            addQueryStringValue('cut_trees', event.object.tree_loc);
-        }
     }
 
     function toggleControl() {
@@ -668,7 +618,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle tree as alive or cut-down.<br>This will affect the simulated placed wards vision.<br>Tree coordinate: " + layer.data[i].x + ', ' + layer.data[i].y, false);
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
-            marker.events.register("mousedown", layer, handleTreeMarkerClick);
             treeMarkers[layer.data[i].x + ',' + layer.data[i].y] = marker;
         }
         layer.loaded = !layer.loaded;
@@ -842,20 +791,7 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
                 layer.setVisibility(value == "true");
             }
         }
-        
-        //layerSwitcher.redraw();
-        var cut_trees = getParameterByName('cut_trees');
-        if (cut_trees) {
-            var layer = map.getLayersByName(layerNames["ent_dota_tree"])[0];
-            if (!layer.loaded) loadTreeData();
-            cut_tree_coordinates = trim(cut_trees, ' ;').split(';')
-            console.log(treeMarkers, cut_tree_coordinates);
-            for (var i = 0; i < cut_tree_coordinates.length; i++) {
-                console.log(cut_tree_coordinates[i]);
-                treeMarkers[cut_tree_coordinates[i]].treeVisible = false;
-                treeMarkers[cut_tree_coordinates[i]].setOpacity(.4);
-            }
-        }
+
         var tower_vision = getParameterByName('tower_vision');
         if (tower_vision) {
             var layer = map.getLayersByName(layerNames["npc_dota_tower"])[0];
@@ -893,254 +829,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
         return request;
     }
 
-    /*******************************
-     * VISION SIMULATION FUNCTIONS *
-     *******************************/
-    if (VISION_SIMULATION) {
-        // Gets elevation of an x,y coordinate from the elevation image
-        function getElevation(x, y) {
-            var key = x + "," + y,
-                imgd = elevationCtx.getImageData(x, y, 1, 1),
-                pix = imgd.data;
-            if (trigger_no_wards_blocks[key]) {
-                return "invalid"
-            }
-            if (pix[0] == 255 && pix[1] == 255 && pix[2] == 255) {
-                return "invalid"
-            }
-            if (pix[0] == 153) {
-                return "high"
-            }
-            if (pix[0] == 102) {
-                return "middle"
-            }
-            if (pix[0] == 51) {
-                return "low"
-            }
-            if (pix[0] == 204) {
-                return "high2"
-            }
-            if (pix[0] == 255) {
-                return "uber"
-            }
-            //console.log(x, y, pix);
-        }
-
-        function getElevationBelow(elevation) {
-            if (elevation == "invalid" || elevation == "low") {
-                return "invalid"
-            }
-            if (elevation == "middle") return "low";
-            if (elevation == "high") return "middle";
-            if (elevation == "high2") return "high";
-            if (elevation == "uber") return "high2";
-        }
-
-        function addTreeWalls(walls, elevation) {
-            for (key in tree_elevations[elevation]) {
-                if (tree_blocks[key]) {
-                    skey = key.split(',');
-                    x = parseFloat(skey[0]);
-                    y = parseFloat(skey[1]);
-                    var t = tree_relations[key];
-                    c = [0, 0];
-                    for (var i = 0; i < t.length; i++) {
-                        c[0] += parseFloat(t[i].split(',')[0]);
-                        c[1] += parseFloat(t[i].split(',')[1]);
-                    }
-                    c = [c[0] / t.length, c[1] / t.length];
-                    walls[key] = ['tree', c[0], c[1], Math.SQRT2];
-                    walls[c[0] + "," + c[1]] = ['tree', c[0], c[1], Math.SQRT2];
-                }
-            }
-        }
-
-        // Generates a vision with fog of war feature and adds it to the map
-        function updateVisibility(latlon, marker, r1) {
-            var worldXY = latLonToWorld(latlon.lon, latlon.lat),
-                gnvXY = worldToGNVCoordinates(worldXY.x, worldXY.y),
-                x = gnvXY.x,
-                y = gnvXY.y,
-                elevation = getElevation(x, y),
-                elevationBelow = getElevationBelow(elevation),
-                key = x + "," + y,
-                box_feature,
-                fov = new ROT.FOV.PreciseShadowcasting(lightPassesCallback, {
-                    topology: 8
-                }),
-                lightPoints = [],
-                union = null,
-                visionFeature,
-                RADIUS = getTileRadius(r1);
-            console.log('RADIUS', RADIUS, x, y, gnvToWorldCoordinates(x, y));
-            // create and add center marker polygon
-            box_feature = createTileFeature(gnvToWorldCoordinates(gnvXY.x, gnvXY.y), (elevation == "invalid" || tree_blocks[key]) ? style.red : style.green);
-            visionSimulationLayer.addFeatures([box_feature]);
-            marker.vision_center_feature = box_feature;
-
-            // set walls based on elevation
-            if (elevation == "invalid" || tree_blocks[key]) {
-                console.log('invalid');
-                walls = {};
-                setWalls(walls, tree_blocks);
-                setWalls(walls, ent_fow_blocker_nodes);
-
-                // when DEBUG == false this code will be removed by UglifyJS dead code removal
-                if (DEBUG) {
-                    redraw();
-                }
-                return;
-            } else {
-                walls = {};
-                setWalls(walls, elevations[elevation]);
-                setWalls(walls, ent_fow_blocker_nodes);
-                addTreeWalls(walls, elevation);
-                if (elevationBelow != 'invalid') addTreeWalls(walls, elevationBelow);
-            }
-
-            // get light points from shadowcasting
-            lights = {};
-            fov.walls = walls;
-            console.log('BLOCKS', walls["44,102"]);
-            fov.compute(x, y, RADIUS, function(x2, y2, r, vis) {
-                var key = x2 + "," + y2;
-                pt = gnvToWorldCoordinates(x2, y2);
-                pt2 = gnvToWorldCoordinates(x, y);
-                pt.x += 32;
-                pt.y -= 32;
-                pt2.x += 32;
-                pt2.y -= 32;
-                //if ((vis == 1 && !ent_fow_blocker_nodes_blocks[key] && (!tree_blocks[key] || !tree_elevations[elevation][key]) && (x-x2)*(x-x2) + (y-y2)*(y-y2) < RADIUS * RADIUS) || r <= 2) {
-                if ((vis == 1 && !ent_fow_blocker_nodes_blocks[key] && (pt2.x - pt.x) * (pt2.x - pt.x) + (pt2.y - pt.y) * (pt2.y - pt.y) < r1 * r1) || r <= 2) {
-                    lights[key] = 255;
-                    lightPoints.push(gnvToWorldCoordinates(x2, y2));
-                }
-            });
-
-            // merge light points into a single polygon
-            for (var i = 0; i < lightPoints.length; i++) {
-                var c = lightPoints[i],
-                    r1 = worldToLatLon(c.x, c.y),
-                    r2 = worldToLatLon(c.x + 64, c.y),
-                    r3 = worldToLatLon(c.x + 64, c.y - 64),
-                    r4 = worldToLatLon(c.x, c.y - 64),
-                    shell = geometryFactory.createLinearRing([
-                        new jsts.geom.Coordinate(r1.x, r1.y),
-                        new jsts.geom.Coordinate(r2.x, r2.y),
-                        new jsts.geom.Coordinate(r3.x, r3.y),
-                        new jsts.geom.Coordinate(r4.x, r4.y),
-                        new jsts.geom.Coordinate(r1.x, r1.y)
-                    ]),
-                    jstsPolygon = geometryFactory.createPolygon(shell);
-
-                if (union == null) {
-                    union = jstsPolygon;
-                } else {
-                    union = union.union(jstsPolygon);
-                }
-            }
-
-            // add vision polygon to map
-            union = jstsToOpenLayersParser.write(union);
-            visionFeature = new OpenLayers.Feature.Vector(union, null, style.yellow);
-            visionSimulationLayer.addFeatures([visionFeature]);
-            marker.vision_feature = visionFeature;
-
-            // when DEBUG == false this code will be removed by UglifyJS dead code removal
-            if (DEBUG) {
-                redraw();
-            }
-        }
-
-        function lightPassesCallback(x, y) {
-            if (x + "," + y == "44,102") console.log('LIGHT', !(x + "," + y in walls), x + "," + y in walls);
-            return (!(x + "," + y in walls));
-        }
-
-        function setWalls(obj, index) {
-            for (var i = 0; i < index.length; i++) {
-                obj[index[i][0] + "," + index[i][1]] = ['wall', index[i][0], index[i][1], Math.SQRT2 / 2];
-            }
-        }
-
-        function toggleTree(x, y) {
-            var key = x + "," + y;
-
-            if (tree_relations[key]) {
-                for (var i = 0; i < tree_relations[key].length; i++) {
-                    if (tree_blocks[tree_relations[key][i]]) {
-                        delete tree_blocks[tree_relations[key][i]];
-                    } else {
-                        tree_blocks[tree_relations[key][i]] = 1;
-                    }
-                }
-            }
-        }
-
-        function onVisionDataLoad(data) {
-            tree_relations = data.tree_relations;
-            trees = data.trees;
-            elevations = data.elevations;
-            ent_fow_blocker_nodes = data.ent_fow_blocker_node
-            setWalls(tree_blocks, trees);
-            setWalls(trigger_no_wards_blocks, data.trigger_no_wards);
-            setWalls(ent_fow_blocker_nodes_blocks, data.ent_fow_blocker_node);
-            setWalls(invalid_blocks, data.elevations.invalid);
-            setWalls(tree_elevations.high2, data.tree_elevations.high2);
-            setWalls(tree_elevations.high, data.tree_elevations.high);
-            setWalls(tree_elevations.middle, data.tree_elevations.middle);
-            setWalls(tree_elevations.low, data.tree_elevations.low);
-            setWalls(tree_elevations.uber, data.tree_elevations.uber);
-
-            assetsLoaded--;
-            if (assetsLoaded == 0) parseQueryString();
-        }
-
-        // when DEBUG == false this code will be removed by UglifyJS dead code removal
-        if (DEBUG) {
-            var CELL = [1, 1],
-                SIZE = [256, 248],
-                COLOR_WALL = [40, 40, 40],
-                COLOR_FLOOR = [160, 160, 160],
-                COLOR_LIGHT = [255, 255, 0],
-                COLOR_STUMP = [102, 51, 0],
-                COLOR_LIT_STUMP = [167, 173, 47],
-                ctx = document.getElementById("canvas").getContext("2d");
-            ctx.canvas.width = CELL[0] * SIZE[0];
-            ctx.canvas.height = CELL[1] * SIZE[1];
-            ctx.fillStyle = "black";
-
-            function redraw() {
-                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                ctx.fillStyle = "rgb(" + COLOR_FLOOR.join(",") + ")";
-                ctx.fillRect(0, 0, CELL[0] * SIZE[0], CELL[1] * SIZE[1]);
-                for (var x = 0; x < SIZE[0]; x++) {
-                    for (var y = 0; y < SIZE[1]; y++) {
-                        var key = x + "," + y,
-                            light = lights[key],
-                            c = [];
-
-                        if (light) {
-                            c = COLOR_LIGHT;
-                            if (tree_relations[key] && !tree_blocks[key]) {
-                                c = COLOR_LIT_STUMP;
-                            }
-                            ctx.fillStyle = "rgb(" + c.join(",") + ")";
-                            ctx.fillRect(x * CELL[0], y * CELL[1], CELL[0], CELL[1]);
-                        } else if (!light && tree_relations[key]) {
-                            c = tree_blocks[key] ? [0, 255, 0] : COLOR_STUMP;
-                            ctx.fillStyle = "rgb(" + c.join(",") + ")";
-                            ctx.fillRect(x * CELL[0], y * CELL[1], CELL[0], CELL[1]);
-                        } else if (!light && invalid_blocks[key]) {
-                            c = COLOR_WALL;
-                            ctx.fillStyle = "rgb(" + c.join(",") + ")";
-                            ctx.fillRect(x * CELL[0], y * CELL[1], CELL[0], CELL[1]);
-                        }
-                    }
-                }
-            }
-        }
-    }
     /********************
      * INITITIALIZATION *
      ********************/
@@ -1150,20 +838,19 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
     baseLayers.forEach(function(layer) {
         map.addLayer(layer);
     });
-    map.addControl(layerSwitcher);
-    layerSwitcher.maximizeControl();
     map.addLayer(dayRangeLayer);
     map.addLayer(nightRangeLayer);
     map.addLayer(trueSightRangeLayer);
     map.addLayer(attackRangeLayer);
     map.addLayer(polygonLayer);
     map.addLayer(wardVisionLayer);
-    //map.addLayer(visionSimulationLayer);
     map.addLayer(iconLayer);
     //map.addControl(new OpenLayers.Control.Permalink({anchor: true}));
     //map.addControl(new OpenLayers.Control.Attribution());
     map.addControl(coordinateControl);
     map.addControl(new OpenLayers.Control.KeyboardDefaults());
+        map.addControl(layerSwitcher);
+    layerSwitcher.maximizeControl();
     //map.addControl(new OpenLayers.Control.ScaleLine());
     //map.addControl(new OpenLayers.Control.OverviewMap());
     if (!map.getCenter()) {
@@ -1307,15 +994,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
         if (wardVisionLayer.cursor_marker) {
             wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker);
         }
-
-        if (document.getElementById("observerToggle").checked) {
-            gnvXY = worldToGNVCoordinates(worldXY.x, worldXY.y);
-            key = gnvXY.x + "," + gnvXY.y;
-            elevation = getElevation(gnvXY.x, gnvXY.y);
-            box_feature = createTileFeature(gnvToWorldCoordinates(gnvXY.x, gnvXY.y), (elevation == "invalid" || tree_blocks[key]) ? style.red : style.green);
-            wardVisionLayer.addFeatures([box_feature]);
-            wardVisionLayer.cursor_marker = box_feature;
-        }
     });
 
     // Show/hide controls panel
@@ -1351,16 +1029,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
     document.getElementById('observerToggle').addEventListener('click', toggleControl, false);
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
 
-    // Load elevation map image then load map data
-    /*elevationImg.src = 'elevation.png';
-    elevationImg.onload = function() {
-        getJSON(map_data_path, onMapDataLoad);
-        //getJSON('vision.json', onVisionDataLoad);
-
-        canvas.width = elevationImg.width;
-        canvas.height = elevationImg.height;
-        canvas.getContext('2d').drawImage(elevationImg, 0, 0, elevationImg.width, elevationImg.height);
-    }*/
     getJSON(map_data_path, onMapDataLoad);
     
     // Adjustment controls for fine-tuning map boundaries
