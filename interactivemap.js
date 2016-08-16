@@ -1,6 +1,5 @@
 $(function() {
-    var DEBUG = false,
-        VISION_SIMULATION = false,
+    var DEBUG = true,
         ENTITIES = {
             observer: {
                 icon_path: "ward_observer.png",
@@ -20,24 +19,15 @@ $(function() {
         map_tile_path = "http://devilesk.com/media/images/map/687/",
         map_w = 16384,
         map_h = 16384,
-        //map_x_boundaries = [-8537, 9305],
-        // map_y_boundaries = [8790, -9096],
         map_x_boundaries = [-8475.58617377, 9327.49124559],
         map_y_boundaries = [9028.52473332, -8836.61406266],
-        //map_y_boundaries = [8786, -9104],
-        //map_y_boundaries = [8775, -9104],
         zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( map_w, map_h ) ),
         scale = Math.abs(map_x_boundaries[1] - map_x_boundaries[0])/map_w,
         map = new OpenLayers.Map("map", {
             maxExtent: new OpenLayers.Bounds(0, 0, map_w, map_h),
             numZoomLevels: 5,
-            //maxResolution: 5,
-            //resolutions: [0.0625, 0.125, 0.25, 0.5, 1],
-            //resolutions: [16, 8, 4, 2, 1],
             maxResolution: Math.pow(2, 5-1 ),
             units: "pixels"
-            // projection: "EPSG:900913",
-            // displayProjection: new OpenLayers.Projection("EPSG:900913")
         }),
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
@@ -113,9 +103,8 @@ $(function() {
         },
         treeMarkers = {},
         jstsToOpenLayersParser = new jsts.io.OpenLayersParser(),
-        geometryFactory = new jsts.geom.GeometryFactory(),
-        assetsLoaded = 1;
-console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
+        geometryFactory = new jsts.geom.GeometryFactory();
+
     /***********************************
      * QUERY STRING FUNCTIONS *
      ***********************************/
@@ -230,20 +219,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
         return {
             x: x,
             y: y
-        };
-    }
-
-    function worldToGNVCoordinates(x1, y1) {
-        return {
-            x: Math.floor(x1 / 64 + 128),
-            y: Math.floor(247 - (y1 / 64 + 119))
-        };
-    }
-
-    function gnvToWorldCoordinates(x1, y1) {
-        return {
-            x: parseInt((x1 - 128) * 64),
-            y: parseInt(((247 - y1) - 119) * 64)
         };
     }
 
@@ -473,7 +448,7 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             OpenLayers.Event.stop(event);
         };
 
-        if (markers.name == "Towers" || markers.name == "Trees") {
+        if (markers.name == "Towers") {
             marker.events.register("mouseover", feature, handleHoverPopup);
             marker.events.register("mouseout", feature, handleHoverPopup);
         }
@@ -541,7 +516,7 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
                 markers[k].setVisibility(false);
                 for (var i = 0; i < data[k].length; i++) {
                     var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
-                    marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay" + data[k][i].x + ", " + data[k][i].y, false);
+                    marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
                     marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
                     marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
                     marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
@@ -564,25 +539,13 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             }
             // Create neutral spawn markers and rectangles
             else if (k == "trigger_multiple") {
-                if (!DEBUG) {
+                if (DEBUG) {
                     loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
                     //generateBoxesKML(markers, data, k, 'npc_dota_neutral_spawner_box', false);
                 } else {
                     loadKMLData(markers, k, "npc_dota_neutral_spawner_box", "trigger_multiple.kml");
                 }
             }
-            /*else if (k == "trigger_no_wards") {
-              // load layer data from KML file
-              loadKMLData(markers, k, "trigger_no_wards_box", "trigger_no_wards.kml");
-              
-              //generateBoxesKML(markers, data, k, 'trigger_no_wards_box', true);
-            }
-            else if (k == "ent_fow_blocker_node") {
-              // load layer data from KML file
-              loadKMLData(markers, k, "ent_fow_blocker_node_box", "ent_fow_blocker_node.kml");
-              
-              //generatePointSquaresKML(markers, data, k, 'ent_fow_blocker_node_box');
-            }*/
         });
 
         map_data = data;
@@ -606,8 +569,7 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             }
         });
 
-        assetsLoaded--;
-        if (assetsLoaded == 0) parseQueryString();
+        parseQueryString();
     }
 
     function loadTreeData() {
@@ -632,7 +594,6 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
             pnt = [];
             for (var j = 0; j < data[i].length; j++) {
                 var latlon = worldToLatLon(data[i][j].x, data[i][j].y);
-                //pnt.push(new OpenLayers.Geometry.Point(data[i][j][0], 5120 - data[i][j][1]));
                 pnt.push(new OpenLayers.Geometry.Point(latlon.x, latlon.y));
             }
 
@@ -845,14 +806,10 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
     map.addLayer(polygonLayer);
     map.addLayer(wardVisionLayer);
     map.addLayer(iconLayer);
-    //map.addControl(new OpenLayers.Control.Permalink({anchor: true}));
-    //map.addControl(new OpenLayers.Control.Attribution());
     map.addControl(coordinateControl);
     map.addControl(new OpenLayers.Control.KeyboardDefaults());
-        map.addControl(layerSwitcher);
+    map.addControl(layerSwitcher);
     layerSwitcher.maximizeControl();
-    //map.addControl(new OpenLayers.Control.ScaleLine());
-    //map.addControl(new OpenLayers.Control.OverviewMap());
     if (!map.getCenter()) {
         map.zoomToMaxExtent();
     }
@@ -1032,7 +989,7 @@ console.log('zoomify.numberOfTiers', zoomify.numberOfTiers);
     getJSON(map_data_path, onMapDataLoad);
     
     // Adjustment controls for fine-tuning map boundaries
-    if (!DEBUG) {
+    if (DEBUG) {
         function updateMarkers() {
             console.log('updateMarkers');
             var layer = map.getLayersByName("Towers")[0];
