@@ -10,9 +10,7 @@ var pump = require('pump');
 var path = require('path')
 var spawn = require('child_process').spawn;
 
-gulp.task('default', function() {
-  // place code for your default task here
-});
+gulp.task('default', ['build']);
 
 gulp.task('css', function () {
     return gulp.src([
