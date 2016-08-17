@@ -1,7 +1,7 @@
 body {
     margin:0;
 }
-img[src="ward_observer.png"]:hover, img[src="ward_sentry.png"]:hover {
+img[src="img/ward_observer.png"]:hover, img[src="img/ward_sentry.png"]:hover {
     cursor:pointer;
 }
 #map {

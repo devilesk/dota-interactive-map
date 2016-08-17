@@ -1,11 +1,12 @@
 (function() {
-    var ENTITIES = {
+    var IMG_DIR = "img/",
+        ENTITIES = {
             observer: {
-                icon_path: "ward_observer.png",
+                icon_path: IMG_DIR + "ward_observer.png",
                 radius: 1600
             },
             sentry: {
-                icon_path: "ward_sentry.png",
+                icon_path: IMG_DIR + "ward_sentry.png",
                 radius: 850
             }
         },
@@ -684,7 +685,7 @@
     /********************
      * INITITIALIZATION *
      ********************/
-    OpenLayers.ImgPath = "OpenLayers/dark/";
+    OpenLayers.ImgPath = IMG_DIR;
     
     // Start setting up the map, adding controls and layers
     baseLayers.forEach(function(layer) {
