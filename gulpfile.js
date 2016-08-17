@@ -16,8 +16,8 @@ gulp.task('default', function() {
 
 gulp.task('css', function () {
     return gulp.src([
-          'openlayers.css',
-          'interactivemap.css'
+          'src/openlayers.css',
+          'src/interactivemap.css'
         ])
         .pipe(concat('interactivemap.css'))
         .pipe(minifyCSS())
@@ -25,18 +25,18 @@ gulp.task('css', function () {
 });
 
 gulp.task('html', function () {
-    return gulp.src('index.html')
+    return gulp.src('src/index.html')
         .pipe(preprocess({context: { NODE_ENV: 'production'}})) //To set environment variables in-line 
         .pipe(gulp.dest('dist/'))
 });
 
 gulp.task('image', function () {
-    return gulp.src('img/*')
+    return gulp.src('src/img/*')
         .pipe(imagemin())
         .pipe(gulp.dest('dist/img'))
 });
 
-gulp.task('build', function (cb) {
+gulp.task('build-ol', function (cb) {
     var dir = path.resolve(process.cwd(), './ol2/build');
     console.log(dir);
     spawn('python', ['build.py', '../../interactivemap.cfg'], { cwd: dir, stdio: 'inherit' }).on('close', cb);
@@ -46,7 +46,7 @@ gulp.task('minify', function (cb) {
     pump([
         gulp.src([
             'ol2/build/OpenLayers.js',
-            'interactivemap.js'
+            'src/interactivemap.js'
         ]),
         uglify({ compress: { drop_console: true, dead_code: true } }),
         concat('interactivemap.js'),
@@ -56,8 +56,10 @@ gulp.task('minify', function (cb) {
     );
 });
 
-gulp.task('copy', function () {
+gulp.task('copy-data', function () {
     return gulp
-        .src('data.json')
+        .src('src/data.json')
         .pipe(gulp.dest('dist'));
 });
+
+gulp.task('build', gulpSequence(['css', 'html', 'image', 'build-ol', 'copy-data'], 'minify'));
