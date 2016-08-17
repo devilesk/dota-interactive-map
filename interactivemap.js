@@ -27,7 +27,7 @@ $(function() {
             maxExtent: new OpenLayers.Bounds(0, 0, map_w, map_h),
             numZoomLevels: 5,
             maxResolution: Math.pow(2, 5-1 ),
-            units: "pixels"
+            units: "m"
         }),
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
@@ -227,7 +227,6 @@ $(function() {
     }
 
     function calculateDistance(order, units, measure) {
-        console.log(order, units, measure);
         if (order == 1) {
             if (units == "km") {
                 return measure * scale * 1000;
@@ -307,6 +306,7 @@ $(function() {
         wardVisionLayer.addFeatures(feature);
         marker.radius_feature = feature;
         marker.events.register("mousedown", this, wardMarkerRemove);
+        marker.events.register("touchend", this, wardMarkerRemove);
         marker.ward_type = entityName;
         marker.ward_loc = entityName;
 
@@ -337,7 +337,6 @@ $(function() {
 
     function handleMeasurements(event) {
         var out = "";
-
         if (event.order == 1) {
             out += "Distance: " + calculateDistance(event.order, event.units, event.measure).toFixed(0) + " units";
         } else {
@@ -526,6 +525,7 @@ $(function() {
                     if (k == "npc_dota_tower") {
                         console.log('npc_dota_tower');
                         marker.events.register("mousedown", markers[k], handleTowerMarkerClick);
+                        marker.events.register("touchend", markers[k], handleTowerMarkerClick);
                         marker.tower_loc = data[k][i];
                     }
                 }
@@ -807,13 +807,29 @@ $(function() {
     map.addLayer(wardVisionLayer);
     map.addLayer(iconLayer);
     map.addControl(coordinateControl);
+    map.addControl(new OpenLayers.Control.TouchNavigation({
+        dragPanOptions: {
+            enableKinetic: true
+        }
+    }));
     map.addControl(new OpenLayers.Control.KeyboardDefaults());
+    layerSwitcher.onButtonClick = (function (fn) {
+        console.log('onButtonClick', fn);
+        return function (evt) {
+            var button = evt.buttonElement;
+            if (button === this.maximizeDiv && isSmallScreen()) {
+                minimizeControlList.call(document.getElementById("controls-min"));
+            }
+            return fn.apply(this, arguments);
+        }
+    })(layerSwitcher.onButtonClick);
+    console.log(layerSwitcher.onButtonClick);
     map.addControl(layerSwitcher);
     layerSwitcher.maximizeControl();
     if (!map.getCenter()) {
         map.zoomToMaxExtent();
     }
-
+    
     // create click handler
     OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
         defaultHandlerOptions: {
@@ -958,12 +974,26 @@ $(function() {
         document.querySelector(".controls").style.display = '';
         document.getElementById("controls-min").style.display = 'block';
         this.style.display = 'none';
+        if (isSmallScreen()) {
+            layerSwitcher.minimizeControl();
+        }
     }, false);
-    document.getElementById("controls-min").addEventListener("click", function(e) {
+    function minimizeControlList(e) {
         document.querySelector(".controls").style.display = 'none';
         document.getElementById("controls-max").style.display = 'block';
         this.style.display = 'none';
-    }, false);
+    }
+    document.getElementById("controls-min").addEventListener("click", minimizeControlList, false);
+    
+    // Check screen size
+    function isSmallScreen() {
+        return ((window.innerWidth > 0) ? window.innerWidth : screen.width) <= 768;
+    }
+    // Initially hide controls if screen is small
+    if (isSmallScreen()) {
+        minimizeControlList.call(document.getElementById("controls-min"));
+        layerSwitcher.minimizeControl();
+    }
 
     // Show/hide X/Y coordinate display
     document.getElementById("coordControl").addEventListener("change", function(e) {
