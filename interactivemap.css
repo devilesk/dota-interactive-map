@@ -86,7 +86,7 @@ div.olControlZoom a:hover {
     transform: rotate(180deg);
 }
 
-.maximizeDiv {
+.controls-button.maximizeDiv {
     transform: rotate(90deg);
 }
 
