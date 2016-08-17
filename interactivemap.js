@@ -1,6 +1,5 @@
-$(function() {
-    var DEBUG = true,
-        ENTITIES = {
+(function() {
+    var ENTITIES = {
             observer: {
                 icon_path: "ward_observer.png",
                 radius: 1600
@@ -101,9 +100,7 @@ $(function() {
                 fillOpacity: .4
             }
         },
-        treeMarkers = {},
-        jstsToOpenLayersParser = new jsts.io.OpenLayersParser(),
-        geometryFactory = new jsts.geom.GeometryFactory();
+        treeMarkers = {};
 
     /***********************************
      * QUERY STRING FUNCTIONS *
@@ -539,12 +536,7 @@ $(function() {
             }
             // Create neutral spawn markers and rectangles
             else if (k == "trigger_multiple") {
-                if (DEBUG) {
-                    loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
-                    //generateBoxesKML(markers, data, k, 'npc_dota_neutral_spawner_box', false);
-                } else {
-                    loadKMLData(markers, k, "npc_dota_neutral_spawner_box", "trigger_multiple.kml");
-                }
+                loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
             }
         });
 
@@ -601,107 +593,6 @@ $(function() {
             ln = new OpenLayers.Geometry.LinearRing(pnt);
             pf = new OpenLayers.Feature.Vector(ln, null, style.green);
             markers[name].addFeatures([pf]);
-        }
-    }
-
-    function loadKMLData(markers, k, name, filename) {
-        markers[name] = new OpenLayers.Layer.Vector(layerNames[k], {
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-                url: filename,
-                format: new OpenLayers.Format.KML({
-                    extractStyles: true,
-                    extractAttributes: true
-                })
-            })
-        });
-        map.addLayer(markers[name]);
-        markers[name].setVisibility(false);
-    }
-
-    // when DEBUG == false this code will be removed by UglifyJS dead code removal
-    if (DEBUG) {
-        function generatePointSquaresKML(markers, k, layerName) {
-            console.log(k, 'start');
-            markers[layerName] = new OpenLayers.Layer.Vector(layerNames[k]);
-            map.addLayer(markers[layerName]);
-            markers[layerName].setVisibility(false);
-            var union = null
-            for (var i = 0; i < data[k].length; i++) {
-                box_points = [];
-                var latlon;
-                latlon = worldToLatLon(data[k][i][0] - 32, data[k][i][1] + 32);
-                box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                latlon = worldToLatLon(data[k][i][0] + 32, data[k][i][1] + 32);
-                box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                latlon = worldToLatLon(data[k][i][0] + 32, data[k][i][1] - 32);
-                box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                latlon = worldToLatLon(data[k][i][0] - 32, data[k][i][1] - 32);
-                box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                latlon = worldToLatLon(data[k][i][0] - 32, data[k][i][1] + 32);
-                box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                shell = geometryFactory.createLinearRing(box_points);
-                jstsPolygon = geometryFactory.createPolygon(shell);
-
-                if (union == null) {
-                    union = jstsPolygon;
-                } else {
-                    union = union.union(jstsPolygon);
-                }
-            }
-            union = jstsToOpenLayersParser.write(union);
-            box_feature = new OpenLayers.Feature.Vector(union, null, style.red);
-            markers[layerName].addFeatures([box_feature]);
-            console.log(k, 'end');
-
-            // export to KML
-            kmlParser = new OpenLayers.Format.KML()
-            console.log(kmlParser.write(box_feature));
-        }
-
-        function generateBoxesKML(markers, data, k, layerName, combine) {
-            console.log(k, 'start');
-            markers[layerName] = new OpenLayers.Layer.Vector(layerNames[k]);
-            map.addLayer(markers[layerName]);
-            markers[layerName].setVisibility(false);
-            var union = null;
-            var box_features = [];
-            for (var i = 0; i < data[k].length; i++) {
-                box_points = [];
-                box_points2 = [];
-                for (var j = 0; j < data[k][i].length; j++) {
-                    var latlon = worldToLatLon(data[k][i][j].x, data[k][i][j].y);
-                    box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                    box_points2.push(new OpenLayers.Geometry.Point(latlon.x, latlon.y));
-                }
-                var latlon = worldToLatLon(data[k][i][0].x, data[k][i][0].y);
-                box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-                shell = geometryFactory.createLinearRing(box_points);
-                jstsPolygon = geometryFactory.createPolygon(shell);
-
-                if (union == null) {
-                    union = jstsPolygon;
-                } else {
-                    union = union.union(jstsPolygon);
-                }
-
-                box_rect = new OpenLayers.Geometry.LinearRing(box_points2);
-                box_feature2 = new OpenLayers.Feature.Vector(box_rect, null, style.green);
-                box_features.push(box_feature2);
-            }
-            union = jstsToOpenLayersParser.write(union);
-            box_feature = new OpenLayers.Feature.Vector(union, null, style.red);
-            markers[layerName].addFeatures([box_feature]);
-            console.log(k, 'end');
-
-            // export to KML
-            kmlParser = new OpenLayers.Format.KML()
-            if (combine) {
-                console.log(kmlParser.write(box_feature));
-            } else {
-                console.log(kmlParser.write(box_features));
-                console.log(box_features);
-            }
         }
     }
 
@@ -1017,61 +908,4 @@ $(function() {
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
 
     getJSON(map_data_path, onMapDataLoad);
-    
-    // Adjustment controls for fine-tuning map boundaries
-    if (DEBUG) {
-        function updateMarkers() {
-            console.log('updateMarkers');
-            var layer = map.getLayersByName("Towers")[0];
-            layer.clearMarkers();
-            map_x_boundaries[0] = parseInt(document.getElementById('xmin').value);
-            map_x_boundaries[1] = parseInt(document.getElementById('xmax').value);
-            map_y_boundaries[0] = parseInt(document.getElementById('ymin').value);
-            map_y_boundaries[1] = parseInt(document.getElementById('ymax').value);
-            var data = map_data.npc_dota_tower;
-            for (var i = 0; i < data.length; i++) {
-                var latlon = worldToLatLon(data[i].x, data[i].y);
-                marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
-                marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
-                marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
-                marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
-                marker.attack_range_radius = TOWER_ATTACK_RANGE_RADIUS;
-                marker.showInfo = false;
-
-                marker.events.register("mousedown", layer, handleTowerMarkerClick);
-                marker.tower_loc = data[i];
-            }
-            layer = map.getLayersByName(layerNames["trigger_multiple"])[0];
-            layer.destroyFeatures();
-            data = map_data.trigger_multiple;
-            for (var i = 0; i < data.length; i++) {
-                pnt = [];
-                for (var j = 0; j < data[i].length; j++) {
-                    var latlon = worldToLatLon(data[i][j].x, data[i][j].y);
-                    //console.log(latlon.x, latlon.y);
-                    //pnt.push(new OpenLayers.Geometry.Point(data[i][j][0], 5120 - data[i][j][1]));
-                    pnt.push(new OpenLayers.Geometry.Point(latlon.x, latlon.y));
-                }
-
-
-                ln = new OpenLayers.Geometry.LinearRing(pnt);
-                pf = new OpenLayers.Feature.Vector(ln, null, style.green);
-                layer.addFeatures([pf]);
-            }
-            //loadJSONData({}, 'trigger_multiple', "npc_dota_neutral_spawner_box", map_data['trigger_multiple']);
-            //loadKMLData({}, 'trigger_multiple', "npc_dota_neutral_spawner_box", "trigger_multiple.kml")
-            //console.log('updatemarkers', layer);
-        }
-        document.getElementById('update').addEventListener('click', updateMarkers, false);
-        document.getElementById('xmin').value = map_x_boundaries[0];
-        document.getElementById('xmax').value = map_x_boundaries[1];
-        document.getElementById('ymin').value = map_y_boundaries[0];
-        document.getElementById('ymax').value = map_y_boundaries[1];
-        document.getElementById('xmin').addEventListener('change', updateMarkers, false);
-        document.getElementById('xmax').addEventListener('change', updateMarkers, false);
-        document.getElementById('ymin').addEventListener('change', updateMarkers, false);
-        document.getElementById('ymax').addEventListener('change', updateMarkers, false);
-        $('.bound').spinner();
-        $(".bound").on("spin", updateMarkers);
-    }
 }());

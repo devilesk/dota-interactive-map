@@ -6,7 +6,6 @@
         <meta name="author" content="devilesk">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
         <link rel="stylesheet" type="text/css" href="OpenLayers/theme/default/style.css">
 		<link rel="stylesheet" type="text/css" href="interactivemap.css" />
 	</head>
@@ -36,13 +35,6 @@
                     <li>
                         <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/> Show Coordinates</label>
                     </li>
-                    <li>
-                        <button id="update">UPDATE</button><br>
-                        xmin<input type="text" id="xmin" value="0" class="bound" /><br>
-                        xmax<input type="text" id="xmax" value="0" class="bound" /><br>
-                        ymin<input type="text" id="ymin" value="0" class="bound" /><br>
-                        ymax<input type="text" id="ymax" value="0" class="bound" />
-                    </li>
                 </ul>
                 <div id="output-panel">
                     <div id="output"></div>
@@ -53,8 +45,6 @@
                 </div>
             </div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/external/jquery/jquery.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
         <script src="ol2/build/OpenLayers.js"></script>
         <script type="text/javascript">
 
@@ -69,8 +59,6 @@
           })();
 
         </script>
-        <script src="javascript.util.js"></script>
-        <script src="jsts.js"></script>
         <script src="interactivemap.js"></script>
 	</body>
 </html>
