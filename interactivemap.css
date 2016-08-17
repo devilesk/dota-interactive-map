@@ -14,21 +14,6 @@ img[src="ward_observer.png"]:hover, img[src="ward_sentry.png"]:hover {
     z-index:1000;
     color:white;
 }
-#controls img {
-    -moz-transform: scaleX(-1);
-    -o-transform: scaleX(-1);
-    -webkit-transform: scaleX(-1);
-    transform: scaleX(-1);
-    filter: FlipH;
-    -ms-filter: "FlipH";
-}
-#controls img:hover {
-	cursor:pointer;
-	cursor:hand;
-}
-#controls-max {
-	display:none;
-}
 #controls-list {
 	font-family:sans-serif;
 	font-weight:bold;
@@ -40,14 +25,6 @@ img[src="ward_observer.png"]:hover, img[src="ward_sentry.png"]:hover {
 #controls-list li{
 	padding:0px 5px;
 }
-div.olControlMousePosition {
-    position:absolute;
-    bottom:0px;
-    right:0px;
-    background-color:white;
-    color:black;
-    padding:3px 5px;
-}
 #output-panel {
 	padding:5px 10px 5px 25px;
 }
@@ -58,6 +35,15 @@ div.olControlMousePosition {
 }
 #movespeed-container {
     padding-left: 49px;
+}
+
+div.olControlMousePosition {
+    position:absolute;
+    bottom:0px;
+    right:0px;
+    background-color:white;
+    color:black;
+    padding:3px 5px;
 }
 
 div.olControlZoom a {
@@ -80,6 +66,9 @@ div.olControlZoom a:hover {
 	border-radius: 0 15px 15px 0 !important;
 }
 
+.controls-button:hover {
+    cursor: pointer;
+}
 .controls-button {
     position: absolute;
     top: 5px;
@@ -87,6 +76,7 @@ div.olControlZoom a:hover {
 }
 
 .controls-button.maximizeDiv {
+    display: none;
     transform: rotate(90deg);
 }
 
