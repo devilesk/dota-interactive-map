@@ -1,0 +1,27 @@
+{
+  "name": "dota-interactive-map",
+  "version": "1.0.0",
+  "description": "Interactive Dota 2 Map",
+  "main": "interactivemap.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dota",
+    "map"
+  ],
+  "author": "devilesk",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^2.0.12",
+    "gulp-concat": "^2.6.0",
+    "gulp-imagemin": "^3.0.3",
+    "gulp-preprocess": "^2.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sequence": "^0.4.5",
+    "gulp-uglify": "^2.0.0",
+    "pump": "^1.0.1"
+  }
+}
