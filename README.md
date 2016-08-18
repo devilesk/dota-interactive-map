@@ -1,3 +1,5 @@
 #dota-interactive-map
 
-Upcoming interactive dota map for patch 6.87
+Interactive dota map for patch 6.87
+
+http://devilesk.com/dota2/apps/interactivemap3/
