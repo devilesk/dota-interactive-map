@@ -7,8 +7,11 @@ var imagemin = require('gulp-imagemin');
 var gulpSequence = require('gulp-sequence');
 var uglify = require('gulp-uglify');
 var pump = require('pump');
-var path = require('path')
+var del = require('del');
+var path = require('path');
 var spawn = require('child_process').spawn;
+
+var deploy_dir = '/srv/www/devilesk.com/dota2/apps/interactivemap3';
 
 gulp.task('default', ['build']);
 
@@ -60,4 +63,22 @@ gulp.task('copy-data', function () {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('build', gulpSequence(['css', 'html', 'image', 'build-ol', 'copy-data'], 'minify'));
+gulp.task('clean-build', function () {
+    return del([
+        'dist/**/*'
+    ], {force: true});
+});
+
+gulp.task('build', gulpSequence('clean-build', ['css', 'html', 'image', 'build-ol', 'copy-data'], 'minify'));
+
+gulp.task('clean', function () {
+    return del([
+        deploy_dir +'/**/*'
+    ], {force: true});
+});
+
+gulp.task('deploy', ['clean'], function () {
+    return gulp
+        .src('dist/**/*')
+        .pipe(gulp.dest(deploy_dir));
+});

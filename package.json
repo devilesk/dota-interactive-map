@@ -22,6 +22,7 @@
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "private": true,
   "devDependencies": {
+    "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-clean-css": "^2.0.12",
     "gulp-concat": "^2.6.0",
