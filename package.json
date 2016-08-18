@@ -10,8 +10,16 @@
     "dota",
     "map"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devilesk/dota-interactive-map.git"
+  },
   "author": "devilesk",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devilesk/dota-interactive-map/issues"
+  },
+  "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "private": true,
   "devDependencies": {
     "gulp": "^3.9.1",
