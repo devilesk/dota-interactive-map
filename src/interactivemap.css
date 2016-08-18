@@ -58,43 +58,76 @@ div.olControlZoom a:hover {
     background-color: rgba(34, 34, 34, 0.7) !important; 
     padding: 5px 10px;
 	border-radius: 15px 0 0 15px !important;
+    box-shadow: -1px 1px 1px 1px rgb(34, 34, 34);
 }
 
 .controls {
     background-color: rgba(34, 34, 34, 0.7) !important; 
     padding: 5px 10px;
 	border-radius: 0 15px 15px 0 !important;
+    box-shadow: 1px 1px 1px 1px rgb(34, 34, 34);
 }
 
-.controls-button:hover {
-    cursor: pointer;
-}
-.controls-button {
+.controls-button, .olControlLayerSwitcher .minimizeDiv, .olControlLayerSwitcher .maximizeDiv {
     position: absolute;
     top: 5px;
-    transform: rotate(180deg);
+    color: white;
+    text-decoration: none;
+    width: 22px;
+    height: 22px;
+    line-height: 19px;
+    font-size: 19px;
+    text-align: center;
+    background-color: black;
+    background-color: rgba(0, 0, 0, 0.7);
+    font-weight: bold;
+    font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+}
+
+.maximizeDiv::before {
+    background-color: rgba(255,255,255,0.4);
+    width: 22px;
+    height: 22px;
+    content: "";
+    position: absolute;
+    z-index: -1;
+    padding: 3px 3px 3px 0px;
+    top: -3px;
+
+}
+.controls-button.maximizeDiv::before {
+    left: 0px;
+}
+.olControlLayerSwitcher .maximizeDiv::before {
+    right: 0px;
+}
+
+.controls-button, .controls-button.maximizeDiv::before {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 .controls-button.maximizeDiv {
     display: none;
-    transform: rotate(90deg);
+}
+
+.olControlLayerSwitcher .minimizeDiv, .olControlLayerSwitcher .maximizeDiv, .olControlLayerSwitcher .maximizeDiv::before {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
 }
 
 @media screen and (max-width: 768px) {
-    div.olControlZoom a {
+    .controls-button, div.olControlZoom a, .olControlLayerSwitcher .maximizeDiv, .olControlLayerSwitcher .minimizeDiv, .maximizeDiv::before {
         width: 50px;
         height: 50px;
-        line-height: 50px;
+        line-height: 49px;
+        font-size: 40px;
     }
     .controls-container {
         top:150px;
     }
     #controls-list {
         padding: 3px 10px 5px 50px;
-    }
-    #controls-min, #controls-max, .olControlLayerSwitcher .maximizeDiv, .olControlLayerSwitcher .minimizeDiv {
-        width: 50px;
-        height: 50px;
     }
     #OpenLayers_Control_MaximizeDiv_innerImage, #OpenLayers_Control_MinimizeDiv_innerImage {
         width: 100%;
