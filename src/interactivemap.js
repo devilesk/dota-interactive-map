@@ -16,7 +16,7 @@
         TOWER_ATTACK_RANGE_RADIUS = 700,
         map_data_path = "data.json",
         map_data,
-        map_tile_path = "http://devilesk.com/media/images/map/687/",
+        map_tile_path = "http://devilesk.com/media/images/map/",
         map_w = 16384,
         map_h = 16384,
         map_x_boundaries = [-8475.58617377, 9327.49124559],
@@ -45,17 +45,21 @@
             ent_fow_blocker_node: "Vision Blocker"
         },
         baseLayers = [
-            new OpenLayers.Layer.TMS("Default", map_tile_path, {
+            new OpenLayers.Layer.TMS('7.00 Default', map_tile_path, {
                 type: "jpg",
-                getURL: getMyURL('default')
+                getURL: getMyURL('700', 'default')
             }),
-            new OpenLayers.Layer.TMS("Desert", map_tile_path, {
+            new OpenLayers.Layer.TMS('6.87 Default', map_tile_path, {
                 type: "jpg",
-                getURL: getMyURL('desert')
+                getURL: getMyURL('687', 'default')
             }),
-            new OpenLayers.Layer.TMS("Immortal Gardens", map_tile_path, {
+            new OpenLayers.Layer.TMS('6.87 Desert', map_tile_path, {
                 type: "jpg",
-                getURL: getMyURL('immortalgardens')
+                getURL: getMyURL('687', 'desert')
+            }),
+            new OpenLayers.Layer.TMS('6.87 Immortal Gardens', map_tile_path, {
+                type: "jpg",
+                getURL: getMyURL('687', 'immortalgardens')
             })
         ],
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
@@ -139,21 +143,21 @@
     }
 
     function setQueryString(key, value) {
-        history.pushState(null, "", updateQueryString(key, value));
+        history.replaceState(null, "", updateQueryString(key, value));
     }
 
     function addQueryStringValue(key, value) {
         console.log('addQueryStringValue', key, value);
         var qs = getParameterByName(key);
         qs = trim(trim(qs, ' ;') + ';' + value, ' ;');
-        history.pushState(null, "", updateQueryString(key, qs));
+        history.replaceState(null, "", updateQueryString(key, qs));
     }
 
     function removeQueryStringValue(key, value) {
         console.log('removeQueryStringValue', key, value);
         var qs = getParameterByName(key);
         qs = trim(trim(qs, ' ;').replace(value, '').replace(/;;/g, ''), ' ;');
-        history.pushState(null, "", updateQueryString(key, qs != '' ? qs : null));
+        history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));
     }
 
     function updateQueryString(key, value, url) {
@@ -482,7 +486,7 @@
     }
 
     // creates url for tiles. OpenLayers TMS Layer getURL property is set to this
-    function getMyURL(baseLayer) {
+    function getMyURL(patch, baseLayer) {
         return function(bounds) {
             //console.log('getMyURL', baseLayer);
             var res = this.map.getResolution(),
@@ -495,7 +499,7 @@
             if (url instanceof Array) {
                 url = this.selectUrl(path, url)
             }
-            return url + baseLayer + '/' + path
+            return url + patch + '/' + baseLayer + '/' + path
         }
     }
 
