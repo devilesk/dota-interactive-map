@@ -59,7 +59,8 @@ gulp.task('minify', function (cb) {
 
 gulp.task('copy-data', function () {
     return gulp
-        .src('src/data.json')
+        .src('src/data687.json'),
+        .src('src/data700.json')
         .pipe(gulp.dest('dist'));
 });
 

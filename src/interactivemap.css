@@ -25,6 +25,12 @@ img[src="img/ward_observer.png"]:hover, img[src="img/ward_sentry.png"]:hover {
 #controls-list li{
 	padding:0px 5px;
 }
+#controls-list #dataControl-container{
+    margin-top: 3px;
+}
+#controls-list #dataControl-label{
+	margin-left: 25px;
+}
 #output-panel {
 	padding:5px 10px 5px 25px;
 }

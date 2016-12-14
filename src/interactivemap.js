@@ -14,7 +14,7 @@
         TOWER_NIGHT_VISION_RADIUS = 800,
         TOWER_TRUE_SIGHT_RADIUS = 900,
         TOWER_ATTACK_RANGE_RADIUS = 700,
-        map_data_path = "data.json",
+        map_data_path = "data",
         map_data,
         map_tile_path = "http://devilesk.com/media/images/map/",
         map_w = 16384,
@@ -30,10 +30,13 @@
             maxResolution: Math.pow(2, 5-1 ),
             units: "m"
         }),
+        layerKeys = ["npc_dota_roshan_spawner","trigger_multiple","ent_dota_tree","dota_item_rune_spawner","dota_item_rune_spawner_bounty","ent_dota_shop","npc_dota_barracks","npc_dota_building","npc_dota_healer","npc_dota_fort","npc_dota_tower"],
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
             dota_item_rune_spawner: "Runes",
+            dota_item_rune_spawner_bounty: "Bounty Runes",
             ent_dota_tree: "Trees",
+            npc_dota_healer: "Shrines",
             npc_dota_fort: "Ancients",
             ent_dota_shop: "Shops",
             npc_dota_tower: "Towers",
@@ -281,7 +284,8 @@
             if (!skipQueryStringUpdate) addQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
 
             var lonlat = worldToLatLon(e.object.tower_loc.x, e.object.tower_loc.y);
-        } else {
+        }
+        else {
             dayRangeLayer.removeFeatures(e.object.day_vision_feature);
             nightRangeLayer.removeFeatures(e.object.night_vision_feature);
             trueSightRangeLayer.removeFeatures(e.object.true_sight_feature);
@@ -502,6 +506,22 @@
             return url + patch + '/' + baseLayer + '/' + path
         }
     }
+    
+    function resetMarkerLayers() {
+        var data = map_data;
+        layerKeys.forEach(function (k) {
+            if (data[k]) {
+                var layer = map.getLayersByName(layerNames[k])[0];
+                map.removeLayer(layer);
+                layer.destroy();
+            }
+        });
+        dayRangeLayer.destroyFeatures();
+        nightRangeLayer.destroyFeatures();
+        trueSightRangeLayer.destroyFeatures();
+        attackRangeLayer.destroyFeatures();
+        map.events.unregister("changelayer", map, layerChangeHandler);
+    }
 
     function onMapDataLoad(data) {
         var markers = {},
@@ -509,40 +529,42 @@
             vectorLayer = map.getLayersByName("Placed Wards")[0],
             box_points = [],
             box_rect, box_feature;
-        ["trigger_multiple","ent_dota_tree","dota_item_rune_spawner","ent_dota_shop","npc_dota_barracks","npc_dota_building","npc_dota_fort","npc_dota_tower"].forEach(function (k) {
-            console.log(k);
-            // Create markers for non-neutral spawn box and non-tree layers
-            if (k != "trigger_multiple" && k != "ent_dota_tree" && k != "trigger_no_wards" && k != "ent_fow_blocker_node") {
-                markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
-                map.addLayer(markers[k]);
-                markers[k].setVisibility(false);
-                for (var i = 0; i < data[k].length; i++) {
-                    var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
-                    marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
-                    marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
-                    marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
-                    marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
-                    marker.attack_range_radius = TOWER_ATTACK_RANGE_RADIUS;
-                    marker.showInfo = false;
+        layerKeys.forEach(function (k) {
+            console.log('onMapDataLoad', k);
+            if (data[k]) {
+                // Create markers for non-neutral spawn box and non-tree layers
+                if (k != "trigger_multiple" && k != "ent_dota_tree" && k != "trigger_no_wards" && k != "ent_fow_blocker_node") {
+                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
+                    map.addLayer(markers[k]);
+                    markers[k].setVisibility(false);
+                    for (var i = 0; i < data[k].length; i++) {
+                        var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
+                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
+                        marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
+                        marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
+                        marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
+                        marker.attack_range_radius = TOWER_ATTACK_RANGE_RADIUS;
+                        marker.showInfo = false;
 
-                    if (k == "npc_dota_tower") {
-                        console.log('npc_dota_tower');
-                        marker.events.register("mousedown", markers[k], handleTowerMarkerClick);
-                        marker.events.register("touchend", markers[k], handleTowerMarkerClick);
-                        marker.tower_loc = data[k][i];
+                        if (k == "npc_dota_tower") {
+                            console.log('npc_dota_tower');
+                            marker.events.register("mousedown", markers[k], handleTowerMarkerClick);
+                            marker.events.register("touchend", markers[k], handleTowerMarkerClick);
+                            marker.tower_loc = data[k][i];
+                        }
                     }
                 }
-            }
-            // Set up tree layer without creating tree markers yet
-            else if (k == "ent_dota_tree") {
-                markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
-                map.addLayer(markers[k]);
-                markers[k].setVisibility(false);
-                markers[k].data = data[k];
-            }
-            // Create neutral spawn markers and rectangles
-            else if (k == "trigger_multiple") {
-                loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
+                // Set up tree layer without creating tree markers yet
+                else if (k == "ent_dota_tree") {
+                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
+                    map.addLayer(markers[k]);
+                    markers[k].setVisibility(false);
+                    markers[k].data = data[k];
+                }
+                // Create neutral spawn markers and rectangles
+                else if (k == "trigger_multiple") {
+                    loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
+                }
             }
         });
 
@@ -551,28 +573,30 @@
         map.raiseLayer(vectorLayer, map.layers.length);
 
         // Create tree markers the first time the tree layer is switched to
-        map.events.register("changelayer", null, function(event) {
-            if (event.property === "visibility" && event.layer.name == layerNames["ent_dota_tree"] && !event.layer.loaded) {
-                loadTreeData();
-            }
-
-            if (event.property === "visibility") {
-                console.log(event.layer.name, event.layer.visibility, event.layer.isBaseLayer);
-                if (event.layer.isBaseLayer) {
-                    setQueryString('BaseLayer', event.layer.name.replace(/ /g, ''));
-                }
-                else {
-                    setQueryString(event.layer.name.replace(/ /g, ''), event.layer.visibility ? true : null);
-                }
-            }
-        });
+        map.events.register("changelayer", map, layerChangeHandler);
 
         parseQueryString();
+    }
+    
+    function layerChangeHandler(event) {
+        if (event.property === "visibility" && event.layer.name == layerNames["ent_dota_tree"] && !event.layer.loaded) {
+            loadTreeData();
+        }
+
+        if (event.property === "visibility") {
+            if (event.layer.isBaseLayer) {
+                setQueryString('BaseLayer', event.layer.name.replace(/ /g, ''));
+            }
+            else {
+                setQueryString(event.layer.name.replace(/ /g, ''), event.layer.visibility ? true : null);
+            }
+        }
     }
 
     function loadTreeData() {
         console.log('start tree load');
         var layer = map.getLayersByName(layerNames["ent_dota_tree"])[0];
+        console.log(layer);
         for (var i = 0; i < layer.data.length; i++) {
             var latlon = worldToLatLon(layer.data[i].x, layer.data[i].y);
             marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle tree as alive or cut-down.<br>This will affect the simulated placed wards vision.<br>Tree coordinate: " + layer.data[i].x + ', ' + layer.data[i].y, false);
@@ -646,7 +670,7 @@
             if (value) {
                 var layer = map.getLayersByName(layerNames[k])[0];
                 console.log(layer, layerNames[k], layerName);
-                layer.setVisibility(value == "true");
+                if (layer) layer.setVisibility(value == "true");
             }
         }
 
@@ -669,6 +693,7 @@
     }
 
     function getJSON(path, callback) {
+        console.log('getJSON', path);
         var request = new XMLHttpRequest();
 
         request.open('GET', path, true);
@@ -975,6 +1000,20 @@
     document.getElementById('circleToggle').addEventListener('click', toggleControl, false);
     document.getElementById('observerToggle').addEventListener('click', toggleControl, false);
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
-
-    getJSON(map_data_path, onMapDataLoad);
+    
+    document.getElementById('dataControl').addEventListener('change', function () {
+        setQueryString('data', document.getElementById('dataControl').value);
+        resetMarkerLayers();
+        init();
+    }, false);
+    
+    function init() {
+        var data = getParameterByName('data');
+        if (data) {
+            document.getElementById('dataControl').value = data;
+        }
+        getJSON(map_data_path + document.getElementById('dataControl').value + '.json', onMapDataLoad);
+    }
+    
+    init();
 }());
