@@ -16,7 +16,6 @@
         TOWER_ATTACK_RANGE_RADIUS = 700,
         map_data_path = "data",
         map_data,
-        map_tile_path = "http://devilesk.com/media/images/map/",
         map_w = 16384,
         map_h = 16384,
         map_x_boundaries = [-8475.58617377, 9327.49124559],

@@ -4,6 +4,18 @@
   "description": "Interactive Dota 2 Map",
   "main": "interactivemap.js",
   "scripts": {
+    "clean:build": "rm -rf build/*",
+    "build:js": "cat ol2/build/OpenLayers.js src/interactivemap.js | uglifyjs --compress drop_console,dead_code --mangle > build/interactivemap.min.js",
+    "build:ol": "node scripts/build_ol.js",
+    "build:img": "imagemin src/img/* --out-dir=build/img",
+    "build:css": "cleancss --skip-rebase -o build/app.min.css src/*.css",
+    "build:html": "NODE_ENV=prod node scripts/preprocess.js",
+    "build:copy": "cp src/*.json build/",
+    "build": "npm run clean:build && npm run build:ol && npm run build:js && npm run build:img && npm run build:css && npm run build:html && npm run build:copy",
+    "stage:rev": "node scripts/rev.js",
+    "stage": "npm run build && npm run stage:rev",
+    "deploy:copy": "node scripts/deploy.js",
+    "deploy": "npm run stage && npm run deploy:copy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -22,15 +34,13 @@
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "private": true,
   "devDependencies": {
+    "clean-css": "^3.4.22",
     "del": "^2.2.2",
-    "gulp": "^3.9.1",
-    "gulp-clean-css": "^2.0.12",
-    "gulp-concat": "^2.6.0",
-    "gulp-imagemin": "^3.0.3",
-    "gulp-preprocess": "^2.0.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-sequence": "^0.4.5",
-    "gulp-uglify": "^2.0.0",
-    "pump": "^1.0.1"
+    "git-rev-sync": "^1.8.0",
+    "glob": "^7.1.1",
+    "imagemin-cli": "^3.0.0",
+    "preprocess": "^3.1.0",
+    "replace": "^0.3.0",
+    "uglify-js": "^2.7.5"
   }
 }

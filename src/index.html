@@ -6,10 +6,13 @@
         <meta name="author" content="devilesk">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-        <!-- @if NODE_ENV='development' -->
+        <!-- @if NODE_ENV='dev' -->
         <link rel="stylesheet" type="text/css" href="openlayers.css">
-        <!-- @endif -->
         <link rel="stylesheet" type="text/css" href="interactivemap.css" />
+        <!-- @endif -->
+        <!-- @if NODE_ENV='prod' !>
+        <link rel="stylesheet" type="text/css" href="app.min.css">
+        <!-- @endif -->
 	</head>
 	<body>
 		<div id="map"></div>
@@ -67,9 +70,20 @@
           })();
 
         </script>
-        <!-- @if NODE_ENV='development' -->
+        <!-- @if NODE_ENV='dev' -->
         <script src="../ol2/build/OpenLayers.js"></script>
-        <!-- @endif -->
+        <script>
+            var map_tile_path = "http://devilesk.com/media/images/map/";
+        </script>
         <script src="interactivemap.js"></script>
+        <!-- @endif -->
+        <script>
+            <!-- @if NODE_ENV='prod' !>
+            var map_tile_path = "<!-- @echo map_data_path -->";
+            <!-- @endif -->
+        </script>
+        <!-- @if NODE_ENV='prod' !>
+        <script src="interactivemap.min.js"></script>
+        <!-- @endif -->
 	</body>
 </html>
