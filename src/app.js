@@ -1055,10 +1055,7 @@ function App(map_tile_path, vision_data_image_path) {
         }
         getJSON(map_data_path + document.getElementById('dataControl').value + '.json', onMapDataLoad);
     }
-  
-    var wkt = new OpenLayers.Format.WKT();
-    var jstsToWKTParser = new jsts.io.WKTWriter();
-    var geometryFactory = new jsts.geom.GeometryFactory();
+
     function updateVisibility(latlon, marker, radius) {
         console.log('updateVisibility ready');
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
@@ -1286,41 +1283,11 @@ function App(map_tile_path, vision_data_image_path) {
                 polygonList.push(polygon);
             }
             var multiPolygon = new OpenLayers.Geometry.MultiPolygon(polygonList);
-            var multiPolygonFeature = new OpenLayers.Feature.Vector(multiPolygon, style.red);
-            visionSimulationLayer.addFeatures([multiPolygonFeature]);
-            console.log('outline', Date.now() - t1);
-            
-            for (var i = 0; i < lightPoints.length; i++) {
-                var c = lightPoints[i],
-                    r1 = worldToLatLon(c.x, c.y),
-                    r2 = worldToLatLon(c.x + 64, c.y),
-                    r3 = worldToLatLon(c.x + 64, c.y - 64),
-                    r4 = worldToLatLon(c.x, c.y - 64),
-                    shell = geometryFactory.createLinearRing([
-                        new jsts.geom.Coordinate(r1.x, r1.y),
-                        new jsts.geom.Coordinate(r2.x, r2.y),
-                        new jsts.geom.Coordinate(r3.x, r3.y),
-                        new jsts.geom.Coordinate(r4.x, r4.y),
-                        new jsts.geom.Coordinate(r1.x, r1.y)
-                    ]),
-                    jstsPolygon = geometryFactory.createPolygon(shell);
-
-                if (union == null) {
-                    union = jstsPolygon;
-                } else {
-                    union = union.union(jstsPolygon);
-                }
-            }
-            var t2 = Date.now();
-            // add vision polygon to map
-            var visionFeature = wkt.read(jstsToWKTParser.write(union));
-            visionFeature.style = style.yellow;
+            var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
             visionSimulationLayer.addFeatures([visionFeature]);
             marker.vision_feature = visionFeature;
-            var t3 = Date.now();
+            var t2 = Date.now();
             console.log('union', t2 - t1);
-            console.log('draw', t3 - t2);
-            console.log('total', t3 - t1);
         }
     }
     
