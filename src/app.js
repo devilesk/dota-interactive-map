@@ -1066,55 +1066,8 @@ function App(map_tile_path, vision_data_image_path) {
         });
         markers[k].style = style;
         map.addLayer(markers[k]);
-        //markers[k].setVisibility(false);
         console.log(markers[k]);
     }
-    
-    /*function generatePointSquaresGeoJSON(markers, data, layerName, layerDisplayname) {
-        console.log('generatePointSquaresGeoJSON start');
-        markers[layerName] = new OpenLayers.Layer.Vector(layerDisplayname);
-        map.addLayer(markers[layerName]);
-        markers[layerName].setVisibility(false);
-        var union = null
-        console.log(Object.keys(data).length);
-        var c = 0;
-        for (key in data) {
-            var pt = vs.key2pt(key);
-            var worldXY = vs.GridXYtoWorldXY(pt.x, pt.y);
-            var box_points = [];
-            var latlon;
-            latlon = worldToLatLon(worldXY.x - 32, worldXY.y + 32);
-            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-            latlon = worldToLatLon(worldXY.x + 32, worldXY.y + 32);
-            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-            latlon = worldToLatLon(worldXY.x + 32, worldXY.y - 32);
-            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-            latlon = worldToLatLon(worldXY.x - 32, worldXY.y - 32);
-            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-            latlon = worldToLatLon(worldXY.x - 32, worldXY.y + 32);
-            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
-            var shell = geometryFactory.createLinearRing(box_points);
-            var jstsPolygon = geometryFactory.createPolygon(shell);
-
-            if (union == null) {
-                union = jstsPolygon;
-            } else {
-                union = union.union(jstsPolygon);
-            }
-            
-            c++;
-            if (c % 200 === 0) console.log(c);
-        }
-        console.log('generatePointSquaresGeoJSON loop done');
-        union = jstsToOpenLayersParser.write(union);
-        box_feature = new OpenLayers.Feature.Vector(union, null, style.red);
-        markers[layerName].addFeatures([box_feature]);
-        console.log('generatePointSquaresGeoJSON end');
-
-        // export to KML
-        parser = new OpenLayers.Format.GeoJSON()
-        console.log(parser.write(box_feature));
-    }*/
 }
 
 module.exports = App;
