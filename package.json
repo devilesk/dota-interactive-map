@@ -37,6 +37,7 @@
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "private": true,
   "devDependencies": {
+    "@turf/union": "^3.7.0",
     "browserify": "^13.1.1",
     "clean-css": "^3.4.22",
     "del": "^2.2.2",
@@ -44,6 +45,7 @@
     "git-rev-sync": "^1.8.0",
     "glob": "^7.1.1",
     "imagemin-cli": "^3.0.0",
+    "polybooljs": "^1.1.1",
     "preprocess": "^3.1.0",
     "replace": "^0.3.0",
     "uglify-js": "^2.7.5"
