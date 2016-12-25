@@ -6,7 +6,7 @@
         <meta name="author" content="devilesk">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="app.min.4162465.css">
+        <link rel="stylesheet" type="text/css" href="app.min.f580e6a.css">
 	</head>
 	<body>
 		<div id="map"></div>
@@ -32,6 +32,9 @@
                         <label for="sentryToggle"><input type="radio" name="type" value="sentryclick" id="sentryToggle" /> Place Sentry Ward</label>
                     </li>
                     <li>
+                        <label for="visionSimulationControl"><input type="checkbox" id="visionSimulationControl" checked=true/> Vision Simulation</label>
+                    </li>
+                    <li>
                         <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/> Show Coordinates</label>
                     </li>
                     <li id="dataControl-container">
@@ -51,22 +54,13 @@
                 </div>
             </div>
         </div>
-        <script type="text/javascript">
-
-          var _gaq = _gaq || [];
-          _gaq.push(['_setAccount', 'UA-39435120-1']);
-          _gaq.push(['_trackPageview']);
-
-          (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-          })();
-
-        </script>
+        <script src="bundle.min.f580e6a.js"></script>
+        <script>InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.f580e6a.png');</script>
         <script>
-            var map_tile_path = "http://devilesk.com/media/images/map/";
+        window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+        ga('create', 'UA-39435120-1', 'auto');
+        ga('send', 'pageview');
         </script>
-        <script src="interactivemap.min.4162465.js"></script>
+        <script async src='https://www.google-analytics.com/analytics.js'></script>
 	</body>
 </html>

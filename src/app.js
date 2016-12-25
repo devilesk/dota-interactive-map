@@ -21,7 +21,7 @@ function App(map_tile_path, vision_data_image_path) {
         TOWER_NIGHT_VISION_RADIUS = 800,
         TOWER_TRUE_SIGHT_RADIUS = 900,
         TOWER_ATTACK_RANGE_RADIUS = 700,
-        map_data_path = "data",
+        map_data_path = "data/",
         map_data,
         mapConstants = require('./mapConstants'),
         conversionFunctions = require('./conversionFunctions'),
@@ -34,8 +34,10 @@ function App(map_tile_path, vision_data_image_path) {
             units: "m"
         }),
         layerKeys = [
-            "npc_dota_roshan_spawner",
+            "no_wards",
+            "ent_fow_blocker_node",
             "trigger_multiple",
+            "npc_dota_roshan_spawner",
             "ent_dota_tree",
             "dota_item_rune_spawner",
             "dota_item_rune_spawner_bounty",
@@ -44,9 +46,7 @@ function App(map_tile_path, vision_data_image_path) {
             "npc_dota_building",
             "npc_dota_healer",
             "npc_dota_fort",
-            "npc_dota_tower",
-            "no_wards",
-            "ent_fow_blocker_node"
+            "npc_dota_tower"
         ],
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
@@ -118,6 +118,7 @@ function App(map_tile_path, vision_data_image_path) {
      ********************/
 
     function handleTreeMarkerClick(event) {
+        console.log('handleTreeMarkerClick');
         var worldXY = latLonToWorld(event.object.lonlat.lon, event.object.lonlat.lat),
             gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
 
@@ -210,7 +211,7 @@ function App(map_tile_path, vision_data_image_path) {
             marker.ward_loc = qs_value_worldXY;
         }
 
-        if (VISION_SIMULATION && entityName == 'observer') updateVisibility(latlon, marker, ENTITIES.observer.radius);
+        if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, ENTITIES.observer.radius);
         
         return marker;
     }
@@ -457,10 +458,10 @@ function App(map_tile_path, vision_data_image_path) {
             }
             else if (VISION_SIMULATION) {
                 if (k === "no_wards") {
-                    loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.red);
+                    loadGeoJSONData(markers, k, layerNames[k], style.red);
                 }
                 else if (k === "ent_fow_blocker_node") {
-                    loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.lightblue);
+                    loadGeoJSONData(markers, k, layerNames[k], style.lightblue);
                 }
             }
         });        
@@ -932,11 +933,16 @@ function App(map_tile_path, vision_data_image_path) {
             document.getElementById('dataControl').value = data;
         }
         VISION_SIMULATION = data != "687";
-        document.getElementById("visionSimulationControl").disabled = document.getElementById('dataControl').value == "687";
-        getJSON(map_data_path + document.getElementById('dataControl').value + '.json', onMapDataLoad);
+        //document.querySelector('label[for="visionSimulationControl"]').style.display = VISION_SIMULATION ? 'inline' : 'none';
+        document.getElementById("visionSimulationControl").disabled = !VISION_SIMULATION;
+        getJSON(map_data_path + getDataVersion() + '/mapdata.json', onMapDataLoad);
+    }
+    
+    function getDataVersion() {
+        return document.getElementById('dataControl').value;
     }
 
-    function updateVisibility(latlon, marker, radius) {
+    function updateVisibilityHandler(latlon, marker, radius) {
         console.log('updateVisibility ready');
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
@@ -971,7 +977,8 @@ function App(map_tile_path, vision_data_image_path) {
         init();
     });
     
-    function loadGeoJSONData(markers, k, name, filename, style) {
+    function loadGeoJSONData(markers, k, name, style) {
+        var filename = map_data_path + getDataVersion() + '/' + k + '.json';
         markers[k] = new OpenLayers.Layer.Vector(name, {
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({

@@ -3,12 +3,13 @@ var execSync = require('child_process').execSync;
 var glob = require("glob");
 var fs = require('fs');
 var git = require('git-rev-sync');
+var config = require('../config.json');
 
 execSync('mkdir -p dist');
 execSync('rm -rf dist/*');
 execSync('cp -r build/* dist/');
 
-glob("dist/**/*.{js,css,map}", function (er, files) {
+glob("dist/**/*.{js,css,map,png}", function (er, files) {
     console.log(files);
 
     var jsMap = {};
@@ -22,8 +23,10 @@ glob("dist/**/*.{js,css,map}", function (er, files) {
         var filename = basename.slice(0, -path.extname(basename).length);
         var revFilename = filename + '.' + hash + ext;
         var tmpPath = path.join(path.dirname(filePath), revFilename);
-        console.log(basename, revFilename);
-        execSync('mv ' + filePath + ' ' + tmpPath);
-        execSync("replace " + basename + " " + revFilename + " dist/index.html");
+        if (ext != '.png' || config.vision_data_image_path.indexOf(filename) !== -1) {
+            console.log(basename, revFilename);
+            execSync('mv ' + filePath + ' ' + tmpPath);
+            execSync("replace " + basename + " " + revFilename + " dist/index.html");
+        }
     });
 });

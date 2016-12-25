@@ -1,20 +1,20 @@
 {
   "name": "dota-interactive-map",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "Interactive Dota 2 Map",
   "main": "interactivemap.js",
   "scripts": {
     "browserify": "browserify src/app.js --standalone InteractiveMap > www/bundle.js",
+    "openlayers": "node scripts/build_ol.js",
     "copy:img": "cp node_modules/dota-vision-simulation/www/map_data.png www/img",
     "copy:data": "cp node_modules/dota-vision-simulation/src/worlddata.json src",
     "clean:build": "rm -rf build/*",
-    "build:js": "cat ol2/build/OpenLayers.js src/interactivemap.js | uglifyjs --compress drop_console,dead_code --mangle > build/interactivemap.min.js",
-    "build:ol": "node scripts/build_ol.js",
-    "build:img": "imagemin src/img/* --out-dir=build/img",
-    "build:css": "cleancss --skip-rebase -o build/app.min.css src/*.css",
+    "build:js": "cat ol2/build/OpenLayers.js www/bundle.js | uglifyjs --compress drop_console,dead_code --mangle > build/bundle.min.js",
+    "build:img": "imagemin www/img/* --out-dir=build/img",
+    "build:css": "cleancss --skip-rebase -o build/app.min.css www/*.css",
     "build:html": "NODE_ENV=prod node scripts/preprocess.js",
-    "build:copy": "cp src/*.json build/",
-    "build": "npm run clean:build && npm run build:ol && npm run build:js && npm run build:img && npm run build:css && npm run build:html && npm run build:copy",
+    "build:copy": "cp -r www/data build/",
+    "build": "npm run clean:build && npm run build:js && npm run build:img && npm run build:css && npm run build:html && npm run build:copy",
     "stage:rev": "node scripts/rev.js",
     "stage": "npm run build && npm run stage:rev",
     "deploy:copy": "node scripts/deploy.js",
@@ -35,7 +35,6 @@
     "url": "https://github.com/devilesk/dota-interactive-map/issues"
   },
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
-  "private": true,
   "devDependencies": {
     "@turf/union": "^3.7.0",
     "browserify": "^13.1.1",
@@ -45,7 +44,6 @@
     "git-rev-sync": "^1.8.0",
     "glob": "^7.1.1",
     "imagemin-cli": "^3.0.0",
-    "polybooljs": "^1.1.1",
     "preprocess": "^3.1.0",
     "replace": "^0.3.0",
     "uglify-js": "^2.7.5"

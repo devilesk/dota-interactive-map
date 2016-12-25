@@ -60,26 +60,15 @@
                 </div>
             </div>
         </div>
-<script>
-window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-ga('create', 'UA-39435120-1', 'auto');
-ga('send', 'pageview');
-</script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
         <!-- @if NODE_ENV='dev' -->
         <script src="../ol2/build/OpenLayers.js"></script>
         <script src="bundle.js"></script>
+        <script>InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.png');</script>
         <!-- @endif -->
         <!-- @if NODE_ENV='prod' !>
         <script src="bundle.min.js"></script>
+        <script>InteractiveMap('<!-- @echo map_data_path !>', '<!-- @echo vision_data_image_path !>');</script>
+        <!-- @include .analytics.html !>
         <!-- @endif -->
-        <script>
-        /* @if NODE_ENV='prod' */
-        InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.png');
-        /* @endif */
-        /* @if NODE_ENV='prod' **
-        InteractiveMap('@echo map_data_path', '@echo vision_data_image_path');
-        /* @endif */
-        </script>
 	</body>
 </html>
