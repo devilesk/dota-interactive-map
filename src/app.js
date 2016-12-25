@@ -1,7 +1,5 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("./worlddata.json");
-var PolyBool = require('polybooljs');
-
 function App(map_tile_path, vision_data_image_path) {
     var self = this,
         IMG_DIR = "img/",
@@ -1057,7 +1055,10 @@ function App(map_tile_path, vision_data_image_path) {
         }
         getJSON(map_data_path + document.getElementById('dataControl').value + '.json', onMapDataLoad);
     }
-
+  
+    var wkt = new OpenLayers.Format.WKT();
+    var jstsToWKTParser = new jsts.io.WKTWriter();
+    var geometryFactory = new jsts.geom.GeometryFactory();
     function updateVisibility(latlon, marker, radius) {
         console.log('updateVisibility ready');
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
@@ -1072,48 +1073,41 @@ function App(map_tile_path, vision_data_image_path) {
             vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
             
             // merge light points into a single polygon
-            var polygons = [];
             var union = null;
             var lightPoints = Object.keys(vs.lights).map(function (key) {
                 var pt = vs.key2pt(key);
                 return vs.GridXYtoWorldXY(pt.x, pt.y);
             });
+            var t1 = Date.now();
             for (var i = 0; i < lightPoints.length; i++) {
                 var c = lightPoints[i],
-                    r1 = worldToLatLon(c.x - 32, c.y - 32),
-                    r2 = worldToLatLon(c.x - 32, c.y + 32),
-                    r3 = worldToLatLon(c.x + 32, c.y + 32),
-                    r4 = worldToLatLon(c.x + 32, c.y - 32);
+                    r1 = worldToLatLon(c.x, c.y),
+                    r2 = worldToLatLon(c.x + 64, c.y),
+                    r3 = worldToLatLon(c.x + 64, c.y - 64),
+                    r4 = worldToLatLon(c.x, c.y - 64),
+                    shell = geometryFactory.createLinearRing([
+                        new jsts.geom.Coordinate(r1.x, r1.y),
+                        new jsts.geom.Coordinate(r2.x, r2.y),
+                        new jsts.geom.Coordinate(r3.x, r3.y),
+                        new jsts.geom.Coordinate(r4.x, r4.y),
+                        new jsts.geom.Coordinate(r1.x, r1.y)
+                    ]),
+                    jstsPolygon = geometryFactory.createPolygon(shell);
 
-                polygons.push({
-                    regions: [
-                        [[r1.x, r1.y], [r2.x, r2.y], [r3.x, r3.y], [r4.x, r4.y]]
-                    ],
-                    inverted: false // is this polygon inverted?
-                });
+                if (union == null) {
+                    union = jstsPolygon;
+                } else {
+                    union = union.union(jstsPolygon);
+                }
             }
-            
-            var segments = PolyBool.segments(polygons[0]);
-            for (var i = 1; i < polygons.length; i++){
-                var seg2 = PolyBool.segments(polygons[i]);
-                var comb = PolyBool.combine(segments, seg2);
-                segments = PolyBool.selectUnion(comb);
-            }
-            var poly = PolyBool.polygon(segments);
-            var polygonList = poly.regions.map(function (region) {
-                var ring = new OpenLayers.Geometry.LinearRing(
-                    region.map(function (pt) {
-                        return new OpenLayers.Geometry.Point(pt[0], pt[1]);
-                    })
-                );
-                var polygon = new OpenLayers.Geometry.Polygon([ring]);
-                return polygon;
-            })
-            var multiPolygon = new OpenLayers.Geometry.MultiPolygon(polygonList);
+
             // add vision polygon to map
-            var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
+            var visionFeature = wkt.read(jstsToWKTParser.write(union));
+            visionFeature.style = style.yellow;
             visionSimulationLayer.addFeatures([visionFeature]);
             marker.vision_feature = visionFeature;
+            var t2 = Date.now();
+            console.log('time', t2 - t1);
         }
     }
     
