@@ -1100,14 +1100,16 @@ function App(map_tile_path, vision_data_image_path) {
                     union = union.union(jstsPolygon);
                 }
             }
-
+            var t2 = Date.now();
             // add vision polygon to map
             var visionFeature = wkt.read(jstsToWKTParser.write(union));
             visionFeature.style = style.yellow;
             visionSimulationLayer.addFeatures([visionFeature]);
             marker.vision_feature = visionFeature;
-            var t2 = Date.now();
-            console.log('time', t2 - t1);
+            var t3 = Date.now();
+            console.log('union', t2 - t1);
+            console.log('draw', t3 - t2);
+            console.log('total', t3 - t1);
         }
     }
     
