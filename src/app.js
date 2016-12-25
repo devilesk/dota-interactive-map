@@ -1,6 +1,8 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var getLightUnion = require("./getLightUnion");
+var trim = require('./util/trim');
+var QueryString = require('./util/queryString');
 
 function App(map_tile_path, vision_data_image_path) {
     var self = this,
@@ -31,7 +33,21 @@ function App(map_tile_path, vision_data_image_path) {
             maxResolution: Math.pow(2, 5-1 ),
             units: "m"
         }),
-        layerKeys = ["npc_dota_roshan_spawner","trigger_multiple","ent_dota_tree","dota_item_rune_spawner","dota_item_rune_spawner_bounty","ent_dota_shop","npc_dota_barracks","npc_dota_building","npc_dota_healer","npc_dota_fort","npc_dota_tower","no_wards","ent_fow_blocker_node"],
+        layerKeys = [
+            "npc_dota_roshan_spawner",
+            "trigger_multiple",
+            "ent_dota_tree",
+            "dota_item_rune_spawner",
+            "dota_item_rune_spawner_bounty",
+            "ent_dota_shop",
+            "npc_dota_barracks",
+            "npc_dota_building",
+            "npc_dota_healer",
+            "npc_dota_fort",
+            "npc_dota_tower",
+            "no_wards",
+            "ent_fow_blocker_node"
+        ],
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
             dota_item_rune_spawner: "Runes",
@@ -81,118 +97,9 @@ function App(map_tile_path, vision_data_image_path) {
         renderer = OpenLayers.Util.getParameters(window.location.href).renderer,
         drawControls,
         lastDistance,
-        style = {
-            lightblue: {
-                strokeColor: "#007FFF",
-                strokeOpacity: 1,
-                strokeWidth: 1,
-                fillColor: "#007FFF",
-                fillOpacity: .4
-            },
-            red: {
-                strokeColor: "#FF0000",
-                strokeOpacity: 1,
-                strokeWidth: 1,
-                fillColor: "#FF0000",
-                fillOpacity: .4
-            },
-            green: {
-                strokeColor: "#00FF00",
-                strokeOpacity: 1,
-                strokeWidth: 1,
-                fillColor: "#00FF00",
-                fillOpacity: .4
-            },
-            yellow: {
-                strokeColor: "#FFFF00",
-                strokeOpacity: 1,
-                strokeWidth: 1,
-                fillColor: "#FFFF00",
-                fillOpacity: .4
-            }
-        },
-        treeMarkers = {};
-
-    /***********************************
-     * QUERY STRING FUNCTIONS *
-     ***********************************/
-
-    var trim = (function() {
-        "use strict";
-
-        function escapeRegex(string) {
-            return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
-        }
-
-        return function trim(str, characters, flags) {
-            flags = flags || "g";
-            if (typeof str !== "string" || typeof characters !== "string" || typeof flags !== "string") {
-                throw new TypeError("argument must be string");
-            }
-
-            if (!/^[gi]*$/.test(flags)) {
-                throw new TypeError("Invalid flags supplied '" + flags.match(new RegExp("[^gi]*")) + "'");
-            }
-
-            characters = escapeRegex(characters);
-
-            return str.replace(new RegExp("^[" + characters + "]+|[" + characters + "]+$", flags), '');
-        };
-    }());
-
-    function getParameterByName(name) {
-        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-            results = regex.exec(location.search);
-        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
-
-    function setQueryString(key, value) {
-        history.replaceState(null, "", updateQueryString(key, value));
-    }
-
-    function addQueryStringValue(key, value) {
-        console.log('addQueryStringValue', key, value);
-        var qs = getParameterByName(key);
-        qs = trim(trim(qs, ' ;') + ';' + value, ' ;');
-        history.replaceState(null, "", updateQueryString(key, qs));
-    }
-
-    function removeQueryStringValue(key, value) {
-        console.log('removeQueryStringValue', key, value);
-        var qs = getParameterByName(key);
-        qs = trim(trim(qs, ' ;').replace(value, '').replace(/;;/g, ''), ' ;');
-        history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));
-    }
-
-    function updateQueryString(key, value, url) {
-        if (!url) url = window.location.href;
-        var re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
-            hash;
-
-        if (re.test(url)) {
-            if (typeof value !== 'undefined' && value !== null)
-                return url.replace(re, '$1' + key + "=" + value + '$2$3');
-            else {
-                hash = url.split('#');
-                url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
-                if (typeof hash[1] !== 'undefined' && hash[1] !== null)
-                    url += '#' + hash[1];
-                return url;
-            }
-        } else {
-            if (typeof value !== 'undefined' && value !== null) {
-                var separator = url.indexOf('?') !== -1 ? '&' : '?';
-                hash = url.split('#');
-                url = hash[0] + separator + key + '=' + value;
-                if (typeof hash[1] !== 'undefined' && hash[1] !== null)
-                    url += '#' + hash[1];
-                return url;
-            } else {
-                return url;
-            }
-        }
-    }
+        style = require('./styleConstants'),
+        treeMarkers = {},
+        VISION_SIMULATION = true;
 
     /***********************************
      * COORDINATE CONVERSION FUNCTIONS *
@@ -219,9 +126,9 @@ function App(map_tile_path, vision_data_image_path) {
         vs.toggleTree(gridXY.x, gridXY.y);
 
         if (event.object.treeVisible) {
-            removeQueryStringValue('cut_trees', event.object.tree_loc);
+            QueryString.removeQueryStringValue('cut_trees', event.object.tree_loc);
         } else {
-            addQueryStringValue('cut_trees', event.object.tree_loc);
+            QueryString.addQueryStringValue('cut_trees', event.object.tree_loc);
         }
     }
 
@@ -258,7 +165,7 @@ function App(map_tile_path, vision_data_image_path) {
             attackRangeLayer.addFeatures(feature);
             e.object.attack_range_feature = feature;
 
-            if (!skipQueryStringUpdate) addQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
+            if (!skipQueryStringUpdate) QueryString.addQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
 
             var lonlat = worldToLatLon(e.object.tower_loc.x, e.object.tower_loc.y);
         }
@@ -268,7 +175,7 @@ function App(map_tile_path, vision_data_image_path) {
             trueSightRangeLayer.removeFeatures(e.object.true_sight_feature);
             attackRangeLayer.removeFeatures(e.object.attack_range_feature);
 
-            if (!skipQueryStringUpdate) removeQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
+            if (!skipQueryStringUpdate) QueryString.removeQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
         }
         e.object.showInfo = !e.object.showInfo;
     }
@@ -277,7 +184,7 @@ function App(map_tile_path, vision_data_image_path) {
         return function(event) {
             var latlon = map.getLonLatFromPixel(event.xy),
                 marker = placeWard(latlon, entityName);
-            addQueryStringValue(marker.ward_type, marker.ward_loc);
+            QueryString.addQueryStringValue(marker.ward_type, marker.ward_loc);
         }
     }
 
@@ -303,7 +210,7 @@ function App(map_tile_path, vision_data_image_path) {
             marker.ward_loc = qs_value_worldXY;
         }
 
-        if (entityName == 'observer') updateVisibility(latlon, marker, ENTITIES.observer.radius);
+        if (VISION_SIMULATION && entityName == 'observer') updateVisibility(latlon, marker, ENTITIES.observer.radius);
         
         return marker;
     }
@@ -316,7 +223,7 @@ function App(map_tile_path, vision_data_image_path) {
         console.log(event.object);
         OpenLayers.Event.stop(event);
 
-        removeQueryStringValue(event.object.ward_type, event.object.ward_loc);
+        QueryString.removeQueryStringValue(event.object.ward_type, event.object.ward_loc);
     }
 
     function handleOnClick(event) {
@@ -491,8 +398,9 @@ function App(map_tile_path, vision_data_image_path) {
     function resetMarkerLayers() {
         var data = map_data;
         layerKeys.forEach(function (k) {
-            if (data[k]) {
-                var layer = map.getLayersByName(layerNames[k])[0];
+            var layer = map.getLayersByName(layerNames[k])[0];
+            console.log('removing layer', layer, k);
+            if (layer) {
                 map.removeLayer(layer);
                 layer.destroy();
             }
@@ -547,11 +455,13 @@ function App(map_tile_path, vision_data_image_path) {
                     loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
                 }
             }
-            else if (k === "no_wards") {
-                loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.red);
-            }
-            else if (k === "ent_fow_blocker_node") {
-                loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.lightblue);
+            else if (VISION_SIMULATION) {
+                if (k === "no_wards") {
+                    loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.red);
+                }
+                else if (k === "ent_fow_blocker_node") {
+                    loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.lightblue);
+                }
             }
         });        
 
@@ -572,10 +482,10 @@ function App(map_tile_path, vision_data_image_path) {
 
         if (event.property === "visibility") {
             if (event.layer.isBaseLayer) {
-                setQueryString('BaseLayer', event.layer.name.replace(/ /g, ''));
+                QueryString.setQueryString('BaseLayer', event.layer.name.replace(/ /g, ''));
             }
             else {
-                setQueryString(event.layer.name.replace(/ /g, ''), event.layer.visibility ? true : null);
+                QueryString.setQueryString(event.layer.name.replace(/ /g, ''), event.layer.visibility ? true : null);
             }
         }
     }
@@ -616,12 +526,12 @@ function App(map_tile_path, vision_data_image_path) {
 
     // Initialize map settings based on query string values
     function parseQueryString() {
-        var zoom = getParameterByName('zoom');
+        var zoom = QueryString.getParameterByName('zoom');
         if (zoom) {
             map.zoomTo(parseInt(zoom));
         }
-        var worldX = getParameterByName('x');
-        var worldY = getParameterByName('y');
+        var worldX = QueryString.getParameterByName('x');
+        var worldY = QueryString.getParameterByName('y');
         if (worldX && worldY) {
             var lonlat = worldToLatLon(worldX, worldY);
             map.setCenter(new OpenLayers.LonLat(lonlat.x, lonlat.y), undefined, false, false);
@@ -629,7 +539,7 @@ function App(map_tile_path, vision_data_image_path) {
         
         var keys = ['observer', 'sentry'];
         for (var i = 0; i < keys.length; i++) {
-            var wards = getParameterByName(keys[i])
+            var wards = QueryString.getParameterByName(keys[i])
             if (wards) {
                 ward_coordinates = trim(wards, ' ;').split(';')
                 ward_coordinates.map(function(el) {
@@ -640,7 +550,7 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }
         
-        var baseLayerName = getParameterByName('BaseLayer');
+        var baseLayerName = QueryString.getParameterByName('BaseLayer');
         if (baseLayerName) {
             for (var i = 0; i < baseLayers.length; i++) {
                 var layer = baseLayers[i];
@@ -654,15 +564,15 @@ function App(map_tile_path, vision_data_image_path) {
         
         for (k in layerNames) {
             var layerName = layerNames[k].replace(/ /g, '');
-            value = getParameterByName(layerName);
+            value = QueryString.getParameterByName(layerName);
             if (value) {
                 var layer = map.getLayersByName(layerNames[k])[0];
-                console.log(layer, layerNames[k], layerName);
+                console.log('parseQueryString', layer, layerNames[k], layerName, value == "true");
                 if (layer) layer.setVisibility(value == "true");
             }
         }
 
-        var tower_vision = getParameterByName('tower_vision');
+        var tower_vision = QueryString.getParameterByName('tower_vision');
         if (tower_vision) {
             var layer = map.getLayersByName(layerNames["npc_dota_tower"])[0];
             tower_vision_coordinates = trim(tower_vision, ' ;').split(';')
@@ -913,14 +823,13 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     map.events.register("zoomend", map, function(){
-        setQueryString('zoom', map.zoom);
+        QueryString.setQueryString('zoom', map.zoom);
     });
 
     map.events.register("moveend", map, function(){
-        console.log(map);
         var worldXY = latLonToWorld(map.center.lon, map.center.lat);
-        setQueryString('x', worldXY.x.toFixed(0));
-        setQueryString('y', worldXY.y.toFixed(0));
+        QueryString.setQueryString('x', worldXY.x.toFixed(0));
+        QueryString.setQueryString('y', worldXY.y.toFixed(0));
     });
 
     // X/Y coordinate update display handler
@@ -935,7 +844,7 @@ function App(map_tile_path, vision_data_image_path) {
         }
     
         // create and add cursor marker polygon if in place observer mode
-        if (document.getElementById("observerToggle").checked) {
+        if (VISION_SIMULATION && document.getElementById("observerToggle").checked) {
             var lonlat = map.getLonLatFromPixel(e.xy);
             var worldXY = latLonToWorld(lonlat.lon, lonlat.lat);
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
@@ -994,6 +903,11 @@ function App(map_tile_path, vision_data_image_path) {
         }
     }, false);
 
+    // Vision simulation on/off
+    document.getElementById("visionSimulationControl").addEventListener("change", function(e) {
+        VISION_SIMULATION = this.checked;
+    }, false);
+
     // Update travel time display when movespeed input changes
     document.getElementById("movespeed").addEventListener("change", function(e) {
         document.getElementById("traveltime").innerHTML = (lastDistance / document.getElementById("movespeed").value).toFixed(2);
@@ -1007,16 +921,18 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
     
     document.getElementById('dataControl').addEventListener('change', function () {
-        setQueryString('data', document.getElementById('dataControl').value);
+        QueryString.setQueryString('data', document.getElementById('dataControl').value);
         resetMarkerLayers();
         init();
     }, false);
     
     function init() {
-        var data = getParameterByName('data');
+        var data = QueryString.getParameterByName('data');
         if (data) {
             document.getElementById('dataControl').value = data;
         }
+        VISION_SIMULATION = data != "687";
+        document.getElementById("visionSimulationControl").disabled = document.getElementById('dataControl').value == "687";
         getJSON(map_data_path + document.getElementById('dataControl').value + '.json', onMapDataLoad);
     }
 
@@ -1066,7 +982,6 @@ function App(map_tile_path, vision_data_image_path) {
         });
         markers[k].style = style;
         map.addLayer(markers[k]);
-        console.log(markers[k]);
     }
 }
 
