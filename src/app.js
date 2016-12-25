@@ -1050,7 +1050,6 @@ function App(map_tile_path, vision_data_image_path) {
     }, false);
     
     function init() {
-        console.log('init');
         var data = getParameterByName('data');
         if (data) {
             document.getElementById('dataControl').value = data;
@@ -1067,12 +1066,11 @@ function App(map_tile_path, vision_data_image_path) {
             var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), style.green);
             visionSimulationLayer.addFeatures([box_feature]);
             marker.vision_center_feature = box_feature;
-            
-            console.log('updating vision simulation', gridXY);
+
+            // execute vision simulation
             vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
             
-            // merge light points into a single polygon
-            var t1 = Date.now();
+            // merge light points into a single polygon and add to vision layer
             var outlines = getLightUnion(vs.lights);
             var polygonList = outlines.map(function (outlinePoints) {
                 var ringPoints = outlinePoints.map(function (pt) {
@@ -1087,8 +1085,6 @@ function App(map_tile_path, vision_data_image_path) {
             var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
             visionSimulationLayer.addFeatures([visionFeature]);
             marker.vision_feature = visionFeature;
-            var t2 = Date.now();
-            console.log('union', t2 - t1);
         }
     }
     
