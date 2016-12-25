@@ -515,9 +515,9 @@ function App(map_tile_path, vision_data_image_path) {
             if (data[k]) {
                 // Create markers for non-neutral spawn box and non-tree layers
                 if (k != "trigger_multiple" && k != "ent_dota_tree" && k != "no_wards" && k != "ent_fow_blocker_node") {
-                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
+                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
                     map.addLayer(markers[k]);
-                    markers[k].setVisibility(false);
+                    //markers[k].setVisibility(false);
                     for (var i = 0; i < data[k].length; i++) {
                         var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
                         marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
@@ -537,9 +537,9 @@ function App(map_tile_path, vision_data_image_path) {
                 }
                 // Set up tree layer without creating tree markers yet
                 else if (k == "ent_dota_tree") {
-                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
+                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
                     map.addLayer(markers[k]);
-                    markers[k].setVisibility(false);
+                    //markers[k].setVisibility(false);
                     markers[k].data = data[k];
                 }
                 // Create neutral spawn markers and rectangles
@@ -1061,11 +1061,13 @@ function App(map_tile_path, vision_data_image_path) {
             protocol: new OpenLayers.Protocol.HTTP({
                 url: filename,
                 format: new OpenLayers.Format.GeoJSON()
-            })
+            }),
+            visibility: false
         });
         markers[k].style = style;
         map.addLayer(markers[k]);
-        markers[k].setVisibility(false);
+        //markers[k].setVisibility(false);
+        console.log(markers[k]);
     }
     
     /*function generatePointSquaresGeoJSON(markers, data, layerName, layerDisplayname) {
