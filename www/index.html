@@ -72,18 +72,20 @@
         </script>
         <!-- @if NODE_ENV='dev' -->
         <script src="../ol2/build/OpenLayers.js"></script>
-        <script>
-            var map_tile_path = "http://devilesk.com/media/images/map/";
-        </script>
-        <script src="interactivemap.js"></script>
+        <script src="javascript.util.js"></script>
+        <script src="jsts.js"></script>
+        <script src="bundle.js"></script>
         <!-- @endif -->
-        <script>
-            <!-- @if NODE_ENV='prod' !>
-            var map_tile_path = "<!-- @echo map_data_path -->";
-            <!-- @endif -->
-        </script>
         <!-- @if NODE_ENV='prod' !>
-        <script src="interactivemap.min.js"></script>
+        <script src="bundle.min.js"></script>
         <!-- @endif -->
+        <script>
+        /* @if NODE_ENV='prod' */
+        InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.png');
+        /* @endif */
+        /* @if NODE_ENV='prod' **
+        InteractiveMap('@echo map_data_path', '@echo vision_data_image_path');
+        /* @endif */
+        </script>
 	</body>
 </html>

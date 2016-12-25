@@ -4,6 +4,9 @@
   "description": "Interactive Dota 2 Map",
   "main": "interactivemap.js",
   "scripts": {
+    "browserify": "browserify src/app.js --standalone InteractiveMap > www/bundle.js",
+    "copy:img": "cp node_modules/dota-vision-simulation/www/map_data.png www/img",
+    "copy:data": "cp node_modules/dota-vision-simulation/src/worlddata.json src",
     "clean:build": "rm -rf build/*",
     "build:js": "cat ol2/build/OpenLayers.js src/interactivemap.js | uglifyjs --compress drop_console,dead_code --mangle > build/interactivemap.min.js",
     "build:ol": "node scripts/build_ol.js",
@@ -34,8 +37,10 @@
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "private": true,
   "devDependencies": {
+    "browserify": "^13.1.1",
     "clean-css": "^3.4.22",
     "del": "^2.2.2",
+    "dota-vision-simulation": "^0.2.0",
     "git-rev-sync": "^1.8.0",
     "glob": "^7.1.1",
     "imagemin-cli": "^3.0.0",
