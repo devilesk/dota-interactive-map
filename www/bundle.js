@@ -754,7 +754,7 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
         }
     }
     
-    return (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
+    return x>= 0 && x < this.gridWidth && y >= 0 && y < this.gridHeight && (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
 }
 
 VisionSimulation.prototype.toggleTree = function (x, y) {
