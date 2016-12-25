@@ -3289,13 +3289,14 @@ function App(map_tile_path, vision_data_image_path) {
                     inverted: false // is this polygon inverted?
                 });
             }
-            
+            var t1 = Date.now();
             var segments = PolyBool.segments(polygons[0]);
             for (var i = 1; i < polygons.length; i++){
                 var seg2 = PolyBool.segments(polygons[i]);
                 var comb = PolyBool.combine(segments, seg2);
                 segments = PolyBool.selectUnion(comb);
             }
+            var t2 = Date.now();
             var poly = PolyBool.polygon(segments);
             var polygonList = poly.regions.map(function (region) {
                 var ring = new OpenLayers.Geometry.LinearRing(
@@ -3311,6 +3312,10 @@ function App(map_tile_path, vision_data_image_path) {
             var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
             visionSimulationLayer.addFeatures([visionFeature]);
             marker.vision_feature = visionFeature;
+            var t3 = Date.now();
+            console.log('union', t2 - t1);
+            console.log('draw', t3 - t2);
+            console.log('total', t3 - t1);
         }
     }
     
