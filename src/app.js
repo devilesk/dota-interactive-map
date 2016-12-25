@@ -1,7 +1,5 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("./worlddata.json");
-var PolyBool = require('polybooljs');
-
 function App(map_tile_path, vision_data_image_path) {
     var self = this,
         IMG_DIR = "img/",
@@ -1072,53 +1070,224 @@ function App(map_tile_path, vision_data_image_path) {
             vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
             
             // merge light points into a single polygon
-            var polygons = [];
             var union = null;
             var lightPoints = Object.keys(vs.lights).map(function (key) {
                 var pt = vs.key2pt(key);
                 return vs.GridXYtoWorldXY(pt.x, pt.y);
             });
-            for (var i = 0; i < lightPoints.length; i++) {
-                var c = lightPoints[i],
-                    r1 = worldToLatLon(c.x - 32, c.y - 32),
-                    r2 = worldToLatLon(c.x - 32, c.y + 32),
-                    r3 = worldToLatLon(c.x + 32, c.y + 32),
-                    r4 = worldToLatLon(c.x + 32, c.y - 32);
-
-                polygons.push({
-                    regions: [
-                        [[r1.x, r1.y], [r2.x, r2.y], [r3.x, r3.y], [r4.x, r4.y]]
-                    ],
-                    inverted: false // is this polygon inverted?
-                });
-            }
             var t1 = Date.now();
-            var segments = PolyBool.segments(polygons[0]);
-            for (var i = 1; i < polygons.length; i++){
-                var seg2 = PolyBool.segments(polygons[i]);
-                var comb = PolyBool.combine(segments, seg2);
-                segments = PolyBool.selectUnion(comb);
+            
+            var components = {};
+            var index = 1;
+            function processNeighbors(key) {
+                var pt = vs.key2pt(key);
+                var dirs = ['N', 'E', 'S', 'W'];
+                for (var i = 0; i < dirs.length; i++) {
+                    var keyAdj = getAdj(pt, dirs[i]);
+                    if (components[keyAdj] || !vs.lights[keyAdj]) continue;
+                    components[keyAdj] = index;
+                    processNeighbors(keyAdj);
+                }
             }
-            var t2 = Date.now();
-            var poly = PolyBool.polygon(segments);
-            var polygonList = poly.regions.map(function (region) {
-                var ring = new OpenLayers.Geometry.LinearRing(
-                    region.map(function (pt) {
-                        return new OpenLayers.Geometry.Point(pt[0], pt[1]);
-                    })
-                );
+            
+            for (var key in vs.lights) {
+                if (!components[key]) {
+                    components[key] = index;
+                    processNeighbors(key);
+                    index++;
+                }
+            }
+            console.log('components', components);
+            
+            function getAdj(pt, dir) {
+                var key;
+                switch (dir) {
+                    case 'N':
+                        key = vs.xy2key(pt.x, pt.y+1);
+                    break;
+                    case 'E':
+                        key = vs.xy2key(pt.x+1, pt.y);
+                    break;
+                    case 'S':
+                        key = vs.xy2key(pt.x, pt.y-1);
+                    break;
+                    case 'W':
+                        key = vs.xy2key(pt.x-1, pt.y);
+                    break;
+                    case 'NE':
+                        key = vs.xy2key(pt.x+1, pt.y+1);
+                    break;
+                    case 'SE':
+                        key = vs.xy2key(pt.x+1, pt.y-1);
+                    break;
+                    case 'SW':
+                        key = vs.xy2key(pt.x-1, pt.y-1);
+                    break;
+                    case 'NW':
+                        key = vs.xy2key(pt.x-1, pt.y+1);
+                    break;
+                }
+                return key;
+            }
+            
+            function isSideFree(key, dir) {
+                var pt = vs.key2pt(key);
+                var keyAdj = getAdj(pt, dir);
+                return !vs.lights[keyAdj];
+            }
+            
+            function notSurrounded(key) {
+                var pt = vs.key2pt(key);
+                var dirs = ['N', 'E', 'S', 'W'];
+                for (var i = 0; i < dirs.length; i++) {
+                    var keyAdj = getAdj(pt, dirs[i]);
+                    if (!components[keyAdj]) return dirs[i];
+                }
+            }
+            
+            function getSegment(key, dir) {
+                var pt = vs.key2pt(key);
+                switch (dir) {
+                    case 'N':
+                        return [vs.xy2pt(pt.x-0.5, pt.y+0.5), vs.xy2pt(pt.x+0.5, pt.y+0.5)];
+                    break;
+                    case 'E':
+                        return [vs.xy2pt(pt.x+0.5, pt.y+0.5), vs.xy2pt(pt.x+0.5, pt.y-0.5)];
+                    break;
+                    case 'S':
+                        return [vs.xy2pt(pt.x+0.5, pt.y-0.5), vs.xy2pt(pt.x-0.5, pt.y-0.5)];
+                    break;
+                    case 'W':
+                        return [vs.xy2pt(pt.x-0.5, pt.y-0.5), vs.xy2pt(pt.x-0.5, pt.y+0.5)];
+                    break;
+                }
+            }
+            
+            function getCornerPoint(key, dir) {
+                var pt = vs.key2pt(key);
+                switch (dir) {
+                    case 'N':
+                        return vs.xy2pt(pt.x-0.5, pt.y+0.5);
+                    break;
+                    case 'E':
+                        return vs.xy2pt(pt.x+0.5, pt.y+0.5);
+                    break;
+                    case 'S':
+                        return vs.xy2pt(pt.x+0.5, pt.y-0.5);
+                    break;
+                    case 'W':
+                        return vs.xy2pt(pt.x-0.5, pt.y-0.5);
+                    break;
+                }
+            }
+            
+            function getOutline(index) {
+                var outlinePoints = [];
+                var startKey;
+                var dir;
+                for (var key in components) {
+                    dir = notSurrounded(key);
+                    if (components[key] == index && dir) {
+                        startKey = key;
+                        break;
+                    }
+                }
+                var next = processNext(startKey, dir);
+                console.log('getOutline', startKey, dir, next);
+                while (startKey !== next.key || dir !== next.dir) {
+                    console.log('next', next);
+                    outlinePoints.push(next.point);
+                    next = processNext(next.key, next.dir)
+                }
+                outlinePoints.push(next.point);
+                console.log('outlinePoints', outlinePoints);
+                return outlinePoints;
+            }
+            
+            function checkAdj(key, dir, adjDir) {
+                var pt = vs.key2pt(key);
+                var adjKey = getAdj(pt, dir);
+                if (components[adjKey] == components[key] && isSideFree(adjKey, adjDir)) {
+                    return {
+                        key: adjKey,
+                        dir: adjDir
+                    }
+                }
+            }
+            
+            function processNext(key, dir) {
+                var pt = vs.key2pt(key);
+                var next;
+                switch (dir) {
+                    case 'N':
+                        if (isSideFree(key, 'E')) {
+                            return {
+                                key: key,
+                                dir: 'E',
+                                point: getCornerPoint(key, dir)
+                            }
+                        }
+                        if (!next) next = checkAdj(key, 'E', 'N');
+                        if (!next) next = checkAdj(key, 'NE', 'W');
+                    break;
+                    case 'E':
+                        if (isSideFree(key, 'S')) {
+                            return {
+                                key: key,
+                                dir: 'S',
+                                point: getCornerPoint(key, dir)
+                            }
+                        }
+                        if (!next) next = checkAdj(key, 'S', 'E');
+                        if (!next) next = checkAdj(key, 'SE', 'N');
+                    break;
+                    case 'S':
+                        if (isSideFree(key, 'W')) {
+                            return {
+                                key: key,
+                                dir: 'W',
+                                point: getCornerPoint(key, dir)
+                            }
+                        }
+                        if (!next) next = checkAdj(key, 'W', 'S');
+                        if (!next) next = checkAdj(key, 'SW', 'E');
+                    break;
+                    case 'W':
+                        if (isSideFree(key, 'N')) {
+                            return {
+                                key: key,
+                                dir: 'N',
+                                point: getCornerPoint(key, dir)
+                            }
+                        }
+                        if (!next) next = checkAdj(key, 'N', 'W');
+                        if (!next) next = checkAdj(key, 'NW', 'S');
+                    break;
+                }
+                if (next) {
+                    next.point = getCornerPoint(key, dir);
+                    return next;
+                }
+            }
+            var polygonList = [];
+            for (var i = 1; i < index; i++) {
+                var outlinePoints = getOutline(i);
+                var ringPoints = outlinePoints.map(function (pt) {
+                    var worldXY = vs.GridXYtoWorldXY(pt.x, pt.y);
+                    var latlon = worldToLatLon(worldXY.x, worldXY.y);
+                    return new OpenLayers.Geometry.Point(latlon.x, latlon.y);
+                });
+                console.log(ringPoints);
+                var ring = new OpenLayers.Geometry.LinearRing(ringPoints);
                 var polygon = new OpenLayers.Geometry.Polygon([ring]);
-                return polygon;
-            })
+                polygonList.push(polygon);
+            }
             var multiPolygon = new OpenLayers.Geometry.MultiPolygon(polygonList);
-            // add vision polygon to map
             var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
             visionSimulationLayer.addFeatures([visionFeature]);
             marker.vision_feature = visionFeature;
-            var t3 = Date.now();
+            var t2 = Date.now();
             console.log('union', t2 - t1);
-            console.log('draw', t3 - t2);
-            console.log('total', t3 - t1);
         }
     }
     
