@@ -21,20 +21,17 @@ function App(map_tile_path, vision_data_image_path) {
         TOWER_ATTACK_RANGE_RADIUS = 700,
         map_data_path = "data",
         map_data,
-        map_w = 16384,
-        map_h = 16384,
-        map_x_boundaries = [-8475.58617377, 9327.49124559],
-        map_y_boundaries = [9028.52473332, -8836.61406266],
-        zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( map_w, map_h ) ),
-        scale = Math.abs(map_x_boundaries[1] - map_x_boundaries[0])/map_w,
+        mapConstants = require('./mapConstants'),
+        conversionFunctions = require('./conversionFunctions'),
+        zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
         map = new OpenLayers.Map("map", {
             theme: null,
-            maxExtent: new OpenLayers.Bounds(0, 0, map_w, map_h),
+            maxExtent: new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
             numZoomLevels: 5,
             maxResolution: Math.pow(2, 5-1 ),
             units: "m"
         }),
-        layerKeys = ["npc_dota_roshan_spawner","trigger_multiple","ent_dota_tree","dota_item_rune_spawner","dota_item_rune_spawner_bounty","ent_dota_shop","npc_dota_barracks","npc_dota_building","npc_dota_healer","npc_dota_fort","npc_dota_tower"],
+        layerKeys = ["npc_dota_roshan_spawner","trigger_multiple","ent_dota_tree","dota_item_rune_spawner","dota_item_rune_spawner_bounty","ent_dota_shop","npc_dota_barracks","npc_dota_building","npc_dota_healer","npc_dota_fort","npc_dota_tower","no_wards","ent_fow_blocker_node"],
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
             dota_item_rune_spawner: "Runes",
@@ -48,7 +45,7 @@ function App(map_tile_path, vision_data_image_path) {
             npc_dota_building: "Buildings",
             trigger_multiple: "Neutral Camps Spawn Boxes",
             npc_dota_neutral_spawner: "Neutral Camps",
-            trigger_no_wards: "Invalid Ward Locations",
+            no_wards: "Invalid Ward Locations",
             ent_fow_blocker_node: "Vision Blocker"
         },
         baseLayers = [
@@ -201,53 +198,13 @@ function App(map_tile_path, vision_data_image_path) {
      * COORDINATE CONVERSION FUNCTIONS *
      ***********************************/
 
-    function getTileRadius(r) {
-        return parseInt(Math.floor(r / 64));
-    }
-
-    function lerp(minVal, maxVal, pos_r) {
-        return pos_r * (maxVal - minVal) + minVal;
-    }
-
-    function reverseLerp(minVal, maxVal, pos) {
-        return (pos - minVal) / (maxVal - minVal);
-    }
-
-    function latLonToWorld(x, y) {
-        var x_r = lerp(map_x_boundaries[0], map_x_boundaries[1], x / map_w),
-            y_r = lerp(map_y_boundaries[0], map_y_boundaries[1], (map_h - y) / map_h);
-
-        return {
-            x: x_r,
-            y: y_r
-        };
-    }
-
-    function worldToLatLon(x_r, y_r) {
-        var x = reverseLerp(map_x_boundaries[0], map_x_boundaries[1], x_r) * map_w,
-            y = map_h - reverseLerp(map_y_boundaries[0], map_y_boundaries[1], y_r) * map_h;
-
-        return {
-            x: x,
-            y: y
-        };
-    }
-
-    function getScaledRadius(r) {
-        return r / (map_x_boundaries[1] - map_x_boundaries[0]) * map_w
-    }
-
-    function calculateDistance(order, units, measure) {
-        if (order == 1) {
-            if (units == "km") {
-                return measure * scale * 1000;
-            } else {
-                return measure * scale;
-            }
-        } else {
-            return measure * scale;
-        }
-    }
+    var lerp = lerp,
+        reverseLerp = conversionFunctions.reverseLerp,
+        latLonToWorld = conversionFunctions.latLonToWorld,
+        worldToLatLon = conversionFunctions.worldToLatLon,
+        getTileRadius = conversionFunctions.getTileRadius,
+        getScaledRadius = conversionFunctions.getScaledRadius,
+        calculateDistance = conversionFunctions.calculateDistance;
 
     /********************
      * CONTROL HANDLERS *
@@ -557,7 +514,7 @@ function App(map_tile_path, vision_data_image_path) {
             console.log('onMapDataLoad', k);
             if (data[k]) {
                 // Create markers for non-neutral spawn box and non-tree layers
-                if (k != "trigger_multiple" && k != "ent_dota_tree" && k != "trigger_no_wards" && k != "ent_fow_blocker_node") {
+                if (k != "trigger_multiple" && k != "ent_dota_tree" && k != "no_wards" && k != "ent_fow_blocker_node") {
                     markers[k] = new OpenLayers.Layer.Markers(layerNames[k]);
                     map.addLayer(markers[k]);
                     markers[k].setVisibility(false);
@@ -590,7 +547,13 @@ function App(map_tile_path, vision_data_image_path) {
                     loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
                 }
             }
-        });
+            else if (k === "no_wards") {
+                loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.red);
+            }
+            else if (k === "ent_fow_blocker_node") {
+                loadGeoJSONData(markers, k, layerNames[k], k + '.json', style.lightblue);
+            }
+        });        
 
         map_data = data;
         
@@ -920,7 +883,7 @@ function App(map_tile_path, vision_data_image_path) {
             },
             overFeature: function(feature) {
                 var element = document.getElementById("output"),
-                    out = "Radius: " + (.565352 * Math.sqrt(feature.geometry.getArea()) * scale).toFixed(0) + " units";
+                    out = "Radius: " + (.565352 * Math.sqrt(feature.geometry.getArea()) * mapConstants.scale).toFixed(0) + " units";
                 element.innerHTML = out;
                 this.highlight(feature);
             },
@@ -1091,6 +1054,65 @@ function App(map_tile_path, vision_data_image_path) {
     var vs = new VisionSimulation(worlddata, vision_data_image_path, function () {
         init();
     });
+    
+    function loadGeoJSONData(markers, k, name, filename, style) {
+        markers[k] = new OpenLayers.Layer.Vector(name, {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: filename,
+                format: new OpenLayers.Format.GeoJSON()
+            })
+        });
+        markers[k].style = style;
+        map.addLayer(markers[k]);
+        markers[k].setVisibility(false);
+    }
+    
+    /*function generatePointSquaresGeoJSON(markers, data, layerName, layerDisplayname) {
+        console.log('generatePointSquaresGeoJSON start');
+        markers[layerName] = new OpenLayers.Layer.Vector(layerDisplayname);
+        map.addLayer(markers[layerName]);
+        markers[layerName].setVisibility(false);
+        var union = null
+        console.log(Object.keys(data).length);
+        var c = 0;
+        for (key in data) {
+            var pt = vs.key2pt(key);
+            var worldXY = vs.GridXYtoWorldXY(pt.x, pt.y);
+            var box_points = [];
+            var latlon;
+            latlon = worldToLatLon(worldXY.x - 32, worldXY.y + 32);
+            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
+            latlon = worldToLatLon(worldXY.x + 32, worldXY.y + 32);
+            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
+            latlon = worldToLatLon(worldXY.x + 32, worldXY.y - 32);
+            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
+            latlon = worldToLatLon(worldXY.x - 32, worldXY.y - 32);
+            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
+            latlon = worldToLatLon(worldXY.x - 32, worldXY.y + 32);
+            box_points.push(new jsts.geom.Coordinate(latlon.x, latlon.y));
+            var shell = geometryFactory.createLinearRing(box_points);
+            var jstsPolygon = geometryFactory.createPolygon(shell);
+
+            if (union == null) {
+                union = jstsPolygon;
+            } else {
+                union = union.union(jstsPolygon);
+            }
+            
+            c++;
+            if (c % 200 === 0) console.log(c);
+        }
+        console.log('generatePointSquaresGeoJSON loop done');
+        union = jstsToOpenLayersParser.write(union);
+        box_feature = new OpenLayers.Feature.Vector(union, null, style.red);
+        markers[layerName].addFeatures([box_feature]);
+        console.log('generatePointSquaresGeoJSON end');
+
+        // export to KML
+        parser = new OpenLayers.Format.GeoJSON()
+        console.log(parser.write(box_feature));
+    }*/
 }
 
 module.exports = App;
