@@ -86,6 +86,7 @@ function App(map_tile_path, vision_data_image_path) {
             ascending: false
         }),
         coordinateControl = new OpenLayers.Control.MousePosition(),
+        cursorLayer = new OpenLayers.Layer.Vector("Cursor", {displayInLayerSwitcher:false}),
         dayRangeLayer = new OpenLayers.Layer.Vector("Day Vision Range"),
         nightRangeLayer = new OpenLayers.Layer.Vector("Night Vision Range"),
         trueSightRangeLayer = new OpenLayers.Layer.Vector("True Sight Range"),
@@ -99,7 +100,8 @@ function App(map_tile_path, vision_data_image_path) {
         lastDistance,
         style = require('./styleConstants'),
         treeMarkers = {},
-        VISION_SIMULATION = true;
+        VISION_SIMULATION = true,
+        VISION_SIMULATION_ALWAYS = true;
 
     /***********************************
      * COORDINATE CONVERSION FUNCTIONS *
@@ -620,6 +622,7 @@ function App(map_tile_path, vision_data_image_path) {
     baseLayers.forEach(function(layer) {
         map.addLayer(layer);
     });
+    map.addLayer(cursorLayer);
     map.addLayer(dayRangeLayer);
     map.addLayer(nightRangeLayer);
     map.addLayer(trueSightRangeLayer);
@@ -840,30 +843,33 @@ function App(map_tile_path, vision_data_image_path) {
     };
     
     map.events.register("mousemove", map, function(e) {
-        if (wardVisionLayer.cursor_marker) {
+        /*if (wardVisionLayer.cursor_marker) {
+            if (wardVisionLayer.cursor_marker.vision_center_feature) wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker.vision_center_feature);
+            if (wardVisionLayer.cursor_marker.vision_feature) wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker.vision_feature);
             wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker);
-        }
+        }*/
+        cursorLayer.destroyFeatures();
     
         // create and add cursor marker polygon if in place observer mode
         if (VISION_SIMULATION && document.getElementById("observerToggle").checked) {
             var lonlat = map.getLonLatFromPixel(e.xy);
             var worldXY = latLonToWorld(lonlat.lon, lonlat.lat);
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
-            var key = vs.pt2key(gridXY);
 
-            var treePt = vs.tree_relations[key];
+            var treePt = vs.tree_relations[gridXY.key];
             var treeBlocking = false;
             if (treePt) {
-                var treeKey = vs.pt2key(treePt);
-                treeBlocking = vs.tree_state[treeKey];
+                treeBlocking = vs.tree_state[treePt.key];
             }
             var cursor_style = style.green;
             if (!vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
                 cursor_style = style.red;
             }
             var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), cursor_style);
-            wardVisionLayer.addFeatures([box_feature]);
-            wardVisionLayer.cursor_marker = box_feature;
+            cursorLayer.addFeatures([box_feature]);
+            //wardVisionLayer.cursor_marker = box_feature;
+            
+            if (VISION_SIMULATION_ALWAYS) updateVisibilityHandler(lonlat, null, ENTITIES.observer.radius);
         }
     });
 
@@ -907,6 +913,12 @@ function App(map_tile_path, vision_data_image_path) {
     // Vision simulation on/off
     document.getElementById("visionSimulationControl").addEventListener("change", function(e) {
         VISION_SIMULATION = this.checked;
+        document.getElementById("alwaysSimulateControl").disabled = !this.checked;
+    }, false);
+
+    // Always simulate vision on/off
+    document.getElementById("alwaysSimulateControl").addEventListener("change", function(e) {
+        VISION_SIMULATION_ALWAYS = this.checked;
     }, false);
 
     // Update travel time display when movespeed input changes
@@ -935,6 +947,7 @@ function App(map_tile_path, vision_data_image_path) {
         VISION_SIMULATION = data != "687";
         //document.querySelector('label[for="visionSimulationControl"]').style.display = VISION_SIMULATION ? 'inline' : 'none';
         document.getElementById("visionSimulationControl").disabled = !VISION_SIMULATION;
+        document.getElementById("alwaysSimulateControl").disabled = !VISION_SIMULATION;
         getJSON(map_data_path + getDataVersion() + '/mapdata.json', onMapDataLoad);
     }
     
@@ -943,14 +956,15 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
-        console.log('updateVisibility ready');
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
         if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
             // create and add center marker polygon
             var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), style.green);
-            visionSimulationLayer.addFeatures([box_feature]);
-            marker.vision_center_feature = box_feature;
+            if (marker) {
+                visionSimulationLayer.addFeatures([box_feature]);
+                marker.vision_center_feature = box_feature;
+            }
 
             // execute vision simulation
             vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
@@ -968,8 +982,13 @@ function App(map_tile_path, vision_data_image_path) {
             });
             var multiPolygon = new OpenLayers.Geometry.MultiPolygon(polygonList);
             var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
-            visionSimulationLayer.addFeatures([visionFeature]);
-            marker.vision_feature = visionFeature;
+            if (marker) {
+                visionSimulationLayer.addFeatures([visionFeature]);
+                marker.vision_feature = visionFeature;
+            }
+            else {
+                cursorLayer.addFeatures([visionFeature]);
+            }
         }
     }
     
