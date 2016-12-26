@@ -3,178 +3,123 @@ var key2pt = VisionSimulation.prototype.key2pt;
 var xy2key = VisionSimulation.prototype.xy2key;
 var xy2pt = VisionSimulation.prototype.xy2pt;
 
-function processNeighbors(lights, components, key, index) {
+function processNeighbors(grid, lights, components, key, index) {
     var pt = key2pt(key);
-    var dirs = ['N', 'E', 'S', 'W'];
+    var dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
     for (var i = 0; i < dirs.length; i++) {
-        var keyAdj = getAdjKey(pt, dirs[i]);
+        var keyAdj = grid[pt.x+dirs[i][0]][pt.y+dirs[i][1]].key
         if (components[keyAdj] || !lights[keyAdj]) continue;
         components[keyAdj] = index;
-        processNeighbors(lights, components, keyAdj, index);
+        processNeighbors(grid, lights, components, keyAdj, index);
     }
 }
 
-function getLightUnion(lights) {
+function getLightUnion(grid, lights) {
     var components = {};
     var index = 1;
     for (var key in lights) {
         if (!components[key]) {
             components[key] = index;
-            processNeighbors(lights, components, key, index);
+            processNeighbors(grid, lights, components, key, index);
             index++;
         }
     }
     
     var outlines = [];
     for (var i = 1; i < index; i++) {
-        outlines.push(getOutline(components, i))
+        outlines.push(getOutline(grid, components, i))
     }
     return outlines;
 }
 
-function getAdjKey(pt, dir) {
-    switch (dir) {
-        case 'N':
-            return xy2key(pt.x, pt.y+1);
-        break;
-        case 'E':
-            return xy2key(pt.x+1, pt.y);
-        break;
-        case 'S':
-            return xy2key(pt.x, pt.y-1);
-        break;
-        case 'W':
-            return xy2key(pt.x-1, pt.y);
-        break;
-        case 'NE':
-            return xy2key(pt.x+1, pt.y+1);
-        break;
-        case 'SE':
-            return xy2key(pt.x+1, pt.y-1);
-        break;
-        case 'SW':
-            return xy2key(pt.x-1, pt.y-1);
-        break;
-        case 'NW':
-            return xy2key(pt.x-1, pt.y+1);
-        break;
-    }
-}
-
-function isSideFree(components, pt, dir) {
-    var keyAdj = getAdjKey(pt, dir);
+function isSideFree(grid, components, pt, dir) {
+    var keyAdj = grid[pt.x+dir[0]][pt.y+dir[1]].key
     return !components[keyAdj];
 }
 
-function notSurrounded(components, pt) {
-    var dirs = ['N', 'E', 'S', 'W'];
-    for (var i = 0; i < dirs.length; i++) {
-        var keyAdj = getAdjKey(pt, dirs[i]);
-        if (!components[keyAdj]) return dirs[i];
+function notSurrounded(grid, components, pt) {
+    for (var i = 0; i < 8; i+=2) {
+        var dX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
+        var dY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
+        var keyAdj = grid[pt.x+dX][pt.y+dY].key
+        if (!components[keyAdj]) return i;
     }
+    return null;
 }
 
-function getCornerPoint(pt, dir) {
-    switch (dir) {
-        case 'N':
-            return xy2pt(pt.x-0.5, pt.y+0.5);
-        break;
-        case 'E':
-            return xy2pt(pt.x+0.5, pt.y+0.5);
-        break;
-        case 'S':
-            return xy2pt(pt.x+0.5, pt.y-0.5);
-        break;
-        case 'W':
-            return xy2pt(pt.x-0.5, pt.y-0.5);
-        break;
-    }
+function mod(n, m) {
+        return ((n % m) + m) % m;
 }
 
-function getOutline(components, index) {
+function getOutline(grid, components, index) {
     var outlinePoints = [];
     var startKey;
-    var dir;
+    var dir = null;
     for (var key in components) {
         var pt = key2pt(key);
-        dir = notSurrounded(components, pt);
-        if (components[key] == index && dir) {
+        dir = notSurrounded(grid, components, pt);
+        if (components[key] == index && dir !== null) {
             startKey = key;
             break;
         }
     }
-    var next = processNext(components, startKey, dir);
+    var next = processNext(grid, components, startKey, dir);
     while (startKey !== next.key || dir !== next.dir) {
         outlinePoints.push(next.point);
-        next = processNext(components, next.key, next.dir)
+        next = processNext(grid, components, next.key, next.dir);
     }
     outlinePoints.push(next.point);
     return outlinePoints;
 }
 
-function checkAdj(components, pt, key, dir, adjDir) {
-    var adjKey = getAdjKey(pt, dir);
-    var adj = key2pt(adjKey);
-    if (components[adjKey] == components[key] && isSideFree(components, adj, adjDir)) {
+function checkAdj(grid, components, pt, key, dir, i, adjDir) {
+    var ptAdj = grid[pt.x+dir[0]][pt.y+dir[1]]
+    if (components[ptAdj.key] == components[key] && isSideFree(grid, components, ptAdj, adjDir)) {
         return {
-            key: adjKey,
-            dir: adjDir
+            key: ptAdj.key,
+            dir: i
         }
     }
 }
 
-function processNext(components, key, dir) {
+function processNext(grid, components, key, i) {
     var pt = key2pt(key);
     var next;
-    switch (dir) {
-        case 'N':
-            if (isSideFree(components, pt, 'E')) {
-                return {
-                    key: key,
-                    dir: 'E',
-                    point: getCornerPoint(pt, dir)
-                }
-            }
-            if (!next) next = checkAdj(components, pt, key, 'E', 'N');
-            if (!next) next = checkAdj(components, pt, key, 'NE', 'W');
-        break;
-        case 'E':
-            if (isSideFree(components, pt, 'S')) {
-                return {
-                    key: key,
-                    dir: 'S',
-                    point: getCornerPoint(pt, dir)
-                }
-            }
-            if (!next) next = checkAdj(components, pt, key, 'S', 'E');
-            if (!next) next = checkAdj(components, pt, key, 'SE', 'N');
-        break;
-        case 'S':
-            if (isSideFree(components, pt, 'W')) {
-                return {
-                    key: key,
-                    dir: 'W',
-                    point: getCornerPoint(pt, dir)
-                }
-            }
-            if (!next) next = checkAdj(components, pt, key, 'W', 'S');
-            if (!next) next = checkAdj(components, pt, key, 'SW', 'E');
-        break;
-        case 'W':
-            if (isSideFree(components, pt, 'N')) {
-                return {
-                    key: key,
-                    dir: 'N',
-                    point: getCornerPoint(pt, dir)
-                }
-            }
-            if (!next) next = checkAdj(components, pt, key, 'N', 'W');
-            if (!next) next = checkAdj(components, pt, key, 'NW', 'S');
-        break;
+    
+    var x = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
+    var y = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
+    
+    var nI = mod(i+2, 8);
+    var nX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * nI));
+    var nY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * nI));
+    
+    var bI = mod(i-1, 8);
+    var bX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * bI));
+    var bY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * bI));
+
+    if (isSideFree(grid, components, pt, [nX, nY])) {
+        return {
+            key: key,
+            dir: mod(i+2, 8),
+            point: xy2pt(pt.x+bX/2, pt.y+bY/2)
+        }
+    }
+    if (!next) next = checkAdj(grid, components, pt, key, [nX, nY], i, [x, y]);
+    if (!next) {
+        var aI = mod(i + 1, 8);
+        var aX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * aI));
+        var aY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * aI));
+        var pI = mod(i - 2, 8);
+        var pX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * pI));
+        var pY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * pI));
+        next = checkAdj(grid, components, pt, key, [aX, aY], pI, [pX, pY]);
     }
     if (next) {
-        next.point = getCornerPoint(pt, dir);
+        next.point = xy2pt(pt.x+bX/2, pt.y+bY/2);
         return next;
+    }
+    else {
+        console.log('error');
     }
 }
 
