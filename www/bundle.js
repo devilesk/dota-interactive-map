@@ -5,15 +5,17 @@ var getLightUnion = require("./getLightUnion");
 var trim = require('./util/trim');
 var QueryString = require('./util/queryString');
 
-    function updateVisibilityHandler(latlon, marker, radius) {
-        var worldXY = latLonToWorld(latlon.lon, latlon.lat);
-        var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
-        if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
-            // create and add center marker polygon
-            var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), style.green);
-            if (marker) {
-                visionSimulationLayer.addFeatures([box_feature]);
-                marker.vision_center_feature = box_feature;
+function App(map_tile_path, vision_data_image_path) {
+    var self = this,
+        IMG_DIR = "img/",
+        ENTITIES = {
+            observer: {
+                icon_path: IMG_DIR + "ward_observer.png",
+                radius: 1600
+            },
+            sentry: {
+                icon_path: IMG_DIR + "ward_sentry.png",
+                radius: 850
             }
         },
         TOWER_DAY_VISION_RADIUS = 1900,
@@ -258,25 +260,6 @@ var QueryString = require('./util/queryString');
         }
         element.innerHTML = out;
     }
-    
-    var vs = new VisionSimulation(worlddata, vision_data_image_path, function () {
-        init();
-    });
-    
-    function loadGeoJSONData(markers, k, name, style) {
-        var filename = map_data_path + getDataVersion() + '/' + k + '.json';
-        markers[k] = new OpenLayers.Layer.Vector(name, {
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-                url: filename,
-                format: new OpenLayers.Format.GeoJSON()
-            }),
-            visibility: false
-        });
-        markers[k].style = style;
-        map.addLayer(markers[k]);
-    }
-}
 
     function handleCircleMeasurementsPartial(event) {
         var element = document.getElementById("output"),
@@ -526,7 +509,6 @@ var QueryString = require('./util/queryString');
         layer.loaded = !layer.loaded;
         console.log('end tree load');
     }
-}
 
     function loadJSONData(markers, k, name, data) {
         markers[name] = new OpenLayers.Layer.Vector(layerNames[k]);
@@ -611,7 +593,6 @@ var QueryString = require('./util/queryString');
             }
         }
     }
-}
 
     function getJSON(path, callback) {
         console.log('getJSON', path);
@@ -632,7 +613,6 @@ var QueryString = require('./util/queryString');
         request.send();
         return request;
     }
-}
 
     /********************
      * INITITIALIZATION *
@@ -846,11 +826,6 @@ var QueryString = require('./util/queryString');
         }
         map.addControl(drawControls[key]);
     }
-    if (next) {
-        next.point = getCornerPoint(pt, dir);
-        return next;
-    }
-}
 
     map.events.register("zoomend", map, function(){
         QueryString.setQueryString('zoom', map.zoom);
@@ -1929,35 +1904,27 @@ function pt2key(pt) {
     return pt.x + "," + pt.y;
 }
 
-function getAdjacentCells(data, x, y) {
-    var cells = [];
-    for (var i = -1; i <= 1; i++) {
-        for (var j = -1; j <= 1; j++) {
-            if (0 !== i || 0 !== j) {
-                var k = (x + i) + "," + (y + j);
-                if (data[k]) {
-                    cells.push(data[k]);
-                }
-            }
-        }
-    }
-    return cells;
-}
-
 function generateElevationWalls(data, elevation) {
+    var t1 = Date.now();
     var walls = {};
-    for (var i in data) {
-        var pt = data[i];
+    for (var key in data) {
+        var pt = data[key];
         if (pt.z > elevation) {
-            var adj = getAdjacentCells(data, pt.x, pt.y);
-            for (var j = 0; j < adj.length; j++) {
-                if (adj[j].z <= elevation) {
-                    walls[pt.key] = pt;
-                    break;
+            adjLoop:
+            for (var i = -1; i <= 1; i++) {
+                for (var j = -1; j <= 1; j++) {
+                    if (0 !== i || 0 !== j) {
+                        var k = (pt.x + i) + "," + (pt.y + j);
+                        if (data[k] && data[k].z <= elevation) {
+                            walls[pt.key] = pt;
+                            break adjLoop;
+                        }
+                    }
                 }
             }
         }
     }
+    console.log('generateElevationWalls', Date.now() - t1 + 'ms');
     return walls;
 }
 
@@ -1986,7 +1953,6 @@ function setTreeWalls(obj, elevation, tree, tree_elevations, tree_state, tree_bl
             }
         }
     }
-    return walls;
 }
 
 function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
@@ -2020,18 +1986,24 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.ready = false;
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
+    var t1 = Date.now();
     this.imageHandler.load(function () {
+        var t2 = Date.now();
+        console.log('image load', t2 - t1 + 'ms');
         self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
         self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
         self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
         parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
         self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+        var t3 = Date.now();
+        console.log('image process', t3 - t2 + 'ms');
         self.elevationValues.forEach(function (elevation) {
-            self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
+            //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
             self.treeWalls[elevation] = {};
             setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
         });
-        console.log(self.gridWidth, self.gridHeight);
+        var t4 = Date.now();
+        console.log('walls generation', t4 - t3 + 'ms');
         for (var i = 0; i < self.gridWidth; i++) {
             self.grid[i] = [];
             for (var j = 0; j < self.gridHeight; j++) {
@@ -2040,6 +2012,8 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
                 self.grid[i].push(pt);
             }
         }
+        var t5 = Date.now();
+        console.log('cache prime', t5 - t4 + 'ms');
         self.ready = true;
         onReady();
     });
@@ -2104,6 +2078,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     radius = radius || self.radius;
     this.elevation = this.elevationGrid[key].z;
     this.walls = this.treeWalls[this.elevation];
+    if (!this.elevationWalls[this.elevation]) this.elevationWalls[this.elevation] = generateElevationWalls(this.elevationGrid, this.elevation);
     //setElevationWalls(this.walls, this.elevationWalls, this.elevation)
     //setWalls(this.walls, this.ent_fow_blocker_node);
     //setWalls(this.walls, this.tools_no_wards);
@@ -2199,7 +2174,6 @@ VisionSimulation.prototype.key2pt = key2pt;
 VisionSimulation.prototype.xy2key = xy2key;
 VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
-VisionSimulation.prototype.getAdjacentCells = getAdjacentCells;
 
 module.exports = VisionSimulation;
 },{"./imageHandler.js":8,"./rot6.js":9}],11:[function(require,module,exports){
