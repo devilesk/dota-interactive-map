@@ -17,7 +17,7 @@ function profile() {
     for (var i = 0; i < vs.gridWidth; i+=20) {
         for (var j = 0; j < vs.gridHeight; j+=20) {
             vs.updateVisibility(i, j);
-            //getLightUnion(vs.grid, vs.lights);
+            getLightUnion(vs.grid, vs.lights);
         }
     }
     var t2 = Date.now()
