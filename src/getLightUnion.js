@@ -7,7 +7,10 @@ function processNeighbors(grid, lights, components, key, index) {
     var pt = key2pt(key);
     var dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
     for (var i = 0; i < dirs.length; i++) {
-        var keyAdj = grid[pt.x+dirs[i][0]][pt.y+dirs[i][1]].key
+        var aX = pt.x+dirs[i][0];
+        var aY = pt.y+dirs[i][1];
+        if (!grid[aX] || !grid[aX][aY]) continue;
+        var keyAdj = grid[aX][aY].key
         if (components[keyAdj] || !lights[keyAdj]) continue;
         components[keyAdj] = index;
         processNeighbors(grid, lights, components, keyAdj, index);
@@ -33,15 +36,19 @@ function getLightUnion(grid, lights) {
 }
 
 function isSideFree(grid, components, pt, dir) {
-    var keyAdj = grid[pt.x+dir[0]][pt.y+dir[1]].key
+    var aX = pt.x+dir[0];
+    var aY = pt.y+dir[1];
+    if (!grid[aX] || !grid[aX][aY]) return true;
+    var keyAdj = grid[aX][aY].key
     return !components[keyAdj];
 }
 
 function notSurrounded(grid, components, pt) {
     for (var i = 0; i < 8; i+=2) {
-        var dX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
-        var dY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
-        var keyAdj = grid[pt.x+dX][pt.y+dY].key
+        var aX = pt.x+Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
+        var aY = pt.y+Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
+        if (!grid[aX] || !grid[aX][aY]) return i;
+        var keyAdj = grid[aX][aY].key
         if (!components[keyAdj]) return i;
     }
     return null;
@@ -73,7 +80,10 @@ function getOutline(grid, components, index) {
 }
 
 function checkAdj(grid, components, pt, key, dir, i, adjDir) {
-    var ptAdj = grid[pt.x+dir[0]][pt.y+dir[1]]
+    var aX = pt.x+dir[0];
+    var aY = pt.y+dir[1];
+    if (!grid[aX] || !grid[aX][aY]) return;
+    var ptAdj = grid[pt.x+dir[0]][pt.y+dir[1]];
     if (components[ptAdj.key] == components[key] && isSideFree(grid, components, ptAdj, adjDir)) {
         return {
             key: ptAdj.key,
