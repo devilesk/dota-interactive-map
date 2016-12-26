@@ -1,12 +1,12 @@
 260 260
-run 0 11302ms
-run 1 9460ms
-run 2 9433ms
-run 3 9444ms
-run 4 11072ms
-run 5 9007ms
-run 6 9422ms
-run 7 9747ms
-run 8 9336ms
-run 9 8903ms
-average run 9712.6ms
+run 0 3003ms
+run 1 2961ms
+run 2 2550ms
+run 3 2083ms
+run 4 2429ms
+run 5 2116ms
+run 6 2149ms
+run 7 1984ms
+run 8 1978ms
+run 9 2021ms
+average run 2327.4ms

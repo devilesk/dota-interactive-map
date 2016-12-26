@@ -970,7 +970,7 @@ function App(map_tile_path, vision_data_image_path) {
             vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
             
             // merge light points into a single polygon and add to vision layer
-            var outlines = getLightUnion(vs.lights);
+            var outlines = getLightUnion(vs.grid, vs.lights);
             var polygonList = outlines.map(function (outlinePoints) {
                 var ringPoints = outlinePoints.map(function (pt) {
                     var worldXY = vs.GridXYtoWorldXY(pt.x, pt.y);

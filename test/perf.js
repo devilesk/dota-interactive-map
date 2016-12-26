@@ -23,4 +23,3 @@ function profile() {
     var t2 = Date.now()
     return t2 - t1;
 }
-
