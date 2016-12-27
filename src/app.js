@@ -849,10 +849,14 @@ function App(map_tile_path, vision_data_image_path) {
             var worldXY = latLonToWorld(lonlat.lon, lonlat.lat);
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
 
-            var treePt = vs.tree_relations[gridXY.key];
+            var treePts = vs.tree_relations[gridXY.key];
             var treeBlocking = false;
-            if (treePt) {
-                treeBlocking = vs.tree_state[treePt.key];
+            if (treePts) {
+                for (var i = 0 ; i < treePts.length; i++) {
+                    var treePt = treePts[i];
+                    treeBlocking = vs.tree_state[treePt.key];
+                    if (treeBlocking) break;
+                }
             }
             var cursor_style = style.green;
             if (!vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {

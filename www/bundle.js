@@ -850,10 +850,14 @@ function App(map_tile_path, vision_data_image_path) {
             var worldXY = latLonToWorld(lonlat.lon, lonlat.lat);
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
 
-            var treePt = vs.tree_relations[gridXY.key];
+            var treePts = vs.tree_relations[gridXY.key];
             var treeBlocking = false;
-            if (treePt) {
-                treeBlocking = vs.tree_state[treePt.key];
+            if (treePts) {
+                for (var i = 0 ; i < treePts.length; i++) {
+                    var treePt = treePts[i];
+                    treeBlocking = vs.tree_state[treePt.key];
+                    if (treeBlocking) break;
+                }
             }
             var cursor_style = style.green;
             if (!vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
@@ -1576,23 +1580,69 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cy = neighbors[i][1];
             var key = cx+","+cy;
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
-            obstacleType = this.walls[key];
+            obstacleTypes = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
             // if (key == "150,161") //console.log(key, obstacleType);
             // if (key == "151,160") //console.log(key, obstacleType);
-            if (obstacleType && obstacleType[0] == 'tree') {
-                cx2 = obstacleType[1];
-                cy2 = obstacleType[2];
-                radius = obstacleType[3];
+            if (obstacleTypes) {
+                for (var j = 0; j < obstacleTypes.length; j++) {
+                    var obstacleType = obstacleTypes[j];
+                    cx2 = obstacleType[1];
+                    cy2 = obstacleType[2];
+                    radius = obstacleType[3];
+                    
+                    dx = cx2 - x;
+                    dy = cy2 - y;
+                    dd = Math.sqrt(dx * dx + dy * dy);
+                    if (dd > 1/2) {
+                        a = Math.asin(radius / dd);
+                        b = Math.atan2(dy, dx),
+                        A1 = normalize(b - a),
+                        A2 = normalize(b + a);
+                        blocks = !this._lightPasses(cx, cy);
+                        
+                        dx1 = cx - x;
+                        dy1 = cy - y;
+                        dd1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+                        if (dd1 < dd) {
+                            trees[obstacleType[1]+","+obstacleType[2]] = [obstacleType[1], obstacleType[2]];
+                        }
+                        
+                        dx = cx - x;
+                        dy = cy - y;
+                        dd = Math.sqrt(dx * dx + dy * dy);
+                        a = Math.asin(radius / dd);
+                        b = Math.atan2(dy, dx),
+                        A1 = normalize(b - a),
+                        A2 = normalize(b + a);
+                        visibility = this._checkVisibility(b, A1, A2, false, SHADOWS);
+                    }
+                }
+                if (visibility) { callback(cx, cy, r, visibility); }
             }
             else {
                 cx2 = cx;
                 cy2 = cy;
                 radius = Math.SQRT2 / 2;
+                
+                dx = cx2 - x;
+                dy = cy2 - y;
+                dd = Math.sqrt(dx * dx + dy * dy);
+                if (dd > 1/2) {
+                    a = Math.asin(radius / dd);
+                    b = Math.atan2(dy, dx),
+                    A1 = normalize(b - a),
+                    A2 = normalize(b + a);
+                    blocks = !this._lightPasses(cx, cy);
+                    
+                    visibility = this._checkVisibility(b, A1, A2, blocks, SHADOWS);
+                    if (visibility) { callback(cx, cy, r, visibility); }
+                    if (this.done) return;
+                }
             }
             
-            dx = cx2 - x;
+            /*dx = cx2 - x;
             dy = cy2 - y;
             dd = Math.sqrt(dx * dx + dy * dy);
             if (dd > 1/2) {
@@ -1626,7 +1676,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
                     if (visibility) { callback(cx, cy, r, visibility); }
                     if (this.done) return;
                 }
-            }
+            }*/
 
 		} /* for all cells in this ring */
         
@@ -1941,8 +1991,10 @@ function setTreeWalls(obj, elevation, tree, tree_elevations, tree_state, tree_bl
     for (var i in tree) {
         if (elevation < tree_elevations[i]) {
             if (tree_state[i]) {
+                //obj[i] = ['tree', tree[i].x, tree[i].y, Math.SQRT2];
                 tree_blocks[i].forEach(function (pt) {
-                    obj[pt.x + "," + pt.y] = ['tree', tree[i].x, tree[i].y, Math.SQRT2];
+                    var k = pt.x + "," + pt.y;
+                    obj[k] = (obj[k] || []).concat([['tree', tree[i].x, tree[i].y, Math.SQRT2]]);
                 });
             }
         }
@@ -2051,7 +2103,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
             [Math.floor, Math.ceil].forEach(function (i) {
                 [Math.floor, Math.ceil].forEach(function (j) {
                     var treeCorner = xy2pt(i(treeOrigin.x), j(treeOrigin.y));
-                    self.tree_relations[treeCorner.key] = treeOrigin;
+                    self.tree_relations[treeCorner.key] = (self.tree_relations[treeCorner.key] || []).concat(treeOrigin);
                     self.tree_blocks[kC].push(treeCorner);
                 });
             });
@@ -2083,10 +2135,14 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
         if (!self.elevationGrid[key]) return;
-        var treePt = self.tree_relations[key];
+        var treePts = self.tree_relations[key];
         var treeBlocking = false;
-        if (treePt) {
-            treeBlocking = self.tree_state[treePt.key] && self.tree_elevations[treePt.key] > self.elevation;
+        if (treePts) {
+            for (var i = 0; i < treePts.length; i++) {
+                var treePt = treePts[i];
+                treeBlocking = self.tree_state[treePt.key] && self.tree_elevations[treePt.key] > self.elevation;
+                if (treeBlocking) break;
+            }
         }
         if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
@@ -2099,9 +2155,13 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
         treeBlocking = false;
         
     if (bCheckTreeState) {
-        var treePt = this.tree_relations[key];
-        if (treePt) {
-            treeBlocking = this.tree_state[treePt.key];
+        var treePts = this.tree_relations[key];
+        if (treePts) {
+            for (var i = 0; i < treePts.length; i++) {
+                var treePt = treePts[i];
+                treeBlocking = this.tree_state[treePt.key];
+                if (treeBlocking) break;
+            }
         }
     }
     
@@ -2113,23 +2173,26 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
     var key = xy2key(x, y);
     var isTree = !!this.tree_relations[key];
     if (isTree) {
-        var pt = this.tree_relations[key];
-        this.tree_state[pt.key] = !this.tree_state[pt.key];
-        
-        this.elevationValues.forEach(function (elevation) {
-            if (elevation < self.tree_elevations[pt.key]) {
-                if (self.tree_state[pt.key]) {
-                    self.tree_blocks[pt.key].forEach(function (ptB) {
-                        self.treeWalls[elevation][ptB.x + "," + ptB.y] = ['tree', pt.x, pt.y, Math.SQRT2];
-                    });
+        var treePts = this.tree_relations[key];
+        for (var i = 0; i < treePts.length; i++) {
+            var pt = treePts[i];
+            this.tree_state[pt.key] = !this.tree_state[pt.key];
+            
+            this.elevationValues.forEach(function (elevation) {
+                if (elevation < self.tree_elevations[pt.key]) {
+                    if (self.tree_state[pt.key]) {
+                        self.tree_blocks[pt.key].forEach(function (ptB) {
+                            self.treeWalls[elevation][ptB.x + "," + ptB.y] = ['tree', pt.x, pt.y, Math.SQRT2];
+                        });
+                    }
+                    else {
+                        self.tree_blocks[pt.key].forEach(function (ptB) {
+                            delete self.treeWalls[elevation][ptB.x + "," + ptB.y];
+                        });
+                    }
                 }
-                else {
-                    self.tree_blocks[pt.key].forEach(function (ptB) {
-                        delete self.treeWalls[elevation][ptB.x + "," + ptB.y];
-                    });
-                }
-            }
-        });
+            });
+        }
     }
 
     return isTree;
