@@ -120,7 +120,8 @@ function App(map_tile_path, vision_data_image_path) {
         style = require('./styleConstants'),
         treeMarkers = {},
         VISION_SIMULATION = true,
-        VISION_SIMULATION_ALWAYS = true;
+        VISION_SIMULATION_ALWAYS = true,
+        cutTrees = {};
 
     /***********************************
      * COORDINATE CONVERSION FUNCTIONS *
@@ -139,7 +140,7 @@ function App(map_tile_path, vision_data_image_path) {
      ********************/
 
     function handleTreeMarkerClick(event) {
-        console.log('handleTreeMarkerClick');
+        console.log('handleTreeMarkerClick', event);
         var worldXY = latLonToWorld(event.object.lonlat.lon, event.object.lonlat.lat),
             gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
 
@@ -148,10 +149,12 @@ function App(map_tile_path, vision_data_image_path) {
         vs.toggleTree(gridXY.x, gridXY.y);
 
         if (event.object.treeVisible) {
-            QueryString.removeQueryStringValue('cut_trees', event.object.tree_loc);
+            delete cutTrees[event.object.tree_loc]
         } else {
-            QueryString.addQueryStringValue('cut_trees', event.object.tree_loc);
+            console.log(event.object.tree_loc);
+            cutTrees[event.object.tree_loc] = event.object;
         }
+        setTreeQueryString()
     }
 
     function handleTowerMarkerClick(e, skipQueryStringUpdate) {
@@ -218,7 +221,7 @@ function App(map_tile_path, vision_data_image_path) {
         iconLayer.addMarker(marker);
         wardVisionLayer.addFeatures(feature);
         marker.radius_feature = feature;
-        marker.events.register("mousedown", this, wardMarkerRemove);
+        marker.events.register("click", this, wardMarkerRemove);
         marker.events.register("touchend", this, wardMarkerRemove);
         marker.ward_type = entityName;
         marker.ward_loc = entityName;
@@ -322,11 +325,12 @@ function App(map_tile_path, vision_data_image_path) {
 
     function toggleControl() {
         var control;
-
+        QueryString.setQueryString('mode', null);
         for (var key in drawControls) {
             control = drawControls[key];
             console.log(this, this.value, key, this.value == key && this.checked);
             if (this.value == key && this.checked) {
+                QueryString.setQueryString('mode', key);
                 control.activate();
             } else {
                 control.deactivate();
@@ -459,7 +463,7 @@ function App(map_tile_path, vision_data_image_path) {
 
                         if (k == "npc_dota_tower") {
                             console.log('npc_dota_tower');
-                            marker.events.register("mousedown", markers[k], handleTowerMarkerClick);
+                            marker.events.register("click", markers[k], handleTowerMarkerClick);
                             marker.events.register("touchend", markers[k], handleTowerMarkerClick);
                             marker.tower_loc = data[k][i];
                         }
@@ -521,7 +525,7 @@ function App(map_tile_path, vision_data_image_path) {
             marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle tree as alive or cut-down.<br>This will affect the simulated placed wards vision.<br>Tree coordinate: " + layer.data[i].x + ', ' + layer.data[i].y, false);
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
-            marker.events.register("mousedown", layer, handleTreeMarkerClick);
+            marker.events.register("click", layer, handleTreeMarkerClick);
             treeMarkers[layer.data[i].x + ',' + layer.data[i].y] = marker;
         }
         layer.loaded = !layer.loaded;
@@ -548,6 +552,14 @@ function App(map_tile_path, vision_data_image_path) {
 
     // Initialize map settings based on query string values
     function parseQueryString() {
+        var mode = QueryString.getParameterByName('mode');
+        if (mode) {
+            var modeRadioButton = document.getElementById(mode + 'Toggle');
+            if (modeRadioButton) {
+                modeRadioButton.checked = true;
+                toggleControl.call(modeRadioButton);
+            }
+        }
         var zoom = QueryString.getParameterByName('zoom');
         if (zoom) {
             map.zoomTo(parseInt(zoom));
@@ -594,6 +606,22 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }
 
+        var cut_trees = QueryString.getParameterByName('cut_trees');
+        if (cut_trees) {
+            var layer = map.getLayersByName(layerNames["ent_dota_tree"])[0];
+            if (!layer.loaded) loadTreeData();
+            cut_tree_coordinates = trim(cut_trees, ' ;').split(';')
+            console.log(treeMarkers, cut_tree_coordinates);
+            for (var i = 0; i < cut_tree_coordinates.length; i++) {
+                console.log(cut_tree_coordinates[i]);
+                if (treeMarkers[cut_tree_coordinates[i]]) {
+                    treeMarkers[cut_tree_coordinates[i]].treeVisible = false;
+                    treeMarkers[cut_tree_coordinates[i]].setOpacity(.4);
+                    cutTrees[cut_tree_coordinates[i]] = treeMarkers[cut_tree_coordinates[i]];
+                }
+            }
+        }
+
         var tower_vision = QueryString.getParameterByName('tower_vision');
         if (tower_vision) {
             var layer = map.getLayersByName(layerNames["npc_dota_tower"])[0];
@@ -610,6 +638,12 @@ function App(map_tile_path, vision_data_image_path) {
                 }
             }
         }
+    }
+    
+    function setTreeQueryString() {
+        var value = Object.keys(cutTrees).join(';');
+        console.log('cutTrees', value);
+        QueryString.setQueryString('cut_trees', value);
     }
 
     function getJSON(path, callback) {
@@ -720,13 +754,13 @@ function App(map_tile_path, vision_data_image_path) {
                 }
             }
         }),
-        observerclick: new OpenLayers.Control.Click({
+        observer: new OpenLayers.Control.Click({
             onClick: handleWardClick('observer'),
             handlerOptions: {
                 single: true
             }
         }),
-        sentryclick: new OpenLayers.Control.Click({
+        sentry: new OpenLayers.Control.Click({
             onClick: handleWardClick('sentry'),
             handlerOptions: {
                 single: true
@@ -885,7 +919,7 @@ function App(map_tile_path, vision_data_image_path) {
     }, false);
 
     // Set up panel radio button toggle handlers
-    document.getElementById('noneToggle').addEventListener('click', toggleControl, false);
+    document.getElementById('navigateToggle').addEventListener('click', toggleControl, false);
     document.getElementById('lineToggle').addEventListener('click', toggleControl, false);
     document.getElementById('circleToggle').addEventListener('click', toggleControl, false);
     document.getElementById('observerToggle').addEventListener('click', toggleControl, false);
