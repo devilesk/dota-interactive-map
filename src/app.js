@@ -82,8 +82,26 @@ function App(map_tile_path, vision_data_image_path) {
                 getURL: getMyURL('687', 'immortalgardens')
             })
         ],
+        overlayGrouping = {
+            "Day Vision Range": "Towers",
+            "Night Vision Range": "Towers",
+            "True Sight Range": "Towers",
+            "Attack Range": "Towers",
+            "Towers": "Structures",
+            "Shrines": "Structures",
+            "Ancients": "Structures",
+            "Barracks": "Structures",
+            "Buildings": "Structures",
+            "Shops": "Structures",
+            "Invalid Ward Locations": "Vision",
+            "Vision Blocker": "Vision",
+            "Placed Wards": "Vision",
+            "Ward Vision": "Vision",
+            "Ward Vision with Fog": "Vision"
+        },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
-            ascending: false
+            ascending: false,
+            overlayGrouping: overlayGrouping
         }),
         coordinateControl = new OpenLayers.Control.MousePosition(),
         cursorLayer = new OpenLayers.Layer.Vector("Cursor", {displayInLayerSwitcher:false}),
@@ -648,67 +666,6 @@ function App(map_tile_path, vision_data_image_path) {
             return fn.apply(this, arguments);
         }
     })(layerSwitcher.onButtonClick);
-    layerSwitcher.loadContents = function () {
-        // layers list div
-        this.layersDiv = document.createElement("div");
-        this.layersDiv.id = this.id + "_layersDiv";
-        OpenLayers.Element.addClass(this.layersDiv, "layersDiv");
-
-        this.baseLbl = document.createElement("div");
-        this.baseLbl.innerHTML = OpenLayers.i18n("Base Layer");
-        OpenLayers.Element.addClass(this.baseLbl, "baseLbl");
-
-        this.baseLayersDiv = document.createElement("div");
-        OpenLayers.Element.addClass(this.baseLayersDiv, "baseLayersDiv");
-
-        this.dataLbl = document.createElement("div");
-        this.dataLbl.innerHTML = OpenLayers.i18n("Overlays");
-        OpenLayers.Element.addClass(this.dataLbl, "dataLbl");
-
-        this.dataLayersDiv = document.createElement("div");
-        OpenLayers.Element.addClass(this.dataLayersDiv, "dataLayersDiv");
-
-        if (this.ascending) {
-            this.layersDiv.appendChild(this.baseLbl);
-            this.layersDiv.appendChild(this.baseLayersDiv);
-            this.layersDiv.appendChild(this.dataLbl);
-            this.layersDiv.appendChild(this.dataLayersDiv);
-        } else {
-            this.layersDiv.appendChild(this.dataLbl);
-            this.layersDiv.appendChild(this.dataLayersDiv);
-            this.layersDiv.appendChild(this.baseLbl);
-            this.layersDiv.appendChild(this.baseLayersDiv);
-        }
-
-        this.div.appendChild(this.layersDiv);
-
-        // maximize button div
-        this.maximizeDiv = OpenLayers.Util.createAlphaImageDiv(
-                                    "OpenLayers_Control_MaximizeDiv",
-                                    null,
-                                    null,
-                                    null,
-                                    "absolute");
-        OpenLayers.Element.addClass(this.maximizeDiv, "maximizeDiv olButton");
-        this.maximizeDiv.style.display = "none";
-
-        this.div.appendChild(this.maximizeDiv);
-
-        // minimize button div
-        this.minimizeDiv = OpenLayers.Util.createAlphaImageDiv(
-                                    "OpenLayers_Control_MinimizeDiv",
-                                    null,
-                                    null,
-                                    null,
-                                    "absolute");
-        OpenLayers.Element.addClass(this.minimizeDiv, "minimizeDiv olButton");
-        this.minimizeDiv.style.display = "none";
-
-        this.maximizeDiv.innerHTML = '&equiv;';
-        this.minimizeDiv.innerHTML = '&times;';
-        
-        this.div.appendChild(this.minimizeDiv);
-    }
     console.log(layerSwitcher.onButtonClick);
     map.addControl(layerSwitcher);
     layerSwitcher.maximizeControl();

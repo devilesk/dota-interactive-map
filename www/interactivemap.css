@@ -14,24 +14,49 @@ img[src="img/ward_observer.png"]:hover, img[src="img/ward_sentry.png"]:hover {
     z-index:1000;
     color:white;
 }
-#controls-list {
-	font-family:sans-serif;
-	font-weight:bold;
-	font-size:smaller;
+.controls-list {
+	font-family: sans-serif;
+	font-weight: bold;
+	font-size: 12px;
 	list-style:none;
-	margin:0px;
-	padding:3px 10px 5px 25px;
+	margin: 0px;
+    padding: 3px 10px 5px 10px;
 }
-#controls-list li{
+.controls-list li ul {
+    list-style:none;
+    padding: 1px 0px 1px 8px;
+}
+.controls-list.left {
+    padding: 3px 10px 5px 25px;
+}
+.controls-list li{
 	padding:0px 5px;
     margin: 5px 3px 5px 4px;
 }
-#controls-list #dataControl-container{
-    margin-top: 3px;
+.controls-list li:last-child {
+    margin-bottom: 0;
 }
-#controls-list input {
+.controls-list input {
     margin: 0;
     vertical-align: bottom;
+    margin-bottom: 1px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+li.collapsed ul {
+    display: none;
+}
+.controls-list .header {
+    background-color: rgba(20, 20, 20, 0.7);
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: -8px;
+}
+.controls-list .header:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+.controls-list label {
+    cursor: pointer;
 }
 #output-panel {
 	padding:5px 10px 5px 25px;
@@ -134,7 +159,7 @@ div.olControlZoom a:hover {
     .controls-container {
         top:150px;
     }
-    #controls-list {
+    .controls-list {
         padding: 3px 10px 5px 50px;
     }
     #OpenLayers_Control_MaximizeDiv_innerImage, #OpenLayers_Control_MinimizeDiv_innerImage {
