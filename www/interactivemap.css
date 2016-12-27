@@ -159,7 +159,7 @@ div.olControlZoom a:hover {
     .controls-container {
         top:150px;
     }
-    .controls-list {
+    .controls-list.left {
         padding: 3px 10px 5px 50px;
     }
     #OpenLayers_Control_MaximizeDiv_innerImage, #OpenLayers_Control_MinimizeDiv_innerImage {
@@ -167,7 +167,6 @@ div.olControlZoom a:hover {
         height: 100%;
     }
     .labelSpan.olButton {
-        width: 80%;
         display: inline-block;
     }
 }
