@@ -4,16 +4,22 @@ var union = require("@turf/union");
 var conversionFunctions = require("./conversionFunctions");
 var fs = require('fs');
 
-var vs = new VisionSimulation(worlddata, "../www/img/map_data.png", onReady);
+var vs = new VisionSimulation(worlddata, "../www/img/map_data2.png", onReady);
 
 function onReady() {
+    var t1 = Date.now();
     generateGeoJSON(vs, [vs.gridnav, vs.tools_no_wards], 'no_wards.json');
+    console.log('no_wards.json', Date.now() - t1 + 'ms');
+    t1 = Date.now();
     generateGeoJSON(vs, [vs.ent_fow_blocker_node], 'ent_fow_blocker_node.json');
+    console.log('ent_fow_blocker_node.json', Date.now() - t1 + 'ms');
 }
 
 function generateGeoJSON(vs, grids, dst) {
     var result = null;
-    grids.forEach(function (data) {
+    grids.forEach(function (data, index) {
+        var total = Object.keys(data).length;
+        var count = 0;
         for (var i in data) {
             var pt = vs.key2pt(i);
             var worldXY = vs.GridXYtoWorldXY(pt.x, pt.y)
@@ -36,6 +42,10 @@ function generateGeoJSON(vs, grids, dst) {
             else {
                 result = union(result, poly);
             }
+            if (count % 200 === 0) {
+                console.log('grids', index, '/', grids.length, ', points', count, '/', total);
+            }
+            count++;
         }        
     });
     transformData(result);
