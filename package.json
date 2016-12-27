@@ -11,7 +11,7 @@
     "clean:build": "rm -rf build/*",
     "build:js": "cat ol2/build/OpenLayers.js www/bundle.js | uglifyjs --compress drop_console,dead_code --mangle > build/bundle.min.js",
     "build:img": "imagemin www/img/* --out-dir=build/img",
-    "build:css": "cleancss --skip-rebase -o build/app.min.css www/*.css",
+    "build:css": "cat www/openlayers.css www/interactivemap.css | cleancss --skip-rebase -o build/app.min.css",
     "build:html": "NODE_ENV=prod node scripts/preprocess.js",
     "build:copy": "cp -r www/data build/",
     "build": "npm run clean:build && npm run build:js && npm run build:img && npm run build:css && npm run build:html && npm run build:copy",
