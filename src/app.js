@@ -987,7 +987,7 @@ function App(map_tile_path, vision_data_image_path) {
     });
     
     function loadGeoJSONData(markers, k, name, style) {
-        var filename = map_data_path + getDataVersion() + '/' + k + '.json';
+        var filename = map_data_path + getDataVersion() + '/' + k + '2.json';
         markers[k] = new OpenLayers.Layer.Vector(name, {
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
