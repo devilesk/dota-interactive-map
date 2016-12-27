@@ -6,7 +6,7 @@
         <meta name="author" content="devilesk">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="app.min.f68e1a9.css">
+        <link rel="stylesheet" type="text/css" href="app.min.e951cac.css">
 	</head>
 	<body>
 		<div id="map"></div>
@@ -14,28 +14,33 @@
             <a id="controls-max" class="controls-button maximizeDiv olButton olAlphaImg" href="#">+</a>
             <a id="controls-min" class="controls-button minimizeDiv olButton olAlphaImg" href="#">&times;</a>
             <div class="controls">
-                <ul id="controls-list">
+                <ul id="controls-list" class="controls-list left">
                     <b>Map Controls</b>
                     <li>
-                        <label for="noneToggle"><input type="radio" name="type" value="none" id="noneToggle" checked="checked" /> Navigate</label>
+                        <label for="noneToggle"><input type="radio" name="type" value="none" id="noneToggle" checked="checked" />Navigate</label>
                     </li>
                     <li>
-                        <label for="lineToggle"><input type="radio" name="type" value="line" id="lineToggle" /> Measure Distance</label>
+                        <label for="observerToggle"><input type="radio" name="type" value="observerclick" id="observerToggle" />Place Observer Ward</label>
+                        <ul>
+                            <li>
+                                <label for="visionSimulationControl"><input type="checkbox" id="visionSimulationControl" checked=true/>Vision Simulation</label>
+                            </li>
+                            <li>
+                                <label for="alwaysSimulateControl"><input type="checkbox" id="alwaysSimulateControl" checked=true/>Follow Cursor</label>
+                            </li>
+                        </ul>
                     </li>
                     <li>
-                        <label for="circleToggle"><input type="radio" name="type" value="circle" id="circleToggle" /> Measure Circle</label>
+                        <label for="sentryToggle"><input type="radio" name="type" value="sentryclick" id="sentryToggle" />Place Sentry Ward</label>
                     </li>
                     <li>
-                        <label for="observerToggle"><input type="radio" name="type" value="observerclick" id="observerToggle" /> Place Observer Ward</label>
+                        <label for="lineToggle"><input type="radio" name="type" value="line" id="lineToggle" />Measure Distance</label>
                     </li>
                     <li>
-                        <label for="sentryToggle"><input type="radio" name="type" value="sentryclick" id="sentryToggle" /> Place Sentry Ward</label>
+                        <label for="circleToggle"><input type="radio" name="type" value="circle" id="circleToggle" />Measure Circle</label>
                     </li>
                     <li>
-                        <label for="visionSimulationControl"><input type="checkbox" id="visionSimulationControl" checked=true/> Vision Simulation</label>
-                    </li>
-                    <li>
-                        <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/> Show Coordinates</label>
+                        <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/>Show Coordinates</label>
                     </li>
                     <li id="dataControl-container">
                         <label id="dataControl-label" for="dataControl">Version Data</label>
@@ -54,8 +59,8 @@
                 </div>
             </div>
         </div>
-        <script src="bundle.min.f68e1a9.js"></script>
-        <script>InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.f68e1a9.png');</script>
+        <script src="bundle.min.e951cac.js"></script>
+        <script>InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.e951cac.png');</script>
         <script>
         window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
         ga('create', 'UA-39435120-1', 'auto');
