@@ -191,7 +191,7 @@ function App(map_tile_path, vision_data_image_path) {
 
             if (!skipQueryStringUpdate) QueryString.addQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
 
-            var lonlat = worldToLatLon(e.object.tower_loc.x, e.object.tower_loc.y);
+            if (VISION_SIMULATION) updateVisibilityHandler(e.object.lonlat, e.object, TOWER_DAY_VISION_RADIUS);
         }
         else {
             dayRangeLayer.removeFeatures(e.object.day_vision_feature);
@@ -199,6 +199,9 @@ function App(map_tile_path, vision_data_image_path) {
             trueSightRangeLayer.removeFeatures(e.object.true_sight_feature);
             attackRangeLayer.removeFeatures(e.object.attack_range_feature);
 
+            if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
+            if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
+      
             if (!skipQueryStringUpdate) QueryString.removeQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
         }
         e.object.showInfo = !e.object.showInfo;
@@ -946,6 +949,7 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
+        console.log(latlon, marker, radius);
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
         if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
