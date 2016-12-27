@@ -154,7 +154,7 @@ function App(map_tile_path, vision_data_image_path) {
             console.log(event.object.tree_loc);
             cutTrees[event.object.tree_loc] = event.object;
         }
-        setTreeQueryString()
+        setTreeQueryString();
     }
 
     function handleTowerMarkerClick(e, skipQueryStringUpdate) {
@@ -642,8 +642,7 @@ function App(map_tile_path, vision_data_image_path) {
     
     function setTreeQueryString() {
         var value = Object.keys(cutTrees).join(';');
-        console.log('cutTrees', value);
-        QueryString.setQueryString('cut_trees', value);
+        QueryString.setQueryString('cut_trees', value || null);
     }
 
     function getJSON(path, callback) {
