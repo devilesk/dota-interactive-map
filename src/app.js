@@ -620,6 +620,9 @@ function App(map_tile_path, vision_data_image_path) {
                     treeMarkers[cut_tree_coordinates[i]].treeVisible = false;
                     treeMarkers[cut_tree_coordinates[i]].setOpacity(.4);
                     cutTrees[cut_tree_coordinates[i]] = treeMarkers[cut_tree_coordinates[i]];
+                    var worldXY = vs.key2pt(cut_tree_coordinates[i]);
+                    var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
+                    vs.toggleTree(gridXY.x, gridXY.y);
                 }
             }
         }
