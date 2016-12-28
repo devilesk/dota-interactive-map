@@ -2112,7 +2112,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
 
     this.lightPassesCallback = function (x, y) {
         var key = x + ',' + y;
-        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.tools_no_wards) && !(key in self.treeWalls[self.elevation]) ;
+        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation]) ;
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
