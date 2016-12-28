@@ -70,6 +70,25 @@ li.collapsed ul {
     width: initial;
     display: inline-block;
 }
+#reset {
+    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 3px;
+    margin-top: 7px;
+    color: black;
+    font-weight: bold;
+    width: 100%;
+    border: 1px solid #aaa;
+}
+#reset:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+#reset:active {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-color: black;
+    padding-top: 4px;
+    padding-bottom: 2px;
+}
 #output-panel {
 	padding:5px 10px 5px 25px;
 }

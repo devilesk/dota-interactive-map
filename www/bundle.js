@@ -931,6 +931,20 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('observerToggle').addEventListener('click', toggleControl, false);
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
     
+    document.getElementById('reset').addEventListener('click', function () {
+        history.replaceState(null, "", window.location.href.split("?")[0]);
+        resetMarkerLayers();
+        polygonLayer.destroyFeatures();
+        wardVisionLayer.destroyFeatures();
+        visionSimulationLayer.destroyFeatures();
+        iconLayer.clearMarkers();
+        drawControls.line.cancel();
+        drawControls.circle.cancel();
+        map.setBaseLayer(baseLayers[0]);
+        document.getElementById('dataControl').selectedIndex = 0;
+        init();
+    }, false);
+    
     document.getElementById('dataControl').addEventListener('change', function () {
         QueryString.setQueryString('data', document.getElementById('dataControl').value);
         resetMarkerLayers();
