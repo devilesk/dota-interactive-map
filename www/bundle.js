@@ -200,8 +200,8 @@ function App(map_tile_path, vision_data_image_path) {
             trueSightRangeLayer.removeFeatures(e.object.true_sight_feature);
             attackRangeLayer.removeFeatures(e.object.attack_range_feature);
 
-            if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
-            if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
+            if (e.object.vision_feature) visionSimulationLayer.removeFeatures(e.object.vision_feature);
+            if (e.object.vision_center_feature) visionSimulationLayer.removeFeatures(e.object.vision_center_feature);
       
             if (!skipQueryStringUpdate) QueryString.removeQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
         }
