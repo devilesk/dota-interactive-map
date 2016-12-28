@@ -15,24 +15,6 @@ div.olLayerDiv {
    -khtml-user-select: none;
 }
 
-.olLayerGoogleCopyright {
-    left: 2px;
-    bottom: 2px;
-}
-.olLayerGoogleV3.olLayerGoogleCopyright {
-    right: auto !important;
-}
-.olLayerGooglePoweredBy {
-    left: 2px;
-    bottom: 15px;
-}
-.olLayerGoogleV3.olLayerGooglePoweredBy {
-    bottom: 15px !important;
-}
-/* GMaps should not set styles on its container */
-.olForeignContainer {
-    opacity: 1 !important;
-}
 .olControlAttribution {
     font-size: smaller;
     right: 3px;
@@ -116,23 +98,6 @@ div.olControlMousePosition {
     background-image: url("img/overview_replacement.gif");
     background-repeat: no-repeat;
     background-position: center;
-}
-
-.olLayerGeoRSSDescription {
-    float:left;
-    width:100%;
-    overflow:auto;
-    font-size:1.0em;
-}
-.olLayerGeoRSSClose {
-    float:right;
-    color:gray;
-    font-size:1.2em;
-    margin-right:6px;
-    font-family:sans-serif;
-}
-.olLayerGeoRSSTitle {
-    float:left;font-size:1.2em;
 }
 
 .olPopupContent {
@@ -316,7 +281,6 @@ div.olControlSaveFeaturesItemInactive {
     margin-top: 3px;
     margin-left: 3px;
     margin-bottom: 3px;
-    font-size: smaller;
     color: white;
     background-color: transparent;
 }
@@ -348,26 +312,6 @@ div.olControlSaveFeaturesItemInactive {
     top: 5px;
     right: 0;
     cursor: pointer;
-}
-
-.olBingAttribution {
-    color: #DDD;
-}
-.olBingAttribution.road {
-    color: #333;
-}
-
-.olGoogleAttribution.hybrid, .olGoogleAttribution.satellite {
-    color: #EEE;
-}
-.olGoogleAttribution {
-    color: #333;
-}
-span.olGoogleAttribution a {
-    color: #77C;
-}
-span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
-    color: #EEE;
 }
 
 /**

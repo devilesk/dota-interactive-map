@@ -1,5 +1,7 @@
 body {
     margin:0;
+    font-family: sans-serif;
+    font-size: 12px;
 }
 img[src="img/ward_observer.png"]:hover, img[src="img/ward_sentry.png"]:hover {
     cursor:pointer;
@@ -31,7 +33,10 @@ img[src="img/ward_observer.png"]:hover, img[src="img/ward_sentry.png"]:hover {
 }
 .controls-list li{
 	padding:0px 5px;
-    margin: 5px 3px 5px 4px;
+    margin: 0;
+}
+.controls-list li.controls-list-header {
+    padding-bottom: 5px;
 }
 .controls-list li:last-child {
     margin-bottom: 0;
@@ -57,6 +62,13 @@ li.collapsed ul {
 }
 .controls-list label {
     cursor: pointer;
+    width: 100%;
+    display: block;
+    padding: 5px 3px 5px 4px;
+}
+.controls-list #dataControl-label {
+    width: initial;
+    display: inline-block;
 }
 #output-panel {
 	padding:5px 10px 5px 25px;
