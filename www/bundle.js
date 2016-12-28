@@ -20,7 +20,7 @@ function App(map_tile_path, vision_data_image_path) {
         },
         TOWER_DAY_VISION_RADIUS = 1900,
         TOWER_NIGHT_VISION_RADIUS = 800,
-        TOWER_TRUE_SIGHT_RADIUS = 900,
+        TOWER_TRUE_SIGHT_RADIUS = 700,
         TOWER_ATTACK_RANGE_RADIUS = 700,
         map_data_path = "data/",
         map_data,
