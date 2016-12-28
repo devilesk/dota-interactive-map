@@ -1007,7 +1007,9 @@ function App(map_tile_path, vision_data_image_path) {
         }
     }
     
+    var t1 = Date.now();
     var vs = new VisionSimulation(worlddata, vision_data_image_path, function () {
+        console.log('vs loaded', Date.now() - t1);
         init();
     });
     
