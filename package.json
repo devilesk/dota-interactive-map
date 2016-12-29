@@ -10,7 +10,7 @@
     "copy:img": "cp node_modules/dota-vision-simulation/www/map_data.png www/img",
     "copy:data": "cp node_modules/dota-vision-simulation/src/worlddata.json src",
     "clean:build": "rm -rf build/*",
-    "build:js": "cat src/OpenLayers.js www/bundle.js | uglifyjs --compress drop_console,dead_code --mangle > build/bundle.min.js",
+    "build:js": "cat src/OpenLayers.js www/bundle.js > build/bundle.js && uglifyjs --source-map build/bundle.min.js.map --source-map-url bundle.min.js.map --source-map-root . -p 1 --compress dead_code --mangle -- build/bundle.js > build/bundle.min.js",
     "build:img": "imagemin www/img/* --out-dir=build/img && cp www/img/map_data.png build/img/",
     "build:css": "cat www/openlayers.css www/interactivemap.css | cleancss --skip-rebase -o build/app.min.css",
     "build:html": "NODE_ENV=prod node scripts/preprocess.js",
