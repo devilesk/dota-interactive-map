@@ -21,7 +21,7 @@
     "rollbar:deploy:dev": "NODE_ENV=dev node scripts/rollbar_deploy.js",
     "rollbar:deploy:prod": "NODE_ENV=prod node scripts/rollbar_deploy.js",
     "stage:rev": "node scripts/rev.js",
-    "stage": "npm run build && npm run stage:rev",
+    "stage": "npm run ol:prod && npm run build && npm run stage:rev",
     "deploy:copy": "node scripts/deploy.js",
     "deploy": "npm run stage && npm run rollbar:sourcemap && npm run deploy:copy && npm run rollbar:deploy:prod",
     "test": "echo \"Error: no test specified\" && exit 1"
