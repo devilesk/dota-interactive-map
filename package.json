@@ -46,7 +46,7 @@
     "browserify-replace": "^0.9.0",
     "clean-css": "^3.4.22",
     "del": "^2.2.2",
-    "dota-vision-simulation": "^0.13.2",
+    "dota-vision-simulation": "^0.13.3",
     "git-rev-sync": "^1.8.0",
     "glob": "^7.1.1",
     "gulp": "^3.9.1",
