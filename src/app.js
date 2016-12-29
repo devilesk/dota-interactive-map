@@ -918,7 +918,7 @@ function App(map_tile_path, vision_data_image_path) {
         cursorLayer.destroyFeatures();
     
         // create and add cursor marker polygon if in place observer mode
-        if (VISION_SIMULATION && document.getElementById("observerToggle").checked) {
+        if (VISION_SIMULATION && vs.ready && document.getElementById("observerToggle").checked) {
             var lonlat = map.getLonLatFromPixel(e.xy);
             if (!mapBounds.containsLonLat(lonlat)) return;
             
@@ -1041,6 +1041,8 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
+        if (!vs.ready) return;
+        
         //console.log(latlon, marker, radius);
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
