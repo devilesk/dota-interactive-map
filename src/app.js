@@ -10,7 +10,8 @@ var rollbarConfig = {
     captureUncaught: true,
     ignoredMessages: [
         "SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.",
-        "SecurityError:  An attempt was made to break through the security policy of the user agent."
+        "SecurityError:  An attempt was made to break through the security policy of the user agent.",
+        "Script error."
     ],
     payload: {
         environment: 'development',
