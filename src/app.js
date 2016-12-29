@@ -46,9 +46,10 @@ function App(map_tile_path, vision_data_image_path) {
         mapConstants = require('./mapConstants'),
         conversionFunctions = require('./conversionFunctions'),
         zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
+        mapBounds = new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
         map = new OpenLayers.Map("map", {
             theme: null,
-            maxExtent: new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
+            maxExtent: mapBounds,
             numZoomLevels: 5,
             maxResolution: Math.pow(2, 5-1 ),
             units: "m"
@@ -247,11 +248,12 @@ function App(map_tile_path, vision_data_image_path) {
         return function(event) {
             var latlon = map.getLonLatFromPixel(event.xy),
                 marker = placeWard(latlon, entityName);
-            QueryString.addQueryStringValue(marker.ward_type, marker.ward_loc);
+            if (marker) QueryString.addQueryStringValue(marker.ward_type, marker.ward_loc);
         }
     }
 
     function placeWard(latlon, entityName, qs_value_worldXY) {
+        if (!mapBounds.containsLonLat(latlon)) return;
         var entity = ENTITIES[entityName],
             marker = createWardMarker(entity.icon_path, latlon),
             circle = OpenLayers.Geometry.Polygon.createRegularPolygon(new OpenLayers.Geometry.Point(marker.lonlat.lon, marker.lonlat.lat), getScaledRadius(entity.radius), 40),
@@ -259,8 +261,6 @@ function App(map_tile_path, vision_data_image_path) {
         iconLayer.addMarker(marker);
         wardVisionLayer.addFeatures(feature);
         marker.radius_feature = feature;
-        marker.events.register("click", this, wardMarkerRemove);
-        marker.events.register("touchend", this, wardMarkerRemove);
         marker.ward_type = entityName;
         marker.ward_loc = entityName;
 
@@ -275,6 +275,9 @@ function App(map_tile_path, vision_data_image_path) {
 
         if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, ENTITIES.observer.radius);
         
+        marker.events.register("click", this, wardMarkerRemove);
+        marker.events.register("touchstart", this, wardMarkerRemove);
+        
         return marker;
     }
 
@@ -282,8 +285,8 @@ function App(map_tile_path, vision_data_image_path) {
         if (event.object.radius_feature) wardVisionLayer.removeFeatures(event.object.radius_feature);
         if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
         if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
-        iconLayer.removeMarker(event.object);
         console.log(event.object);
+        iconLayer.removeMarker(event.object);
         OpenLayers.Event.stop(event);
 
         QueryString.removeQueryStringValue(event.object.ward_type, event.object.ward_loc);
@@ -527,7 +530,7 @@ function App(map_tile_path, vision_data_image_path) {
                         if (k == "npc_dota_tower") {
                             console.log('npc_dota_tower');
                             marker.events.register("click", markers[k], handleTowerMarkerClick);
-                            marker.events.register("touchend", markers[k], handleTowerMarkerClick);
+                            marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
                             marker.tower_loc = data[k][i];
                         }
                     }
@@ -896,9 +899,11 @@ function App(map_tile_path, vision_data_image_path) {
         // create and add cursor marker polygon if in place observer mode
         if (VISION_SIMULATION && document.getElementById("observerToggle").checked) {
             var lonlat = map.getLonLatFromPixel(e.xy);
+            if (!mapBounds.containsLonLat(lonlat)) return;
+            
             var worldXY = latLonToWorld(lonlat.lon, lonlat.lat);
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
-
+            
             var treePts = vs.tree_relations[gridXY.key];
             var treeBlocking = false;
             if (treePts) {
