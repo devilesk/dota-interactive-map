@@ -1069,7 +1069,7 @@ function App(map_tile_path, vision_data_image_path) {
     var initCheckCount = 0;
     var maxInitCheckCount = 40;
     function initCheck() {
-        if (1 == 2) {
+        if (map.getSize()) {
             init();
         }
         else {
