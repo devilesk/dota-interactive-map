@@ -139,21 +139,36 @@ function App(map_tile_path, vision_data_image_path) {
      ********************/
 
     function handleTreeMarkerClick(event) {
-        console.log('handleTreeMarkerClick', event);
-        var worldXY = latLonToWorld(event.object.lonlat.lon, event.object.lonlat.lat),
-            gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
-
-        event.object.treeVisible = !event.object.treeVisible
-        event.object.setOpacity(event.object.treeVisible ? 1 : .4);
-        vs.toggleTree(gridXY.x, gridXY.y);
-
-        if (event.object.treeVisible) {
-            delete cutTrees[event.object.tree_loc]
-        } else {
-            console.log(event.object.tree_loc);
-            cutTrees[event.object.tree_loc] = event.object;
-        }
+        console.log('handleTreeMarkerClick', event.object);
+        setTreeMarkerState(event.object, !event.object.treeVisible);
         setTreeQueryString();
+    }
+    
+    function setTreeMarkerState(marker, state) {
+        console.log('setTreeMarkerState', marker);
+        var worldXY = latLonToWorld(marker.lonlat.lon, marker.lonlat.lat);
+
+        marker.treeVisible = state;
+        marker.setOpacity(state ? 1 : .4);
+        
+        if (VISION_SIMULATION) {
+            var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
+            vs.toggleTree(gridXY.x, gridXY.y);
+        }
+
+        var popupContentHTML = "Click to cut down tree.<br>This will affect the ward vision simulation.";
+        if (state) {
+            delete cutTrees[marker.tree_loc]
+        }
+        else {
+            popupContentHTML = "Click to regrow tree.<br>This will affect the ward vision simulation.";
+            cutTrees[marker.tree_loc] = marker;
+        }
+        
+        marker.feature.data.popupContentHTML = popupContentHTML;
+        if (marker.feature.popup) {
+            marker.feature.popup.setContentHTML(popupContentHTML);
+        }
     }
 
     function handleTowerMarkerClick(e, skipQueryStringUpdate) {
@@ -348,6 +363,33 @@ function App(map_tile_path, vision_data_image_path) {
         document.getElementById("traveltime-container").style.display = 'none';
     }
 
+    function handleTowerHoverPopup(event) {
+        if (this.popup == null) {
+            console.log(this.closeBox);
+            this.popup = this.createPopup(this.closeBox);
+            map.addPopup(this.popup);
+            this.popup.show();
+        }
+        else {
+            this.popup.toggle();
+        }
+        currentPopup = this.popup;
+        OpenLayers.Event.stop(event);
+    };
+
+    function handleTreeHoverPopup(event) {
+        if (this.popup == null) {
+            this.popup = this.createPopup(this.closeBox);
+            map.addPopup(this.popup);
+            this.popup.show();
+        }
+        else {
+            this.popup.toggle();
+        }
+        currentPopup = this.popup;
+        OpenLayers.Event.stop(event);
+    };
+        
     function addMarker(markers, ll, popupClass, popupContentHTML, closeBox, overflow) {
         var feature = new OpenLayers.Feature(markers, ll),
             marker;
@@ -357,22 +399,15 @@ function App(map_tile_path, vision_data_image_path) {
         feature.data.popupContentHTML = popupContentHTML;
         feature.data.overflow = overflow ? "auto" : "hidden";
         marker = feature.createMarker();
-
-        function handleHoverPopup(event) {
-            if (this.popup == null) {
-                this.popup = this.createPopup(this.closeBox);
-                map.addPopup(this.popup);
-                this.popup.show();
-            } else {
-                this.popup.toggle();
-            }
-            currentPopup = this.popup;
-            OpenLayers.Event.stop(event);
-        };
-
+        marker.feature = feature;
+        
         if (markers.name == "Towers") {
-            marker.events.register("mouseover", feature, handleHoverPopup);
-            marker.events.register("mouseout", feature, handleHoverPopup);
+            marker.events.register("mouseover", feature, handleTowerHoverPopup);
+            marker.events.register("mouseout", feature, handleTowerHoverPopup);
+        }
+        else if (markers.name == "Trees" && VISION_SIMULATION) {
+            marker.events.register("mouseover", feature, handleTreeHoverPopup);
+            marker.events.register("mouseout", feature, handleTreeHoverPopup);
         }
         markers.addMarker(marker);
         return marker;
@@ -424,6 +459,11 @@ function App(map_tile_path, vision_data_image_path) {
     }
     
     function resetMarkerLayers() {
+        for (k in treeMarkers) {
+            if (cutTrees[k]) {
+                setTreeMarkerState(treeMarkers[k], true);
+            }
+        }
         var data = map_data;
         layerKeys.forEach(function (k) {
             var layer = map.getLayersByName(layerNames[k])[0];
@@ -524,10 +564,12 @@ function App(map_tile_path, vision_data_image_path) {
         console.log(layer);
         for (var i = 0; i < layer.data.length; i++) {
             var latlon = worldToLatLon(layer.data[i].x, layer.data[i].y);
-            marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle tree as alive or cut-down.<br>This will affect the simulated placed wards vision.<br>Tree coordinate: " + layer.data[i].x + ', ' + layer.data[i].y, false);
+            marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to cut down tree.<br>This will affect the ward vision simulation.", false);
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
-            marker.events.register("click", layer, handleTreeMarkerClick);
+            if (VISION_SIMULATION) {
+                marker.events.register("click", layer, handleTreeMarkerClick);
+            }
             treeMarkers[layer.data[i].x + ',' + layer.data[i].y] = marker;
         }
         layer.loaded = !layer.loaded;
@@ -617,12 +659,7 @@ function App(map_tile_path, vision_data_image_path) {
             for (var i = 0; i < cut_tree_coordinates.length; i++) {
                 console.log(cut_tree_coordinates[i]);
                 if (treeMarkers[cut_tree_coordinates[i]]) {
-                    treeMarkers[cut_tree_coordinates[i]].treeVisible = false;
-                    treeMarkers[cut_tree_coordinates[i]].setOpacity(.4);
-                    cutTrees[cut_tree_coordinates[i]] = treeMarkers[cut_tree_coordinates[i]];
-                    var worldXY = vs.key2pt(cut_tree_coordinates[i]);
-                    var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
-                    vs.toggleTree(gridXY.x, gridXY.y);
+                    setTreeMarkerState(treeMarkers[cut_tree_coordinates[i]], false);
                 }
             }
         }
@@ -970,7 +1007,7 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
-        console.log(latlon, marker, radius);
+        //console.log(latlon, marker, radius);
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
         if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
