@@ -8,6 +8,7 @@ var Rollbar = require("rollbar-browser");
 var rollbarConfig = {
     accessToken: 'fe7cf327f2b24bb8991e252239f6200f',
     captureUncaught: true,
+    ignoredMessages: ["SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent."],
     payload: {
         environment: 'development',
         client: {
@@ -47,7 +48,7 @@ function App(map_tile_path, vision_data_image_path) {
         conversionFunctions = require('./conversionFunctions'),
         zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
         mapBounds = new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
-        map = new OpenLayers.Map("map", {
+        map = new OpenLayers.Map("map1", {
             theme: null,
             maxExtent: mapBounds,
             numZoomLevels: 5,
@@ -1057,11 +1058,33 @@ function App(map_tile_path, vision_data_image_path) {
         }
     }
     
+    var getSizePoll;
     var t1 = Date.now();
     var vs = new VisionSimulation(worlddata, vision_data_image_path, function () {
         console.log('vs loaded', Date.now() - t1);
-        init();
+        console.log('map.getSize()', map.getSize());
+        initCheck();
     });
+    
+    var initCheckCount = 0;
+    var maxInitCheckCount = 40;
+    function initCheck() {
+        if (1 == 2) {
+            init();
+        }
+        else {
+            initCheckCount++;
+            console.log('map size null');
+            if (initCheckCount < maxInitCheckCount) {
+                map.updateSize();
+                setTimeout(initCheck, 250);
+            }
+            else {
+                rollbar.error("Max init check exceeded");
+                alert("There was a problem loading the map.");
+            }
+        }
+    }
     
     function loadGeoJSONData(markers, k, name, style) {
         var filename = map_data_path + getDataVersion() + '/' + k + '2.json';
