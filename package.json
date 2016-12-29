@@ -5,7 +5,8 @@
   "main": "interactivemap.js",
   "scripts": {
     "browserify": "browserify src/app.js --standalone InteractiveMap > www/bundle.js",
-    "openlayers": "node scripts/build_ol.js",
+    "ol:prod": "node scripts/build_ol.js -- closure",
+    "ol:dev": "node scripts/build_ol.js",
     "copy:img": "cp node_modules/dota-vision-simulation/www/map_data.png www/img",
     "copy:data": "cp node_modules/dota-vision-simulation/src/worlddata.json src",
     "clean:build": "rm -rf build/*",
