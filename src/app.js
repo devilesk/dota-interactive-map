@@ -3,7 +3,27 @@ var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var getLightUnion = require("./getLightUnion");
 var trim = require('./util/trim');
 var QueryString = require('./util/queryString');
+var Rollbar = require("rollbar-browser");
 
+var rollbarConfig = {
+    accessToken: 'fe7cf327f2b24bb8991e252239f6200f',
+    captureUncaught: true,
+    payload: {
+        environment: 'development',
+        client: {
+            javascript: {
+                source_map_enabled: true,
+                code_version: "#code_version",
+                // Optionally have Rollbar guess which frames the error was thrown from
+                // when the browser does not provide line and column numbers.
+                guess_uncaught_frames: true
+            }
+        }
+    }
+};
+
+var rollbar = Rollbar.init(rollbarConfig);
+    
 function App(map_tile_path, vision_data_image_path) {
     var self = this,
         IMG_DIR = "img/",
