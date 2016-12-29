@@ -9,6 +9,7 @@ var rollbarConfig = {
     accessToken: 'fe7cf327f2b24bb8991e252239f6200f',
     captureUncaught: true,
     ignoredMessages: [
+        "Error:  DOM Exception 18",
         "SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.",
         "SecurityError:  An attempt was made to break through the security policy of the user agent.",
         "Script error."
