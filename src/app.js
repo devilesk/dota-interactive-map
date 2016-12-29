@@ -50,7 +50,7 @@ function App(map_tile_path, vision_data_image_path) {
         map_data,
         mapConstants = require('./mapConstants'),
         conversionFunctions = require('./conversionFunctions'),
-        zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
+        //zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
         mapBounds = new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
         map = new OpenLayers.Map("map1", {
             theme: null,
