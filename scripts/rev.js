@@ -28,5 +28,14 @@ glob("dist/**/*.{js,css,map,png}", function (er, files) {
             execSync('mv ' + filePath + ' ' + tmpPath);
             execSync("replace " + basename + " " + revFilename + " dist/index.html");
         }
+        
+        if (ext === '.js') {
+            execSync("replace " + basename + ".map " + basename + "." + hash + ".map " + tmpPath);
+        }
+        
+        if (ext === '.map') {
+            console.log('map basename', filename.replace('.min', '.' + hash));
+            execSync("replace " + filename.replace('.min', '') + " " + filename.replace('.min', '.' + hash) + " " + tmpPath);
+        }
     });
 });
