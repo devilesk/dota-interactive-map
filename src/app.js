@@ -873,15 +873,32 @@ function App(map_tile_path, vision_data_image_path) {
         map.addControl(drawControls[key]);
     }
 
-    map.events.register("zoomend", map, function(){
-        QueryString.setQueryString('zoom', map.zoom);
-    });
 
-    map.events.register("moveend", map, function(){
-        var worldXY = latLonToWorld(map.center.lon, map.center.lat);
-        QueryString.setQueryString('x', worldXY.x.toFixed(0));
-        QueryString.setQueryString('y', worldXY.y.toFixed(0));
-    });
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            }, wait);
+            if (immediate && !timeout) func.apply(context, args);
+        };
+    };
+
+    map.events.register("zoomend", map, debounce(function(){
+        QueryString.setQueryString('zoom', map.getZoom());
+    }, 500));
+
+    map.events.register("moveend", map, debounce(function() {
+        var mapCenter = map.getCenter();
+        if (mapCenter) {
+            var worldXY = latLonToWorld(mapCenter.lon, mapCenter.lat);
+            QueryString.setQueryString('x', worldXY.x.toFixed(0));
+            QueryString.setQueryString('y', worldXY.y.toFixed(0));
+        }
+    }, 500));
 
     // X/Y coordinate update display handler
     coordinateControl.formatOutput = function (lonlat) {
