@@ -56,7 +56,14 @@ function App(map_tile_path, vision_data_image_path) {
             maxExtent: mapBounds,
             numZoomLevels: 5,
             maxResolution: Math.pow(2, 5-1 ),
-            units: "m"
+            units: "m",
+            tileManager: {
+                cacheSize: 5456,
+                moveDelay: 0,
+                zoomDelay: 00,
+                frameDelay: 0,
+                tilesPerFrame: 128
+            }
         }),
         layerKeys = [
             "no_wards",
@@ -148,6 +155,7 @@ function App(map_tile_path, vision_data_image_path) {
         VISION_SIMULATION_ALWAYS = true,
         cutTrees = {};
 
+        console.log(map.tileManager);
     /***********************************
      * COORDINATE CONVERSION FUNCTIONS *
      ***********************************/
