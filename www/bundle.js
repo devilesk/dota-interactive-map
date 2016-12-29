@@ -102,7 +102,8 @@ function App(map_tile_path, vision_data_image_path) {
         },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
             ascending: false,
-            overlayGrouping: overlayGrouping
+            overlayGrouping: overlayGrouping,
+            onMaximizeWhenSmallScreen: minimizeControlList.bind(document.getElementById("controls-min"))
         }),
         coordinateControl = new OpenLayers.Control.MousePosition(),
         cursorLayer = new OpenLayers.Layer.Vector("Cursor", {displayInLayerSwitcher:false}),
@@ -733,17 +734,6 @@ function App(map_tile_path, vision_data_image_path) {
         }
     }));
     map.addControl(new OpenLayers.Control.KeyboardDefaults());
-    layerSwitcher.onButtonClick = (function (fn) {
-        console.log('onButtonClick', fn);
-        return function (evt) {
-            var button = evt.buttonElement;
-            if (button === this.maximizeDiv && isSmallScreen()) {
-                minimizeControlList.call(document.getElementById("controls-min"));
-            }
-            return fn.apply(this, arguments);
-        }
-    })(layerSwitcher.onButtonClick);
-    console.log(layerSwitcher.onButtonClick);
     map.addControl(layerSwitcher);
     layerSwitcher.maximizeControl();
     if (!map.getCenter()) {
@@ -916,11 +906,12 @@ function App(map_tile_path, vision_data_image_path) {
         document.querySelector(".controls").style.display = '';
         document.getElementById("controls-min").style.display = 'block';
         this.style.display = 'none';
-        if (isSmallScreen()) {
+        if (layerSwitcher.isSmallScreen()) {
             layerSwitcher.minimizeControl();
         }
         if (e) e.preventDefault();
     }, false);
+    
     function minimizeControlList(e) {
         document.querySelector(".controls").style.display = 'none';
         document.getElementById("controls-max").style.display = 'block';
@@ -929,12 +920,8 @@ function App(map_tile_path, vision_data_image_path) {
     }
     document.getElementById("controls-min").addEventListener("click", minimizeControlList, false);
     
-    // Check screen size
-    function isSmallScreen() {
-        return ((window.innerWidth > 0) ? window.innerWidth : screen.width) <= 768;
-    }
     // Initially hide controls if screen is small
-    if (isSmallScreen()) {
+    if (layerSwitcher.isSmallScreen()) {
         minimizeControlList.call(document.getElementById("controls-min"));
         layerSwitcher.minimizeControl();
     }
@@ -981,6 +968,7 @@ function App(map_tile_path, vision_data_image_path) {
         drawControls.line.cancel();
         drawControls.circle.cancel();
         map.setBaseLayer(baseLayers[0]);
+        map.zoomToMaxExtent();
         document.getElementById('dataControl').selectedIndex = 0;
         init();
     }, false);
