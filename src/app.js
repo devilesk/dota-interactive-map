@@ -165,8 +165,8 @@ function App(map_tile_path, vision_data_image_path) {
      ********************/
 
     function handleTreeMarkerClick(event) {
-        console.log('handleTreeMarkerClick', event.object);
-        setTreeMarkerState(event.object, !event.object.treeVisible);
+        console.log('handleTreeMarkerClick', this);
+        setTreeMarkerState(this, !this.treeVisible);
         setTreeQueryString();
     }
     
@@ -279,21 +279,26 @@ function App(map_tile_path, vision_data_image_path) {
 
         if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, ENTITIES.observer.radius);
         
-        marker.events.register("click", this, wardMarkerRemove);
-        marker.events.register("touchstart", this, wardMarkerRemove);
+        marker.events.register("click", marker, wardMarkerRemove);
+        marker.events.register("touchstart", marker, wardMarkerRemove);
+        
+        console.log('placeWard', this);
         
         return marker;
     }
 
     function wardMarkerRemove(event) {
-        if (event.object.radius_feature) wardVisionLayer.removeFeatures(event.object.radius_feature);
-        if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
-        if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
-        console.log(event.object);
-        iconLayer.removeMarker(event.object);
+        if (this.radius_feature) wardVisionLayer.removeFeatures(this.radius_feature);
+        if (this.vision_feature) visionSimulationLayer.removeFeatures(this.vision_feature);
+        if (this.vision_center_feature) visionSimulationLayer.removeFeatures(this.vision_center_feature);
+        console.log(this);
+        iconLayer.removeMarker(this);
         OpenLayers.Event.stop(event);
 
-        QueryString.removeQueryStringValue(event.object.ward_type, event.object.ward_loc);
+        QueryString.removeQueryStringValue(this.ward_type, this.ward_loc);
+        
+        this.events.unregister("click", this, wardMarkerRemove);
+        this.events.unregister("touchstart", this, wardMarkerRemove);
     }
 
     function handleOnClick(event) {
@@ -596,7 +601,7 @@ function App(map_tile_path, vision_data_image_path) {
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
             if (VISION_SIMULATION) {
-                marker.events.register("click", layer, handleTreeMarkerClick);
+                marker.events.register("click", marker, handleTreeMarkerClick);
             }
             treeMarkers[layer.data[i].x + ',' + layer.data[i].y] = marker;
         }
