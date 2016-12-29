@@ -8,21 +8,21 @@ function getParameterByName(name) {
 }
 
 function setQueryString(key, value) {
-    history.replaceState(null, "", updateQueryString(key, value));
+    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, value));
 }
 
 function addQueryStringValue(key, value) {
     console.log('addQueryStringValue', key, value);
     var qs = getParameterByName(key);
     qs = trim(trim(qs, ' ;') + ';' + value, ' ;');
-    history.replaceState(null, "", updateQueryString(key, qs));
+    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs));
 }
 
 function removeQueryStringValue(key, value) {
     console.log('removeQueryStringValue', key, value);
     var qs = getParameterByName(key);
     qs = trim(trim(qs, ' ;').replace(value, '').replace(/;;/g, ''), ' ;');
-    history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));
+    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));
 }
 
 function updateQueryString(key, value, url) {

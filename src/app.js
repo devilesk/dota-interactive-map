@@ -1009,7 +1009,7 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
     
     document.getElementById('reset').addEventListener('click', function () {
-        history.replaceState(null, "", window.location.href.split("?")[0]);
+        if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
         resetMarkerLayers();
         polygonLayer.destroyFeatures();
         wardVisionLayer.destroyFeatures();
