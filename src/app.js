@@ -135,14 +135,14 @@ function App(map_tile_path, vision_data_image_path) {
             "Ward Vision with Fog": "Vision"
         },
         icon_paths = {
-            "ent_dota_tree": IMG_DIR + "tree.svg",
+            "ent_dota_tree": IMG_DIR + "svgs/park-15.svg",
             "ent_dota_tree_cut": IMG_DIR + "stump.svg",
-            "ent_dota_shop": IMG_DIR + "shop.svg",
-            "npc_dota_tower": IMG_DIR + "tower.svg",
-            "npc_dota_healer": IMG_DIR + "shrine.svg",
-            "npc_dota_fort": IMG_DIR + "ancient.svg",
-            "npc_dota_building": IMG_DIR + "filler.svg",
-            "npc_dota_barracks": IMG_DIR + "barracks.svg",
+            "ent_dota_shop": IMG_DIR + "svgs/shop-15.svg",
+            "npc_dota_tower": IMG_DIR + "svgs/castle-15.svg",
+            "npc_dota_healer": IMG_DIR + "svgs/place-of-worship-15.svg",
+            "npc_dota_fort": IMG_DIR + "svgs/town-hall-15.svg",
+            "npc_dota_building": IMG_DIR + "svgs/landmark-15.svg",
+            "npc_dota_barracks": IMG_DIR + "svgs/stadium-15.svg",
             "dota_item_rune_spawner": IMG_DIR + "doubledamage.png",
             "dota_item_rune_spawner_bounty": IMG_DIR + "bountyrune.png",
             "npc_dota_roshan_spawner": IMG_DIR + "roshan.png"
