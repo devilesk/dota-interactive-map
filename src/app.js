@@ -9,8 +9,10 @@ var rollbarConfig = {
     accessToken: 'fe7cf327f2b24bb8991e252239f6200f',
     captureUncaught: true,
     ignoredMessages: [
+        "Error:  DOM Exception 18",
         "SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.",
-        "SecurityError:  An attempt was made to break through the security policy of the user agent."
+        "SecurityError:  An attempt was made to break through the security policy of the user agent.",
+        "Script error."
     ],
     payload: {
         environment: 'development',
@@ -49,7 +51,7 @@ function App(map_tile_path, vision_data_image_path) {
         map_data,
         mapConstants = require('./mapConstants'),
         conversionFunctions = require('./conversionFunctions'),
-        zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
+        //zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
         mapBounds = new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
         map = new OpenLayers.Map("map1", {
             theme: null,
@@ -173,8 +175,8 @@ function App(map_tile_path, vision_data_image_path) {
      ********************/
 
     function handleTreeMarkerClick(event) {
-        console.log('handleTreeMarkerClick', event.object);
-        setTreeMarkerState(event.object, !event.object.treeVisible);
+        console.log('handleTreeMarkerClick', this);
+        setTreeMarkerState(this, !this.treeVisible);
         setTreeQueryString();
     }
     
@@ -287,21 +289,26 @@ function App(map_tile_path, vision_data_image_path) {
 
         if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, ENTITIES.observer.radius);
         
-        marker.events.register("click", this, wardMarkerRemove);
-        marker.events.register("touchstart", this, wardMarkerRemove);
+        marker.events.register("click", marker, wardMarkerRemove);
+        marker.events.register("touchstart", marker, wardMarkerRemove);
+        
+        console.log('placeWard', this);
         
         return marker;
     }
 
     function wardMarkerRemove(event) {
-        if (event.object.radius_feature) wardVisionLayer.removeFeatures(event.object.radius_feature);
-        if (event.object.vision_feature) visionSimulationLayer.removeFeatures(event.object.vision_feature);
-        if (event.object.vision_center_feature) visionSimulationLayer.removeFeatures(event.object.vision_center_feature);
-        console.log(event.object);
-        iconLayer.removeMarker(event.object);
+        if (this.radius_feature) wardVisionLayer.removeFeatures(this.radius_feature);
+        if (this.vision_feature) visionSimulationLayer.removeFeatures(this.vision_feature);
+        if (this.vision_center_feature) visionSimulationLayer.removeFeatures(this.vision_center_feature);
+        console.log(this);
+        iconLayer.removeMarker(this);
         OpenLayers.Event.stop(event);
 
-        QueryString.removeQueryStringValue(event.object.ward_type, event.object.ward_loc);
+        QueryString.removeQueryStringValue(this.ward_type, this.ward_loc);
+        
+        this.events.unregister("click", this, wardMarkerRemove);
+        this.events.unregister("touchstart", this, wardMarkerRemove);
     }
 
     function handleOnClick(event) {
@@ -604,7 +611,7 @@ function App(map_tile_path, vision_data_image_path) {
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
             if (VISION_SIMULATION) {
-                marker.events.register("click", layer, handleTreeMarkerClick);
+                marker.events.register("click", marker, handleTreeMarkerClick);
             }
             treeMarkers[layer.data[i].x + ',' + layer.data[i].y] = marker;
         }
@@ -762,7 +769,7 @@ function App(map_tile_path, vision_data_image_path) {
     map.addLayer(visionSimulationLayer);
     map.addLayer(iconLayer);
     map.addControl(coordinateControl);
-    map.addControl(new OpenLayers.Control.TouchNavigation({
+    map.addControl(new OpenLayers.Control.Navigation({
         dragPanOptions: {
             enableKinetic: true
         }
@@ -1012,7 +1019,7 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
     
     document.getElementById('reset').addEventListener('click', function () {
-        history.replaceState(null, "", window.location.href.split("?")[0]);
+        if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
         resetMarkerLayers();
         polygonLayer.destroyFeatures();
         wardVisionLayer.destroyFeatures();
