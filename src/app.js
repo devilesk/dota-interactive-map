@@ -187,7 +187,7 @@ function App(map_tile_path, vision_data_image_path) {
         var worldXY = latLonToWorld(marker.lonlat.lon, marker.lonlat.lat);
 
         marker.treeVisible = state;
-        marker.setOpacity(state ? 1 : .4);
+        marker.setUrl(state ? IMG_DIR + "tree.svg" : IMG_DIR + "stump.svg");
         
         if (VISION_SIMULATION) {
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
@@ -404,12 +404,13 @@ function App(map_tile_path, vision_data_image_path) {
         OpenLayers.Event.stop(event);
     };
         
-    function addMarker(markers, ll, popupClass, popupContentHTML, closeBox, overflow) {
+    function addMarker(markers, ll, icon, popupClass, popupContentHTML, closeBox, overflow) {
         var feature = new OpenLayers.Feature(markers, ll),
             marker;
 
         feature.closeBox = closeBox;
         feature.popupClass = popupClass;
+        feature.data.icon = icon
         feature.data.popupContentHTML = popupContentHTML;
         feature.data.overflow = overflow ? "auto" : "hidden";
         marker = feature.createMarker();
@@ -523,7 +524,7 @@ function App(map_tile_path, vision_data_image_path) {
                     //markers[k].setVisibility(false);
                     for (var i = 0; i < data[k].length; i++) {
                         var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
-                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
+                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), null, OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
 
                         if (k == "npc_dota_tower") {
                             console.log('npc_dota_tower');
@@ -593,7 +594,10 @@ function App(map_tile_path, vision_data_image_path) {
         console.log(layer);
         for (var i = 0; i < layer.data.length; i++) {
             var latlon = worldToLatLon(layer.data[i].x, layer.data[i].y);
-            marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to cut down tree.<br>This will affect the ward vision simulation.", false);
+            var size = new OpenLayers.Size(24, 24),
+                offset = new OpenLayers.Pixel(-12,-12),
+                icon = new OpenLayers.Icon(IMG_DIR + "tree.svg", size, offset);
+            marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, "Click to cut down tree.<br>This will affect the ward vision simulation.", false);
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
             if (VISION_SIMULATION) {
