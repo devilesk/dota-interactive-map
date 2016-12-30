@@ -137,8 +137,12 @@ function App(map_tile_path, vision_data_image_path) {
         icon_paths = {
             "ent_dota_tree": IMG_DIR + "tree.svg",
             "ent_dota_tree_cut": IMG_DIR + "stump.svg",
+            "ent_dota_shop": IMG_DIR + "shop.svg",
             "npc_dota_tower": IMG_DIR + "tower.svg",
-            "npc_dota_healer": IMG_DIR + "shrine.svg"
+            "npc_dota_healer": IMG_DIR + "shrine.svg",
+            "npc_dota_fort": IMG_DIR + "ancient.svg",
+            "npc_dota_building": IMG_DIR + "filler.svg",
+            "npc_dota_barracks": IMG_DIR + "barracks.svg"
         },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
             ascending: false,
