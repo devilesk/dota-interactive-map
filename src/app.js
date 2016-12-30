@@ -1,10 +1,13 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var getLightUnion = require("./getLightUnion");
-var trim = require('./util/trim');
 var QueryString = require('./util/queryString');
 var Rollbar = require("rollbar-browser");
+var trim = require('./util/trim');
+var debounce = require('./util/debounce');
+var getJSON = require('./util/getJSON');
 
+// error reporting
 var rollbarConfig = {
     accessToken: 'fe7cf327f2b24bb8991e252239f6200f',
     captureUncaught: true,
@@ -51,7 +54,6 @@ function App(map_tile_path, vision_data_image_path) {
         map_data,
         mapConstants = require('./mapConstants'),
         conversionFunctions = require('./conversionFunctions'),
-        //zoomify = new OpenLayers.Layer.Zoomify( "Zoomify", map_tile_path, new OpenLayers.Size( mapConstants.map_w, mapConstants.map_h ) ),
         mapBounds = new OpenLayers.Bounds(0, 0, mapConstants.map_w, mapConstants.map_h),
         map = new OpenLayers.Map("map1", {
             theme: null,
@@ -62,7 +64,7 @@ function App(map_tile_path, vision_data_image_path) {
             tileManager: {
                 cacheSize: 5456,
                 moveDelay: 0,
-                zoomDelay: 00,
+                zoomDelay: 0,
                 frameDelay: 0,
                 tilesPerFrame: 128
             }
@@ -98,24 +100,22 @@ function App(map_tile_path, vision_data_image_path) {
             no_wards: "Invalid Ward Locations",
             ent_fow_blocker_node: "Vision Blocker"
         },
-        baseLayers = [
-            new OpenLayers.Layer.TMS('7.00 Default', map_tile_path, {
-                type: "jpg",
-                getURL: getMyURL('700', 'default')
-            }),
-            new OpenLayers.Layer.TMS('6.87 Default', map_tile_path, {
-                type: "jpg",
-                getURL: getMyURL('687', 'default')
-            }),
-            new OpenLayers.Layer.TMS('6.87 Desert', map_tile_path, {
-                type: "jpg",
-                getURL: getMyURL('687', 'desert')
-            }),
-            new OpenLayers.Layer.TMS('6.87 Immortal Gardens', map_tile_path, {
-                type: "jpg",
-                getURL: getMyURL('687', 'immortalgardens')
-            })
+        baseLayersOptions = {
+            type: "jpg"
+        },
+        baseLayersConfig = [
+            ['7.00 Default', '700', 'default'],
+            ['7.00 New Journey', '700', 'journey'],
+            ['6.87', '687', 'default'],
+            ['6.87 Desert', '687', 'desert'],
+            ['6.87 Immortal Gardens', '687', 'immortalgardens']
         ],
+        baseLayers = baseLayersConfig.map(function (baseLayerConfig) {
+            var baseLayerOptions = OpenLayers.Util.extend({
+                getURL: getMyURL(baseLayerConfig[1], baseLayerConfig[2])
+            }, baseLayersOptions);
+            return new OpenLayers.Layer.TMS(baseLayerConfig[0], map_tile_path, baseLayerOptions);
+        }),
         overlayGrouping = {
             "Day Vision Range": "Towers",
             "Night Vision Range": "Towers",
@@ -158,12 +158,12 @@ function App(map_tile_path, vision_data_image_path) {
         cutTrees = {};
 
         console.log(map.tileManager);
+        
     /***********************************
      * COORDINATE CONVERSION FUNCTIONS *
      ***********************************/
 
-    var lerp = lerp,
-        reverseLerp = conversionFunctions.reverseLerp,
+    var reverseLerp = conversionFunctions.reverseLerp,
         latLonToWorld = conversionFunctions.latLonToWorld,
         worldToLatLon = conversionFunctions.worldToLatLon,
         getTileRadius = conversionFunctions.getTileRadius,
@@ -311,10 +311,6 @@ function App(map_tile_path, vision_data_image_path) {
         this.events.unregister("touchstart", this, wardMarkerRemove);
     }
 
-    function handleOnClick(event) {
-        console.log('handleOnClick');
-    }
-
     function handleMeasurements(event) {
         var out = "";
         if (event.order == 1) {
@@ -381,29 +377,6 @@ function App(map_tile_path, vision_data_image_path) {
             out += "Distance: " + calculateDistance(event.order, event.units, event.measure).toFixed(0) + " units<sup>2</" + "sup>";
         }
         element.innerHTML = out;
-    }
-
-    function toggleControl() {
-        var control;
-        QueryString.setQueryString('mode', null);
-        for (var key in drawControls) {
-            control = drawControls[key];
-            console.log(this, this.value, key, this.value == key && this.checked);
-            if (this.value == key && this.checked) {
-                QueryString.setQueryString('mode', key);
-                control.activate();
-            } else {
-                control.deactivate();
-            }
-            if ((this.value == "polygonControl" || this.value == "circle") && this.checked) {
-                drawControls["select"].activate();
-            } else {
-                drawControls["select"].deactivate();
-            }
-        }
-        document.getElementById("output").innerHTML = "";
-
-        document.getElementById("traveltime-container").style.display = 'none';
     }
 
     function handleTowerHoverPopup(event) {
@@ -580,13 +553,13 @@ function App(map_tile_path, vision_data_image_path) {
         
         map.raiseLayer(vectorLayer, map.layers.length);
 
-        // Create tree markers the first time the tree layer is switched to
         map.events.register("changelayer", map, layerChangeHandler);
 
         parseQueryString();
     }
     
     function layerChangeHandler(event) {
+        // Load tree markers the first time the tree layer is switched to
         if (event.property === "visibility" && event.layer.name == layerNames["ent_dota_tree"] && !event.layer.loaded) {
             loadTreeData();
         }
@@ -635,6 +608,43 @@ function App(map_tile_path, vision_data_image_path) {
             pf = new OpenLayers.Feature.Vector(ln, null, style.green);
             markers[name].addFeatures([pf]);
         }
+    }
+    
+    function loadGeoJSONData(markers, k, name, style) {
+        var filename = map_data_path + getDataVersion() + '/' + k + '2.json';
+        markers[k] = new OpenLayers.Layer.Vector(name, {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: filename,
+                format: new OpenLayers.Format.GeoJSON()
+            }),
+            visibility: false
+        });
+        markers[k].style = style;
+        map.addLayer(markers[k]);
+    }
+    
+    function toggleControl() {
+        var control;
+        QueryString.setQueryString('mode', null);
+        for (var key in drawControls) {
+            control = drawControls[key];
+            console.log(this, this.value, key, this.value == key && this.checked);
+            if (this.value == key && this.checked) {
+                QueryString.setQueryString('mode', key);
+                control.activate();
+            } else {
+                control.deactivate();
+            }
+            if ((this.value == "polygonControl" || this.value == "circle") && this.checked) {
+                drawControls["select"].activate();
+            } else {
+                drawControls["select"].deactivate();
+            }
+        }
+        document.getElementById("output").innerHTML = "";
+
+        document.getElementById("traveltime-container").style.display = 'none';
     }
 
     // Initialize map settings based on query string values
@@ -730,26 +740,6 @@ function App(map_tile_path, vision_data_image_path) {
         QueryString.setQueryString('cut_trees', value || null);
     }
 
-    function getJSON(path, callback) {
-        console.log('getJSON', path);
-        var request = new XMLHttpRequest();
-
-        request.open('GET', path, true);
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 400) {
-                var data = JSON.parse(request.responseText);
-                callback(data);
-            } else {
-                alert('Error loading page.');
-            }
-        };
-        request.onerror = function() {
-            alert('Error loading page.');
-        };
-        request.send();
-        return request;
-    }
-
     /********************
      * INITITIALIZATION *
      ********************/
@@ -798,7 +788,9 @@ function App(map_tile_path, vision_data_image_path) {
                 dblclick: this.onDblclick
             }, this.handlerOptions);
         },
-        onClick: handleOnClick,
+        onClick: function (event) {
+            console.log('onClick');
+        },
         onDblclick: function(event) {
             var output = document.getElementById(this.key + "Output"),
                 msg = "dblclick " + event.xy;
@@ -828,16 +820,10 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }),
         observer: new OpenLayers.Control.Click({
-            onClick: handleWardClick('observer'),
-            handlerOptions: {
-                single: true
-            }
+            onClick: handleWardClick('observer')
         }),
         sentry: new OpenLayers.Control.Click({
-            onClick: handleWardClick('sentry'),
-            handlerOptions: {
-                single: true
-            }
+            onClick: handleWardClick('sentry')
         }),
         polygonControl: new OpenLayers.Control.DrawFeature(polygonLayer, OpenLayers.Handler.RegularPolygon, {
             handlerOptions: {
@@ -891,20 +877,6 @@ function App(map_tile_path, vision_data_image_path) {
         map.addControl(drawControls[key]);
     }
 
-
-    function debounce(func, wait, immediate) {
-        var timeout;
-        return function() {
-            var context = this, args = arguments;
-            clearTimeout(timeout);
-            timeout = setTimeout(function() {
-                timeout = null;
-                if (!immediate) func.apply(context, args);
-            }, wait);
-            if (immediate && !timeout) func.apply(context, args);
-        };
-    };
-
     map.events.register("zoomend", map, debounce(function(){
         QueryString.setQueryString('zoom', map.getZoom());
     }, 500));
@@ -925,11 +897,6 @@ function App(map_tile_path, vision_data_image_path) {
     };
     
     map.events.register("mousemove", map, function(e) {
-        /*if (wardVisionLayer.cursor_marker) {
-            if (wardVisionLayer.cursor_marker.vision_center_feature) wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker.vision_center_feature);
-            if (wardVisionLayer.cursor_marker.vision_feature) wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker.vision_feature);
-            wardVisionLayer.removeFeatures(wardVisionLayer.cursor_marker);
-        }*/
         cursorLayer.destroyFeatures();
     
         // create and add cursor marker polygon if in place observer mode
@@ -955,7 +922,6 @@ function App(map_tile_path, vision_data_image_path) {
             }
             var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), cursor_style);
             cursorLayer.addFeatures([box_feature]);
-            //wardVisionLayer.cursor_marker = box_feature;
             
             if (VISION_SIMULATION_ALWAYS) updateVisibilityHandler(lonlat, null, ENTITIES.observer.radius);
         }
@@ -1039,26 +1005,13 @@ function App(map_tile_path, vision_data_image_path) {
         init();
     }, false);
     
-    function init() {
-        var data = QueryString.getParameterByName('data');
-        if (data) {
-            document.getElementById('dataControl').value = data;
-        }
-        VISION_SIMULATION = data != "687";
-        //document.querySelector('label[for="visionSimulationControl"]').style.display = VISION_SIMULATION ? 'inline' : 'none';
-        document.getElementById("visionSimulationControl").disabled = !VISION_SIMULATION;
-        document.getElementById("alwaysSimulateControl").disabled = !VISION_SIMULATION;
-        getJSON(map_data_path + getDataVersion() + '/mapdata.json', onMapDataLoad);
-    }
-    
     function getDataVersion() {
         return document.getElementById('dataControl').value;
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
         if (!vs.ready) return;
-        
-        //console.log(latlon, marker, radius);
+
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
         if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
@@ -1094,8 +1047,8 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }
     }
-    
-    var getSizePoll;
+
+    // Start vision simulation and start map initialization check in callback
     var t1 = Date.now();
     var vs = new VisionSimulation(worlddata, vision_data_image_path, function () {
         console.log('vs loaded', Date.now() - t1);
@@ -1103,6 +1056,7 @@ function App(map_tile_path, vision_data_image_path) {
         initCheck();
     });
     
+    // Check if map is ready to initialize, if not retry
     var initCheckCount = 0;
     var maxInitCheckCount = 40;
     function initCheck() {
@@ -1123,18 +1077,16 @@ function App(map_tile_path, vision_data_image_path) {
         }
     }
     
-    function loadGeoJSONData(markers, k, name, style) {
-        var filename = map_data_path + getDataVersion() + '/' + k + '2.json';
-        markers[k] = new OpenLayers.Layer.Vector(name, {
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-                url: filename,
-                format: new OpenLayers.Format.GeoJSON()
-            }),
-            visibility: false
-        });
-        markers[k].style = style;
-        map.addLayer(markers[k]);
+    function init() {
+        var data = QueryString.getParameterByName('data');
+        if (data) {
+            document.getElementById('dataControl').value = data;
+        }
+        VISION_SIMULATION = data != "687";
+        //document.querySelector('label[for="visionSimulationControl"]').style.display = VISION_SIMULATION ? 'inline' : 'none';
+        document.getElementById("visionSimulationControl").disabled = !VISION_SIMULATION;
+        document.getElementById("alwaysSimulateControl").disabled = !VISION_SIMULATION;
+        getJSON(map_data_path + getDataVersion() + '/mapdata.json', onMapDataLoad);
     }
 }
 
