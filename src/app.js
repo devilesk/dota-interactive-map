@@ -142,7 +142,9 @@ function App(map_tile_path, vision_data_image_path) {
             "npc_dota_healer": IMG_DIR + "shrine.svg",
             "npc_dota_fort": IMG_DIR + "ancient.svg",
             "npc_dota_building": IMG_DIR + "filler.svg",
-            "npc_dota_barracks": IMG_DIR + "barracks.svg"
+            "npc_dota_barracks": IMG_DIR + "barracks.svg",
+            "dota_item_rune_spawner": IMG_DIR + "doubledamage.png",
+            "dota_item_rune_spawner_bounty": IMG_DIR + "bountyrune.png"
         },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
             ascending: false,
