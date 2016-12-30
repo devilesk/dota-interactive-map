@@ -137,7 +137,8 @@ function App(map_tile_path, vision_data_image_path) {
         icon_paths = {
             "ent_dota_tree": IMG_DIR + "tree.svg",
             "ent_dota_tree_cut": IMG_DIR + "stump.svg",
-            "npc_dota_tower": IMG_DIR + "tower.svg"
+            "npc_dota_tower": IMG_DIR + "tower.svg",
+            "npc_dota_healer": IMG_DIR + "shrine.svg"
         },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
             ascending: false,
