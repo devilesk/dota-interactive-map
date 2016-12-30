@@ -134,6 +134,11 @@ function App(map_tile_path, vision_data_image_path) {
             "Ward Vision": "Vision",
             "Ward Vision with Fog": "Vision"
         },
+        icon_paths = {
+            "ent_dota_tree": IMG_DIR + "tree.svg",
+            "ent_dota_tree_cut": IMG_DIR + "stump.svg",
+            "npc_dota_tower": IMG_DIR + "tower.svg"
+        },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
             ascending: false,
             overlayGrouping: overlayGrouping,
@@ -187,7 +192,7 @@ function App(map_tile_path, vision_data_image_path) {
         var worldXY = latLonToWorld(marker.lonlat.lon, marker.lonlat.lat);
 
         marker.treeVisible = state;
-        marker.setUrl(state ? IMG_DIR + "tree.svg" : IMG_DIR + "stump.svg");
+        marker.setUrl(state ? icon_paths.ent_dota_tree : icon_paths.ent_dota_tree_cut);
         
         if (VISION_SIMULATION) {
             var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
@@ -524,7 +529,15 @@ function App(map_tile_path, vision_data_image_path) {
                     //markers[k].setVisibility(false);
                     for (var i = 0; i < data[k].length; i++) {
                         var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
-                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), null, OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
+                        
+                        var icon = null;
+                        if (icon_paths[k]) {
+                            var size = new OpenLayers.Size(24, 24),
+                                offset = new OpenLayers.Pixel(-12,-12),
+                                icon = new OpenLayers.Icon(icon_paths[k], size, offset);
+                        }
+                
+                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
 
                         if (k == "npc_dota_tower") {
                             console.log('npc_dota_tower');
@@ -596,7 +609,7 @@ function App(map_tile_path, vision_data_image_path) {
             var latlon = worldToLatLon(layer.data[i].x, layer.data[i].y);
             var size = new OpenLayers.Size(24, 24),
                 offset = new OpenLayers.Pixel(-12,-12),
-                icon = new OpenLayers.Icon(IMG_DIR + "tree.svg", size, offset);
+                icon = new OpenLayers.Icon(icon_paths["ent_dota_tree"], size, offset);
             marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, "Click to cut down tree.<br>This will affect the ward vision simulation.", false);
             marker.treeVisible = true;
             marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
