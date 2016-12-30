@@ -31,7 +31,7 @@ var rollbarConfig = {
     }
 };
 
-var rollbar = Rollbar.init(rollbarConfig);
+//var rollbar = Rollbar.init(rollbarConfig);
     
 function App(map_tile_path, vision_data_image_path) {
     var self = this,
@@ -46,6 +46,7 @@ function App(map_tile_path, vision_data_image_path) {
                 radius: 850
             }
         },
+        DARKNESS_VISION_RADIUS = 675,
         TOWER_DAY_VISION_RADIUS = 1900,
         TOWER_NIGHT_VISION_RADIUS = 800,
         TOWER_TRUE_SIGHT_RADIUS = 700,
@@ -155,6 +156,7 @@ function App(map_tile_path, vision_data_image_path) {
         treeMarkers = {},
         VISION_SIMULATION = true,
         VISION_SIMULATION_ALWAYS = true,
+        DARKNESS = false,
         cutTrees = {};
 
         console.log(map.tileManager);
@@ -206,77 +208,87 @@ function App(map_tile_path, vision_data_image_path) {
             marker.feature.popup.setContentHTML(popupContentHTML);
         }
     }
+    
+    function addVisionCircle(layer, marker, radius, property, style) {
+        var center = new OpenLayers.Geometry.Point(marker.lonlat.lon, marker.lonlat.lat);
+        var circle = OpenLayers.Geometry.Polygon.createRegularPolygon(center, getScaledRadius(radius), 30);
+        var feature = new OpenLayers.Feature.Vector(circle, null, style);
+        layer.addFeatures(feature);
+        if (marker[property]) {
+            layer.removeFeatures(marker[property]);
+            marker[property].destroy();
+        }
+        marker[property] = feature;
+    }
+    
+    function addBuildingVisionFeatures(marker, skipDay, skipNight, skipTrueSight, skipAttack) {
+        var day_vision_radius = DARKNESS ? Math.min(marker.day_vision_radius, DARKNESS_VISION_RADIUS) : marker.day_vision_radius;
+        var night_vision_radius = DARKNESS ? Math.min(marker.night_vision_radius, DARKNESS_VISION_RADIUS) : marker.night_vision_radius;
+        var true_sight_radius = marker.true_sight_radius;
+        var attack_range_radius = marker.attack_range_radius;
+        
+        if (!skipDay) addVisionCircle(dayRangeLayer, marker, day_vision_radius, 'day_vision_feature', style.day);
+        if (!skipNight) addVisionCircle(nightRangeLayer, marker, night_vision_radius, 'night_vision_feature', style.night);
+        if (!skipTrueSight) addVisionCircle(trueSightRangeLayer, marker, true_sight_radius, 'true_sight_feature', style.true_sight);
+        if (!skipAttack) addVisionCircle(attackRangeLayer, marker, attack_range_radius, 'attack_range_feature', style.attack_range);
+        
+        if (VISION_SIMULATION && !skipDay) updateVisibilityHandler(marker.lonlat, marker, day_vision_radius);
+    }
 
     function handleTowerMarkerClick(e, skipQueryStringUpdate) {
         console.log('handleTowerMarkerClick');
-        var circle,
-            feature,
-            center;
-
-        if (!e.object.showInfo) {
-            center = new OpenLayers.Geometry.Point(e.object.lonlat.lon, e.object.lonlat.lat);
-
-            // day vision circle
-            circle = OpenLayers.Geometry.Polygon.createRegularPolygon(center, getScaledRadius(e.object.day_vision_radius), 30);
-            feature = new OpenLayers.Feature.Vector(circle);
-            dayRangeLayer.addFeatures(feature);
-            e.object.day_vision_feature = feature;
-
-            // true sight circle
-            circle = OpenLayers.Geometry.Polygon.createRegularPolygon(center, getScaledRadius(e.object.true_sight_radius), 30);
-            feature = new OpenLayers.Feature.Vector(circle, null, style.lightblue);
-            trueSightRangeLayer.addFeatures(feature);
-            e.object.true_sight_feature = feature;
-
-            // night vision circle
-            circle = OpenLayers.Geometry.Polygon.createRegularPolygon(center, getScaledRadius(e.object.night_vision_radius), 30);
-            feature = new OpenLayers.Feature.Vector(circle);
-            nightRangeLayer.addFeatures(feature);
-            e.object.night_vision_feature = feature;
-
-            // attack range circle
-            circle = OpenLayers.Geometry.Polygon.createRegularPolygon(center, getScaledRadius(e.object.attack_range_radius), 30);
-            feature = new OpenLayers.Feature.Vector(circle, null, style.red);
-            attackRangeLayer.addFeatures(feature);
-            e.object.attack_range_feature = feature;
-
-            if (!skipQueryStringUpdate) QueryString.addQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
-
-            if (VISION_SIMULATION) updateVisibilityHandler(e.object.lonlat, e.object, TOWER_DAY_VISION_RADIUS);
+        var marker = e.object;
+        if (!marker.showInfo) {
+            addBuildingVisionFeatures(marker);
+            if (!skipQueryStringUpdate) QueryString.addQueryStringValue("tower_vision", marker.tower_loc.x + ',' + marker.tower_loc.y);
         }
         else {
-            dayRangeLayer.removeFeatures(e.object.day_vision_feature);
-            nightRangeLayer.removeFeatures(e.object.night_vision_feature);
-            trueSightRangeLayer.removeFeatures(e.object.true_sight_feature);
-            attackRangeLayer.removeFeatures(e.object.attack_range_feature);
+            dayRangeLayer.removeFeatures(marker.day_vision_feature);
+            nightRangeLayer.removeFeatures(marker.night_vision_feature);
+            trueSightRangeLayer.removeFeatures(marker.true_sight_feature);
+            attackRangeLayer.removeFeatures(marker.attack_range_feature);
 
-            if (e.object.vision_feature) visionSimulationLayer.removeFeatures(e.object.vision_feature);
-            if (e.object.vision_center_feature) visionSimulationLayer.removeFeatures(e.object.vision_center_feature);
+            if (marker.vision_feature) visionSimulationLayer.removeFeatures(marker.vision_feature);
+            if (marker.vision_center_feature) visionSimulationLayer.removeFeatures(marker.vision_center_feature);
       
-            if (!skipQueryStringUpdate) QueryString.removeQueryStringValue("tower_vision", e.object.tower_loc.x + ',' + e.object.tower_loc.y);
+            if (!skipQueryStringUpdate) QueryString.removeQueryStringValue("tower_vision", marker.tower_loc.x + ',' + marker.tower_loc.y);
         }
-        e.object.showInfo = !e.object.showInfo;
+        marker.showInfo = !marker.showInfo;
     }
 
-    function handleWardClick(entityName) {
+    function handleWardClick(entityName, style) {
         return function(event) {
             var latlon = map.getLonLatFromPixel(event.xy),
-                marker = placeWard(latlon, entityName);
+                marker = placeWard(latlon, entityName, style);
             if (marker) QueryString.addQueryStringValue(marker.ward_type, marker.ward_loc);
         }
     }
+    
+    function updateWard(marker, radius) {
+        if (marker.ward_type == 'observer') {
+            marker.radius_feature.destroy();
+            marker.vision_feature.destroy();
+            marker.vision_center_feature.destroy();
+            var circle = OpenLayers.Geometry.Polygon.createRegularPolygon(new OpenLayers.Geometry.Point(marker.lonlat.lon, marker.lonlat.lat), getScaledRadius(radius), 40),
+                feature = new OpenLayers.Feature.Vector(circle);
+            wardVisionLayer.addFeatures(feature);
+            marker.radius_feature = feature;
+            
+            if (VISION_SIMULATION) updateVisibilityHandler(marker.lonlat, marker, radius);
+        }
+    }
 
-    function placeWard(latlon, entityName, qs_value_worldXY) {
+    function placeWard(latlon, entityName, style, qs_value_worldXY) {
         if (!mapBounds.containsLonLat(latlon)) return;
         var entity = ENTITIES[entityName],
-            marker = createWardMarker(entity.icon_path, latlon),
-            circle = OpenLayers.Geometry.Polygon.createRegularPolygon(new OpenLayers.Geometry.Point(marker.lonlat.lon, marker.lonlat.lat), getScaledRadius(entity.radius), 40),
-            feature = new OpenLayers.Feature.Vector(circle);
+            vision_radius = entityName == 'observer' ? getVisionRadius() : entity.radius,
+            marker = createWardMarker(entity.icon_path, latlon);
         iconLayer.addMarker(marker);
-        wardVisionLayer.addFeatures(feature);
-        marker.radius_feature = feature;
+        
+        addVisionCircle(wardVisionLayer, marker, vision_radius, 'radius_feature', style)
         marker.ward_type = entityName;
         marker.ward_loc = entityName;
+        marker.vision_radius = vision_radius;
 
         if (qs_value_worldXY == undefined) {
             var worldXY = latLonToWorld(latlon.lon, latlon.lat);
@@ -287,7 +299,7 @@ function App(map_tile_path, vision_data_image_path) {
             marker.ward_loc = qs_value_worldXY;
         }
 
-        if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, ENTITIES.observer.radius);
+        if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, marker.vision_radius);
         
         marker.events.register("click", marker, wardMarkerRemove);
         marker.events.register("touchstart", marker, wardMarkerRemove);
@@ -302,13 +314,13 @@ function App(map_tile_path, vision_data_image_path) {
         if (this.vision_feature) visionSimulationLayer.removeFeatures(this.vision_feature);
         if (this.vision_center_feature) visionSimulationLayer.removeFeatures(this.vision_center_feature);
         console.log(this);
+        this.events.unregister("click", this, wardMarkerRemove);
+        this.events.unregister("touchstart", this, wardMarkerRemove);
+        this.feature.destroy();
         iconLayer.removeMarker(this);
         OpenLayers.Event.stop(event);
 
         QueryString.removeQueryStringValue(this.ward_type, this.ward_loc);
-        
-        this.events.unregister("click", this, wardMarkerRemove);
-        this.events.unregister("touchstart", this, wardMarkerRemove);
     }
 
     function handleMeasurements(event) {
@@ -379,21 +391,7 @@ function App(map_tile_path, vision_data_image_path) {
         element.innerHTML = out;
     }
 
-    function handleTowerHoverPopup(event) {
-        if (this.popup == null) {
-            console.log(this.closeBox);
-            this.popup = this.createPopup(this.closeBox);
-            map.addPopup(this.popup);
-            this.popup.show();
-        }
-        else {
-            this.popup.toggle();
-        }
-        currentPopup = this.popup;
-        OpenLayers.Event.stop(event);
-    };
-
-    function handleTreeHoverPopup(event) {
+    function handleHoverPopup(event) {
         if (this.popup == null) {
             this.popup = this.createPopup(this.closeBox);
             map.addPopup(this.popup);
@@ -418,22 +416,35 @@ function App(map_tile_path, vision_data_image_path) {
         marker.feature = feature;
         
         if (markers.name == "Towers") {
-            marker.events.register("mouseover", feature, handleTowerHoverPopup);
-            marker.events.register("mouseout", feature, handleTowerHoverPopup);
+            marker.events.register("mouseover", feature, handleHoverPopup);
+            marker.events.register("mouseout", feature, handleHoverPopup);
         }
         else if (markers.name == "Trees" && VISION_SIMULATION) {
-            marker.events.register("mouseover", feature, handleTreeHoverPopup);
-            marker.events.register("mouseout", feature, handleTreeHoverPopup);
+            marker.events.register("mouseover", feature, handleHoverPopup);
+            marker.events.register("mouseout", feature, handleHoverPopup);
         }
         markers.addMarker(marker);
         return marker;
     }
 
-    function createWardMarker(img, latlon) {
+    function createWardMarker(img, latlon, popupContentHTML) {
         var size = new OpenLayers.Size(21, 25),
             offset = new OpenLayers.Pixel(-(size.w / 2), -size.h),
-            icon = new OpenLayers.Icon(img, size, offset),
-            marker = new OpenLayers.Marker(latlon, icon);
+            icon = new OpenLayers.Icon(img, size, offset);
+            
+        var feature = new OpenLayers.Feature(iconLayer, latlon);
+        feature.data.lonlat = latlon;
+        feature.data.icon = icon;
+        feature.closeBox = false;
+        feature.popupClass = OpenLayers.Popup.FramedCloud;
+        feature.data.popupContentHTML = popupContentHTML;
+        feature.data.overflow = "hidden";
+        var marker = feature.createMarker();
+        marker.feature = feature;
+        
+        marker.events.register("mouseover", feature, handleHoverPopup);
+        marker.events.register("mouseout", feature, handleHoverPopup);
+        
         console.log('createWardMarker', latlon);
         return marker;
     }
@@ -513,14 +524,16 @@ function App(map_tile_path, vision_data_image_path) {
                     for (var i = 0; i < data[k].length; i++) {
                         var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
                         marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
-                        marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
-                        marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
-                        marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
-                        marker.attack_range_radius = TOWER_ATTACK_RANGE_RADIUS;
-                        marker.showInfo = false;
 
                         if (k == "npc_dota_tower") {
                             console.log('npc_dota_tower');
+                            marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
+                            marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
+                            marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
+                            marker.attack_range_radius = TOWER_ATTACK_RANGE_RADIUS;
+                            marker.showInfo = false;
+                            marker.ward_type = 'tower'
+                        
                             marker.events.register("click", markers[k], handleTowerMarkerClick);
                             marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
                             marker.tower_loc = data[k][i];
@@ -642,6 +655,8 @@ function App(map_tile_path, vision_data_image_path) {
                 drawControls["select"].deactivate();
             }
         }
+        if (this.value !== 'observer') document.getElementById("visible-area").innerHTML = "";
+        
         document.getElementById("output").innerHTML = "";
 
         document.getElementById("traveltime-container").style.display = 'none';
@@ -676,7 +691,7 @@ function App(map_tile_path, vision_data_image_path) {
                 ward_coordinates.map(function(el) {
                     var coord = el.split(',');
                     var xy = worldToLatLon(parseFloat(coord[0]), parseFloat(coord[1]));
-                    placeWard(new OpenLayers.LonLat(xy.x, xy.y), keys[i], el);
+                    placeWard(new OpenLayers.LonLat(xy.x, xy.y), keys[i], keys[i] === 'observer' ? style.day : style.true_sight, el);
                 });
             }
         }
@@ -820,10 +835,10 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }),
         observer: new OpenLayers.Control.Click({
-            onClick: handleWardClick('observer')
+            onClick: handleWardClick('observer', style.day)
         }),
         sentry: new OpenLayers.Control.Click({
-            onClick: handleWardClick('sentry')
+            onClick: handleWardClick('sentry', style.true_sight)
         }),
         polygonControl: new OpenLayers.Control.DrawFeature(polygonLayer, OpenLayers.Handler.RegularPolygon, {
             handlerOptions: {
@@ -923,7 +938,7 @@ function App(map_tile_path, vision_data_image_path) {
             var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), cursor_style);
             cursorLayer.addFeatures([box_feature]);
             
-            if (VISION_SIMULATION_ALWAYS) updateVisibilityHandler(lonlat, null, ENTITIES.observer.radius);
+            if (VISION_SIMULATION_ALWAYS) updateVisibilityHandler(lonlat, null, getVisionRadius());
         }
     });
 
@@ -996,6 +1011,7 @@ function App(map_tile_path, vision_data_image_path) {
         map.setBaseLayer(baseLayers[0]);
         map.zoomToMaxExtent();
         document.getElementById('dataControl').selectedIndex = 0;
+        document.getElementById('vision-radius').value = ENTITIES.observer.radius;
         init();
     }, false);
     
@@ -1005,8 +1021,50 @@ function App(map_tile_path, vision_data_image_path) {
         init();
     }, false);
     
+    document.getElementById('vision-radius').addEventListener('change', function () {
+        console.log('vision-radius change', document.getElementById('vision-radius').value);
+        document.getElementById('vision-radius').setAttribute('data-dirty-value', true);
+    }, false);
+    
+    document.getElementById('darknessControl').addEventListener('change', function () {
+        toggleDarkness(document.getElementById('darknessControl').checked);
+        QueryString.setQueryString('darkness', document.getElementById('dataControl').value);
+        document.getElementById('vision-radius').removeAttribute('data-dirty-value');
+    }, false);
+    
+    function toggleDarkness(state) {
+        DARKNESS = state;
+        console.log(state, document.getElementById('vision-radius').getAttribute('data-dirty-value'), !document.getElementById('vision-radius').getAttribute('data-dirty-value'), document.getElementById('vision-radius').getAttribute('data-saved-value'));
+        if (state) {
+            document.getElementById('vision-radius').setAttribute('data-saved-value', document.getElementById('vision-radius').value);
+            document.getElementById('vision-radius').value = DARKNESS_VISION_RADIUS;
+        }
+        else {
+            if (!document.getElementById('vision-radius').getAttribute('data-dirty-value')) {
+                console.log('restore vision radius');
+                document.getElementById('vision-radius').value = parseInt(document.getElementById('vision-radius').getAttribute('data-saved-value'))  || ENTITIES.observer.radius;
+            }
+        }
+        iconLayer.markers.forEach(function (marker) {
+            console.log(marker);
+            if (marker.ward_type == 'observer') {
+                updateWard(marker, state ? DARKNESS_VISION_RADIUS : marker.vision_radius);
+            }
+        });
+        var layer = map.getLayersByName(layerNames["npc_dota_tower"])[0];
+        if (layer) {
+            layer.markers.forEach(function (marker) {
+                if (marker.showInfo) addBuildingVisionFeatures(marker, false, false, true, true);
+            });
+        }
+    }
+    
     function getDataVersion() {
         return document.getElementById('dataControl').value;
+    }
+    
+    function updateVisibleArea() {
+        document.getElementById('visible-area').innerHTML = "Visibility: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
@@ -1019,11 +1077,13 @@ function App(map_tile_path, vision_data_image_path) {
             var box_feature = createTileFeature(vs.GridXYtoWorldXY(gridXY.x, gridXY.y), style.green);
             if (marker) {
                 visionSimulationLayer.addFeatures([box_feature]);
+                if (marker.vision_center_feature) marker.vision_center_feature.destroy();
                 marker.vision_center_feature = box_feature;
             }
 
             // execute vision simulation
             vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
+            updateVisibleArea();
             
             // merge light points into a single polygon and add to vision layer
             var outlines = getLightUnion(vs.grid, vs.lights);
@@ -1040,11 +1100,29 @@ function App(map_tile_path, vision_data_image_path) {
             var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
             if (marker) {
                 visionSimulationLayer.addFeatures([visionFeature]);
+                if (marker.vision_feature) marker.vision_feature.destroy();
                 marker.vision_feature = visionFeature;
             }
             else {
                 cursorLayer.addFeatures([visionFeature]);
             }
+            
+            if (marker) {
+                marker.vision_data = {
+                    area: vs.area,
+                    lightArea: vs.lightArea
+                }
+                updatePopup(marker);
+            }
+        }
+    }
+    
+    function updatePopup(marker) {
+        var popupContentHTML = "Visibility: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
+        if (marker.ward_type === "tower") popupContentHTML = "Click to toggle range overlay<br><br>" + popupContentHTML;
+        marker.feature.data.popupContentHTML = popupContentHTML;
+        if (marker.feature.popup) {
+            marker.feature.popup.setContentHTML(popupContentHTML);
         }
     }
 
@@ -1087,6 +1165,10 @@ function App(map_tile_path, vision_data_image_path) {
         document.getElementById("visionSimulationControl").disabled = !VISION_SIMULATION;
         document.getElementById("alwaysSimulateControl").disabled = !VISION_SIMULATION;
         getJSON(map_data_path + getDataVersion() + '/mapdata.json', onMapDataLoad);
+    }
+    
+    function getVisionRadius() {
+        return document.getElementById('vision-radius').value || ENTITIES.observer.radius;
     }
 }
 

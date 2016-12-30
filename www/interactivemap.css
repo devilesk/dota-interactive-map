@@ -66,9 +66,14 @@ li.collapsed ul {
     display: block;
     padding: 5px 3px 5px 4px;
 }
-.controls-list #dataControl-label {
+.controls-list #dataControl-label,
+.controls-list #vision-radius-label {
     width: initial;
     display: inline-block;
+}
+.controls-list #vision-radius {
+    display: inline-block;
+    width: 70px;
 }
 #reset {
     font-size: 12px;
@@ -100,14 +105,14 @@ li.collapsed ul {
 #movespeed-container {
     padding-left: 49px;
 }
-
-div.olControlMousePosition {
-    position:absolute;
-    bottom:0px;
-    right:0px;
-    background-color:white;
-    color:black;
-    padding:3px 5px;
+#visible-area {
+    bottom: 0;
+    display: block;
+    position: absolute;
+    left: 0px;
+    background-color: white;
+    color: black;
+    padding: 3px 5px;
 }
 
 div.olControlZoom a {

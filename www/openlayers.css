@@ -59,11 +59,12 @@ div.olLayerDiv {
 
 div.olControlMousePosition {
     bottom: 0;
-    right: 3px;
     display: block;
     position: absolute;
-    font-family: Arial;
-    font-size: smaller;
+    right: 0px;
+    background-color: white;
+    color: black;
+    padding: 3px 5px;
 }
 
 .olControlOverviewMapContainer {
