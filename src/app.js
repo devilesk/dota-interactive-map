@@ -761,7 +761,7 @@ function App(map_tile_path, vision_data_image_path) {
     map.addLayer(visionSimulationLayer);
     map.addLayer(iconLayer);
     map.addControl(coordinateControl);
-    map.addControl(new OpenLayers.Control.TouchNavigation({
+    map.addControl(new OpenLayers.Control.Navigation({
         dragPanOptions: {
             enableKinetic: true
         }
