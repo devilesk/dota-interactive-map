@@ -31,7 +31,7 @@ var rollbarConfig = {
     }
 };
 
-//var rollbar = Rollbar.init(rollbarConfig);
+var rollbar = Rollbar.init(rollbarConfig);
     
 function App(map_tile_path, vision_data_image_path) {
     var self = this,
