@@ -195,10 +195,24 @@ function App(map_tile_path, vision_data_image_path) {
      * CONTROL HANDLERS *
      ********************/
 
+    // called by handlers to prevent event propogation to observer and sentry click controls
+    function clearClickControl() {
+        if (drawControls['observer'].active) {
+            drawControls['observer'].deactivate();
+            drawControls['observer'].activate();
+        }
+        if (drawControls['sentry'].active) {
+            drawControls['sentry'].deactivate();
+            drawControls['sentry'].activate();
+        }
+    }
+
     function handleTreeMarkerClick(event) {
-        console.log('handleTreeMarkerClick', this);
+        console.log('handleTreeMarkerClick', event, this);
         setTreeMarkerState(this, !this.treeVisible);
         setTreeQueryString();
+        OpenLayers.Event.stop(event);
+        clearClickControl();
     }
     
     function setTreeMarkerState(marker, state) {
@@ -254,9 +268,9 @@ function App(map_tile_path, vision_data_image_path) {
         if (VISION_SIMULATION && !skipDay && marker.dayVision) updateVisibilityHandler(marker.lonlat, marker, dayVision);
     }
 
-    function handleTowerMarkerClick(e, skipQueryStringUpdate) {
+    function handleTowerMarkerClick(event, skipQueryStringUpdate) {
         console.log('handleTowerMarkerClick');
-        var marker = e.object;
+        var marker = event.object;
         if (!marker.showInfo) {
             addBuildingVisionFeatures(marker);
             if (!skipQueryStringUpdate) QueryString.addQueryStringValue("tower_vision", marker.tower_loc.x + ',' + marker.tower_loc.y);
@@ -274,6 +288,9 @@ function App(map_tile_path, vision_data_image_path) {
         }
         marker.showInfo = !marker.showInfo;
         updatePopup(marker, marker.showInfo);
+        
+        OpenLayers.Event.stop(event);
+        clearClickControl();
     }
 
     function handleWardClick(entityName, style) {
@@ -322,7 +339,7 @@ function App(map_tile_path, vision_data_image_path) {
         if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, marker.vision_radius);
         
         marker.events.register("click", marker, wardMarkerRemove);
-        marker.events.register("touchstart", marker, wardMarkerRemove);
+        //marker.events.register("touchstart", marker, wardMarkerRemove);
         
         console.log('placeWard', this);
         
@@ -335,12 +352,14 @@ function App(map_tile_path, vision_data_image_path) {
         if (this.vision_center_feature) visionSimulationLayer.removeFeatures(this.vision_center_feature);
         console.log(this);
         this.events.unregister("click", this, wardMarkerRemove);
-        this.events.unregister("touchstart", this, wardMarkerRemove);
+        //this.events.unregister("touchstart", this, wardMarkerRemove);
         this.feature.destroy();
         iconLayer.removeMarker(this);
-        OpenLayers.Event.stop(event);
 
         QueryString.removeQueryStringValue(this.unitType, this.ward_loc);
+        
+        OpenLayers.Event.stop(event);
+        clearClickControl();
     }
 
     function handleMeasurements(event) {
@@ -581,7 +600,7 @@ function App(map_tile_path, vision_data_image_path) {
                         marker.showInfo = false;
                         
                         marker.events.register("click", markers[k], handleTowerMarkerClick);
-                        marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
+                        //marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
                         marker.tower_loc = coordData[k][i];
                     }
                 }
