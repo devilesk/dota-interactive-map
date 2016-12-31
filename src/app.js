@@ -338,21 +338,21 @@ function App(map_tile_path, vision_data_image_path) {
 
         if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, marker.vision_radius);
         
-        marker.events.register("click", marker, wardMarkerRemove);
-        //marker.events.register("touchstart", marker, wardMarkerRemove);
+        marker.events.register("click", marker, handleWardRemove);
+        //marker.events.register("touchstart", marker, handleWardRemove);
         
         console.log('placeWard', this);
         
         return marker;
     }
 
-    function wardMarkerRemove(event) {
-        if (this.radius_feature) wardVisionLayer.removeFeatures(this.radius_feature);
-        if (this.vision_feature) visionSimulationLayer.removeFeatures(this.vision_feature);
-        if (this.vision_center_feature) visionSimulationLayer.removeFeatures(this.vision_center_feature);
-        console.log(this);
-        this.events.unregister("click", this, wardMarkerRemove);
-        //this.events.unregister("touchstart", this, wardMarkerRemove);
+    function handleWardRemove(event) {
+        console.log('handleWardRemove', event, this);
+        if (this.radius_feature) this.radius_feature.destroy();
+        if (this.vision_feature) this.vision_feature.destroy();
+        if (this.vision_center_feature) this.vision_center_feature.destroy();
+        this.events.unregister("click", this, handleWardRemove);
+        //this.events.unregister("touchstart", this, handleWardRemove);
         this.feature.destroy();
         iconLayer.removeMarker(this);
 
@@ -1133,7 +1133,9 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function updateVisibilityHandler(latlon, marker, radius) {
+        console.log('updateVisibilityHandler', marker);
         if (!vs.ready) return;
+        cursorLayer.destroyFeatures();
 
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
