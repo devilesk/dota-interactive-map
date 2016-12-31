@@ -804,16 +804,22 @@ function App(map_tile_path, vision_data_image_path) {
 
         var tower_vision = QueryString.getParameterByName('tower_vision');
         if (tower_vision) {
-            var layer = map.getLayersByName(layerNames["npc_dota_tower"])[0];
-            tower_vision_coordinates = trim(tower_vision, ' ;').split(';')
-            console.log('tower_vision', layer);
-            console.log(treeMarkers, tower_vision_coordinates);
-            for (var i = 0; i < tower_vision_coordinates.length; i++) {
-                for (var j = 0; j < layer.markers.length; j++) {
-                    if (layer.markers[j].tower_loc.x + ',' + layer.markers[j].tower_loc.y == tower_vision_coordinates[i]) {
-                        handleTowerMarkerClick({
-                            object: layer.markers[j]
-                        }, true);
+            for (k in map_data.data) {
+                var layer = map.getLayersByName(layerNames[k])[0];
+                if (layer.name == "Trees") continue;
+                if (layer && layer.markers) {
+                    tower_vision_coordinates = trim(tower_vision, ' ;').split(';')
+                    console.log('tower_vision', layer);
+                    console.log(treeMarkers, tower_vision_coordinates);
+                    for (var i = 0; i < tower_vision_coordinates.length; i++) {
+                        for (var j = 0; j < layer.markers.length; j++) {
+                            console.log(layer, layer.name, layer.markers[j], layer.markers[j].tower_loc);
+                            if (layer.markers[j].tower_loc && layer.markers[j].tower_loc.x + ',' + layer.markers[j].tower_loc.y == tower_vision_coordinates[i]) {
+                                handleTowerMarkerClick({
+                                    object: layer.markers[j]
+                                }, true);
+                            }
+                        }
                     }
                 }
             }
