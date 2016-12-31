@@ -2,6 +2,7 @@ body {
     margin:0;
     font-family: sans-serif;
     font-size: 12px;
+    overflow:hidden;
 }
 img[src="img/ward_observer.png"]:hover, img[src="img/ward_sentry.png"]:hover {
     cursor:pointer;
@@ -25,6 +26,10 @@ select {
     z-index:1000;
     color:white;
 }
+.controls-container.right {
+    right: 0;
+    top:10px;
+}
 .controls-list {
 	font-family: sans-serif;
 	font-weight: bold;
@@ -38,7 +43,10 @@ select {
     padding: 1px 0px 1px 8px;
 }
 .controls-list.left {
-    padding: 3px 10px 5px 25px;
+    padding: 5px 10px 5px 25px;
+}
+.controls-list.right {
+    padding: 0px 15px 5px 10px;
 }
 .controls-list li{
 	padding:0px 5px;
@@ -46,6 +54,10 @@ select {
 }
 .controls-list li.controls-list-header {
     padding-bottom: 5px;
+}
+.controls-list-header {
+    font-weight: bold;
+    padding: 5px;
 }
 .controls-list li:last-child {
     margin-bottom: 0;
@@ -142,11 +154,17 @@ div.olControlZoom a:hover {
 .controls {
     background-color: rgba(34, 34, 34, 0.7) !important; 
     padding: 5px 10px;
-	border-radius: 0 15px 15px 0 !important;
     box-shadow: 1px 1px 1px 1px rgb(34, 34, 34);
 }
+.controls.left {
+    border-radius: 0 15px 15px 0 !important;
+}
+.controls.right {
+    border-radius: 15px 0px 0px 15px !important;
+}
 
-.controls-button, .olControlLayerSwitcher .minimizeDiv, .olControlLayerSwitcher .maximizeDiv {
+.controls-button {
+    cursor: pointer;
     position: absolute;
     top: 5px;
     color: white;
@@ -161,6 +179,9 @@ div.olControlZoom a:hover {
     font-weight: bold;
     font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
 }
+.controls-button.right {
+    right: 0;
+}
 
 .maximizeDiv::before {
     background-color: rgba(255,255,255,0.4);
@@ -173,23 +194,19 @@ div.olControlZoom a:hover {
     top: -3px;
 
 }
-.controls-button.maximizeDiv::before {
+.controls-button.left.maximizeDiv::before {
     left: 0px;
 }
-.olControlLayerSwitcher .maximizeDiv::before {
+.controls-button.right.maximizeDiv::before {
     right: 0px;
 }
 
-.controls-button, .controls-button.maximizeDiv::before {
+.controls-button.left, .controls-button.left.maximizeDiv::before {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
 }
 
-.controls-button.maximizeDiv {
-    display: none;
-}
-
-.olControlLayerSwitcher .minimizeDiv, .olControlLayerSwitcher .maximizeDiv, .olControlLayerSwitcher .maximizeDiv::before {
+.controls-button.right, .controls-button.right.maximizeDiv::before {
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
 }

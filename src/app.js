@@ -154,6 +154,7 @@ function App(map_tile_path, vision_data_image_path) {
             "npc_dota_roshan_spawner": IMG_DIR + "roshan.png"
         },
         layerSwitcher = new OpenLayers.Control.LayerSwitcher({
+            div: document.getElementById('overlays-container'),
             ascending: false,
             overlayGrouping: overlayGrouping,
             onMaximizeWhenSmallScreen: minimizeControlList.bind(document.getElementById("controls-min"))
