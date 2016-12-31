@@ -14,7 +14,7 @@ module.exports = {
         fillOpacity: 0.1
     },
     night: {
-        strokeColor: "#000080",
+        strokeColor: "#0000FF",
         strokeOpacity: 0.5,
         strokeWidth: 2,
         fillColor: "#007FFF",
