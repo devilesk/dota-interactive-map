@@ -1002,7 +1002,7 @@ function App(map_tile_path, vision_data_image_path) {
     });
 
     // Show/hide controls panel
-    document.getElementById("controls-max").addEventListener("click", function(e) {
+    document.getElementById("controls-max").addEventListener("click", debounce(function(e) {
         document.querySelector(".controls").style.display = '';
         document.getElementById("controls-min").style.display = 'block';
         this.style.display = 'none';
@@ -1010,7 +1010,7 @@ function App(map_tile_path, vision_data_image_path) {
             layerSwitcher.minimizeControl();
         }
         if (e) e.preventDefault();
-    }, false);
+    }, 100), false);
     
     function minimizeControlList(e) {
         document.querySelector(".controls").style.display = 'none';
@@ -1018,7 +1018,7 @@ function App(map_tile_path, vision_data_image_path) {
         this.style.display = 'none';
         if (e) e.preventDefault();
     }
-    document.getElementById("controls-min").addEventListener("click", minimizeControlList, false);
+    document.getElementById("controls-min").addEventListener("click", debounce(minimizeControlList, 100), false);
     
     // Initially hide controls if screen is small
     if (layerSwitcher.isSmallScreen()) {
@@ -1058,7 +1058,7 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('observerToggle').addEventListener('click', toggleControl, false);
     document.getElementById('sentryToggle').addEventListener('click', toggleControl, false);
     
-    document.getElementById('reset').addEventListener('click', function () {
+    document.getElementById('reset').addEventListener('click', debounce(function () {
         if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
         resetMarkerLayers();
         polygonLayer.destroyFeatures();
@@ -1073,7 +1073,7 @@ function App(map_tile_path, vision_data_image_path) {
         document.getElementById('vision-radius').value = ENTITIES.observer.radius;
         document.getElementById('darknessControl').checked = false;
         init();
-    }, false);
+    }, 1000), false);
     
     document.getElementById('dataControl').addEventListener('change', function () {
         QueryString.setQueryString('data', document.getElementById('dataControl').value);
