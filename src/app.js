@@ -99,7 +99,7 @@ function App(map_tile_path, vision_data_image_path) {
             npc_dota_tower: "Towers",
             npc_dota_barracks: "Barracks",
             npc_dota_filler: "Buildings",
-            trigger_multiple: "Neutral Camps Spawn Boxes",
+            trigger_multiple: "Neutral Spawn Boxes",
             npc_dota_neutral_spawner: "Neutral Camps",
             no_wards: "Invalid Ward Locations",
             ent_fow_blocker_node: "Vision Blocker"
@@ -302,7 +302,7 @@ function App(map_tile_path, vision_data_image_path) {
         if (!mapBounds.containsLonLat(latlon)) return;
         var entity = ENTITIES[entityName],
             vision_radius = entityName == 'observer' ? getVisionRadius() : entity.radius,
-            marker = createWardMarker(entity.icon_path, latlon);
+            marker = createWardMarker(entity.icon_path, entityName, latlon);
         iconLayer.addMarker(marker);
         
         addVisionCircle(wardVisionLayer, marker, vision_radius, 'radius_feature', style)
@@ -418,6 +418,7 @@ function App(map_tile_path, vision_data_image_path) {
             this.popup.show();
         }
         else {
+            console.log(this.popup);
             this.popup.toggle();
         }
         currentPopup = this.popup;
@@ -446,7 +447,7 @@ function App(map_tile_path, vision_data_image_path) {
         return marker;
     }
 
-    function createWardMarker(img, latlon, popupContentHTML) {
+    function createWardMarker(img, unitType, latlon, popupContentHTML) {
         var size = new OpenLayers.Size(21, 25),
             offset = new OpenLayers.Pixel(-(size.w / 2), -size.h),
             icon = new OpenLayers.Icon(img, size, offset);
@@ -456,15 +457,15 @@ function App(map_tile_path, vision_data_image_path) {
         feature.data.icon = icon;
         feature.closeBox = false;
         feature.popupClass = OpenLayers.Popup.FramedCloud;
-        feature.data.popupContentHTML = popupContentHTML;
+        console.log('createWardMarker', img, latlon, popupContentHTML);
+        feature.data.popupContentHTML = getPopupContent(null, unitType);
         feature.data.overflow = "hidden";
         var marker = feature.createMarker();
         marker.feature = feature;
         
         marker.events.register("mouseover", feature, handleHoverPopup);
         marker.events.register("mouseout", feature, handleHoverPopup);
-        
-        console.log('createWardMarker', latlon);
+
         return marker;
     }
 
@@ -534,6 +535,12 @@ function App(map_tile_path, vision_data_image_path) {
             box_rect, box_feature,
             coordData = data.data,
             statData = data.stats;
+
+        if (VISION_SIMULATION) {
+            loadGeoJSONData(markers, 'no_wards', layerNames.no_wards, style.red);
+            loadGeoJSONData(markers, 'ent_fow_blocker_node', layerNames.ent_fow_blocker_node, style.lightblue);
+        }
+        
         layerKeys.forEach(function (k) {
             console.log('onMapDataLoad', k);
             // Create markers for non-neutral spawn box and non-tree layers
@@ -563,12 +570,14 @@ function App(map_tile_path, vision_data_image_path) {
                         marker.unitSubType = coordData[k][i].subType;
                         marker.unitClass = unitClass;
                         console.log(k, coordData, coordData[k], coordData[k][i], marker.unitClass, marker.unitSubType);
-                        marker.dayVision = statData[marker.unitClass].dayVision;
-                        marker.nightVision = statData[marker.unitClass].nightVision;
-                        marker.trueSight = statData[marker.unitClass].trueSight;
-                        marker.attackRange = statData[marker.unitClass].attackRange;
-                        marker.pullType = coordData[k][i].pullType;
-                        marker.neutralType = coordData[k][i].neutralType;
+                        if (statData) {
+                            marker.dayVision = statData[marker.unitClass].dayVision;
+                            marker.nightVision = statData[marker.unitClass].nightVision;
+                            marker.trueSight = statData[marker.unitClass].trueSight;
+                            marker.attackRange = statData[marker.unitClass].attackRange;
+                            marker.pullType = coordData[k][i].pullType;
+                            marker.neutralType = coordData[k][i].neutralType;
+                        }
                         marker.showInfo = false;
                         
                         marker.events.register("click", markers[k], handleTowerMarkerClick);
@@ -588,11 +597,6 @@ function App(map_tile_path, vision_data_image_path) {
                 }
             }
         });
-
-        if (VISION_SIMULATION) {
-            loadGeoJSONData(markers, 'no_wards', layerNames.no_wards, style.red);
-            loadGeoJSONData(markers, 'ent_fow_blocker_node', layerNames.ent_fow_blocker_node, style.lightblue);
-        }
             
         map_data = data;
         
@@ -1048,6 +1052,7 @@ function App(map_tile_path, vision_data_image_path) {
         map.zoomToMaxExtent();
         document.getElementById('dataControl').selectedIndex = 0;
         document.getElementById('vision-radius').value = ENTITIES.observer.radius;
+        document.getElementById('darknessControl').checked = false;
         init();
     }, false);
     
@@ -1175,7 +1180,9 @@ function App(map_tile_path, vision_data_image_path) {
         npc_dota_barracks: "Barracks",
         npc_dota_filler: "Building",
         trigger_multiple: "Neutral Camp Spawn Box",
-        npc_dota_neutral_spawner: "Neutral Camp"
+        npc_dota_neutral_spawner: "Neutral Camp",
+        observer: "Observer Ward",
+        sentry: "Sentry Ward"
     };
         
     function getUnitName(unitType, unitSubType) {
@@ -1188,40 +1195,41 @@ function App(map_tile_path, vision_data_image_path) {
     function getPopupContent(statData, unitType, unitSubType, unitClass, addVisibleArea, pullType, neutralType) {
         console.log('getPopupContent', pullType, neutralType);
         var popupContentHTML = '<b>' + getUnitName(unitType, unitSubType) + '</b><br>';
-        var stats = statData[unitClass];
-        if (stats) {
-            if (pullType != null) {
-                popupContentHTML += "<br>Pull Type: " + pullTypes[pullType];
+        if (statData) {
+            var stats = statData[unitClass];
+            if (stats) {
+                if (pullType != null) {
+                    popupContentHTML += "<br>Pull Type: " + pullTypes[pullType];
+                }
+                if (neutralType != null) {
+                    popupContentHTML += "<br>Difficulty: " + neutralTypes[neutralType];
+                }
+                if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
+                    popupContentHTML += "<br>Damage: " + stats.damageMin + "&ndash;" + stats.damageMax;
+                }
+                if (stats.hasOwnProperty('bat')) {
+                    popupContentHTML += "<br>BAT: " + stats.bat;
+                }
+                if (stats.hasOwnProperty('attackRange')) {
+                    popupContentHTML += "<br>Attack Range: " + stats.attackRange;
+                }
+                if (stats.hasOwnProperty('health')) {
+                    popupContentHTML += "<br>Health: " + stats.health;
+                }
+                if (stats.hasOwnProperty('armor')) {
+                    popupContentHTML += "<br>Armor: " + stats.armor;
+                }
+                if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
+                    popupContentHTML += "<br>Vision: " + stats.dayVision + "/" + stats.nightVision;
+                }
             }
-            if (neutralType != null) {
-                popupContentHTML += "<br>Difficulty: " + neutralTypes[neutralType];
-            }
-            if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
-                popupContentHTML += "<br>Damage: " + stats.damageMin + "&ndash;" + stats.damageMax;
-            }
-            if (stats.hasOwnProperty('bat')) {
-                popupContentHTML += "<br>BAT: " + stats.bat;
-            }
-            if (stats.hasOwnProperty('attackRange')) {
-                popupContentHTML += "<br>Attack Range: " + stats.attackRange;
-            }
-            if (stats.hasOwnProperty('health')) {
-                popupContentHTML += "<br>Health: " + stats.health;
-            }
-            if (stats.hasOwnProperty('armor')) {
-                popupContentHTML += "<br>Armor: " + stats.armor;
-            }
-            if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
-                popupContentHTML += "<br>Vision: " + stats.dayVision + "/" + stats.nightVision;
-            }
-        }
-        
-        if (addVisibleArea) {
-            popupContentHTML += "<br>Visible Area: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
-        }
-        else {
-            if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
-                popupContentHTML += "<br><br>Click to view range overlays.";
+            if (!stats || stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
+                if (addVisibleArea) {
+                    popupContentHTML += "<br>Visible Area: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
+                }
+                else {
+                    popupContentHTML += "<br><br>Click to view range overlays.";
+                }
             }
         }
         return popupContentHTML;
@@ -1276,7 +1284,7 @@ function App(map_tile_path, vision_data_image_path) {
         //document.querySelector('label[for="visionSimulationControl"]').style.display = VISION_SIMULATION ? 'inline' : 'none';
         document.getElementById("visionSimulationControl").disabled = !VISION_SIMULATION;
         document.getElementById("alwaysSimulateControl").disabled = !VISION_SIMULATION;
-        getJSON(map_data_path + getDataVersion() + '/mapdata.json', onMapDataLoad);
+        getJSON(map_data_path + getDataVersion() + '/mapdata2.json', onMapDataLoad);
     }
     
     function getVisionRadius() {
