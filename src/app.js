@@ -49,7 +49,7 @@ function App(map_tile_path, vision_data_image_path) {
         DARKNESS_VISION_RADIUS = 675,
         TOWER_DAY_VISION_RADIUS = 1900,
         TOWER_NIGHT_VISION_RADIUS = 800,
-        TOWER_TRUE_SIGHT_RADIUS = 700,
+        TOWER_trueSight = 700,
         TOWER_ATTACK_RANGE_RADIUS = 700,
         map_data_path = "data/",
         map_data,
@@ -76,26 +76,28 @@ function App(map_tile_path, vision_data_image_path) {
             "trigger_multiple",
             "npc_dota_roshan_spawner",
             "ent_dota_tree",
-            "dota_item_rune_spawner",
+            "dota_item_rune_spawner_powerup",
             "dota_item_rune_spawner_bounty",
+            "ent_dota_fountain",
             "ent_dota_shop",
             "npc_dota_barracks",
-            "npc_dota_building",
+            "npc_dota_filler",
             "npc_dota_healer",
             "npc_dota_fort",
             "npc_dota_tower"
         ],
         layerNames = {
             npc_dota_roshan_spawner: "Roshan",
-            dota_item_rune_spawner: "Runes",
+            dota_item_rune_spawner_powerup: "Runes",
             dota_item_rune_spawner_bounty: "Bounty Runes",
             ent_dota_tree: "Trees",
             npc_dota_healer: "Shrines",
+            ent_dota_fountain: "Fountain",
             npc_dota_fort: "Ancients",
             ent_dota_shop: "Shops",
             npc_dota_tower: "Towers",
             npc_dota_barracks: "Barracks",
-            npc_dota_building: "Buildings",
+            npc_dota_filler: "Buildings",
             trigger_multiple: "Neutral Camps Spawn Boxes",
             npc_dota_neutral_spawner: "Neutral Camps",
             no_wards: "Invalid Ward Locations",
@@ -118,10 +120,11 @@ function App(map_tile_path, vision_data_image_path) {
             return new OpenLayers.Layer.TMS(baseLayerConfig[0], map_tile_path, baseLayerOptions);
         }),
         overlayGrouping = {
-            "Day Vision Range": "Towers",
-            "Night Vision Range": "Towers",
-            "True Sight Range": "Towers",
-            "Attack Range": "Towers",
+            "Day Vision Range": "Vision",
+            "Night Vision Range": "Vision",
+            "True Sight Range": "Vision",
+            "Attack Range": "Vision",
+            "Fountain": "Structures",
             "Towers": "Structures",
             "Shrines": "Structures",
             "Ancients": "Structures",
@@ -135,15 +138,17 @@ function App(map_tile_path, vision_data_image_path) {
             "Ward Vision with Fog": "Vision"
         },
         icon_paths = {
+            "ent_dota_fountain": IMG_DIR + "svgs/water-15.svg",
             "ent_dota_tree": IMG_DIR + "svgs/park-15.svg",
             "ent_dota_tree_cut": IMG_DIR + "stump.svg",
             "ent_dota_shop": IMG_DIR + "svgs/shop-15.svg",
+            "npc_dota_neutral_spawner": IMG_DIR + "svgs/jungle_1.svg",
             "npc_dota_tower": IMG_DIR + "svgs/castle-15.svg",
             "npc_dota_healer": IMG_DIR + "svgs/place-of-worship-15.svg",
             "npc_dota_fort": IMG_DIR + "svgs/town-hall-15.svg",
-            "npc_dota_building": IMG_DIR + "svgs/landmark-15.svg",
+            "npc_dota_filler": IMG_DIR + "svgs/landmark-15.svg",
             "npc_dota_barracks": IMG_DIR + "svgs/stadium-15.svg",
-            "dota_item_rune_spawner": IMG_DIR + "doubledamage.png",
+            "dota_item_rune_spawner_powerup": IMG_DIR + "doubledamage.png",
             "dota_item_rune_spawner_bounty": IMG_DIR + "bountyrune.png",
             "npc_dota_roshan_spawner": IMG_DIR + "roshan.png"
         },
@@ -235,17 +240,17 @@ function App(map_tile_path, vision_data_image_path) {
     }
     
     function addBuildingVisionFeatures(marker, skipDay, skipNight, skipTrueSight, skipAttack) {
-        var day_vision_radius = DARKNESS ? Math.min(marker.day_vision_radius, DARKNESS_VISION_RADIUS) : marker.day_vision_radius;
-        var night_vision_radius = DARKNESS ? Math.min(marker.night_vision_radius, DARKNESS_VISION_RADIUS) : marker.night_vision_radius;
-        var true_sight_radius = marker.true_sight_radius;
-        var attack_range_radius = marker.attack_range_radius;
+        var dayVision = DARKNESS ? Math.min(marker.dayVision, DARKNESS_VISION_RADIUS) : marker.dayVision;
+        var nightVision = DARKNESS ? Math.min(marker.nightVision, DARKNESS_VISION_RADIUS) : marker.nightVision;
+        var trueSight = marker.trueSight;
+        var attackRange = marker.attackRange;
         
-        if (!skipDay) addVisionCircle(dayRangeLayer, marker, day_vision_radius, 'day_vision_feature', style.day);
-        if (!skipNight) addVisionCircle(nightRangeLayer, marker, night_vision_radius, 'night_vision_feature', style.night);
-        if (!skipTrueSight) addVisionCircle(trueSightRangeLayer, marker, true_sight_radius, 'true_sight_feature', style.true_sight);
-        if (!skipAttack) addVisionCircle(attackRangeLayer, marker, attack_range_radius, 'attack_range_feature', style.attack_range);
+        if (!skipDay && marker.dayVision) addVisionCircle(dayRangeLayer, marker, dayVision, 'day_vision_feature', style.day);
+        if (!skipNight && marker.nightVision) addVisionCircle(nightRangeLayer, marker, nightVision, 'night_vision_feature', style.night);
+        if (!skipTrueSight && marker.trueSight) addVisionCircle(trueSightRangeLayer, marker, trueSight, 'true_sight_feature', style.true_sight);
+        if (!skipAttack && marker.attackRange) addVisionCircle(attackRangeLayer, marker, attackRange, 'attack_range_feature', style.attack_range);
         
-        if (VISION_SIMULATION && !skipDay) updateVisibilityHandler(marker.lonlat, marker, day_vision_radius);
+        if (VISION_SIMULATION && !skipDay && marker.dayVision) updateVisibilityHandler(marker.lonlat, marker, dayVision);
     }
 
     function handleTowerMarkerClick(e, skipQueryStringUpdate) {
@@ -267,18 +272,19 @@ function App(map_tile_path, vision_data_image_path) {
             if (!skipQueryStringUpdate) QueryString.removeQueryStringValue("tower_vision", marker.tower_loc.x + ',' + marker.tower_loc.y);
         }
         marker.showInfo = !marker.showInfo;
+        updatePopup(marker, marker.showInfo);
     }
 
     function handleWardClick(entityName, style) {
         return function(event) {
             var latlon = map.getLonLatFromPixel(event.xy),
                 marker = placeWard(latlon, entityName, style);
-            if (marker) QueryString.addQueryStringValue(marker.ward_type, marker.ward_loc);
+            if (marker) QueryString.addQueryStringValue(marker.unitType, marker.ward_loc);
         }
     }
     
     function updateWard(marker, radius) {
-        if (marker.ward_type == 'observer') {
+        if (marker.unitType == 'observer') {
             marker.radius_feature.destroy();
             marker.vision_feature.destroy();
             marker.vision_center_feature.destroy();
@@ -299,7 +305,7 @@ function App(map_tile_path, vision_data_image_path) {
         iconLayer.addMarker(marker);
         
         addVisionCircle(wardVisionLayer, marker, vision_radius, 'radius_feature', style)
-        marker.ward_type = entityName;
+        marker.unitType = entityName;
         marker.ward_loc = entityName;
         marker.vision_radius = vision_radius;
 
@@ -333,7 +339,7 @@ function App(map_tile_path, vision_data_image_path) {
         iconLayer.removeMarker(this);
         OpenLayers.Event.stop(event);
 
-        QueryString.removeQueryStringValue(this.ward_type, this.ward_loc);
+        QueryString.removeQueryStringValue(this.unitType, this.ward_loc);
     }
 
     function handleMeasurements(event) {
@@ -429,14 +435,12 @@ function App(map_tile_path, vision_data_image_path) {
         marker = feature.createMarker();
         marker.feature = feature;
         
-        if (markers.name == "Towers") {
+        if (markers.name != "Trees") {
+            console.log(markers.name);
             marker.events.register("mouseover", feature, handleHoverPopup);
             marker.events.register("mouseout", feature, handleHoverPopup);
         }
-        else if (markers.name == "Trees" && VISION_SIMULATION) {
-            marker.events.register("mouseover", feature, handleHoverPopup);
-            marker.events.register("mouseout", feature, handleHoverPopup);
-        }
+
         markers.addMarker(marker);
         return marker;
     }
@@ -506,7 +510,7 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }
         var data = map_data;
-        layerKeys.forEach(function (k) {
+        Object.keys(map_data.data).concat(["no_wards", "ent_fow_blocker_node"]).forEach(function (k) {
             var layer = map.getLayersByName(layerNames[k])[0];
             console.log('removing layer', layer, k);
             if (layer) {
@@ -526,64 +530,60 @@ function App(map_tile_path, vision_data_image_path) {
             marker,
             vectorLayer = map.getLayersByName("Placed Wards")[0],
             box_points = [],
-            box_rect, box_feature;
-        layerKeys.forEach(function (k) {
+            box_rect, box_feature,
+            coordData = data.data,
+            statData = data.stats;
+        for (k in coordData) {
             console.log('onMapDataLoad', k);
-            if (data[k]) {
-                // Create markers for non-neutral spawn box and non-tree layers
-                if (k != "trigger_multiple" && k != "ent_dota_tree" && k != "no_wards" && k != "ent_fow_blocker_node") {
-                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
-                    map.addLayer(markers[k]);
-                    //markers[k].setVisibility(false);
-                    for (var i = 0; i < data[k].length; i++) {
-                        var latlon = worldToLatLon(data[k][i].x, data[k][i].y);
-                        
-                        var icon = null;
-                        if (icon_paths[k]) {
-                            var size = new OpenLayers.Size(24, 24),
-                                offset = new OpenLayers.Pixel(-12,-12),
-                                icon = new OpenLayers.Icon(icon_paths[k], size, offset);
-                        }
-                
-                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, "Click to toggle range overlay", false);
-
-                        if (k == "npc_dota_tower") {
-                            console.log('npc_dota_tower');
-                            marker.day_vision_radius = TOWER_DAY_VISION_RADIUS;
-                            marker.night_vision_radius = TOWER_NIGHT_VISION_RADIUS;
-                            marker.true_sight_radius = TOWER_TRUE_SIGHT_RADIUS;
-                            marker.attack_range_radius = TOWER_ATTACK_RANGE_RADIUS;
-                            marker.showInfo = false;
-                            marker.ward_type = 'tower'
-                        
-                            marker.events.register("click", markers[k], handleTowerMarkerClick);
-                            marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
-                            marker.tower_loc = data[k][i];
-                        }
+            // Create markers for non-neutral spawn box and non-tree layers
+            if (k != "trigger_multiple" && k != "ent_dota_tree") {
+                markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
+                map.addLayer(markers[k]);
+                //markers[k].setVisibility(false);
+                for (var i = 0; i < coordData[k].length; i++) {
+                    var latlon = worldToLatLon(coordData[k][i].x, coordData[k][i].y);
+                    
+                    var icon = null;
+                    if (icon_paths[k]) {
+                        var size = new OpenLayers.Size(24, 24),
+                            offset = new OpenLayers.Pixel(-12,-12),
+                            icon = new OpenLayers.Icon(icon_paths[k], size, offset);
                     }
-                }
-                // Set up tree layer without creating tree markers yet
-                else if (k == "ent_dota_tree") {
-                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
-                    map.addLayer(markers[k]);
-                    //markers[k].setVisibility(false);
-                    markers[k].data = data[k];
-                }
-                // Create neutral spawn markers and rectangles
-                else if (k == "trigger_multiple") {
-                    loadJSONData(markers, k, "npc_dota_neutral_spawner_box", data[k]);
-                }
-            }
-            else if (VISION_SIMULATION) {
-                if (k === "no_wards") {
-                    loadGeoJSONData(markers, k, layerNames[k], style.red);
-                }
-                else if (k === "ent_fow_blocker_node") {
-                    loadGeoJSONData(markers, k, layerNames[k], style.lightblue);
+            
+                    var unitClass = coordData[k][i].subType ? k + '_' + coordData[k][i].subType : k;
+                    marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, getPopupContent(statData, k, coordData[k][i].subType, unitClass), false);
+                    marker.unitType = k;
+                    marker.unitSubType = coordData[k][i].subType;
+                    marker.unitClass = unitClass;
+                    console.log(k, coordData, coordData[k], coordData[k][i], marker.unitClass, marker.unitSubType);
+                    marker.dayVision = statData[marker.unitClass].dayVision;
+                    marker.nightVision = statData[marker.unitClass].nightVision;
+                    marker.trueSight = statData[marker.unitClass].trueSight;
+                    marker.attackRange = statData[marker.unitClass].attackRange;
+                    marker.showInfo = false;
+                    
+                    marker.events.register("click", markers[k], handleTowerMarkerClick);
+                    marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
+                    marker.tower_loc = coordData[k][i];
                 }
             }
-        });        
+            // Set up tree layer without creating tree markers yet
+            else if (k == "ent_dota_tree") {
+                markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
+                map.addLayer(markers[k]);
+                //markers[k].setVisibility(false);
+            }
+            // Create neutral spawn markers and rectangles
+            else if (k == "trigger_multiple") {
+                loadJSONData(markers, k, "npc_dota_neutral_spawner_box", coordData[k]);
+            }
+        }
 
+        if (VISION_SIMULATION) {
+            loadGeoJSONData(markers, 'no_wards', layerNames.no_wards, style.red);
+            loadGeoJSONData(markers, 'ent_fow_blocker_node', layerNames.ent_fow_blocker_node, style.lightblue);
+        }
+            
         map_data = data;
         
         map.raiseLayer(vectorLayer, map.layers.length);
@@ -613,18 +613,19 @@ function App(map_tile_path, vision_data_image_path) {
         console.log('start tree load');
         var layer = map.getLayersByName(layerNames["ent_dota_tree"])[0];
         console.log(layer);
-        for (var i = 0; i < layer.data.length; i++) {
-            var latlon = worldToLatLon(layer.data[i].x, layer.data[i].y);
+        var data = map_data.data.ent_dota_tree;
+        for (var i = 0; i < data.length; i++) {
+            var latlon = worldToLatLon(data[i].x, data[i].y);
             var size = new OpenLayers.Size(24, 24),
                 offset = new OpenLayers.Pixel(-12,-12),
                 icon = new OpenLayers.Icon(icon_paths["ent_dota_tree"], size, offset);
             marker = addMarker(layer, new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, "Click to cut down tree.<br>This will affect the ward vision simulation.", false);
             marker.treeVisible = true;
-            marker.tree_loc = layer.data[i].x + ',' + layer.data[i].y;
+            marker.tree_loc = data[i].x + ',' + data[i].y;
             if (VISION_SIMULATION) {
                 marker.events.register("click", marker, handleTreeMarkerClick);
             }
-            treeMarkers[layer.data[i].x + ',' + layer.data[i].y] = marker;
+            treeMarkers[data[i].x + ',' + data[i].y] = marker;
         }
         layer.loaded = !layer.loaded;
         console.log('end tree load');
@@ -636,8 +637,8 @@ function App(map_tile_path, vision_data_image_path) {
         markers[name].setVisibility(false);
         for (var i = 0; i < data.length; i++) {
             pnt = [];
-            for (var j = 0; j < data[i].length; j++) {
-                var latlon = worldToLatLon(data[i][j].x, data[i][j].y);
+            for (var j = 0; j < data[i].points.length; j++) {
+                var latlon = worldToLatLon(data[i].points[j].x, data[i].points[j].y);
                 pnt.push(new OpenLayers.Geometry.Point(latlon.x, latlon.y));
             }
 
@@ -1072,16 +1073,21 @@ function App(map_tile_path, vision_data_image_path) {
         }
         iconLayer.markers.forEach(function (marker) {
             console.log(marker);
-            if (marker.ward_type == 'observer') {
+            if (marker.unitType == 'observer') {
                 updateWard(marker, state ? DARKNESS_VISION_RADIUS : marker.vision_radius);
             }
         });
-        var layer = map.getLayersByName(layerNames["npc_dota_tower"])[0];
-        if (layer) {
-            layer.markers.forEach(function (marker) {
-                if (marker.showInfo) addBuildingVisionFeatures(marker, false, false, true, true);
-            });
+        
+        for (k in map_data.data) {
+            var layer = map.getLayersByName(layerNames[k])[0];
+            if (layer && layer.markers) {
+                console.log(k, layer);
+                layer.markers.forEach(function (marker) {
+                    if (marker.showInfo) addBuildingVisionFeatures(marker, false, false, true, true);
+                });
+            }
         }
+        
     }
     
     function getDataVersion() {
@@ -1137,14 +1143,76 @@ function App(map_tile_path, vision_data_image_path) {
                     area: vs.area,
                     lightArea: vs.lightArea
                 }
-                updatePopup(marker);
+                updatePopup(marker, true);
             }
         }
     }
     
-    function updatePopup(marker) {
-        var popupContentHTML = "Visibility: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
-        if (marker.ward_type === "tower") popupContentHTML = "Click to toggle range overlay<br><br>" + popupContentHTML;
+    function capitalize(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
+    var unitNames = {
+        npc_dota_roshan_spawner: "Roshan",
+        dota_item_rune_spawner_powerup: "Rune",
+        dota_item_rune_spawner_bounty: "Bounty Rune",
+        ent_dota_tree: "Tree",
+        npc_dota_healer: "Shrine",
+        ent_dota_fountain: "Fountain",
+        npc_dota_fort: "Ancient",
+        ent_dota_shop: "Shop",
+        npc_dota_tower: "Tower",
+        npc_dota_barracks: "Barracks",
+        npc_dota_filler: "Building",
+        trigger_multiple: "Neutral Camp Spawn Box",
+        npc_dota_neutral_spawner: "Neutral Camp"
+    };
+        
+    function getUnitName(unitType, unitSubType) {
+        console.log(unitType, unitSubType);
+        return (unitSubType ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' ' : '') + unitNames[unitType];
+    }
+
+    function getPopupContent(statData, unitType, unitSubType, unitClass, addVisibleArea) {
+        var popupContentHTML = '<b>' + getUnitName(unitType, unitSubType) + '</b><br>';
+        var stats = statData[unitClass];
+        if (stats) {
+            if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
+                popupContentHTML += "<br>Damage: " + stats.damageMin + "&ndash;" + stats.damageMax;
+            }
+            if (stats.hasOwnProperty('bat')) {
+                popupContentHTML += "<br>BAT: " + stats.bat;
+            }
+            if (stats.hasOwnProperty('attackRange')) {
+                popupContentHTML += "<br>Attack Range: " + stats.attackRange;
+            }
+            if (stats.hasOwnProperty('health')) {
+                popupContentHTML += "<br>Health: " + stats.health;
+            }
+            if (stats.hasOwnProperty('armor')) {
+                popupContentHTML += "<br>Armor: " + stats.armor;
+            }
+            if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
+                popupContentHTML += "<br>Vision: " + stats.dayVision + "/" + stats.nightVision;
+            }
+        }
+        
+        if (addVisibleArea) {
+            popupContentHTML += "<br>Visible Area: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
+        }
+        else {
+            if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
+                popupContentHTML += "<br><br>Click to view range overlays.";
+            }
+        }
+        return popupContentHTML;
+    }
+    
+    function updatePopup(marker, addVisibleArea) {
+        console.log(marker.unitClass, map_data.stats);
+
+        var popupContentHTML = getPopupContent(map_data.stats, marker.unitType, marker.unitSubType, marker.unitClass, addVisibleArea);
+        
         marker.feature.data.popupContentHTML = popupContentHTML;
         if (marker.feature.popup) {
             marker.feature.popup.setContentHTML(popupContentHTML);
