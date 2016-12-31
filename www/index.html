@@ -49,8 +49,11 @@
                     <li>
                         <label for="circleToggle"><input type="radio" name="mode" value="circle" id="circleToggle" />Measure Circle</label>
                     </li>
-                    <li>
+                    <li style="display:none">
                         <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/>Show Coordinates</label>
+                    </li>
+                    <li>
+                        <label for="nightControl"><input type="checkbox" id="nightControl"/>Night</label>
                     </li>
                     <li>
                         <label for="darknessControl"><input type="checkbox" id="darknessControl"/>Darkness</label>
@@ -73,6 +76,7 @@
                         <div id="movespeed-container">with <input type="text" id="movespeed" value="300" /> ms</div>
                     </div>
                 </div>
+                <div id="last-update"></div>
             </div>
         </div>
         <div id="overlays-container" class="controls-container right">

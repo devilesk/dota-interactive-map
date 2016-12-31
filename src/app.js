@@ -31,6 +31,8 @@ var rollbarConfig = {
     }
 };
 
+document.getElementById('last-update').innerHTML = "#DEV_BUILD";
+    
 var rollbar = Rollbar.init(rollbarConfig);
     
 function App(map_tile_path, vision_data_image_path) {

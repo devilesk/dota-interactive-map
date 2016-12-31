@@ -15,7 +15,7 @@ if (env === 'production') {
 browserify(['./src/app.js'], opts)  // Pass browserify the entry point
         .transform('browserify-replace', {
             replace: [
-                { from: /#DEV_BUILD/, to: new Date().toString() },
+                { from: /#DEV_BUILD/, to: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' UTC' },
                 { from: /#code_version/, to: git.long() },
                 { from: /environment: 'development'/, to: "environment: '" + env + "'" }
             ]

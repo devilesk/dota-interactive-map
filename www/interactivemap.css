@@ -20,6 +20,10 @@ select {
     width: 100%;
     height: 100%;
 }
+#last-update {
+    font-size: 11px;
+    text-align: center;
+}
 .controls-container {
     position:absolute;
     top:100px;
