@@ -179,6 +179,7 @@ function App(map_tile_path, vision_data_image_path) {
         VISION_SIMULATION = true,
         VISION_SIMULATION_ALWAYS = true,
         DARKNESS = false,
+        NIGHTTIME = false,
         cutTrees = {};
 
         console.log(map.tileManager);
@@ -268,7 +269,14 @@ function App(map_tile_path, vision_data_image_path) {
         if (!skipTrueSight && marker.trueSight) addVisionCircle(trueSightRangeLayer, marker, trueSight, 'true_sight_feature', style.true_sight);
         if (!skipAttack && marker.attackRange) addVisionCircle(attackRangeLayer, marker, attackRange, 'attack_range_feature', style.attack_range);
         
-        if (VISION_SIMULATION && !skipDay && marker.dayVision) updateVisibilityHandler(marker.lonlat, marker, dayVision);
+        if (VISION_SIMULATION) {
+            if (NIGHTTIME && !skipNight && marker.nightVision) {
+                updateVisibilityHandler(marker.lonlat, marker, nightVision);
+            }
+            else if (!NIGHTTIME && !skipDay && marker.dayVision) {
+                updateVisibilityHandler(marker.lonlat, marker, dayVision);
+            }
+        }
     }
 
     function handleTowerMarkerClick(event, skipQueryStringUpdate) {
@@ -1089,9 +1097,15 @@ function App(map_tile_path, vision_data_image_path) {
         document.getElementById('vision-radius').setAttribute('data-dirty-value', true);
     }, false);
     
+    document.getElementById('nightControl').addEventListener('change', function () {
+        NIGHTTIME = document.getElementById('nightControl').checked;
+        QueryString.setQueryString('night', document.getElementById('nightControl').checked);
+        updateBuildingVision();  
+    }, false);
+    
     document.getElementById('darknessControl').addEventListener('change', function () {
         toggleDarkness(document.getElementById('darknessControl').checked);
-        QueryString.setQueryString('darkness', document.getElementById('dataControl').value);
+        QueryString.setQueryString('darkness', document.getElementById('darknessControl').checked);
         document.getElementById('vision-radius').removeAttribute('data-dirty-value');
     }, false);
     
@@ -1115,6 +1129,10 @@ function App(map_tile_path, vision_data_image_path) {
             }
         });
         
+        updateBuildingVision();        
+    }
+    
+    function updateBuildingVision() {
         for (k in map_data.data) {
             var layer = map.getLayersByName(layerNames[k])[0];
             if (layer && layer.markers) {
@@ -1124,7 +1142,6 @@ function App(map_tile_path, vision_data_image_path) {
                 });
             }
         }
-        
     }
     
     function getDataVersion() {
@@ -1135,7 +1152,7 @@ function App(map_tile_path, vision_data_image_path) {
         document.getElementById('visible-area').innerHTML = "Visibility: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
     }
 
-    function updateVisibilityHandler(latlon, marker, radius) {
+    function updateVisibilityHandler(latlon, marker, radius, visionStyle) {
         console.log('updateVisibilityHandler', marker);
         if (!vs.ready) return;
         cursorLayer.destroyFeatures();
@@ -1167,7 +1184,7 @@ function App(map_tile_path, vision_data_image_path) {
                 return new OpenLayers.Geometry.Polygon([ring]);
             });
             var multiPolygon = new OpenLayers.Geometry.MultiPolygon(polygonList);
-            var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, style.yellow);
+            var visionFeature = new OpenLayers.Feature.Vector(multiPolygon, null, visionStyle || style.yellow);
             if (marker) {
                 visionSimulationLayer.addFeatures([visionFeature]);
                 if (marker.vision_feature) marker.vision_feature.destroy();
@@ -1250,12 +1267,16 @@ function App(map_tile_path, vision_data_image_path) {
             if (!stats || stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
                 if (addVisibleArea) {
                     popupContentHTML += "<br>Visible Area: " + (vs.lightArea / vs.area * 100).toFixed() + '% ' + vs.lightArea + "/" + vs.area;
+                    if (unitType != 'observer' && unitType != 'sentry') popupContentHTML += "<br><br>Click to turn off range overlays.";
                 }
                 else {
                     popupContentHTML += "<br><br>Click to view range overlays.";
                 }
             }
         }
+        
+        if (unitType == 'observer' || unitType == 'sentry') popupContentHTML += "<br><br>Click icon to remove ward.";
+        
         return popupContentHTML;
     }
     
