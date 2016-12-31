@@ -74,8 +74,9 @@ function App(map_tile_path, vision_data_image_path) {
             "no_wards",
             "ent_fow_blocker_node",
             "trigger_multiple",
-            "npc_dota_roshan_spawner",
+            "npc_dota_neutral_spawner",
             "ent_dota_tree",
+            "npc_dota_roshan_spawner",
             "dota_item_rune_spawner_powerup",
             "dota_item_rune_spawner_bounty",
             "ent_dota_fountain",
@@ -533,51 +534,60 @@ function App(map_tile_path, vision_data_image_path) {
             box_rect, box_feature,
             coordData = data.data,
             statData = data.stats;
-        for (k in coordData) {
+        layerKeys.forEach(function (k) {
             console.log('onMapDataLoad', k);
             // Create markers for non-neutral spawn box and non-tree layers
-            if (k != "trigger_multiple" && k != "ent_dota_tree") {
-                markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
-                map.addLayer(markers[k]);
-                //markers[k].setVisibility(false);
-                for (var i = 0; i < coordData[k].length; i++) {
-                    var latlon = worldToLatLon(coordData[k][i].x, coordData[k][i].y);
-                    
-                    var icon = null;
-                    if (icon_paths[k]) {
-                        var size = new OpenLayers.Size(24, 24),
-                            offset = new OpenLayers.Pixel(-12,-12),
-                            icon = new OpenLayers.Icon(icon_paths[k], size, offset);
+            if (coordData[k]) {
+                if (k != "trigger_multiple" && k != "ent_dota_tree") {
+                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
+                    map.addLayer(markers[k]);
+                    //markers[k].setVisibility(false);
+                    for (var i = 0; i < coordData[k].length; i++) {
+                        var latlon = worldToLatLon(coordData[k][i].x, coordData[k][i].y);
+                        
+                        var icon = null;
+                        if (icon_paths[k]) {
+                            var icon_path = icon_paths[k];
+                            if (k == 'npc_dota_neutral_spawner') {
+                                icon_path = icon_path.replace('1', coordData[k][i].neutralType);
+                            }
+                            var size = new OpenLayers.Size(24, 24),
+                                offset = new OpenLayers.Pixel(-12,-12),
+                                icon = new OpenLayers.Icon(icon_path, size, offset);
+                        }
+                
+                        var unitClass = coordData[k][i].subType ? k + '_' + coordData[k][i].subType : k;
+
+                        marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, getPopupContent(statData, k, coordData[k][i].subType, unitClass, null, coordData[k][i].pullType, coordData[k][i].neutralType), false);
+                        marker.unitType = k;
+                        marker.unitSubType = coordData[k][i].subType;
+                        marker.unitClass = unitClass;
+                        console.log(k, coordData, coordData[k], coordData[k][i], marker.unitClass, marker.unitSubType);
+                        marker.dayVision = statData[marker.unitClass].dayVision;
+                        marker.nightVision = statData[marker.unitClass].nightVision;
+                        marker.trueSight = statData[marker.unitClass].trueSight;
+                        marker.attackRange = statData[marker.unitClass].attackRange;
+                        marker.pullType = coordData[k][i].pullType;
+                        marker.neutralType = coordData[k][i].neutralType;
+                        marker.showInfo = false;
+                        
+                        marker.events.register("click", markers[k], handleTowerMarkerClick);
+                        marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
+                        marker.tower_loc = coordData[k][i];
                     }
-            
-                    var unitClass = coordData[k][i].subType ? k + '_' + coordData[k][i].subType : k;
-                    marker = addMarker(markers[k], new OpenLayers.LonLat(latlon.x, latlon.y), icon, OpenLayers.Popup.FramedCloud, getPopupContent(statData, k, coordData[k][i].subType, unitClass), false);
-                    marker.unitType = k;
-                    marker.unitSubType = coordData[k][i].subType;
-                    marker.unitClass = unitClass;
-                    console.log(k, coordData, coordData[k], coordData[k][i], marker.unitClass, marker.unitSubType);
-                    marker.dayVision = statData[marker.unitClass].dayVision;
-                    marker.nightVision = statData[marker.unitClass].nightVision;
-                    marker.trueSight = statData[marker.unitClass].trueSight;
-                    marker.attackRange = statData[marker.unitClass].attackRange;
-                    marker.showInfo = false;
-                    
-                    marker.events.register("click", markers[k], handleTowerMarkerClick);
-                    marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
-                    marker.tower_loc = coordData[k][i];
+                }
+                // Set up tree layer without creating tree markers yet
+                else if (k == "ent_dota_tree") {
+                    markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
+                    map.addLayer(markers[k]);
+                    //markers[k].setVisibility(false);
+                }
+                // Create neutral spawn markers and rectangles
+                else if (k == "trigger_multiple") {
+                    loadJSONData(markers, k, "npc_dota_neutral_spawner_box", coordData[k]);
                 }
             }
-            // Set up tree layer without creating tree markers yet
-            else if (k == "ent_dota_tree") {
-                markers[k] = new OpenLayers.Layer.Markers(layerNames[k], {visibility: false});
-                map.addLayer(markers[k]);
-                //markers[k].setVisibility(false);
-            }
-            // Create neutral spawn markers and rectangles
-            else if (k == "trigger_multiple") {
-                loadJSONData(markers, k, "npc_dota_neutral_spawner_box", coordData[k]);
-            }
-        }
+        });
 
         if (VISION_SIMULATION) {
             loadGeoJSONData(markers, 'no_wards', layerNames.no_wards, style.red);
@@ -1173,10 +1183,19 @@ function App(map_tile_path, vision_data_image_path) {
         return (unitSubType ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' ' : '') + unitNames[unitType];
     }
 
-    function getPopupContent(statData, unitType, unitSubType, unitClass, addVisibleArea) {
+    var pullTypes = ['Normal', 'Fast', 'Slow'];
+    var neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
+    function getPopupContent(statData, unitType, unitSubType, unitClass, addVisibleArea, pullType, neutralType) {
+        console.log('getPopupContent', pullType, neutralType);
         var popupContentHTML = '<b>' + getUnitName(unitType, unitSubType) + '</b><br>';
         var stats = statData[unitClass];
         if (stats) {
+            if (pullType != null) {
+                popupContentHTML += "<br>Pull Type: " + pullTypes[pullType];
+            }
+            if (neutralType != null) {
+                popupContentHTML += "<br>Difficulty: " + neutralTypes[neutralType];
+            }
             if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
                 popupContentHTML += "<br>Damage: " + stats.damageMin + "&ndash;" + stats.damageMax;
             }
@@ -1211,7 +1230,7 @@ function App(map_tile_path, vision_data_image_path) {
     function updatePopup(marker, addVisibleArea) {
         console.log(marker.unitClass, map_data.stats);
 
-        var popupContentHTML = getPopupContent(map_data.stats, marker.unitType, marker.unitSubType, marker.unitClass, addVisibleArea);
+        var popupContentHTML = getPopupContent(map_data.stats, marker.unitType, marker.unitSubType, marker.unitClass, addVisibleArea, marker.pullType, marker.neutralType);
         
         marker.feature.data.popupContentHTML = popupContentHTML;
         if (marker.feature.popup) {
