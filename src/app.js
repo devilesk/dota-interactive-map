@@ -394,7 +394,6 @@ function App(map_tile_path, vision_data_image_path) {
         cursorLayer.destroyFeatures();
         setTimeout(function () {
             wardRecentlyRemoved = false;
-            if (VISION_SIMULATION_ALWAYS) updateVisibilityHandler(lonlat, null, getVisionRadius());
         }, 1000);
         OpenLayers.Event.stop(event);
         clearClickControl();
