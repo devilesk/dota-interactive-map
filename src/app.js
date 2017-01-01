@@ -199,6 +199,22 @@ function App(map_tile_path, vision_data_image_path) {
      * CONTROL HANDLERS *
      ********************/
 
+    function throttle(func, limit) {
+        var wait = false;
+        return function () {
+            var context = this, args = arguments;
+            if (!wait) {
+                func.apply(context, args);
+                wait = true;
+                setTimeout(function () {
+                    wait = false;
+                }, limit);
+            }
+        }
+    }
+    
+    var wardRecentlyRemoved = false;
+    
     // called by handlers to prevent event propogation to observer and sentry click controls
     function clearClickControl() {
         if (drawControls['observer'].active) {
@@ -213,6 +229,7 @@ function App(map_tile_path, vision_data_image_path) {
 
     function handleTreeMarkerClick(event) {
         console.log('handleTreeMarkerClick', event, this);
+        cursorLayer.destroyFeatures();
         setTreeMarkerState(this, !this.treeVisible);
         setTreeQueryString();
         OpenLayers.Event.stop(event);
@@ -280,7 +297,8 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function handleTowerMarkerClick(event, skipQueryStringUpdate) {
-        console.log('handleTowerMarkerClick');
+        console.log('handleTowerMarkerClick', event);
+        cursorLayer.destroyFeatures();
         var marker = event.object;
         if (!marker.showInfo) {
             addBuildingVisionFeatures(marker);
@@ -306,6 +324,9 @@ function App(map_tile_path, vision_data_image_path) {
 
     function handleWardClick(entityName, style) {
         return function(event) {
+            console.log('handleWardClick', event, this);
+            cursorLayer.destroyFeatures();
+            if (wardRecentlyRemoved) return;
             var latlon = map.getLonLatFromPixel(event.xy),
                 marker = placeWard(latlon, entityName, style);
             if (marker) QueryString.addQueryStringValue(marker.unitType, marker.ward_loc);
@@ -350,7 +371,7 @@ function App(map_tile_path, vision_data_image_path) {
         if (VISION_SIMULATION && entityName == 'observer') updateVisibilityHandler(latlon, marker, marker.vision_radius);
         
         marker.events.register("click", marker, handleWardRemove);
-        //marker.events.register("touchstart", marker, handleWardRemove);
+        marker.events.register("touchstart", marker, handleWardRemove);
         
         console.log('placeWard', this);
         
@@ -363,12 +384,18 @@ function App(map_tile_path, vision_data_image_path) {
         if (this.vision_feature) this.vision_feature.destroy();
         if (this.vision_center_feature) this.vision_center_feature.destroy();
         this.events.unregister("click", this, handleWardRemove);
-        //this.events.unregister("touchstart", this, handleWardRemove);
+        this.events.unregister("touchstart", this, handleWardRemove);
         this.feature.destroy();
         iconLayer.removeMarker(this);
 
         QueryString.removeQueryStringValue(this.unitType, this.ward_loc);
         
+        wardRecentlyRemoved = true;
+        cursorLayer.destroyFeatures();
+        setTimeout(function () {
+            wardRecentlyRemoved = false;
+            if (VISION_SIMULATION_ALWAYS) updateVisibilityHandler(lonlat, null, getVisionRadius());
+        }, 1000);
         OpenLayers.Event.stop(event);
         clearClickControl();
     }
@@ -610,8 +637,9 @@ function App(map_tile_path, vision_data_image_path) {
                         }
                         marker.showInfo = false;
                         
-                        marker.events.register("click", markers[k], handleTowerMarkerClick);
-                        //marker.events.register("touchstart", markers[k], handleTowerMarkerClick);
+                        var throttledHandleTowerMarkerClick = throttle(handleTowerMarkerClick, 200);
+                        marker.events.register("click", markers[k], throttledHandleTowerMarkerClick);
+                        marker.events.register("touchstart", markers[k], throttledHandleTowerMarkerClick);
                         marker.tower_loc = coordData[k][i];
                     }
                 }
@@ -989,7 +1017,7 @@ function App(map_tile_path, vision_data_image_path) {
     
     map.events.register("mousemove", map, function(e) {
         cursorLayer.destroyFeatures();
-    
+        if (wardRecentlyRemoved) return;
         // create and add cursor marker polygon if in place observer mode
         if (VISION_SIMULATION && vs.ready && document.getElementById("observerToggle").checked) {
             var lonlat = map.getLonLatFromPixel(e.xy);
