@@ -694,7 +694,9 @@ function App(map_tile_path, vision_data_image_path) {
             marker.treeVisible = true;
             marker.tree_loc = data[i].x + ',' + data[i].y;
             if (VISION_SIMULATION) {
-                marker.events.register("click", marker, handleTreeMarkerClick);
+                var throttledHandleTreeMarkerClick = throttle(handleTreeMarkerClick, 200);
+                marker.events.register("click", marker, throttledHandleTreeMarkerClick);
+                marker.events.register("touchstart", marker, throttledHandleTreeMarkerClick);
             }
             treeMarkers[data[i].x + ',' + data[i].y] = marker;
         }
