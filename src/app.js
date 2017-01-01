@@ -63,14 +63,7 @@ function App(map_tile_path, vision_data_image_path) {
             maxExtent: mapBounds,
             numZoomLevels: 5,
             maxResolution: Math.pow(2, 5-1 ),
-            units: "m",
-            tileManager: {
-                cacheSize: 5456,
-                moveDelay: 0,
-                zoomDelay: 0,
-                frameDelay: 0,
-                tilesPerFrame: 128
-            }
+            units: "m"
         }),
         layerKeys = [
             "no_wards",
