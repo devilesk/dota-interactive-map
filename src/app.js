@@ -1161,7 +1161,6 @@ function App(map_tile_path, vision_data_image_path) {
     function updateVisibilityHandler(latlon, marker, radius, visionStyle) {
         console.log('updateVisibilityHandler', marker);
         if (!vs.ready) return;
-        cursorLayer.destroyFeatures();
 
         var worldXY = latLonToWorld(latlon.lon, latlon.lat);
         var gridXY = vs.WorldXYtoGridXY(worldXY.x, worldXY.y);
