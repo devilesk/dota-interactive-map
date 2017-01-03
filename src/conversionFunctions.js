@@ -8,24 +8,16 @@ function reverseLerp(minVal, maxVal, pos) {
     return (pos - minVal) / (maxVal - minVal);
 }
 
-function latLonToWorld(x, y) {
-    var x_r = lerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], x / mapConstants.map_w),
-        y_r = lerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], (mapConstants.map_h - y) / mapConstants.map_h);
-
-    return {
-        x: x_r,
-        y: y_r
-    };
+function latLonToWorld(coordinate) {
+    var x_r = lerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], coordinate[0] / mapConstants.map_w),
+        y_r = lerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], (mapConstants.map_h - coordinate[1]) / mapConstants.map_h);
+    return [x_r, y_r];
 }
 
-function worldToLatLon(x_r, y_r) {
-    var x = reverseLerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], x_r) * mapConstants.map_w,
-        y = mapConstants.map_h - reverseLerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], y_r) * mapConstants.map_h;
-
-    return {
-        x: x,
-        y: y
-    };
+function worldToLatLon(coordinate) {
+    var x = reverseLerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], coordinate[0]) * mapConstants.map_w,
+        y = mapConstants.map_h - reverseLerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], coordinate[1]) * mapConstants.map_h;
+    return [x, y]
 }
 
 function getTileRadius(r) {

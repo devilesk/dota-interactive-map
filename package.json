@@ -24,7 +24,9 @@
     "stage": "npm run ol:prod && npm run build && npm run stage:rev",
     "deploy:copy": "node scripts/deploy.js",
     "deploy": "npm run stage && npm run rollbar:sourcemap && npm run deploy:copy && npm run rollbar:deploy:prod",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ol3": "browserify -u openlayers src/index.js > www/bundle.js",
+    "start": "watchify src/index.js --outfile www/bundle.js"
   },
   "keywords": [
     "dota",
@@ -44,6 +46,7 @@
     "@turf/union": "^3.7.0",
     "browserify": "^13.1.1",
     "browserify-replace": "^0.9.0",
+    "browserify-shim": "^3.8.12",
     "clean-css": "^3.4.22",
     "del": "^2.2.2",
     "dota-vision-simulation": "^0.14.4",
@@ -53,9 +56,20 @@
     "gulp-rollbar": "^0.1.4",
     "gulp-sourcemaps": "^1.9.1",
     "imagemin-cli": "^3.0.0",
+    "ol3-popup": "0.0.1-security",
+    "openlayers": "^3.20.1",
     "preprocess": "^3.1.0",
     "replace": "^0.3.0",
     "rollbar-browser": "^1.9.2",
-    "uglify-js": "^2.7.5"
+    "uglify-js": "^2.7.5",
+    "watchify": "^3.8.0"
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
+  },
+  "browserify-shim": {
+    "openlayers": "global:ol"
   }
 }
