@@ -10,8 +10,10 @@ MenuPanel.prototype.initialize = function () {
     this.openBtn = document.getElementById(this.openId);
     this.closeBtn = document.getElementById(this.closeId);
     
-    this.openBtn.addEventListener("click", this.open.bind(this));
-    this.closeBtn.addEventListener("click", this.close.bind(this));
+    this.openBtn.addEventListener("click", this.open.bind(this), false);
+    this.closeHandler = this.close.bind(this);
+    this.closeBtn.addEventListener("click", this.closeHandler, false);
+    document.getElementById('map').addEventListener("click", this.closeHandler, false);
 }
 MenuPanel.prototype.open = function () {
     this.panel.classList.add('expand-horizontal');
@@ -55,7 +57,7 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
 function Menu(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
     this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
-    this.leftPanel = new MenuPanel("right-menu", "right-menu-open-btn", "right-menu-close-btn");
+    this.leftPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
 }
 Menu.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
     this.InteractiveMap.layerDefs.forEach(function (layerDef) {

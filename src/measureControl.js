@@ -1,6 +1,8 @@
 var styles = require('./styleDefinitions');
 
 function MeasureControl(InteractiveMap) {
+    var self = this;
+    this.InteractiveMap = InteractiveMap;
     this.map = InteractiveMap.map;
     this.info = InteractiveMap.infoControl;
     this.source = new ol.source.Vector({
@@ -97,14 +99,14 @@ function MeasureControl(InteractiveMap) {
     var formatLength = function(line) {
         var length = Math.round(line.getLength());
         var output;
-        output = length + ' ' + 'units';
+        output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / self.InteractiveMap.movementSpeed).toFixed(2) + 's at ' + self.InteractiveMap.movementSpeed + 'ms';
         return output;
     };
     
     var formatRadius = function(circle) {
         var length = Math.round(circle.getRadius());
         var output;
-        output = length + ' ' + 'units';
+        output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
         return output;
     };
 
@@ -144,17 +146,16 @@ function MeasureControl(InteractiveMap) {
         draw.on('drawstart',
             function(evt) {
                 self.source.clear(true);
-                self.info.open(true);
+                self.info.setContent("");
+                self.info.close(true);
                 // set sketch
                 sketch = evt.feature;
-
                 /** @type {ol.Coordinate|undefined} */
                 var tooltipCoord = evt.coordinate;
 
                 listener = sketch.getGeometry().on('change', function(evt) {
                     var geom = evt.target;
                     var output;
-                    console.log('geom', geom);
                     if (geom instanceof ol.geom.Circle) {
                         output = formatRadius(geom);
                         tooltipCoord = geom.getLastCoordinate();
@@ -163,6 +164,7 @@ function MeasureControl(InteractiveMap) {
                         tooltipCoord = geom.getLastCoordinate();
                     }
                     self.info.setContent(output);
+                    self.info.open(true);
                     //measureTooltipElement.innerHTML = output;
                     //measureTooltip.setPosition(tooltipCoord);
                 });

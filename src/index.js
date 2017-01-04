@@ -40,6 +40,7 @@ function changeMode(mode) {
         case 'sentry':
             document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
         case 'ward':
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
             InteractiveMap.MODE = document.querySelector('input[name="ward-type"]:checked').value;
             document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
             document.getElementById('btn-ward').classList.add('active');
@@ -53,6 +54,7 @@ function changeMode(mode) {
         case 'circle':
             document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
         case 'measure':
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
             InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
@@ -63,6 +65,7 @@ function changeMode(mode) {
             
         break;
         default:
+            document.querySelector('input[name="mode"][value="navigate"]').checked = true;
             InteractiveMap.MODE = mode || "navigate";
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
@@ -186,6 +189,10 @@ document.getElementById('version-select').addEventListener('change', function ()
 
 document.getElementById('vision-radius').addEventListener('change', function () {
     InteractiveMap.visionRadius = this.value;
+}, false);
+
+document.getElementById('movementSpeed').addEventListener('change', function () {
+    InteractiveMap.movementSpeed = this.value;
 }, false);
 
 function initialize() {

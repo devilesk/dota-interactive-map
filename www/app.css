@@ -16,9 +16,10 @@ hr {
 #notification {
     position: absolute;
     top: 0px;
-    width: 100%;
+    width: calc(100% - 120px);
     transition: 0.5s;
     text-align: center;
+    margin-left: 60px;
     z-index: 2;
 }
 
@@ -57,7 +58,7 @@ hr {
     padding: 6px 10px;
     line-height: 24px;
     color: #818181;
-    margin: 10px 60px;
+    margin: 10px 0px;
     background-color: #111;
 }
 .notification-content span {
@@ -239,7 +240,9 @@ hr {
     text-align: center;
     line-height: 50px;
 }
-
+.btn:hover {
+    font-size: 46px;
+}
 #info-close-btn {
     font-size: 36px;
     width: 36px;
@@ -253,31 +256,12 @@ hr {
     display: none;
 }
 
-.close.btn, .back.btn {
+.close.btn, .back.btn, .open.btn {
     position: absolute;
     top: 0;
 }
 .back.btn {
     font-size: 36px;
-}
-.close.btn,
-.open.btn {
-    z-index: 3;
-}
-.open.btn {
-    position: relative;
-}
-.open.btn:before {
-    content: "";
-    position: absolute;
-    left: 10px;
-    top: 15px;
-    width: 30px;
-    height: 4px;
-    background: #818181;
-    box-shadow: 
-        0 8px 0 0 #818181,
-        0 16px 0 0 #818181;
 }
 #tool-btn-container {
     position: absolute;
@@ -308,13 +292,36 @@ hr {
     line-height: 36px;
     font-size: 36px;
 }
+#btn-zoom-in:hover,
+#btn-zoom-out:hover  {
+    font-size: 32px;
+}
 
 #menu-left-open-btn,
 #menu-right-open-btn-group {
     position: absolute;
     top: 0;
 }
-#menu-right-open-btn-group {
+#menu-left-open-btn {
+    left: 0;
+    width: 50px;
+    height: 50px;
+}
+#menu-right-open-btn:before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    width: 30px;
+    height: 4px;
+    background: #818181;
+    box-shadow: 
+        0 8px 0 0 #818181,
+        0 16px 0 0 #818181;
+}
+#menu-right-open-btn:hover:before {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
 }
 
 input:not(:checked) + .back.btn,
@@ -341,6 +348,7 @@ input:checked + .back.btn + .back-group .menu-contents .menu-item label.hidden {
     #info {
         width: 500px;
         left: 50%;
+        margin-left: 0px;
         -webkit-transform: translateX(-50%);
         transform: translateX(-50%);
     }

@@ -26,6 +26,7 @@ var InteractiveMap = {
     layerIndex: {},
     version: '700',
     visionRadius: mapConstants.visionRadius.observer,
+    movementSpeed: mapConstants.defaultMovementSpeed,
     isNight: false,
     isDarkness: false,
     layerFilters: {
@@ -776,6 +777,7 @@ function changeMode(mode) {
         case 'sentry':
             document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
         case 'ward':
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
             InteractiveMap.MODE = document.querySelector('input[name="ward-type"]:checked').value;
             document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
             document.getElementById('btn-ward').classList.add('active');
@@ -789,6 +791,7 @@ function changeMode(mode) {
         case 'circle':
             document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
         case 'measure':
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
             InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
@@ -799,6 +802,7 @@ function changeMode(mode) {
             
         break;
         default:
+            document.querySelector('input[name="mode"][value="navigate"]').checked = true;
             InteractiveMap.MODE = mode || "navigate";
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
@@ -922,6 +926,10 @@ document.getElementById('version-select').addEventListener('change', function ()
 
 document.getElementById('vision-radius').addEventListener('change', function () {
     InteractiveMap.visionRadius = this.value;
+}, false);
+
+document.getElementById('movementSpeed').addEventListener('change', function () {
+    InteractiveMap.movementSpeed = this.value;
 }, false);
 
 function initialize() {
@@ -1275,7 +1283,8 @@ var mapConstants = {
         observer: 1600,
         sentry: 850,
         darkness: 675
-    }
+    },
+    defaultMovementSpeed: 300
 }
 mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2]
 mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;
@@ -1285,6 +1294,8 @@ module.exports = mapConstants;
 var styles = require('./styleDefinitions');
 
 function MeasureControl(InteractiveMap) {
+    var self = this;
+    this.InteractiveMap = InteractiveMap;
     this.map = InteractiveMap.map;
     this.info = InteractiveMap.infoControl;
     this.source = new ol.source.Vector({
@@ -1381,14 +1392,14 @@ function MeasureControl(InteractiveMap) {
     var formatLength = function(line) {
         var length = Math.round(line.getLength());
         var output;
-        output = length + ' ' + 'units';
+        output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / self.InteractiveMap.movementSpeed).toFixed(2) + 's at ' + self.InteractiveMap.movementSpeed + 'ms';
         return output;
     };
     
     var formatRadius = function(circle) {
         var length = Math.round(circle.getRadius());
         var output;
-        output = length + ' ' + 'units';
+        output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
         return output;
     };
 
@@ -1428,17 +1439,16 @@ function MeasureControl(InteractiveMap) {
         draw.on('drawstart',
             function(evt) {
                 self.source.clear(true);
-                self.info.open(true);
+                self.info.setContent("");
+                self.info.close(true);
                 // set sketch
                 sketch = evt.feature;
-
                 /** @type {ol.Coordinate|undefined} */
                 var tooltipCoord = evt.coordinate;
 
                 listener = sketch.getGeometry().on('change', function(evt) {
                     var geom = evt.target;
                     var output;
-                    console.log('geom', geom);
                     if (geom instanceof ol.geom.Circle) {
                         output = formatRadius(geom);
                         tooltipCoord = geom.getLastCoordinate();
@@ -1447,6 +1457,7 @@ function MeasureControl(InteractiveMap) {
                         tooltipCoord = geom.getLastCoordinate();
                     }
                     self.info.setContent(output);
+                    self.info.open(true);
                     //measureTooltipElement.innerHTML = output;
                     //measureTooltip.setPosition(tooltipCoord);
                 });
@@ -1544,8 +1555,10 @@ MenuPanel.prototype.initialize = function () {
     this.openBtn = document.getElementById(this.openId);
     this.closeBtn = document.getElementById(this.closeId);
     
-    this.openBtn.addEventListener("click", this.open.bind(this));
-    this.closeBtn.addEventListener("click", this.close.bind(this));
+    this.openBtn.addEventListener("click", this.open.bind(this), false);
+    this.closeHandler = this.close.bind(this);
+    this.closeBtn.addEventListener("click", this.closeHandler, false);
+    document.getElementById('map').addEventListener("click", this.closeHandler, false);
 }
 MenuPanel.prototype.open = function () {
     this.panel.classList.add('expand-horizontal');
@@ -1589,7 +1602,7 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
 function Menu(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
     this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
-    this.leftPanel = new MenuPanel("right-menu", "right-menu-open-btn", "right-menu-close-btn");
+    this.leftPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
 }
 Menu.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
     this.InteractiveMap.layerDefs.forEach(function (layerDef) {

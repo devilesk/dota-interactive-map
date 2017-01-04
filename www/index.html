@@ -2,10 +2,15 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Using Browserify with OpenLayers</title>
+    <title>Dota 2 Interactive Map v4</title>
+    <meta name="description" content="Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.">
+    <meta name="author" content="devilesk">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+
     <link rel="stylesheet" href="node_modules/openlayers/dist/ol.css" type="text/css">
     <link rel="stylesheet" href="app.css" type="text/css">
+    <link rel="stylesheet" href="gear.css" type="text/css">
   </head>
   <body>
     <div id="menu-left" class="menu-panel pos-left collapsed-horizontal">
@@ -60,6 +65,11 @@
             </div>
             <hr>
             <div class="menu-item">
+                <label class="text-label" for="movementSpeed">MS</label><!--
+                --><input type="number" id="movementSpeed" value="300" min="0" max="9999" step="1" />
+            </div>
+            <hr>
+            <div class="menu-item">
                 <label class="select-label" for="version-select">Version</label><!--
                  --><select id="version-select">
                     <option value="700">7.00</option>
@@ -80,8 +90,8 @@
         <a href="javascript:void(0)" id="info-close-btn" class="close btn pos-right">&times;</a>
         <div id="info-content" class="info-content"></div>
     </div>
-    <div id="right-menu" class="menu-panel pos-right collapsed-horizontal">
-        <a href="javascript:void(0)" id="right-menu-close-btn" class="close btn pos-right">&times;</a>
+    <div id="menu-right" class="menu-panel pos-right collapsed-horizontal">
+        <a href="javascript:void(0)" id="menu-right-close-btn" class="close btn pos-right">&times;</a>
         <input type="radio" id="right-menu-back" name="right-menu" value="back" class="hidden" checked="checked" />
         <label id="back-btn" class="back btn pos-left hidden" for="right-menu-back">&#x2190;</label>
         <div class="back-group">
@@ -149,16 +159,16 @@
             </div>
         </div>
     </div>
-    <a id="menu-left-open-btn" href="javascript:void(0)" class="open btn pos-left"></a>
+    <a id="menu-left-open-btn" href="javascript:void(0)" class="open btn pos-left">
+        <div class="gear"></div>
+    </a>
     <div id="tool-btn-container">
         <a id="btn-zoom-in" href="javascript:void(0)" class="tool btn pos-left">+</a>
         <a id="btn-zoom-out" href="javascript:void(0)" class="tool btn pos-left">&minus;</a>
         <a id="btn-tree" href="javascript:void(0)" class="tool btn pos-left"></a>
         <a id="btn-ward" href="javascript:void(0)" class="tool btn pos-left"></a>
     </div>
-    <div id="menu-right-open-btn-group" class="pos-right">
-        <a id="right-menu-open-btn" href="javascript:void(0)" class="open btn"></a>
-    </div>
+    <a id="menu-right-open-btn" href="javascript:void(0)" class="open btn pos-right"></a>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol-debug.js"></script>
     <!--<script src="../ol-custom.js"></script>-->
     <script src="bundle.js"></script>

@@ -24,6 +24,7 @@ var InteractiveMap = {
     layerIndex: {},
     version: '700',
     visionRadius: mapConstants.visionRadius.observer,
+    movementSpeed: mapConstants.defaultMovementSpeed,
     isNight: false,
     isDarkness: false,
     layerFilters: {
