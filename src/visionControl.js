@@ -3,27 +3,38 @@ var latLonToWorld = require('./conversionFunctions').latLonToWorld;
 var worldToLatLon = require('./conversionFunctions').worldToLatLon;
 var getTileRadius = require('./conversionFunctions').getTileRadius;
 var getLightUnion = require('./getLightUnion');
+var styles = require('./styleDefinitions');
 
-function visionPointerHandler(throttleTime, InteractiveMap, visionSource) {
-    var lastPointerMoveTime = Date.now();
-    var vs = InteractiveMap.vs;
-    return function(evt) {
-        if (Date.now() - lastPointerMoveTime < throttleTime) {
-            return;
-        }
-        lastPointerMoveTime = Date.now();
-        var feature = getVisionFeature(evt.coordinate, vs, InteractiveMap.visionRadius);
-        if (feature) {
-            visionSource.clear(true);
-            visionSource.addFeature(feature);
-        }
-    }
+function VisionControl(InteractiveMap) {
+    var self = this;
+    this.InteractiveMap = InteractiveMap;
+    this.vs = InteractiveMap.vs;
+    this.source = new ol.source.Vector({
+        defaultDataProjection : 'pixel'
+    });
+    this.layer =  new ol.layer.Vector({
+        source: this.source,
+        style: styles.visionSimulation
+    });
 }
 
-function getVisionFeature(coordinate, vs, radius) {
-    var worldCoordinate = latLonToWorld(coordinate);
-    var gridXY = vs.WorldXYtoGridXY(worldCoordinate[0], worldCoordinate[1]);
+VisionControl.prototype.getVisionFeature = function (feature, coordinate, radius) {
+    var vs = this.vs;
 
+    // get coordinate from feature if not provided
+    var worldCoordinate;
+    if (!coordinate) {
+        var dotaProps = feature.get('dotaProps');
+        worldCoordinate = [dotaProps.x, dotaProps.y];
+    }
+    else {
+        worldCoordinate = latLonToWorld(coordinate);
+    }
+    
+    // get radius from feature if not provided
+    radius = radius || this.InteractiveMap.getFeatureVisionRadius(feature, dotaProps)
+    
+    var gridXY = vs.WorldXYtoGridXY(worldCoordinate[0], worldCoordinate[1]);
     if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
         vs.updateVisibility(gridXY.x, gridXY.y, getTileRadius(radius));
         
@@ -41,7 +52,40 @@ function getVisionFeature(coordinate, vs, radius) {
     }
 }
 
-module.exports = {
-    visionPointerHandler: visionPointerHandler,
-    getVisionFeature: getVisionFeature
-};
+VisionControl.prototype.toggleVisionFeature = function (feature) {
+    var visionFeature = feature.get('visionFeature');
+    if (visionFeature) {
+        this.source.removeFeature(visionFeature);
+        feature.set('visionFeature', null);
+    }
+    else {
+        this.setVisionFeature(feature);
+    }
+}
+
+VisionControl.prototype.removeVisionFeature = function (feature) {
+    var visionFeature = feature.get('visionFeature');
+    if (visionFeature) {
+        this.source.removeFeature(visionFeature);
+        feature.set('visionFeature', null);
+    }
+}
+
+VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitClass) {
+    // remove existing visionFeature for feature
+    this.removeVisionFeature(feature);
+    
+    // determine radius according to unit type
+    var radius = this.InteractiveMap.getFeatureVisionRadius(feature, feature.get('dotaProps'), unitClass);
+
+    // create and add vision feature
+    visionFeature = this.getVisionFeature(feature, coordinate, radius);
+    if (visionFeature) {
+        this.source.addFeature(visionFeature);
+    }
+    feature.set('visionFeature', visionFeature, true);
+    return visionFeature;
+}
+
+
+module.exports = VisionControl;

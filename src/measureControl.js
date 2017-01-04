@@ -1,5 +1,8 @@
-function MeasureControl(map, style) {
-    this.map = map;
+var styles = require('./styleDefinitions');
+
+function MeasureControl(InteractiveMap) {
+    this.map = InteractiveMap.map;
+    this.info = InteractiveMap.infoControl;
     this.source = new ol.source.Vector({
         defaultDataProjection : 'pixel'
     });
@@ -92,28 +95,16 @@ function MeasureControl(map, style) {
      * @return {string} The formatted length.
      */
     var formatLength = function(line) {
-        var length = Math.round(line.getLength() * 100) / 100;
+        var length = Math.round(line.getLength());
         var output;
-        if (length > 100) {
-            output = (Math.round(length / 1000 * 100) / 100) +
-                ' ' + 'km';
-        } else {
-            output = (Math.round(length * 100) / 100) +
-                ' ' + 'm';
-        }
+        output = length + ' ' + 'units';
         return output;
     };
     
     var formatRadius = function(circle) {
-        var length = Math.round(circle.getRadius() * 100) / 100;
+        var length = Math.round(circle.getRadius());
         var output;
-        if (length > 100) {
-            output = (Math.round(length / 1000 * 100) / 100) +
-                ' ' + 'km';
-        } else {
-            output = (Math.round(length * 100) / 100) +
-                ' ' + 'm';
-        }
+        output = length + ' ' + 'units';
         return output;
     };
 
@@ -142,17 +133,18 @@ function MeasureControl(map, style) {
         draw = new ol.interaction.Draw({
             source: self.source,
             type: /** @type {ol.geom.GeometryType} */ (type),
-            style: style
+            style: styles.measure
         });
         self.map.addInteraction(draw);
 
-        createMeasureTooltip();
+        //createMeasureTooltip();
         createHelpTooltip();
 
         var listener;
         draw.on('drawstart',
             function(evt) {
                 self.source.clear(true);
+                self.info.open(true);
                 // set sketch
                 sketch = evt.feature;
 
@@ -170,20 +162,21 @@ function MeasureControl(map, style) {
                         output = formatLength(geom);
                         tooltipCoord = geom.getLastCoordinate();
                     }
-                    measureTooltipElement.innerHTML = output;
-                    measureTooltip.setPosition(tooltipCoord);
+                    self.info.setContent(output);
+                    //measureTooltipElement.innerHTML = output;
+                    //measureTooltip.setPosition(tooltipCoord);
                 });
             }, self);
 
         draw.on('drawend',
             function() {
-                measureTooltipElement.className = 'tooltip tooltip-static';
-                measureTooltip.setOffset([0, -7]);
+                //measureTooltipElement.className = 'tooltip tooltip-static';
+                //measureTooltip.setOffset([0, -7]);
                 // unset sketch
                 sketch = null;
                 // unset tooltip so that a new one can be created
-                measureTooltipElement = null;
-                createMeasureTooltip();
+                //measureTooltipElement = null;
+                //createMeasureTooltip();
                 ol.Observable.unByKey(listener);
             }, self);
     }

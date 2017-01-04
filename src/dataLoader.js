@@ -40,6 +40,7 @@ function loadJSON(map, layerDef, data, layer) {
         var feature = new ol.Feature(geom);
         
         point.id = layerDef.id;
+        point.unitClass = unitClass;
         feature.set('dotaProps', point, true);
         return feature;
     });

@@ -9,7 +9,12 @@ var mapConstants = {
         16384 / 1024 / 4,
         16384 / 1024 / 8,
         16384 / 1024 / 16
-    ]
+    ],
+    visionRadius: {
+        observer: 1600,
+        sentry: 850,
+        darkness: 675
+    }
 }
 mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2]
 mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;

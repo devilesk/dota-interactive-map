@@ -1,6 +1,78 @@
 var ol = require('openlayers');
 
 var styles = {
+    highlight: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 0, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#ffff00',
+            width: 2
+        })
+    }),
+    select: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 255, 0, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#00ff00',
+            width: 2
+        })
+    }),
+    cursor: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 255, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255, 255, 255, 1)',
+            width: 1
+        })
+    }),
+    visionSimulation: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 0, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255, 255, 0, 1)',
+            width: 1
+        })
+    }),
+    dayVision: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(238, 153, 0, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(238, 153, 0, 0.5)',
+            width: 2
+        })
+    }),
+    nightVision: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 127, 255, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(0, 0, 255, 0.5)',
+            width: 2
+        })
+    }),
+    trueSight: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 127, 255, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(0, 127, 255, 0.5)',
+            width: 2
+        })
+    }),
+    attackRange: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 0, 0, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255, 0, 0, 0.5)',
+            width: 2
+        })
+    }),
     measure: new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(255, 255, 255, 0.3)'
