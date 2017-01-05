@@ -12,7 +12,7 @@ function InfoControl(InteractiveMap) {
         if (evt.dragging) {
             return;
         }
-        console.log('info pointer');
+
         var pixel = self.InteractiveMap.map.getEventPixel(evt.originalEvent);
         
         // if mouse over a building feature, show info and highlight
@@ -65,7 +65,6 @@ function InfoControl(InteractiveMap) {
                 }
             }
             else {
-                console.log('click close');
                 self.InteractiveMap.deselectAll();
                 self.close(true);
             }
@@ -121,7 +120,6 @@ InfoControl.prototype.isActive = function () {
 }
 
 InfoControl.prototype.open = function (bClicked) {
-    console.log('open', bClicked);
     this.info.classList.add('slideUp');
     this.info.classList.remove('slideDown');
     if (bClicked) {
@@ -141,7 +139,7 @@ InfoControl.prototype.initialize = function (id) {
     var self = this;
     this.id = id;
     this.info = document.getElementById(id);
-    this.infoContent = document.querySelector('#' + id + ' .info-content');
+    this.infoContent = document.querySelector('#' + id + ' .message-content');
     this.closeBtn = document.querySelector('#' + id + ' .close.btn');
     this.closeHandler = function (evt) {
         self.close.call(self, true);

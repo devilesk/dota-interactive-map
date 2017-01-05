@@ -16,7 +16,6 @@ function WardControl(InteractiveMap, throttleTime) {
     }
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function(evt) {
-        console.log('pointerMoveHandler ward');
         if (evt.dragging) {
             return;
         }
@@ -117,7 +116,6 @@ function WardControl(InteractiveMap, throttleTime) {
 }
 
 WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
-    console.log('showVisibilityInfo', visionFeature);
     var info = this.InteractiveMap.infoControl;
     var vs = this.InteractiveMap.vs;
     var lightArea = vs.lightArea;
@@ -143,7 +141,6 @@ WardControl.prototype.clearInfo = function (bOverrideActive) {
 }
 
 WardControl.prototype.activate = function () {
-    console.log('activate ward');
     if (!this.pointerMoveListener) {
         this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', this.pointerMoveHandler);
     }
@@ -162,7 +159,6 @@ WardControl.prototype.deactivate = function () {
 }
 
 WardControl.prototype.addWard = function (coordinate, wardType) {
-    console.log('addWard', coordinate, wardType);
     if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
     var geom = new ol.geom.Point(coordinate);
     var feature = new ol.Feature(geom);
@@ -196,7 +192,6 @@ WardControl.prototype.highlight = function (feature) {
     this.InteractiveMap.cursorControl.source.clear(true);
     this.unhighlight();
     var visionFeature = this.InteractiveMap.visionControl.setVisionFeature(feature);
-    console.log('WardControl', visionFeature);
     this.addRangeCircles(feature);
     this.InteractiveMap.highlight(feature);
     return visionFeature;

@@ -803,6 +803,7 @@ var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var QueryString = require('./util/queryString');
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
+var MenuControl = require('./menuControl');
 var InfoControl = require('./infoControl');
 var NotificationControl = require('./notificationControl');
 var MeasureControl = require('./measureControl');
@@ -812,6 +813,8 @@ var CursorControl = require('./cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
 InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
+InteractiveMap.menuControl = new MenuControl(InteractiveMap);
+InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
 InteractiveMap.infoControl = new InfoControl(InteractiveMap);
 InteractiveMap.infoControl.initialize('info');
 InteractiveMap.notificationControl = new NotificationControl();
@@ -820,6 +823,9 @@ InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
 InteractiveMap.wardControl = new WardControl(InteractiveMap);
 InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
 InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
+
+//var DrawCurveControl = require('./drawCurveControl');
+//InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
 
 var modeNotificationText = {
     observer: "Ward Mode: Observer",
@@ -846,6 +852,7 @@ function changeMode(mode) {
             document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
             document.getElementById('btn-ward').classList.add('active');
             document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.remove('active');
             QueryString.setQueryString('mode', InteractiveMap.MODE);
             InteractiveMap.measureControl.deactivate();
             InteractiveMap.wardControl.activate();
@@ -859,6 +866,8 @@ function changeMode(mode) {
             InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.add('active');
+            document.getElementById('btn-measure').setAttribute('measure-type', InteractiveMap.MODE);
             QueryString.setQueryString('mode', InteractiveMap.MODE);
             InteractiveMap.measureControl.change(InteractiveMap.MODE);
             InteractiveMap.wardControl.deactivate();
@@ -870,6 +879,7 @@ function changeMode(mode) {
             InteractiveMap.MODE = mode || "navigate";
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.remove('active');
             QueryString.setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
             InteractiveMap.measureControl.deactivate();
             InteractiveMap.wardControl.deactivate();
@@ -959,10 +969,6 @@ function setDefaults() {
         }
     });
 }
-
-var Menu = require('./menu');
-var menu = new Menu(InteractiveMap);
-menu.initialize(layerToggleHandler, baseLayerToggleHandler);
     
 document.getElementById('nightControl').addEventListener('change', function () {
     InteractiveMap.isNight = this.checked;
@@ -1047,6 +1053,7 @@ function initialize() {
     document.getElementById('btn-tree').addEventListener('click', function () {
         document.querySelector('input[name="mode"][value="navigate"').checked = true;
         document.getElementById('btn-ward').classList.remove('active');
+        document.getElementById('btn-measure').classList.remove('active');
         if (this.classList.contains('active')) {
             this.classList.remove('active');
             toggleLayerMenuOption("ent_dota_tree", false);
@@ -1074,11 +1081,30 @@ function initialize() {
         }
         this.classList.add('active');
         document.getElementById('btn-tree').classList.remove('active');
+        document.getElementById('btn-measure').classList.remove('active');
         changeMode('ward');
+    });
+
+    document.getElementById('btn-measure').addEventListener('click', function () {
+        if (this.classList.contains('active')) {
+            this.setAttribute('measure-type', this.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
+        }
+        if (this.getAttribute('measure-type') == 'circle') {
+            document.querySelector('input[name="mode"][value="measure"').checked = true;
+            document.querySelector('input[name="measure-type"][value="circle"').checked = true;
+        }
+        else {
+            document.querySelector('input[name="mode"][value="measure"').checked = true;
+            document.querySelector('input[name="measure-type"][value="line"').checked = true;
+        }
+        this.classList.add('active');
+        document.getElementById('btn-tree').classList.remove('active');
+        document.getElementById('btn-ward').classList.remove('active');
+        changeMode('measure');
     });
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./InteractiveMap":1,"./cursorControl":4,"./infoControl":9,"./measureControl":12,"./menu":13,"./notificationControl":14,"./util/queryString":18,"./visionControl":20,"./wardControl":21,"dota-vision-simulation":26,"dota-vision-simulation/src/worlddata.json":27}],9:[function(require,module,exports){
+},{"./InteractiveMap":1,"./cursorControl":4,"./infoControl":9,"./measureControl":12,"./menuControl":13,"./notificationControl":14,"./util/queryString":18,"./visionControl":20,"./wardControl":21,"dota-vision-simulation":26,"dota-vision-simulation/src/worlddata.json":27}],9:[function(require,module,exports){
 var getPopupContent = require('./getPopupContent');
 var styles = require('./styleDefinitions');
 
@@ -1093,7 +1119,7 @@ function InfoControl(InteractiveMap) {
         if (evt.dragging) {
             return;
         }
-        console.log('info pointer');
+
         var pixel = self.InteractiveMap.map.getEventPixel(evt.originalEvent);
         
         // if mouse over a building feature, show info and highlight
@@ -1146,7 +1172,6 @@ function InfoControl(InteractiveMap) {
                 }
             }
             else {
-                console.log('click close');
                 self.InteractiveMap.deselectAll();
                 self.close(true);
             }
@@ -1202,7 +1227,6 @@ InfoControl.prototype.isActive = function () {
 }
 
 InfoControl.prototype.open = function (bClicked) {
-    console.log('open', bClicked);
     this.info.classList.add('slideUp');
     this.info.classList.remove('slideDown');
     if (bClicked) {
@@ -1222,7 +1246,7 @@ InfoControl.prototype.initialize = function (id) {
     var self = this;
     this.id = id;
     this.info = document.getElementById(id);
-    this.infoContent = document.querySelector('#' + id + ' .info-content');
+    this.infoContent = document.querySelector('#' + id + ' .message-content');
     this.closeBtn = document.querySelector('#' + id + ' .close.btn');
     this.closeHandler = function (evt) {
         self.close.call(self, true);
@@ -1279,7 +1303,6 @@ var layerDefinitions = [
         name: 'Neutral Camps',
         group: 'object',
         style: function (feature, resolution) {
-            console.log("styles.neutralCamp[feature.get('dotaProps').neutralType]", feature, feature.get('dotaProps').neutralType, styles.neutralCamp[feature.get('dotaProps').neutralType]);
             return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
         }
     },
@@ -1517,7 +1540,6 @@ function MeasureControl(InteractiveMap) {
     };
     var self = this;
     function addInteraction() {
-        console.log('addInteraction', self, self.type);
         var type = (self.type == 'circle' ? 'Circle' : 'LineString');
         draw = new ol.interaction.Draw({
             source: self.source,
@@ -1652,19 +1674,20 @@ MenuPanel.prototype.initialize = function () {
     this.openBtn.addEventListener("click", this.open.bind(this), false);
     this.closeHandler = this.close.bind(this);
     this.closeBtn.addEventListener("click", this.closeHandler, false);
-    document.getElementById('map').addEventListener("click", this.closeHandler, false);
 }
-MenuPanel.prototype.open = function () {
+MenuPanel.prototype.open = function (evt) {
     this.panel.classList.add('expand-horizontal');
+    this.panel.classList.remove('collapsed-horizontal');
     this.openBtn.classList.add('collapsed-horizontal');
     this.openBtn.classList.remove('expand-horizontal');
-    //document.getElementById(this.panelId).style.width = this.fullscreen ? "100%" : "250px";
+    this.otherMenu.close(evt);
 }
-MenuPanel.prototype.close = function () {
+MenuPanel.prototype.close = function (evt) {
     this.panel.classList.remove('expand-horizontal');
+    this.panel.classList.add('collapsed-horizontal');
     this.openBtn.classList.remove('collapsed-horizontal');
     this.openBtn.classList.add('expand-horizontal');
-    //document.getElementById(this.panelId).style.width = "0"
+    console.log('menu close', evt);
 }
 MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType, inputName) {
     var optionId = layerDef.id;
@@ -1693,12 +1716,14 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
     return menuItem;
 }
 
-function Menu(InteractiveMap) {
+function MenuControl(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
     this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
-    this.leftPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
+    this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
+    this.leftPanel.otherMenu = this.rightPanel;
+    this.rightPanel.otherMenu = this.leftPanel;
 }
-Menu.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
+MenuControl.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
     this.InteractiveMap.layerDefs.forEach(function (layerDef) {
         var group = layerDef.group;
         var menu = document.querySelector('#' + group + '-menu');
@@ -1714,7 +1739,7 @@ Menu.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler
     });
 }
 
-module.exports = Menu;
+module.exports = MenuControl;
 },{}],14:[function(require,module,exports){
 var styles = require('./styleDefinitions');
 
@@ -1752,7 +1777,7 @@ NotificationControl.prototype.initialize = function (id) {
     var self = this;
     this.id = id;
     this.info = document.getElementById(id);
-    this.infoContent = document.querySelector('#' + id + ' .notification-content');
+    this.infoContent = document.querySelector('#' + id + ' .message-content');
 }
 
 module.exports = NotificationControl;
@@ -2326,7 +2351,6 @@ function WardControl(InteractiveMap, throttleTime) {
     }
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function(evt) {
-        console.log('pointerMoveHandler ward');
         if (evt.dragging) {
             return;
         }
@@ -2427,7 +2451,6 @@ function WardControl(InteractiveMap, throttleTime) {
 }
 
 WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
-    console.log('showVisibilityInfo', visionFeature);
     var info = this.InteractiveMap.infoControl;
     var vs = this.InteractiveMap.vs;
     var lightArea = vs.lightArea;
@@ -2453,7 +2476,6 @@ WardControl.prototype.clearInfo = function (bOverrideActive) {
 }
 
 WardControl.prototype.activate = function () {
-    console.log('activate ward');
     if (!this.pointerMoveListener) {
         this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', this.pointerMoveHandler);
     }
@@ -2472,7 +2494,6 @@ WardControl.prototype.deactivate = function () {
 }
 
 WardControl.prototype.addWard = function (coordinate, wardType) {
-    console.log('addWard', coordinate, wardType);
     if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
     var geom = new ol.geom.Point(coordinate);
     var feature = new ol.Feature(geom);
@@ -2506,7 +2527,6 @@ WardControl.prototype.highlight = function (feature) {
     this.InteractiveMap.cursorControl.source.clear(true);
     this.unhighlight();
     var visionFeature = this.InteractiveMap.visionControl.setVisionFeature(feature);
-    console.log('WardControl', visionFeature);
     this.addRangeCircles(feature);
     this.InteractiveMap.highlight(feature);
     return visionFeature;

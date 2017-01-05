@@ -2,6 +2,7 @@ var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var QueryString = require('./util/queryString');
 var ol = require('openlayers');
+var MenuControl = require('./menuControl');
 var InfoControl = require('./infoControl');
 var NotificationControl = require('./notificationControl');
 var MeasureControl = require('./measureControl');
@@ -11,6 +12,8 @@ var CursorControl = require('./cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
 InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
+InteractiveMap.menuControl = new MenuControl(InteractiveMap);
+InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
 InteractiveMap.infoControl = new InfoControl(InteractiveMap);
 InteractiveMap.infoControl.initialize('info');
 InteractiveMap.notificationControl = new NotificationControl();
@@ -19,6 +22,9 @@ InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
 InteractiveMap.wardControl = new WardControl(InteractiveMap);
 InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
 InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
+
+//var DrawCurveControl = require('./drawCurveControl');
+//InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
 
 var modeNotificationText = {
     observer: "Ward Mode: Observer",
@@ -45,6 +51,7 @@ function changeMode(mode) {
             document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
             document.getElementById('btn-ward').classList.add('active');
             document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.remove('active');
             QueryString.setQueryString('mode', InteractiveMap.MODE);
             InteractiveMap.measureControl.deactivate();
             InteractiveMap.wardControl.activate();
@@ -58,6 +65,8 @@ function changeMode(mode) {
             InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.add('active');
+            document.getElementById('btn-measure').setAttribute('measure-type', InteractiveMap.MODE);
             QueryString.setQueryString('mode', InteractiveMap.MODE);
             InteractiveMap.measureControl.change(InteractiveMap.MODE);
             InteractiveMap.wardControl.deactivate();
@@ -69,6 +78,7 @@ function changeMode(mode) {
             InteractiveMap.MODE = mode || "navigate";
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.remove('active');
             QueryString.setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
             InteractiveMap.measureControl.deactivate();
             InteractiveMap.wardControl.deactivate();
@@ -158,10 +168,6 @@ function setDefaults() {
         }
     });
 }
-
-var Menu = require('./menu');
-var menu = new Menu(InteractiveMap);
-menu.initialize(layerToggleHandler, baseLayerToggleHandler);
     
 document.getElementById('nightControl').addEventListener('change', function () {
     InteractiveMap.isNight = this.checked;
@@ -246,6 +252,7 @@ function initialize() {
     document.getElementById('btn-tree').addEventListener('click', function () {
         document.querySelector('input[name="mode"][value="navigate"').checked = true;
         document.getElementById('btn-ward').classList.remove('active');
+        document.getElementById('btn-measure').classList.remove('active');
         if (this.classList.contains('active')) {
             this.classList.remove('active');
             toggleLayerMenuOption("ent_dota_tree", false);
@@ -273,6 +280,25 @@ function initialize() {
         }
         this.classList.add('active');
         document.getElementById('btn-tree').classList.remove('active');
+        document.getElementById('btn-measure').classList.remove('active');
         changeMode('ward');
+    });
+
+    document.getElementById('btn-measure').addEventListener('click', function () {
+        if (this.classList.contains('active')) {
+            this.setAttribute('measure-type', this.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
+        }
+        if (this.getAttribute('measure-type') == 'circle') {
+            document.querySelector('input[name="mode"][value="measure"').checked = true;
+            document.querySelector('input[name="measure-type"][value="circle"').checked = true;
+        }
+        else {
+            document.querySelector('input[name="mode"][value="measure"').checked = true;
+            document.querySelector('input[name="measure-type"][value="line"').checked = true;
+        }
+        this.classList.add('active');
+        document.getElementById('btn-tree').classList.remove('active');
+        document.getElementById('btn-ward').classList.remove('active');
+        changeMode('measure');
     });
 }

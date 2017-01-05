@@ -10,161 +10,173 @@
 
     <link rel="stylesheet" href="node_modules/openlayers/dist/ol.css" type="text/css">
     <link rel="stylesheet" href="app.css" type="text/css">
+    <link rel="stylesheet" href="menu.css" type="text/css">
     <link rel="stylesheet" href="gear.css" type="text/css">
+    <link rel="stylesheet" href="measure.css" type="text/css">
+    <link rel="stylesheet" href="message.css" type="text/css">
+    <link rel="stylesheet" href="tools.css" type="text/css">
   </head>
   <body>
-    <div id="menu-left" class="menu-panel pos-left collapsed-horizontal">
-        <a href="javascript:void(0)" id="menu-left-close-btn" class="close btn pos-left">&times;</a>
-        <div class="menu-contents">
-            <div class="menu-item">
-                <input type="radio" name="mode" value="navigate" id="navigateToggle" checked="checked" />
-                <label for="navigateToggle" class="checkbox">Navigate</label>
-            </div>
-            <div class="menu-item">
-                <input type="radio" name="mode" value="ward" id="wardToggle" />
-                <label for="wardToggle" class="checkbox">Place Ward</label>
-                <div class="menu-item-group sub-menu"><!--
-                 --><div class="menu-item inline">
-                        <input type="radio" name="ward-type" value="observer" id="observer-option" />
-                        <label for="observer-option" class="checkbox">Observer</label>
-                    </div><!--
-                 --><div class="menu-item inline">
-                        <input type="radio" name="ward-type" value="sentry" id="sentry-option"  checked="checked" />
-                        <label for="sentry-option" class="checkbox">Sentry</label>
-                    </div>
-                </div>
-            </div>
-            <div class="menu-item">
-                <input type="radio" name="mode" value="measure" id="measureToggle" />
-                <label for="measureToggle" class="checkbox">Measure</label>
-                <div class="menu-item-group sub-menu"><!--
-                 --><div class="menu-item inline">
-                        <input type="radio" name="measure-type" value="line" id="line-option"  checked="checked" />
-                        <label for="line-option" class="checkbox">Line</label>
-                    </div><!--
-                 --><div class="menu-item inline">
-                        <input type="radio" name="measure-type" value="circle" id="circle-option" />
-                        <label for="circle-option" class="checkbox">Circle</label>
-                    </div>
-                </div>
-            </div>
-            <hr>
-            <div class="menu-item">
-                <label class="text-label" for="vision-radius">Radius</label><!--
-                --><input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
-            </div>
-            <hr>
-            <div class="menu-item">
-                <input type="checkbox" id="nightControl"/>
-                <label for="nightControl" class="checkbox">Night</label>
-            </div>
-            <hr>
-            <div class="menu-item">
-                <input type="checkbox" id="darknessControl"/>
-                <label for="darknessControl" class="checkbox">Darkness</label>
-            </div>
-            <hr>
-            <div class="menu-item">
-                <label class="text-label" for="movementSpeed">MS</label><!--
-                --><input type="number" id="movementSpeed" value="300" min="0" max="9999" step="1" />
-            </div>
-            <hr>
-            <div class="menu-item">
-                <label class="select-label" for="version-select">Version</label><!--
-                 --><select id="version-select">
-                    <option value="700">7.00</option>
-                    <option value="687">6.87</option>
-                </select>
-            </div>
-            <hr>
-            <div class="menu-item">
-                <input type="button" id="reset" value="Reset Map"/>
-            </div>
-        </div>
-    </div>
     <div id="map"></div>
-    <div id="notification" class="slideUp">
-        <div id="notification-content" class="notification-content">Test</div>
+    <div id="tool-btn-container"><!--
+     --><a id="btn-zoom-in" href="javascript:void(0)" class="tool btn"><div class="zoom-label">+</div></a><!--
+     --><a id="btn-zoom-out" href="javascript:void(0)" class="tool btn"><div class="zoom-label">&minus;</div></a><!--
+     --><a id="btn-tree" href="javascript:void(0)" class="tool btn"></a><!--
+     --><a id="btn-ward" href="javascript:void(0)" class="tool btn"></a><!--
+     --><a id="btn-measure" href="javascript:void(0)" class="tool btn">
+            <div class="line-icon"></div>
+            <div class="circle-icon"></div>
+        </a>
     </div>
-    <div id="info" class="slideDown">
-        <a href="javascript:void(0)" id="info-close-btn" class="close btn pos-right">&times;</a>
-        <div id="info-content" class="info-content"></div>
-    </div>
-    <div id="menu-right" class="menu-panel pos-right collapsed-horizontal">
-        <a href="javascript:void(0)" id="menu-right-close-btn" class="close btn pos-right">&times;</a>
-        <input type="radio" id="right-menu-back" name="right-menu" value="back" class="hidden" checked="checked" />
-        <label id="back-btn" class="back btn pos-left hidden" for="right-menu-back">&#x2190;</label>
-        <div class="back-group">
-            <div class="menu-contents">
-                <div class="menu-item">
-                    <input type="radio" id="overlay-menu-toggle" name="right-menu" value="overlay" class="inverse" />
-                    <label for="overlay-menu-toggle" class="checkbox hidden">Overlays</label>
-                    <div id="overlay-menu" class="menu-item-group sub-menu collapsed"><!--
-                     --><div class="menu-item">
-                            <input type="checkbox" id="option-drawn-circles"/>
-                            <label for="option-drawn-circles" class="checkbox">Drawn Circles</label>
-                        </div><!--
-                     --><div class="menu-item">
-                            <input type="checkbox" id="option-placed-wards"/>
-                            <label for="option-placed-wards" class="checkbox">Placed Wards</label>
-                        </div><!--
-                     --><div class="menu-item">
-                            <input type="checkbox" id="option-dayVision"/>
-                            <label for="option-dayVision" class="checkbox">Day Vision Range</label>
-                        </div><!--
-                     --><div class="menu-item">
-                            <input type="checkbox" id="option-nightVision"/>
-                            <label for="option-nightVision" class="checkbox">Night Vision Range</label>
-                        </div><!--
-                     --><div class="menu-item">
-                            <input type="checkbox" id="option-trueSight"/>
-                            <label for="option-trueSight" class="checkbox">True Sight Range</label>
-                        </div><!--
-                     --><div class="menu-item">
-                            <input type="checkbox" id="option-attackRange"/>
-                            <label for="option-attackRange" class="checkbox">Attack Range</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="menu-item">
-                    <input type="radio" id="structure-menu-toggle" name="right-menu" value="structure" class="inverse" />
-                    <label for="structure-menu-toggle" class="checkbox hidden">Structures</label>
-                    <div id="structure-menu" class="menu-item-group sub-menu collapsed"></div>
-                </div>
-                <div class="menu-item">
-                    <input type="radio" id="object-menu-toggle" name="right-menu" value="object" class="inverse" />
-                    <label for="object-menu-toggle" class="checkbox hidden">Neutral</label>
-                    <div id="object-menu" class="menu-item-group sub-menu collapsed"></div>
-                </div>
-                <div class="menu-item">
-                    <input type="radio" id="base-menu-toggle" name="right-menu" value="base" class="inverse" />
-                    <label for="base-menu-toggle" class="checkbox hidden">Base Layers</label>
-                    <div id="base-menu" class="menu-item-group sub-menu collapsed"><!--
-                     --><div class="menu-item">
-                            <input type="radio" name="base-type" value="700" id="base-700-option" checked="checked" />
-                            <label for="base-700-option" class="checkbox">7.00</label>
-                            <div id="base-700-menu" class="menu-item-group sub-menu collapsed"></div>
-                        </div><!--
-                     --><div class="menu-item">
-                            <input type="radio" name="base-type" value="687" id="base-687-option" />
-                            <label for="base-687-option" class="checkbox">6.87</label>
-                            <div id="base-687-menu" class="menu-item-group sub-menu collapsed"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <a id="menu-left-open-btn" href="javascript:void(0)" class="open btn pos-left">
+    <a id="menu-left-open-btn" href="javascript:void(0)" class="open btn">
         <div class="gear"></div>
     </a>
-    <div id="tool-btn-container">
-        <a id="btn-zoom-in" href="javascript:void(0)" class="tool btn pos-left">+</a>
-        <a id="btn-zoom-out" href="javascript:void(0)" class="tool btn pos-left">&minus;</a>
-        <a id="btn-tree" href="javascript:void(0)" class="tool btn pos-left"></a>
-        <a id="btn-ward" href="javascript:void(0)" class="tool btn pos-left"></a>
+    <a id="menu-right-open-btn" href="javascript:void(0)" class="open btn"></a>
+    <div id="menu-left" class="menu-panel collapsed-horizontal">
+        <div class="menu-panel-inner">
+            <a href="javascript:void(0)" id="menu-left-close-btn" class="close btn">&times;</a>
+            <div class="menu-contents">
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="navigate" id="navigateToggle" checked="checked" />
+                    <label for="navigateToggle" class="checkbox">Navigate</label>
+                </div>
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="ward" id="wardToggle" />
+                    <label for="wardToggle" class="checkbox">Place Ward</label>
+                    <div class="menu-item-group sub-menu"><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="ward-type" value="observer" id="observer-option" />
+                            <label for="observer-option" class="checkbox">Observer</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="ward-type" value="sentry" id="sentry-option"  checked="checked" />
+                            <label for="sentry-option" class="checkbox">Sentry</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="measure" id="measureToggle" />
+                    <label for="measureToggle" class="checkbox">Measure</label>
+                    <div class="menu-item-group sub-menu"><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="measure-type" value="line" id="line-option"  checked="checked" />
+                            <label for="line-option" class="checkbox">Line</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="measure-type" value="circle" id="circle-option" />
+                            <label for="circle-option" class="checkbox">Circle</label>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <label class="text-label" for="vision-radius">Radius</label><!--
+                    --><input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="checkbox" id="nightControl"/>
+                    <label for="nightControl" class="checkbox">Night</label>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="checkbox" id="darknessControl"/>
+                    <label for="darknessControl" class="checkbox">Darkness</label>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <label class="text-label" for="movementSpeed">MS</label><!--
+                    --><input type="number" id="movementSpeed" value="300" min="0" max="9999" step="1" />
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <label class="select-label" for="version-select">Version</label><!--
+                     --><select id="version-select">
+                        <option value="700">7.00</option>
+                        <option value="687">6.87</option>
+                    </select>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="button" id="reset" value="Reset Map"/>
+                </div>
+            </div>
+        </div>
     </div>
-    <a id="menu-right-open-btn" href="javascript:void(0)" class="open btn pos-right"></a>
+    <div id="menu-right" class="menu-panel collapsed-horizontal">
+        <div class="menu-panel-inner">
+            <a href="javascript:void(0)" id="menu-right-close-btn" class="close btn">&times;</a>
+            <input type="radio" id="right-menu-back" name="right-menu" value="back" class="hidden" checked="checked" />
+            <label id="back-btn" class="back btn" for="right-menu-back">&#x2190;</label>
+            <div class="back-group">
+                <div class="menu-contents">
+                    <div class="menu-item">
+                        <input type="radio" id="overlay-menu-toggle" name="right-menu" value="overlay" class="inverse" />
+                        <label for="overlay-menu-toggle" class="checkbox hidden">Overlays</label>
+                        <div id="overlay-menu" class="menu-item-group sub-menu"><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-drawn-circles"/>
+                                <label for="option-drawn-circles" class="checkbox">Drawn Circles</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-placed-wards"/>
+                                <label for="option-placed-wards" class="checkbox">Placed Wards</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-dayVision"/>
+                                <label for="option-dayVision" class="checkbox">Day Vision Range</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-nightVision"/>
+                                <label for="option-nightVision" class="checkbox">Night Vision Range</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-trueSight"/>
+                                <label for="option-trueSight" class="checkbox">True Sight Range</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-attackRange"/>
+                                <label for="option-attackRange" class="checkbox">Attack Range</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="structure-menu-toggle" name="right-menu" value="structure" class="inverse" />
+                        <label for="structure-menu-toggle" class="checkbox hidden">Structures</label>
+                        <div id="structure-menu" class="menu-item-group sub-menu"></div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="object-menu-toggle" name="right-menu" value="object" class="inverse" />
+                        <label for="object-menu-toggle" class="checkbox hidden">Neutral</label>
+                        <div id="object-menu" class="menu-item-group sub-menu"></div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="base-menu-toggle" name="right-menu" value="base" class="inverse" />
+                        <label for="base-menu-toggle" class="checkbox hidden">Base Layers</label>
+                        <div id="base-menu" class="menu-item-group sub-menu"><!--
+                         --><div class="menu-item">
+                                <input type="radio" name="base-type" value="700" id="base-700-option" checked="checked" />
+                                <label for="base-700-option" class="checkbox">7.00</label>
+                                <div id="base-700-menu" class="menu-item-group sub-menu"></div>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="radio" name="base-type" value="687" id="base-687-option" />
+                                <label for="base-687-option" class="checkbox">6.87</label>
+                                <div id="base-687-menu" class="menu-item-group sub-menu"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="notification" class="message slideUp">
+        <div id="notification-content" class="message-content">Test</div>
+    </div>
+    <div id="info" class="message slideDown">
+        <a href="javascript:void(0)" id="info-close-btn" class="close btn">&times;</a>
+        <div id="info-content" class="message-content"></div>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol-debug.js"></script>
     <!--<script src="../ol-custom.js"></script>-->
     <script src="bundle.js"></script>

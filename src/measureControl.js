@@ -130,7 +130,6 @@ function MeasureControl(InteractiveMap) {
     };
     var self = this;
     function addInteraction() {
-        console.log('addInteraction', self, self.type);
         var type = (self.type == 'circle' ? 'Circle' : 'LineString');
         draw = new ol.interaction.Draw({
             source: self.source,

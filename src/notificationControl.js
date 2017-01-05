@@ -34,7 +34,7 @@ NotificationControl.prototype.initialize = function (id) {
     var self = this;
     this.id = id;
     this.info = document.getElementById(id);
-    this.infoContent = document.querySelector('#' + id + ' .notification-content');
+    this.infoContent = document.querySelector('#' + id + ' .message-content');
 }
 
 module.exports = NotificationControl;

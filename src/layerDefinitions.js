@@ -39,7 +39,6 @@ var layerDefinitions = [
         name: 'Neutral Camps',
         group: 'object',
         style: function (feature, resolution) {
-            console.log("styles.neutralCamp[feature.get('dotaProps').neutralType]", feature, feature.get('dotaProps').neutralType, styles.neutralCamp[feature.get('dotaProps').neutralType]);
             return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
         }
     },

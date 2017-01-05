@@ -1,0 +1,62 @@
+#tool-btn-container {
+    position: absolute;
+    top: 0px;
+    left: 50px;
+    height: 36px;
+    width: 250px;
+    background-color: #888;
+    z-index: 10;
+}
+.tool.btn {
+    height: 36px;
+    display: inline-block;
+    position: relative;
+    left: 0;
+}
+.tool.btn:hover,
+.tool.btn:active,
+.tool.btn.active {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
+}
+
+#btn-tree {
+    background-image: url('img/btn-quelling_blade.png');
+}
+#btn-ward[ward-type="observer"] {
+    background-image: url('img/ward_dispenser_observer.png');
+}
+#btn-ward[ward-type="sentry"] {
+    background-image: url('img/ward_dispenser_sentry.png');
+}
+#btn-measure {
+    position: relative;
+}
+.zoom-label  {
+    width: 50px;
+    line-height: 36px;
+    font-size: 36px;
+    left: 0;
+    position: absolute;
+}
+#btn-zoom-in .zoom-label {
+    content: '+';
+}
+#btn-zoom-out .zoom-label  {
+    content: '–';
+}
+#btn-zoom-in:hover,
+#btn-zoom-out:hover  {
+    font-size: 32px;
+}
+
+@media screen and (max-width: 349px) {
+    #tool-btn-container {
+        width: 50px;
+        top: 50px;
+        left: 0;
+    }
+    .tool.btn {
+        display: block;
+    }
+}

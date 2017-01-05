@@ -13,19 +13,20 @@ MenuPanel.prototype.initialize = function () {
     this.openBtn.addEventListener("click", this.open.bind(this), false);
     this.closeHandler = this.close.bind(this);
     this.closeBtn.addEventListener("click", this.closeHandler, false);
-    document.getElementById('map').addEventListener("click", this.closeHandler, false);
 }
-MenuPanel.prototype.open = function () {
+MenuPanel.prototype.open = function (evt) {
     this.panel.classList.add('expand-horizontal');
+    this.panel.classList.remove('collapsed-horizontal');
     this.openBtn.classList.add('collapsed-horizontal');
     this.openBtn.classList.remove('expand-horizontal');
-    //document.getElementById(this.panelId).style.width = this.fullscreen ? "100%" : "250px";
+    this.otherMenu.close(evt);
 }
-MenuPanel.prototype.close = function () {
+MenuPanel.prototype.close = function (evt) {
     this.panel.classList.remove('expand-horizontal');
+    this.panel.classList.add('collapsed-horizontal');
     this.openBtn.classList.remove('collapsed-horizontal');
     this.openBtn.classList.add('expand-horizontal');
-    //document.getElementById(this.panelId).style.width = "0"
+    console.log('menu close', evt);
 }
 MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType, inputName) {
     var optionId = layerDef.id;
@@ -54,12 +55,14 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
     return menuItem;
 }
 
-function Menu(InteractiveMap) {
+function MenuControl(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
     this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
-    this.leftPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
+    this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
+    this.leftPanel.otherMenu = this.rightPanel;
+    this.rightPanel.otherMenu = this.leftPanel;
 }
-Menu.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
+MenuControl.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
     this.InteractiveMap.layerDefs.forEach(function (layerDef) {
         var group = layerDef.group;
         var menu = document.querySelector('#' + group + '-menu');
@@ -75,4 +78,4 @@ Menu.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler
     });
 }
 
-module.exports = Menu;
+module.exports = MenuControl;
