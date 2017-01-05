@@ -187,8 +187,8 @@
     transform: scale(0.9);
 }
 
-input:not(:checked) + .back.btn,
-input:checked + .back.btn + .back-group .menu-contents .menu-item label.hidden {
+input:not(:checked) + .btn-back,
+input:checked + .btn-back + .back-group .menu-contents .menu-item label.hidden {
     display: block;
     max-height: 999px;
 }
@@ -214,7 +214,7 @@ input:checked + .back.btn + .back-group .menu-contents .menu-item label.hidden {
         display: block;
         max-height: 999px;
     }
-    input:not(:checked) + .back.btn {
+    input:not(:checked) + .btn-back{
         display: none;
     }
 }

@@ -29,17 +29,17 @@ hr {
     font-size: 46px;
 }
 
-.close.btn, .back.btn, .open.btn {
+.btn-close, .btn-open, .btn-back {
     position: absolute;
     top: 0;
 }
-.open.btn {
+.btn-open {
     z-index: 40;
 }
-.close.btn {
+.btn-close {
     z-index: 30;
 }
-.back.btn {
+.btn-back {
     font-size: 36px;
     right: 200px;
     z-index: 30;
