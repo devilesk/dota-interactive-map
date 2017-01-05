@@ -58,6 +58,13 @@ InteractiveMap.selectLayer =  new ol.layer.Vector({
     style: styles.select
 });
 
+InteractiveMap.wardRangeSource = new ol.source.Vector({
+    defaultDataProjection : 'pixel'
+});
+InteractiveMap.wardRangeLayer =  new ol.layer.Vector({
+    source: InteractiveMap.wardRangeSource
+});
+
 InteractiveMap.rangeSources = {
     dayVision: new ol.source.Vector({
         defaultDataProjection : 'pixel'
@@ -175,6 +182,13 @@ InteractiveMap.baseLayerGroup = new ol.layer.Group({
     layers: new ol.Collection(InteractiveMap.baseLayers)
 });
 
+InteractiveMap.panTo = function (coordinate, duration) {
+    if (duration == null) duration = 1000;
+    InteractiveMap.view.animate({
+      center: coordinate,
+      duration: 1000
+    });
+}
 InteractiveMap.toggleTree = function (feature, dotaProps) {
     var gridXY = InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
     InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
@@ -233,9 +247,11 @@ InteractiveMap.toggle = function (feature) {
     if (feature) {
         if (feature.get("clicked")) {
             this.deselect(feature);
+            return false;
         }
         else {
             this.select(feature);
+            return true;
         }
     }
 }
@@ -268,6 +284,10 @@ InteractiveMap.deselect = function (feature) {
     }
 }
 
+InteractiveMap.hasVisionRadius = function (feature) {
+    return InteractiveMap.getFeatureVisionRadius(feature) != null;
+}
+
 InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass, rangeType) {
     dotaProps = dotaProps || feature.get('dotaProps');
     unitClass = unitClass || dotaProps.unitClass;
@@ -275,6 +295,9 @@ InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass,
     var radius;
     if (unitClass == 'observer') {
         radius = InteractiveMap.visionRadius || mapConstants.visionRadius[unitClass];
+        if (InteractiveMap.isDarkness) {
+            radius = Math.min(mapConstants.visionRadius.darkness, radius);
+        }
     }
     else if (unitClass == 'sentry') {
         radius = mapConstants.visionRadius[unitClass];
@@ -309,9 +332,9 @@ InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass,
     return radius;
 }
 
-InteractiveMap.getRangeCircle = function (feature, coordinate, rangeType) {
+InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeType) {
     var dotaProps = feature.get('dotaProps');
-    var radius = InteractiveMap.getFeatureVisionRadius(feature, dotaProps, null, rangeType);
+    var radius = InteractiveMap.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
     if (radius == null) return null;
     if (!coordinate) {
         coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);

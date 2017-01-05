@@ -1,5 +1,6 @@
 var ol = require('openlayers');
 var styles = require('./styleDefinitions');
+var mapConstants = require('./mapConstants');
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;
@@ -15,6 +16,7 @@ function WardControl(InteractiveMap, throttleTime) {
     }
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function(evt) {
+        console.log('pointerMoveHandler ward');
         if (evt.dragging) {
             return;
         }
@@ -29,21 +31,27 @@ function WardControl(InteractiveMap, throttleTime) {
             layerFilter: self.InteractiveMap.layerFilters.marker
         });
         if (feature) {
-            bBuildingHover = true;
-            self.highlight(feature);
+            bBuildingHover = self.highlight(feature);
+            
+            if (bBuildingHover) {
+                self.showVisibilityInfo();
+            }
         }
         else {
             // if mouse over a ward feature, highlight
             var feature = InteractiveMap.checkAndHighlightWard(pixel);
-            
+
             // no highlighted feature so unhighlight current feature
             if (!feature) {
                 self.unhighlight();
             }
+            else {
+                self.showVisibilityInfo();
+            }
         }
         
         // vision cursor
-        if (Date.now() - self.lastPointerMoveTime < throttleTime || self.InteractiveMap.MODE != 'observer') {
+        if (Date.now() - self.lastPointerMoveTime < throttleTime) {
             return;
         }
         self.lastPointerMoveTime = Date.now();
@@ -61,6 +69,13 @@ function WardControl(InteractiveMap, throttleTime) {
         if (hoverFeature) {
             self.InteractiveMap.cursorControl.source.clear(true);
             self.InteractiveMap.cursorControl.source.addFeature(hoverFeature);
+            
+            if (!bBuildingHover) {
+                self.showVisibilityInfo();
+            }
+        }
+        else if (!bBuildingHover) {
+            self.clearInfo();
         }
     }
     this.pointerMoveListener = null;
@@ -72,9 +87,14 @@ function WardControl(InteractiveMap, throttleTime) {
         }, {
             layerFilter: self.InteractiveMap.layerFilters.marker
         });
-        if (feature) {
+        if (feature && self.InteractiveMap.hasVisionRadius(feature)) {
             self.InteractiveMap.toggle(feature);
-            self.InteractiveMap.visionControl.toggleVisionFeature(feature);
+            if (self.InteractiveMap.visionControl.toggleVisionFeature(feature)) {
+                self.showVisibilityInfo();
+            }
+            else {
+                self.clearInfo();
+            }
             self.InteractiveMap.cursorControl.source.clear(true);
         }
         else {
@@ -85,6 +105,7 @@ function WardControl(InteractiveMap, throttleTime) {
             });
             if (feature) {
                 self.removeWard(feature);
+                self.clearInfo(true);
             }
             else {
                 self.addWard(evt.coordinate, self.InteractiveMap.MODE);
@@ -95,13 +116,36 @@ function WardControl(InteractiveMap, throttleTime) {
     this.clickListener = null;
 }
 
-WardControl.prototype.activate = function () {
-    if (!this.pointerMoveListener && this.InteractiveMap.MODE == 'observer') {
-        this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', this.pointerMoveHandler);
+WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
+    console.log('showVisibilityInfo', visionFeature);
+    var info = this.InteractiveMap.infoControl;
+    var vs = this.InteractiveMap.vs;
+    var lightArea = vs.lightArea;
+    var area = vs.area;
+    if (visionFeature) {
+        var visionData = visionFeature.get('visionData');
+        if (visionData) {
+            lightArea = visionData.lightArea;
+            area = visionData.area;
+            info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+            info.open(bClicked);
+        }
     }
     else {
-        ol.Observable.unByKey(this.pointerMoveListener);
-        this.pointerMoveListener = null;
+        info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+        info.open(bClicked);
+    }
+}
+
+WardControl.prototype.clearInfo = function (bOverrideActive) {
+    this.InteractiveMap.infoControl.setContent("");
+    this.InteractiveMap.infoControl.close(bOverrideActive);
+}
+
+WardControl.prototype.activate = function () {
+    console.log('activate ward');
+    if (!this.pointerMoveListener) {
+        this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', this.pointerMoveHandler);
     }
     if (!this.clickListener) {
         this.clickListener = this.InteractiveMap.map.on('click', this.clickHandler);
@@ -119,15 +163,31 @@ WardControl.prototype.deactivate = function () {
 
 WardControl.prototype.addWard = function (coordinate, wardType) {
     console.log('addWard', coordinate, wardType);
+    if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
     var geom = new ol.geom.Point(coordinate);
     var feature = new ol.Feature(geom);
     feature.set('wardType', wardType, true);
     feature.setStyle(styles[wardType].normal);
     this.source.addFeature(feature);
-    if (wardType == 'observer') this.InteractiveMap.visionControl.setVisionFeature(feature, coordinate, wardType);
+    if (wardType == 'observer') {
+        if (this.InteractiveMap.visionControl.setVisionFeature(feature, coordinate, wardType)) {
+            this.showVisibilityInfo();
+        }
+    }
+    
+    var circle = this.InteractiveMap.getRangeCircle(feature, coordinate, wardType);
+    if (circle) {
+        circle.setStyle(wardType == 'observer' ? styles.dayVision : styles.trueSight);
+        feature.set('wardRange', circle, true);
+        this.InteractiveMap.wardRangeSource.addFeature(circle);
+    }
 }
 
 WardControl.prototype.removeWard = function (feature) {
+    var wardRange = feature.get('wardRange');
+    if (wardRange) {
+        this.InteractiveMap.wardRangeSource.removeFeature(wardRange);
+    }
     this.source.removeFeature(feature);
     this.InteractiveMap.visionControl.removeVisionFeature(feature);
 }
@@ -135,9 +195,11 @@ WardControl.prototype.removeWard = function (feature) {
 WardControl.prototype.highlight = function (feature) {
     this.InteractiveMap.cursorControl.source.clear(true);
     this.unhighlight();
-    this.InteractiveMap.visionControl.setVisionFeature(feature);
+    var visionFeature = this.InteractiveMap.visionControl.setVisionFeature(feature);
+    console.log('WardControl', visionFeature);
     this.addRangeCircles(feature);
     this.InteractiveMap.highlight(feature);
+    return visionFeature;
 }
 
 WardControl.prototype.unhighlight = function () {
@@ -165,7 +227,7 @@ WardControl.prototype.removeRangeCircles = function (feature) {
 
 WardControl.prototype.addRangeCircle = function (feature, rangeType) {
     if (!feature.get(rangeType)) {
-        var circle = this.InteractiveMap.getRangeCircle(feature, null, rangeType);
+        var circle = this.InteractiveMap.getRangeCircle(feature, null, null, rangeType);
         if (circle) {
             feature.set(rangeType, circle, true);
             this.InteractiveMap.rangeSources[rangeType].addFeature(circle);

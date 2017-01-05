@@ -60,6 +60,13 @@ InteractiveMap.selectLayer =  new ol.layer.Vector({
     style: styles.select
 });
 
+InteractiveMap.wardRangeSource = new ol.source.Vector({
+    defaultDataProjection : 'pixel'
+});
+InteractiveMap.wardRangeLayer =  new ol.layer.Vector({
+    source: InteractiveMap.wardRangeSource
+});
+
 InteractiveMap.rangeSources = {
     dayVision: new ol.source.Vector({
         defaultDataProjection : 'pixel'
@@ -177,6 +184,13 @@ InteractiveMap.baseLayerGroup = new ol.layer.Group({
     layers: new ol.Collection(InteractiveMap.baseLayers)
 });
 
+InteractiveMap.panTo = function (coordinate, duration) {
+    if (duration == null) duration = 1000;
+    InteractiveMap.view.animate({
+      center: coordinate,
+      duration: 1000
+    });
+}
 InteractiveMap.toggleTree = function (feature, dotaProps) {
     var gridXY = InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
     InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
@@ -235,9 +249,11 @@ InteractiveMap.toggle = function (feature) {
     if (feature) {
         if (feature.get("clicked")) {
             this.deselect(feature);
+            return false;
         }
         else {
             this.select(feature);
+            return true;
         }
     }
 }
@@ -270,6 +286,10 @@ InteractiveMap.deselect = function (feature) {
     }
 }
 
+InteractiveMap.hasVisionRadius = function (feature) {
+    return InteractiveMap.getFeatureVisionRadius(feature) != null;
+}
+
 InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass, rangeType) {
     dotaProps = dotaProps || feature.get('dotaProps');
     unitClass = unitClass || dotaProps.unitClass;
@@ -277,6 +297,9 @@ InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass,
     var radius;
     if (unitClass == 'observer') {
         radius = InteractiveMap.visionRadius || mapConstants.visionRadius[unitClass];
+        if (InteractiveMap.isDarkness) {
+            radius = Math.min(mapConstants.visionRadius.darkness, radius);
+        }
     }
     else if (unitClass == 'sentry') {
         radius = mapConstants.visionRadius[unitClass];
@@ -311,9 +334,9 @@ InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass,
     return radius;
 }
 
-InteractiveMap.getRangeCircle = function (feature, coordinate, rangeType) {
+InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeType) {
     var dotaProps = feature.get('dotaProps');
-    var radius = InteractiveMap.getFeatureVisionRadius(feature, dotaProps, null, rangeType);
+    var radius = InteractiveMap.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
     if (radius == null) return null;
     if (!coordinate) {
         coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);
@@ -453,6 +476,44 @@ function loadGeoJSON(map, layerDef) {
     return layer;
 }
 
+function loadPolygon(map, layerDef, data, layer) {
+    var features = [];
+    features = data.data[layerDef.id].map(function (obj) {
+        var points = obj.points;
+        var ring = points.map(function (point) {
+            return ol.proj.transform([point.x, point.y], proj.dota, proj.pixel)
+        });
+        ring.push(ol.proj.transform([points[0].x, points[0].y], proj.dota, proj.pixel))
+        var geom = new ol.geom.Polygon([ring]);
+        var feature = new ol.Feature(geom);
+        obj.id = layerDef.id;
+        feature.set('dotaProps', obj, true);
+        return feature;
+    });
+    
+    var vectorSource = new ol.source.Vector({
+        defaultDataProjection : 'dota',
+        features: features
+    });
+    
+    if (layer) {
+        layer.setSource(vectorSource);
+    }
+    else {
+        layer = new ol.layer.Vector({
+            title: layerDef.name,
+            source: vectorSource,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        layer.set('showInfo', false, true);
+    }
+
+    return layer;
+}
+
 function loadJSON(map, layerDef, data, layer) {
     var features = [];
     features = data.data[layerDef.id].map(function (point) {
@@ -513,6 +574,9 @@ function loadLayerGroupFromData(map, data, version, layersIndex, layerDefs) {
         switch (layerDef.type) {
             case 'GeoJSON':
                 layer = loadGeoJSON(map, layerDef, layersIndex[layerDef.id]);
+            break;
+            case 'polygon':
+                layer = loadPolygon(map, layerDef, data, layersIndex[layerDef.id]);
             break;
             default:
                 layer = loadJSON(map, layerDef, data, layersIndex[layerDef.id]);
@@ -703,32 +767,32 @@ function getPopupContent(data, feature) {
     var dotaProps = feature.get('dotaProps');
     var unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
     var stats = data.data.stats[unitClass];
-    var htmlContent = '<div class="info"><div class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</div><div class="info-body">';
+    var htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
     if (dotaProps.pullType != null) {
-        htmlContent += '<div class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</div>';
+        htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
     }
     if (dotaProps.neutralType != null) {
-        htmlContent += '<div class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</div>';
+        htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
     }
     if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
-        htmlContent += '<div class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</div>';
+        htmlContent += '<br><span class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</span>';
     }
     if (stats.hasOwnProperty('bat')) {
-        htmlContent += '<div class="info-line">BAT: ' + stats.bat + '</div>';
+        htmlContent += '<br><span class="info-line">BAT: ' + stats.bat + '</span>';
     }
     if (stats.hasOwnProperty('attackRange')) {
-        htmlContent += '<div class="info-line">Attack Range: ' + stats.attackRange + '</div>';
+        htmlContent += '<br><span class="info-line">Attack Range: ' + stats.attackRange + '</span>';
     }
     if (stats.hasOwnProperty('health')) {
-        htmlContent += '<div class="info-line">Health: ' + stats.health + '</div>';
+        htmlContent += '<br><span class="info-line">Health: ' + stats.health + '</span>';
     }
     if (stats.hasOwnProperty('armor')) {
-        htmlContent += '<div class="info-line">Armor: ' + stats.armor + '</div>';
+        htmlContent += '<br><span class="info-line">Armor: ' + stats.armor + '</span>';
     }
     if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
-        htmlContent += '<div class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</div>';
+        htmlContent += '<br><span class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</span>';
     }
-    htmlContent += '</div></div>';
+    htmlContent += '</span></div>';
     return htmlContent;
 }
 
@@ -945,6 +1009,7 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.wardControl.layer);
         InteractiveMap.map.addLayer(InteractiveMap.highlightLayer);
         InteractiveMap.map.addLayer(InteractiveMap.selectLayer);
+        InteractiveMap.map.addLayer(InteractiveMap.wardRangeLayer);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.dayVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
@@ -1049,9 +1114,12 @@ function InfoControl(InteractiveMap) {
             // if mouse over a ward feature, highlight
             var feature = self.InteractiveMap.checkAndHighlightWard(pixel);
             
+            if (feature) {
+                self.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'));
+            }
             // no highlighted feature so unhighlight current feature
-            if (!feature && !self.isActive()) {
-                InteractiveMap.unhighlight();
+            else if (!self.isActive()) {
+                self.InteractiveMap.unhighlight();
             }
         }
     }
@@ -1074,10 +1142,7 @@ function InfoControl(InteractiveMap) {
                 else {
                     self.displayFeatureInfo(feature, true);
                     self.InteractiveMap.select(feature);
-                    self.InteractiveMap.view.animate({
-                      center: evt.coordinate,
-                      duration: 1000
-                    });
+                    self.InteractiveMap.panTo(evt.coordinate);
                 }
             }
             else {
@@ -1087,8 +1152,25 @@ function InfoControl(InteractiveMap) {
             }
         }
         else {
+            // if clicked a ward feature, highlight
+            var feature = self.InteractiveMap.checkAndHighlightWard(evt.pixel);
+            
+            if (feature) {
+                var visionFeature = feature.get('visionFeature');
+                if (visionFeature) {
+                    self.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'), true);
+                }
+                else {
+                    self.close(true);
+                }
+                self.InteractiveMap.panTo(evt.coordinate);
+            }
+            // no highlighted feature so unhighlight current feature
+            else if (!self.isActive()) {
+                self.InteractiveMap.unhighlight();            
+                self.close(true);
+            }
             self.InteractiveMap.deselectAll();
-            self.close(true);
         }
     }
     this.clickListener = null;
@@ -1183,15 +1265,27 @@ var layerDefinitions = [
         })
     },
     {
+        id: 'trigger_multiple',
+        name: 'Spawn Boxes',
+        type: 'polygon',
+        group: 'overlay',
+        style: new ol.style.Style({
+            fill: new ol.style.Fill({color: [0, 255, 125, 0.3]}),
+            stroke: new ol.style.Stroke({color: [0, 255, 125, 0.8]})
+        })
+    },
+    {
         id: 'npc_dota_neutral_spawner',
         name: 'Neutral Camps',
-        icon: 'img/svgs/jungle_0.svg',
-        group: 'object'
+        group: 'object',
+        style: function (feature, resolution) {
+            console.log("styles.neutralCamp[feature.get('dotaProps').neutralType]", feature, feature.get('dotaProps').neutralType, styles.neutralCamp[feature.get('dotaProps').neutralType]);
+            return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
+        }
     },
     {
         id: 'ent_dota_tree',
         name: 'Trees',
-        icon: 'img/svgs/park-15.svg',
         group: 'object',
         style:  function (feature, resolution) {
             if (feature.get('isCut')) {
@@ -1205,62 +1299,62 @@ var layerDefinitions = [
     {
         id: 'npc_dota_roshan_spawner',
         name: 'Roshan',
-        icon: 'img/roshan.png',
-        group: 'object'
+        group: 'object',
+        style: styles.roshan
     },
     {
         id: 'dota_item_rune_spawner_powerup',
         name: 'Runes',
-        icon: 'img/doubledamage.png',
-        group: 'object'
+        group: 'object',
+        style: styles.rune
     },
     {
         id: 'dota_item_rune_spawner_bounty',
         name: 'Bounty Runes',
-        icon: 'img/bountyrune.png',
-        group: 'object'
+        group: 'object',
+        style: styles.bountyRune
     },
     {
         id: 'ent_dota_fountain',
         name: 'Fountain',
-        icon: 'img/svgs/water-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.ent_dota_fountain
     },
     {
         id: 'npc_dota_barracks',
         name: 'Barracks',
-        icon: 'img/svgs/stadium-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_barracks
     },
     {
         id: 'npc_dota_filler',
         name: 'Buildings',
-        icon: 'img/svgs/landmark-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_filler
     },
     {
         id: 'npc_dota_tower',
         name: 'Towers',
-        icon: 'img/svgs/castle-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_tower
     },
     {
         id: 'ent_dota_shop',
         name: 'Shops',
-        icon: 'img/svgs/shop-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.ent_dota_shop
     },
     {
         id: 'npc_dota_fort',
         name: 'Ancients',
-        icon: 'img/svgs/town-hall-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_fort
     },
     {
         id: 'npc_dota_healer',
         name: 'Shrines',
-        icon: 'img/svgs/place-of-worship-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_healer
     }
 ];
 
@@ -1695,7 +1789,77 @@ module.exports = {
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 
+var defaultStyle = new ol.style.Style({
+    fill: new ol.style.Fill({
+        color: 'rgba(255,255,255,0.4)'
+    }),
+    stroke: new ol.style.Stroke({
+        color: '#3399CC',
+        width: 1.25
+    })
+});
+
+var getFeatureCenter = function(feature) {
+    var extent = feature.getGeometry().getExtent();
+    var center = ol.extent.getCenter(extent);
+    return new ol.geom.Point(center);
+};
+
 var styles = {
+    neutralCamp: [
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 8,
+                fill: new ol.style.Fill({
+                    color: 'rgba(0, 255, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(0, 255, 0, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 9,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255, 255, 0, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 10,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 150, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255, 150, 0, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 11,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 0, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255, 0, 0, 0.7)',
+                    width: 2
+                })
+            })
+        })
+    ],
     highlight: new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(255, 255, 0, 0.2)'
@@ -1768,6 +1932,76 @@ var styles = {
             width: 2
         })
     }),
+    ent_dota_fountain: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/water-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_barracks: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/stadium-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_filler: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/landmark-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_tower: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/castle-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    ent_dota_shop: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/shop-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_fort: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/town-hall-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_healer: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/place-of-worship-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
     measure: new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(255, 255, 255, 0.3)'
@@ -1841,7 +2075,25 @@ var styles = {
             fill: new ol.style.Fill({color: [51, 25, 0, 0.7]}),
             stroke: new ol.style.Stroke({color: [255, 128, 0, 0.8]})
         })
-    }
+    },
+    bountyRune: new ol.style.Style({
+        image: new ol.style.Icon({
+            src: 'img/bountyrune.png',
+            anchor: [0.5, 0.5]
+        })
+    }),
+    rune: new ol.style.Style({
+        image: new ol.style.Icon({
+            src: 'img/doubledamage.png',
+            anchor: [0.5, 0.5]
+        })
+    }),
+    roshan: new ol.style.Style({
+        image: new ol.style.Icon({
+            src: 'img/roshan.png',
+            anchor: [0.5, 0.5]
+        })
+    })
 }
 
 module.exports = styles;
@@ -1990,6 +2242,8 @@ VisionControl.prototype.getVisionFeature = function (feature, coordinate, radius
     
     // get radius from feature if not provided
     radius = radius || this.InteractiveMap.getFeatureVisionRadius(feature, dotaProps)
+    console.log('getVisionFeature', radius);
+    if (radius == null) return;
     
     var gridXY = vs.WorldXYtoGridXY(worldCoordinate[0], worldCoordinate[1]);
     if (vs.isValidXY(gridXY.x, gridXY.y, true, true, true)) {
@@ -2005,6 +2259,10 @@ VisionControl.prototype.getVisionFeature = function (feature, coordinate, radius
         var feature = new ol.Feature({
             geometry: multiPolygon
         });
+        feature.set('visionData', {
+            area: vs.area,
+            lightArea: vs.lightArea
+        }, false);
         return feature;
     }
 }
@@ -2014,9 +2272,10 @@ VisionControl.prototype.toggleVisionFeature = function (feature) {
     if (visionFeature) {
         this.source.removeFeature(visionFeature);
         feature.set('visionFeature', null);
+        return null;
     }
     else {
-        this.setVisionFeature(feature);
+        return this.setVisionFeature(feature);
     }
 }
 
@@ -2034,7 +2293,7 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
     
     // determine radius according to unit type
     var radius = this.InteractiveMap.getFeatureVisionRadius(feature, feature.get('dotaProps'), unitClass);
-
+    console.log('setVisionFeature', unitClass, radius);
     // create and add vision feature
     visionFeature = this.getVisionFeature(feature, coordinate, radius);
     if (visionFeature) {
@@ -2051,6 +2310,7 @@ module.exports = VisionControl;
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var styles = require('./styleDefinitions');
+var mapConstants = require('./mapConstants');
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;
@@ -2066,6 +2326,7 @@ function WardControl(InteractiveMap, throttleTime) {
     }
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function(evt) {
+        console.log('pointerMoveHandler ward');
         if (evt.dragging) {
             return;
         }
@@ -2080,21 +2341,27 @@ function WardControl(InteractiveMap, throttleTime) {
             layerFilter: self.InteractiveMap.layerFilters.marker
         });
         if (feature) {
-            bBuildingHover = true;
-            self.highlight(feature);
+            bBuildingHover = self.highlight(feature);
+            
+            if (bBuildingHover) {
+                self.showVisibilityInfo();
+            }
         }
         else {
             // if mouse over a ward feature, highlight
             var feature = InteractiveMap.checkAndHighlightWard(pixel);
-            
+
             // no highlighted feature so unhighlight current feature
             if (!feature) {
                 self.unhighlight();
             }
+            else {
+                self.showVisibilityInfo();
+            }
         }
         
         // vision cursor
-        if (Date.now() - self.lastPointerMoveTime < throttleTime || self.InteractiveMap.MODE != 'observer') {
+        if (Date.now() - self.lastPointerMoveTime < throttleTime) {
             return;
         }
         self.lastPointerMoveTime = Date.now();
@@ -2112,6 +2379,13 @@ function WardControl(InteractiveMap, throttleTime) {
         if (hoverFeature) {
             self.InteractiveMap.cursorControl.source.clear(true);
             self.InteractiveMap.cursorControl.source.addFeature(hoverFeature);
+            
+            if (!bBuildingHover) {
+                self.showVisibilityInfo();
+            }
+        }
+        else if (!bBuildingHover) {
+            self.clearInfo();
         }
     }
     this.pointerMoveListener = null;
@@ -2123,9 +2397,14 @@ function WardControl(InteractiveMap, throttleTime) {
         }, {
             layerFilter: self.InteractiveMap.layerFilters.marker
         });
-        if (feature) {
+        if (feature && self.InteractiveMap.hasVisionRadius(feature)) {
             self.InteractiveMap.toggle(feature);
-            self.InteractiveMap.visionControl.toggleVisionFeature(feature);
+            if (self.InteractiveMap.visionControl.toggleVisionFeature(feature)) {
+                self.showVisibilityInfo();
+            }
+            else {
+                self.clearInfo();
+            }
             self.InteractiveMap.cursorControl.source.clear(true);
         }
         else {
@@ -2136,6 +2415,7 @@ function WardControl(InteractiveMap, throttleTime) {
             });
             if (feature) {
                 self.removeWard(feature);
+                self.clearInfo(true);
             }
             else {
                 self.addWard(evt.coordinate, self.InteractiveMap.MODE);
@@ -2146,13 +2426,36 @@ function WardControl(InteractiveMap, throttleTime) {
     this.clickListener = null;
 }
 
-WardControl.prototype.activate = function () {
-    if (!this.pointerMoveListener && this.InteractiveMap.MODE == 'observer') {
-        this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', this.pointerMoveHandler);
+WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
+    console.log('showVisibilityInfo', visionFeature);
+    var info = this.InteractiveMap.infoControl;
+    var vs = this.InteractiveMap.vs;
+    var lightArea = vs.lightArea;
+    var area = vs.area;
+    if (visionFeature) {
+        var visionData = visionFeature.get('visionData');
+        if (visionData) {
+            lightArea = visionData.lightArea;
+            area = visionData.area;
+            info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+            info.open(bClicked);
+        }
     }
     else {
-        ol.Observable.unByKey(this.pointerMoveListener);
-        this.pointerMoveListener = null;
+        info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+        info.open(bClicked);
+    }
+}
+
+WardControl.prototype.clearInfo = function (bOverrideActive) {
+    this.InteractiveMap.infoControl.setContent("");
+    this.InteractiveMap.infoControl.close(bOverrideActive);
+}
+
+WardControl.prototype.activate = function () {
+    console.log('activate ward');
+    if (!this.pointerMoveListener) {
+        this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', this.pointerMoveHandler);
     }
     if (!this.clickListener) {
         this.clickListener = this.InteractiveMap.map.on('click', this.clickHandler);
@@ -2170,15 +2473,31 @@ WardControl.prototype.deactivate = function () {
 
 WardControl.prototype.addWard = function (coordinate, wardType) {
     console.log('addWard', coordinate, wardType);
+    if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
     var geom = new ol.geom.Point(coordinate);
     var feature = new ol.Feature(geom);
     feature.set('wardType', wardType, true);
     feature.setStyle(styles[wardType].normal);
     this.source.addFeature(feature);
-    if (wardType == 'observer') this.InteractiveMap.visionControl.setVisionFeature(feature, coordinate, wardType);
+    if (wardType == 'observer') {
+        if (this.InteractiveMap.visionControl.setVisionFeature(feature, coordinate, wardType)) {
+            this.showVisibilityInfo();
+        }
+    }
+    
+    var circle = this.InteractiveMap.getRangeCircle(feature, coordinate, wardType);
+    if (circle) {
+        circle.setStyle(wardType == 'observer' ? styles.dayVision : styles.trueSight);
+        feature.set('wardRange', circle, true);
+        this.InteractiveMap.wardRangeSource.addFeature(circle);
+    }
 }
 
 WardControl.prototype.removeWard = function (feature) {
+    var wardRange = feature.get('wardRange');
+    if (wardRange) {
+        this.InteractiveMap.wardRangeSource.removeFeature(wardRange);
+    }
     this.source.removeFeature(feature);
     this.InteractiveMap.visionControl.removeVisionFeature(feature);
 }
@@ -2186,9 +2505,11 @@ WardControl.prototype.removeWard = function (feature) {
 WardControl.prototype.highlight = function (feature) {
     this.InteractiveMap.cursorControl.source.clear(true);
     this.unhighlight();
-    this.InteractiveMap.visionControl.setVisionFeature(feature);
+    var visionFeature = this.InteractiveMap.visionControl.setVisionFeature(feature);
+    console.log('WardControl', visionFeature);
     this.addRangeCircles(feature);
     this.InteractiveMap.highlight(feature);
+    return visionFeature;
 }
 
 WardControl.prototype.unhighlight = function () {
@@ -2216,7 +2537,7 @@ WardControl.prototype.removeRangeCircles = function (feature) {
 
 WardControl.prototype.addRangeCircle = function (feature, rangeType) {
     if (!feature.get(rangeType)) {
-        var circle = this.InteractiveMap.getRangeCircle(feature, null, rangeType);
+        var circle = this.InteractiveMap.getRangeCircle(feature, null, null, rangeType);
         if (circle) {
             feature.set(rangeType, circle, true);
             this.InteractiveMap.rangeSources[rangeType].addFeature(circle);
@@ -2234,7 +2555,7 @@ WardControl.prototype.removeRangeCircle = function (feature, rangeType) {
 
 module.exports = WardControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./styleDefinitions":16}],22:[function(require,module,exports){
+},{"./mapConstants":11,"./styleDefinitions":16}],22:[function(require,module,exports){
 var PNG = require('png-js');
 
 function ImageHandler(imagePath) {

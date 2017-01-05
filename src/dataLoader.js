@@ -17,6 +17,44 @@ function loadGeoJSON(map, layerDef) {
     return layer;
 }
 
+function loadPolygon(map, layerDef, data, layer) {
+    var features = [];
+    features = data.data[layerDef.id].map(function (obj) {
+        var points = obj.points;
+        var ring = points.map(function (point) {
+            return ol.proj.transform([point.x, point.y], proj.dota, proj.pixel)
+        });
+        ring.push(ol.proj.transform([points[0].x, points[0].y], proj.dota, proj.pixel))
+        var geom = new ol.geom.Polygon([ring]);
+        var feature = new ol.Feature(geom);
+        obj.id = layerDef.id;
+        feature.set('dotaProps', obj, true);
+        return feature;
+    });
+    
+    var vectorSource = new ol.source.Vector({
+        defaultDataProjection : 'dota',
+        features: features
+    });
+    
+    if (layer) {
+        layer.setSource(vectorSource);
+    }
+    else {
+        layer = new ol.layer.Vector({
+            title: layerDef.name,
+            source: vectorSource,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        layer.set('showInfo', false, true);
+    }
+
+    return layer;
+}
+
 function loadJSON(map, layerDef, data, layer) {
     var features = [];
     features = data.data[layerDef.id].map(function (point) {
@@ -77,6 +115,9 @@ function loadLayerGroupFromData(map, data, version, layersIndex, layerDefs) {
         switch (layerDef.type) {
             case 'GeoJSON':
                 layer = loadGeoJSON(map, layerDef, layersIndex[layerDef.id]);
+            break;
+            case 'polygon':
+                layer = loadPolygon(map, layerDef, data, layersIndex[layerDef.id]);
             break;
             default:
                 layer = loadJSON(map, layerDef, data, layersIndex[layerDef.id]);

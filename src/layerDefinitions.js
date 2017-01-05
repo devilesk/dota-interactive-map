@@ -25,15 +25,27 @@ var layerDefinitions = [
         })
     },
     {
+        id: 'trigger_multiple',
+        name: 'Spawn Boxes',
+        type: 'polygon',
+        group: 'overlay',
+        style: new ol.style.Style({
+            fill: new ol.style.Fill({color: [0, 255, 125, 0.3]}),
+            stroke: new ol.style.Stroke({color: [0, 255, 125, 0.8]})
+        })
+    },
+    {
         id: 'npc_dota_neutral_spawner',
         name: 'Neutral Camps',
-        icon: 'img/svgs/jungle_0.svg',
-        group: 'object'
+        group: 'object',
+        style: function (feature, resolution) {
+            console.log("styles.neutralCamp[feature.get('dotaProps').neutralType]", feature, feature.get('dotaProps').neutralType, styles.neutralCamp[feature.get('dotaProps').neutralType]);
+            return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
+        }
     },
     {
         id: 'ent_dota_tree',
         name: 'Trees',
-        icon: 'img/svgs/park-15.svg',
         group: 'object',
         style:  function (feature, resolution) {
             if (feature.get('isCut')) {
@@ -47,62 +59,62 @@ var layerDefinitions = [
     {
         id: 'npc_dota_roshan_spawner',
         name: 'Roshan',
-        icon: 'img/roshan.png',
-        group: 'object'
+        group: 'object',
+        style: styles.roshan
     },
     {
         id: 'dota_item_rune_spawner_powerup',
         name: 'Runes',
-        icon: 'img/doubledamage.png',
-        group: 'object'
+        group: 'object',
+        style: styles.rune
     },
     {
         id: 'dota_item_rune_spawner_bounty',
         name: 'Bounty Runes',
-        icon: 'img/bountyrune.png',
-        group: 'object'
+        group: 'object',
+        style: styles.bountyRune
     },
     {
         id: 'ent_dota_fountain',
         name: 'Fountain',
-        icon: 'img/svgs/water-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.ent_dota_fountain
     },
     {
         id: 'npc_dota_barracks',
         name: 'Barracks',
-        icon: 'img/svgs/stadium-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_barracks
     },
     {
         id: 'npc_dota_filler',
         name: 'Buildings',
-        icon: 'img/svgs/landmark-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_filler
     },
     {
         id: 'npc_dota_tower',
         name: 'Towers',
-        icon: 'img/svgs/castle-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_tower
     },
     {
         id: 'ent_dota_shop',
         name: 'Shops',
-        icon: 'img/svgs/shop-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.ent_dota_shop
     },
     {
         id: 'npc_dota_fort',
         name: 'Ancients',
-        icon: 'img/svgs/town-hall-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_fort
     },
     {
         id: 'npc_dota_healer',
         name: 'Shrines',
-        icon: 'img/svgs/place-of-worship-15.svg',
-        group: 'structure'
+        group: 'structure',
+        style: styles.npc_dota_healer
     }
 ];
 

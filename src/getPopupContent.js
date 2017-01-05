@@ -30,32 +30,32 @@ function getPopupContent(data, feature) {
     var dotaProps = feature.get('dotaProps');
     var unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
     var stats = data.data.stats[unitClass];
-    var htmlContent = '<div class="info"><div class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</div><div class="info-body">';
+    var htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
     if (dotaProps.pullType != null) {
-        htmlContent += '<div class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</div>';
+        htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
     }
     if (dotaProps.neutralType != null) {
-        htmlContent += '<div class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</div>';
+        htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
     }
     if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
-        htmlContent += '<div class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</div>';
+        htmlContent += '<br><span class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</span>';
     }
     if (stats.hasOwnProperty('bat')) {
-        htmlContent += '<div class="info-line">BAT: ' + stats.bat + '</div>';
+        htmlContent += '<br><span class="info-line">BAT: ' + stats.bat + '</span>';
     }
     if (stats.hasOwnProperty('attackRange')) {
-        htmlContent += '<div class="info-line">Attack Range: ' + stats.attackRange + '</div>';
+        htmlContent += '<br><span class="info-line">Attack Range: ' + stats.attackRange + '</span>';
     }
     if (stats.hasOwnProperty('health')) {
-        htmlContent += '<div class="info-line">Health: ' + stats.health + '</div>';
+        htmlContent += '<br><span class="info-line">Health: ' + stats.health + '</span>';
     }
     if (stats.hasOwnProperty('armor')) {
-        htmlContent += '<div class="info-line">Armor: ' + stats.armor + '</div>';
+        htmlContent += '<br><span class="info-line">Armor: ' + stats.armor + '</span>';
     }
     if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
-        htmlContent += '<div class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</div>';
+        htmlContent += '<br><span class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</span>';
     }
-    htmlContent += '</div></div>';
+    htmlContent += '</span></div>';
     return htmlContent;
 }
 

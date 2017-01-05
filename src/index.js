@@ -208,6 +208,7 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.wardControl.layer);
         InteractiveMap.map.addLayer(InteractiveMap.highlightLayer);
         InteractiveMap.map.addLayer(InteractiveMap.selectLayer);
+        InteractiveMap.map.addLayer(InteractiveMap.wardRangeLayer);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.dayVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);

@@ -33,9 +33,12 @@ function InfoControl(InteractiveMap) {
             // if mouse over a ward feature, highlight
             var feature = self.InteractiveMap.checkAndHighlightWard(pixel);
             
+            if (feature) {
+                self.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'));
+            }
             // no highlighted feature so unhighlight current feature
-            if (!feature && !self.isActive()) {
-                InteractiveMap.unhighlight();
+            else if (!self.isActive()) {
+                self.InteractiveMap.unhighlight();
             }
         }
     }
@@ -58,10 +61,7 @@ function InfoControl(InteractiveMap) {
                 else {
                     self.displayFeatureInfo(feature, true);
                     self.InteractiveMap.select(feature);
-                    self.InteractiveMap.view.animate({
-                      center: evt.coordinate,
-                      duration: 1000
-                    });
+                    self.InteractiveMap.panTo(evt.coordinate);
                 }
             }
             else {
@@ -71,8 +71,25 @@ function InfoControl(InteractiveMap) {
             }
         }
         else {
+            // if clicked a ward feature, highlight
+            var feature = self.InteractiveMap.checkAndHighlightWard(evt.pixel);
+            
+            if (feature) {
+                var visionFeature = feature.get('visionFeature');
+                if (visionFeature) {
+                    self.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'), true);
+                }
+                else {
+                    self.close(true);
+                }
+                self.InteractiveMap.panTo(evt.coordinate);
+            }
+            // no highlighted feature so unhighlight current feature
+            else if (!self.isActive()) {
+                self.InteractiveMap.unhighlight();            
+                self.close(true);
+            }
             self.InteractiveMap.deselectAll();
-            self.close(true);
         }
     }
     this.clickListener = null;
