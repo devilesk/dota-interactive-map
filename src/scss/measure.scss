@@ -1,0 +1,48 @@
+#btn-measure {
+    .line-icon {
+        height: 0px;
+        position: absolute;
+        width: 25px;
+        left: 8px;
+        top: 16px;
+        border: 2px dotted $text-color;
+        @include transform(rotate(-45deg));
+    }
+    
+    .circle-icon {
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        position: absolute;
+        right: 6px;
+        bottom: 4px;
+        border: 3px dotted $text-color;
+    }
+    
+    &[measure-type="line"] {
+        @include transform(scaleX(-1) scaleY(-1));
+        
+        &.active {
+            @include transform(scale(0.9) scaleX(-1) scaleY(-1));
+        }
+        
+        .line-icon {
+            border-style: solid;
+        }
+    }
+    
+    &[measure-type="circle"] {
+        .line-icon {
+            width: 16px;
+            left: 3px;
+            top: 10px;
+        }
+        .circle-icon {
+            border-style: solid;
+            height: 15px;
+            width: 15px;
+            right: 8px;
+            top: 7px;
+        }
+    }
+}

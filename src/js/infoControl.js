@@ -140,7 +140,7 @@ InfoControl.prototype.initialize = function (id) {
     this.id = id;
     this.info = document.getElementById(id);
     this.infoContent = document.querySelector('#' + id + ' .message-content');
-    this.closeBtn = document.querySelector('#' + id + ' .close.btn');
+    this.closeBtn = document.querySelector('#' + id + ' .btn-close');
     this.closeHandler = function (evt) {
         self.close.call(self, true);
     }

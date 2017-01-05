@@ -1,0 +1,219 @@
+.menu-panel {
+    height: 100%;
+    width: 250px;
+    max-width: 250px;
+    position: fixed;
+    z-index: 20;
+    top: 0;
+    background-color: transparent;
+    overflow: hidden;
+    transition: 0.5s;
+}
+#menu-right {
+    right: 0;
+}
+
+.menu-panel-inner {
+    width: 100%;
+    padding-top: 60px;
+    background-color: $bg-color;
+    height: 100%;
+}
+
+.btn.collapsed-horizontal,
+.menu-panel.collapsed-horizontal {
+    width: 0;
+    transition: 0.2s;
+    z-index: 0;
+}
+.btn.collapsed-horizontal::before {
+    display: none;
+}
+
+.menu-panel.expand-horizontal {
+    width: 100%;
+    transition-delay: 0.2s;
+}
+
+.hidden,
+.btn.hidden,
+.menu-panel .menu-item label.hidden {
+    display: none;
+}
+
+.menu-item {
+    position: relative;
+}
+
+.menu-item.header,
+.menu-item label,
+.menu-item input,
+.menu-item select {
+    padding: 8px 8px 8px 24px;
+    text-decoration: none;
+    font-size: 20px;
+    display: block;
+    transition: 0.3s;
+    white-space: nowrap;
+    width: 100%;
+    background-color: $bg-color;
+    border: 0;
+    color: $text-color;
+    box-sizing: border-box;
+}
+
+.menu-item input[type=radio],
+.menu-item input[type=checkbox] {
+    display: none;
+}
+
+.menu-item input[type=radio]:checked + .checkbox,
+.menu-item input[type=checkbox]:checked + .checkbox {
+    background-color: $text-color;
+    color: $bg-color;
+}
+
+.menu-item input[type=radio].inverse + .checkbox,
+.menu-item input[type=checkbox].inverse + .checkbox {
+    background-color: #1b1a1a;
+}
+.menu-item input[type=radio].inverse + .checkbox:hover,
+.menu-item input[type=checkbox].inverse + .checkbox:hover {
+    background-color: $bg-color;
+    color: $hover-text-color;
+}
+.menu-item input[type=radio].inverse:checked + .checkbox,
+.menu-item input[type=checkbox].inverse:checked + .checkbox {
+    background-color: $bg-color;
+    color: $hover-text-color;
+}
+
+.menu-item .checkbox:hover,
+.menu-item input[type=radio]:checked + .checkbox:hover,
+.menu-item input[type=checkbox]:checked + .checkbox:hover {
+    color: $hover-text-color;
+}
+
+.menu-item input[type=button] {
+    border: 1px solid $text-color;
+}
+
+.menu-item input[type=button]:active {
+    background-color: $text-color;
+    color: $hover-text-color;
+}
+
+.menu-item .text-label,
+.menu-item .select-label,
+.menu-item .text-label + input,
+.menu-item .select-label + select {
+    width: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.menu-item .sub-menu {
+    max-height: 0;
+    transition: 0.3s;
+    overflow: hidden;
+}
+
+.menu-item input:checked + .checkbox {
+    max-height: 999px;
+    display: block;
+}
+.menu-item input:checked + .checkbox + .sub-menu {
+    max-height: 999px;
+    display: block;
+}
+
+.menu-item-group .menu-item.inline {
+    width: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.menu-item-group .menu-item label,
+.menu-item-group .menu-item input,
+.menu-item-group .menu-item select {
+    padding: 8px;
+}
+
+.menu-item-group.sub-menu .menu-item label {
+    padding-left: 48px;
+}
+.menu-item-group.sub-menu .menu-item.inline label {
+    padding-left: 8px;
+}
+.menu-item-group.sub-menu .menu-item .menu-item-group.sub-menu .menu-item label {
+    padding-left: 64px;
+}
+
+#menu-left-close-btn {
+    left: 0;
+}
+#menu-right-close-btn {
+    right: 0;
+}
+
+#menu-left-open-btn,
+#menu-right-open-btn {
+    position: absolute;
+    top: 0;
+    width: 50px;
+    height: 50px;
+}
+#menu-left-open-btn {
+    left: 0;
+}
+#menu-right-open-btn {
+    right: 0;
+}
+#menu-right-open-btn::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    width: 30px;
+    height: 4px;
+    background: $text-color;
+    box-shadow: 
+        0 8px 0 0 $text-color,
+        0 16px 0 0 $text-color;
+}
+#menu-right-open-btn:hover::before {
+    @include transform(scale(0.9));
+}
+
+input:not(:checked) + .btn-back,
+input:checked + .btn-back + .back-group .menu-contents .menu-item label.hidden {
+    display: block;
+    max-height: 999px;
+}
+
+@media screen and (min-width: 768px) {
+    .menu-panel {
+      width: 250px;
+    }
+    .menu-panel.expand-horizontal {
+      width: 250px;
+    }
+    .menu-contents.hidden {
+        display: block;
+    }
+    #marker-menu-open-btn,
+    #base-menu-open-btn {
+        display: none;
+    }
+}
+
+@media screen and (min-height: 768px) {
+    .menu-panel .menu-item label.hidden {
+        display: block;
+        max-height: 999px;
+    }
+    input:not(:checked) + .btn-back{
+        display: none;
+    }
+}

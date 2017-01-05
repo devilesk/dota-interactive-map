@@ -1,0 +1,123 @@
+@mixin message() {
+    z-index: 9999;
+    position: absolute;
+    
+    @media #{$not-mobile} {
+        width: 500px;
+        left: 50%;
+        margin-left: 0px;
+        @include transform(translateX(-50%));
+    }
+}
+
+#notification {
+    top: 36px;
+    width: calc(100% - 120px);
+    transition: 0.5s;
+    text-align: center;
+    margin-left: 60px;
+    
+    @include message();
+    
+    &.slideUp {
+        top: 0;
+        @include transform(translateY(-100%));
+    }
+    
+    &.slideDown {
+        @include transform(translateY(0%));
+    }
+    
+    @media #{$vertical-toolbar} {
+        top: 0;
+    }
+    
+    @media #{$not-mobile} {
+        &.slideUp {
+            @include transform(translateX(-50%) translateY(-100%));
+        }
+        &.slideDown {
+            @include transform(translateX(-50%) translateY(0%));
+        }
+    }
+    
+    .message-content {
+        padding: 6px 10px;
+        line-height: 24px;
+        color: $text-color;
+        margin: 10px 0px;
+        background-color: $bg-color;
+        
+        span {
+            display: block;
+        }
+    }
+}
+
+#info {
+    bottom: 0px;
+    width: 100%;
+    transition: 0.5s;
+    
+    &.slideUp {
+        @include transform(translateY(0%));
+    }
+    
+    &.slideDown {
+        transition-delay: 0.5s;
+        @include transform(translateY(100%));
+    }
+    
+    @media #{$not-mobile} {
+        &.slideUp {
+            @include transform(translateX(-50%) translateY(0%));
+        }
+        &.slideDown {
+            @include transform(translateX(-50%) translateY(100%));
+        }
+    }
+}
+
+.message-content {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: white;
+    margin: 10px;
+    box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.5);
+    line-height: 22px;
+}
+
+.info-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.info-line {
+    margin-bottom: 5px;
+    
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+#info-close-btn {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    border-radius: 10px;
+    margin: 10px;
+    background-color: #fff;
+    right: 0;
+}
+#info:not(.active) #info-close-btn {
+    display: none;
+}
+
+@media screen and (min-height: 768px) {
+    #notification .message-content span {
+        display: inline-block;
+    }
+    #notification .message-content span + span {
+        margin-left: 10px;
+    }
+}
