@@ -115,7 +115,7 @@
 .menu-item .sub-menu {
     max-height: 0;
     transition: 0.3s;
-    overflow: hidden;
+    overflow-y: scroll;
 }
 
 .menu-item input:checked + .checkbox {

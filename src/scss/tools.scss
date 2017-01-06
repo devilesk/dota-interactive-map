@@ -2,17 +2,27 @@
     position: absolute;
     top: 0px;
     left: 50px;
-    height: 36px;
+    height: 50px;
     width: 250px;
     background-color: #888;
     z-index: 10;
+    
+    @media #{$vertical-toolbar} {
+        width: 50px;
+        top: 50px;
+        left: 0;
+        height: 250px;
+    }
 }
 .btn-tool {
     @extend .btn;
-    height: 36px;
     display: inline-block;
     position: relative;
     left: 0;
+
+    @media #{$vertical-toolbar} {
+        display: block;
+    }
 }
 .btn-tool:hover,
 .btn-tool:active,
@@ -21,7 +31,10 @@
 }
 
 #btn-tree {
-    background-image: url('img/btn-quelling_blade.png');
+    background-image: url('img/dota_cursor.png');
+    &[trees-enabled="yes"] {
+        background-image: url('img/btn-quelling_blade.png');
+    }
 }
 #btn-ward[ward-type="observer"] {
     background-image: url('img/ward_dispenser_observer.png');
@@ -34,23 +47,12 @@
 }
 .zoom-label  {
     width: 50px;
-    line-height: 36px;
-    font-size: 36px;
+    line-height: 50px;
+    font-size: 50px;
     left: 0;
     position: absolute;
 }
 #btn-zoom-in:hover,
 #btn-zoom-out:hover  {
     font-size: 32px;
-}
-
-@media screen and (max-width: 349px) {
-    #tool-btn-container {
-        width: 50px;
-        top: 50px;
-        left: 0;
-    }
-    .btn-tool {
-        display: block;
-    }
 }

@@ -18,7 +18,8 @@ var InteractiveMap = {
         zoom: 0,
         center: mapConstants.imgCenter,
         projection: proj.pixel,
-        resolutions: mapConstants.resolutions
+        resolutions: mapConstants.resolutions,
+        extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
     }),
     data: {},
     layerIndex: {},

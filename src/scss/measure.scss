@@ -2,9 +2,9 @@
     .line-icon {
         height: 0px;
         position: absolute;
-        width: 25px;
-        left: 8px;
-        top: 16px;
+        width: 30px;
+        left: 6px;
+        top: 20px;
         border: 2px dotted $text-color;
         @include transform(rotate(-45deg));
     }
@@ -24,10 +24,10 @@
         
         &.active {
             @include transform(scale(0.9) scaleX(-1) scaleY(-1));
-        }
         
-        .line-icon {
-            border-style: solid;
+            .line-icon {
+                border-style: solid;
+            }
         }
     }
     
@@ -38,11 +38,15 @@
             top: 10px;
         }
         .circle-icon {
-            border-style: solid;
-            height: 15px;
-            width: 15px;
-            right: 8px;
-            top: 7px;
+            height: 20px;
+            width: 20px;
+            right: 9px;
+            top: 15px;
+        }
+        &.active {
+            .circle-icon {
+                border-style: solid;
+            }
         }
     }
 }

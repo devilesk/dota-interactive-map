@@ -20,7 +20,8 @@ var InteractiveMap = {
         zoom: 0,
         center: mapConstants.imgCenter,
         projection: proj.pixel,
-        resolutions: mapConstants.resolutions
+        resolutions: mapConstants.resolutions,
+        extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
     }),
     data: {},
     layerIndex: {},
@@ -878,7 +879,7 @@ function changeMode(mode) {
             document.querySelector('input[name="mode"][value="navigate"]').checked = true;
             InteractiveMap.MODE = mode || "navigate";
             document.getElementById('btn-ward').classList.remove('active');
-            document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-tree').classList.add('active');
             document.getElementById('btn-measure').classList.remove('active');
             QueryString.setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
             InteractiveMap.measureControl.deactivate();
@@ -1051,20 +1052,17 @@ function initialize() {
     });
 
     document.getElementById('btn-tree').addEventListener('click', function () {
-        document.querySelector('input[name="mode"][value="navigate"').checked = true;
+        if (this.classList.contains('active')) {
+            console.log('swapping', this.getAttribute('trees-enabled'), !this.getAttribute('trees-enabled'));
+            this.setAttribute('trees-enabled', this.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
+        }
+        this.classList.add('active');
         document.getElementById('btn-ward').classList.remove('active');
         document.getElementById('btn-measure').classList.remove('active');
-        if (this.classList.contains('active')) {
-            this.classList.remove('active');
-            toggleLayerMenuOption("ent_dota_tree", false);
-            InteractiveMap.notificationControl.show(modeNotificationText.treeDisable);
-        }
-        else {
-            changeMode('navigate');
-            this.classList.add('active');
-            toggleLayerMenuOption("ent_dota_tree", true);
-            InteractiveMap.notificationControl.show(modeNotificationText.treeEnable);
-        }
+        changeMode('navigate');
+        console.log('btn-tree', this.getAttribute('trees-enabled'));
+        toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
+        InteractiveMap.notificationControl.show(this.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
     });
 
     document.getElementById('btn-ward').addEventListener('click', function () {

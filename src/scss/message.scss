@@ -11,7 +11,7 @@
 }
 
 #notification {
-    top: 36px;
+    top: 50px;
     width: calc(100% - 120px);
     transition: 0.5s;
     text-align: center;
@@ -51,6 +51,16 @@
         span {
             display: block;
         }
+        
+        @media #{$not-mobile} {
+            span {
+                display: inline-block;
+                
+                + span {
+                    margin-left: 10px;
+                }
+            }
+        }
     }
 }
 
@@ -58,6 +68,8 @@
     bottom: 0px;
     width: 100%;
     transition: 0.5s;
+    
+    @include message();
     
     &.slideUp {
         @include transform(translateY(0%));
@@ -75,6 +87,26 @@
         &.slideDown {
             @include transform(translateX(-50%) translateY(100%));
         }
+    }
+
+    @at-root #info-close-btn {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        border-radius: 10px;
+        margin: 10px;
+        background-color: #fff;
+        right: 0;
+    }
+
+    &:not(.active) #info-close-btn {
+        display: none;
+    }
+    
+    @media #{$vertical-toolbar-short-height} {
+        width: calc(100% - 120px);
+        margin-left: 60px;
     }
 }
 
@@ -96,28 +128,5 @@
     
     &:last-child {
         margin-bottom: 0;
-    }
-}
-
-#info-close-btn {
-    font-size: 36px;
-    width: 36px;
-    height: 36px;
-    line-height: 36px;
-    border-radius: 10px;
-    margin: 10px;
-    background-color: #fff;
-    right: 0;
-}
-#info:not(.active) #info-close-btn {
-    display: none;
-}
-
-@media screen and (min-height: 768px) {
-    #notification .message-content span {
-        display: inline-block;
-    }
-    #notification .message-content span + span {
-        margin-left: 10px;
     }
 }

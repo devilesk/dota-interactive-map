@@ -26,7 +26,7 @@ hr {
     line-height: 50px;
     
     &:hover {
-        font-size: 46px;
+        @include transform(scale(0.9));
     }
 }
 
@@ -37,6 +37,10 @@ hr {
 }
 .btn-open {
     z-index: 40;
+    
+    &:hover {
+        @include transform(scale(1));
+    }
 }
 .btn-close {
     z-index: 30;
@@ -45,4 +49,8 @@ hr {
     font-size: 36px;
     right: 200px;
     z-index: 30;
+}
+
+#menu-right-back-btn:not(:checked):hover + .btn-back {
+    cursor: pointer;
 }
