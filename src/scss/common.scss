@@ -47,7 +47,7 @@ hr {
 }
 .btn-back {
     font-size: 36px;
-    right: 200px;
+    right: #{$menu-width - 50px};
     z-index: 30;
 }
 

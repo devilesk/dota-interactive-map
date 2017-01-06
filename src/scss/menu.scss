@@ -1,7 +1,7 @@
 .menu-panel {
     height: 100%;
-    width: 250px;
-    max-width: 250px;
+    width: $menu-width;
+    max-width: $menu-width;
     position: fixed;
     z-index: 20;
     top: 0;
@@ -46,8 +46,8 @@
 
 .menu-item {
     position: relative;
-    
-    label, input, select {
+
+    .text-label, .select-label, .checkbox, input, select {
         padding: 8px 8px 8px 24px;
         text-decoration: none;
         font-size: 20px;
@@ -59,6 +59,7 @@
         border: 0;
         color: $text-color;
         box-sizing: border-box;
+        height: 40px;
     }
 
     .sub-menu {
@@ -110,7 +111,7 @@
         }
         
         &:checked {
-            & + .checkbox, & + .checkbox + .sub-menu {
+            & + .checkbox, & + .checkbox + .sub-menu, & + .checkbox {
                 max-height: 999px;
                 display: block;
             }
@@ -157,22 +158,22 @@
             text-align: center;
         }
         
-        label, input, select {
+        .checkbox, input, select {
             padding: 8px;
         }
     }
     
     &.sub-menu {
         .menu-item {
-            label {
+            .checkbox {
                 padding-left: 48px;
             }
             
-            &.inline label {
+            &.inline .checkbox {
                 padding-left: 8px;
             }
             
-            .menu-item-group.sub-menu .menu-item label {
+            .menu-item-group.sub-menu .menu-item .checkbox {
                 padding-left: 64px;
             }
         }
@@ -223,10 +224,10 @@
 
 @media #{$not-mobile} {
     .menu-panel {
-      width: 250px;
+      width: $menu-width;
     }
     .menu-panel.expand-horizontal {
-      width: 250px;
+      width: $menu-width;
     }
     .menu-contents.hidden {
         display: block;

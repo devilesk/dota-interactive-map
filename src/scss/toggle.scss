@@ -1,0 +1,56 @@
+.btn-toggle {
+    transition: 0.3s;
+    height: 36px;
+    width: 50px;
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+.btn-toggle label {
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+input[type="checkbox"]:checked + .checkbox + .btn-toggle {
+    display: block;
+}
+
+.btn-toggle label::before {
+    position: absolute;
+    display: block;
+    content: "";
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+    box-sizing: border-box;
+    border: 2px solid $bg-color;
+    background-color: black;
+    transition: background 0.3s;
+}
+.btn-toggle label::after {
+    position: absolute;
+    display: block;
+    content: "";
+    width: 50%;
+    height: 32px;
+    border-radius: 5px;
+    background-color: $text-color;
+    top: 0px;
+    left: 0px;
+    margin: 2px;
+    box-sizing: border-box;
+    transition: margin 0.3s;
+}
+
+.btn-toggle input[type="checkbox"]:checked + label::after {
+    margin-left: calc(50% - 2px);
+}
+
+.btn-toggle input[type="checkbox"]:checked + label::before {
+    background-color: $bg-color;
+}

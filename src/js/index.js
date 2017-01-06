@@ -2,6 +2,8 @@ var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var QueryString = require('./util/queryString');
 var ol = require('openlayers');
+var proj = require('./projections');
+var mapConstants = require('./mapConstants');
 var MenuControl = require('./menuControl');
 var InfoControl = require('./infoControl');
 var NotificationControl = require('./notificationControl');
@@ -97,7 +99,7 @@ document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[na
 function toggleLayerMenuOption(layerId, state) {
     var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
     if (state != null) element.checked = state;
-    updateLayerAndQueryString(element, layerId)
+    updateLayerAndQueryString(element, layerId);
 }
 function updateLayerAndQueryString(element, layerId) {
     layerId = layerId || element.getAttribute('data-layer-id');
@@ -105,6 +107,9 @@ function updateLayerAndQueryString(element, layerId) {
     layer.setVisible(element.checked);
     var param = layer.get("title").replace(/ /g, '');
     QueryString.setQueryString(param, element.checked ? true : null);
+    if (layerId == 'ent_dota_tree') {
+        document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+    }
 }
 function layerToggleHandler() {
     updateLayerAndQueryString(this);
@@ -125,6 +130,7 @@ function updateOverlayMenu() {
         var layerId = element.getAttribute('data-layer-id');
         var layerIndex = InteractiveMap.getMapLayerIndex();
         var layer = layerIndex[layerId];
+        console.log('label', label);
         if (!layer) {
             label.style.display = "none";
         }
@@ -136,6 +142,19 @@ function updateOverlayMenu() {
 }
 
 function setDefaults() {
+    var x = QueryString.getParameterByName('x');
+    var y = QueryString.getParameterByName('y');
+    var zoom = QueryString.getParameterByName('zoom');
+    if (zoom) {
+        InteractiveMap.view.setZoom(zoom);
+    }
+    if (x && y) {
+        var coordinate = ol.proj.transform([x, y], proj.dota, proj.pixel);
+        if (ol.extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
+            InteractiveMap.panTo(coordinate);
+        }
+    }
+    
     document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
     var mode = QueryString.getParameterByName('mode');
     changeMode(mode);
@@ -166,7 +185,12 @@ function setDefaults() {
         else {
             QueryString.setQueryString(param, null);
         }
+        if (layerDef.id == 'ent_dota_tree') {
+            document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
+        }
     });
+
+    console.log('trees enabled', document.getElementById('btn-tree').getAttribute('trees-enabled'));
 }
     
 document.getElementById('nightControl').addEventListener('change', function () {
@@ -201,6 +225,17 @@ document.getElementById('movementSpeed').addEventListener('change', function () 
     InteractiveMap.movementSpeed = this.value;
 }, false);
 
+function onMoveEnd(evt) {
+    var map = evt.map;
+    var extent = map.getView().calculateExtent(map.getSize());
+    var center = ol.extent.getCenter(extent);
+    var worldXY = ol.proj.transform(center, proj.pixel, proj.dota);
+    var coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
+    QueryString.setQueryString('x', coordinate[0]);
+    QueryString.setQueryString('y', coordinate[1]);
+    QueryString.setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
+}
+
 function initialize() {
     InteractiveMap.infoControl.activate();
     
@@ -220,6 +255,8 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
     });
+    
+    InteractiveMap.map.on('moveend', onMoveEnd);
         
     document.getElementById('option-dayVision').addEventListener('change', function () {
         InteractiveMap.rangeLayers.dayVision.setVisible(this.checked);
@@ -257,9 +294,9 @@ function initialize() {
         this.classList.add('active');
         document.getElementById('btn-ward').classList.remove('active');
         document.getElementById('btn-measure').classList.remove('active');
-        changeMode('navigate');
         console.log('btn-tree', this.getAttribute('trees-enabled'));
         toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
+        changeMode('navigate');
         InteractiveMap.notificationControl.show(this.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
     });
 

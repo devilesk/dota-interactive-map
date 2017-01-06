@@ -28,6 +28,22 @@ MenuPanel.prototype.close = function (evt) {
     this.openBtn.classList.add('expand-horizontal');
     console.log('menu close', evt);
 }
+MenuPanel.prototype.createToggle = function (layerDef, handler) {
+    var toggle = document.createElement('div');
+        toggle.classList.add('btn-toggle');
+        
+    var toggleCb = document.createElement('input');
+        toggleCb.setAttribute("type", "checkbox");
+        toggleCb.id = 'toggle-' + layerDef.id;
+        toggleCb.addEventListener("change", handler, false);
+    toggle.appendChild(toggleCb);
+
+    var toggleLbl = document.createElement('label');
+        toggleLbl.setAttribute("for", toggleCb.id);
+    toggle.appendChild(toggleLbl);
+    
+    return toggle;
+}
 MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType, inputName) {
     var optionId = layerDef.id;
     
@@ -52,6 +68,13 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
         menuItemLbl.setAttribute("for", menuItemCb.id);
         menuItemLbl.innerHTML = layerDef.name;
     menuItem.appendChild(menuItemLbl);
+    
+    function toggleHandler() {
+        console.log('toggled');
+    }
+    var toggle = MenuPanel.prototype.createToggle(layerDef, toggleHandler);
+    menuItem.appendChild(toggle);
+    
     return menuItem;
 }
 
