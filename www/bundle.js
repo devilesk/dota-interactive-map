@@ -359,7 +359,7 @@ InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeT
 
 module.exports = InteractiveMap;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./baseLayerDefinitions":2,"./conversionFunctions":3,"./dataLoader":5,"./layerDefinitions":10,"./mapConstants":11,"./projections":15,"./styleDefinitions":16,"./util/getJSON":17}],2:[function(require,module,exports){
+},{"./baseLayerDefinitions":2,"./conversionFunctions":3,"./dataLoader":5,"./layerDefinitions":10,"./mapConstants":11,"./projections":15,"./styleDefinitions":16,"./util/getJSON":18}],2:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 
@@ -746,7 +746,7 @@ function processNext(grid, components, key, i) {
 }
 
 module.exports = getLightUnion;
-},{"dota-vision-simulation":26}],7:[function(require,module,exports){
+},{"dota-vision-simulation":27}],7:[function(require,module,exports){
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -826,6 +826,7 @@ var WardControl = require('./wardControl');
 var CursorControl = require('./cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
+var forEach = require('./util/forEach');
 InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
 InteractiveMap.menuControl = new MenuControl(InteractiveMap);
 InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
@@ -903,11 +904,11 @@ function changeMode(mode) {
     InteractiveMap.notificationControl.show(modeNotificationText[InteractiveMap.MODE]);
 }
 
-document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]').forEach(function (element) {
+forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), function (element) {
     element.addEventListener("change", function () {
         changeMode(this.value);
     }, false);
-});
+}, this);
 
 function toggleLayerMenuOption(layerId, state) {
     var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
@@ -938,7 +939,7 @@ function baseLayerToggleHandler() {
 // updates element visibility based on map layer index
 // updates layer visibility based on element state
 function updateOverlayMenu() {
-    document.querySelectorAll('.data-layer > input').forEach(function (element) {
+    forEach(document.querySelectorAll('.data-layer > input'), function (element) {
         var label = element.nextSibling;
         var layerId = element.getAttribute('data-layer-id');
         var layerIndex = InteractiveMap.getMapLayerIndex();
@@ -951,7 +952,7 @@ function updateOverlayMenu() {
             label.style.display = "block";
             layer.setVisible(element.checked);
         }
-    });
+    }, this);
 }
 
 function setDefaults() {
@@ -975,7 +976,9 @@ function setDefaults() {
     var baseLayerName = QueryString.getParameterByName('BaseLayer');
     var element;
     if (baseLayerName) {
-        element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"');
+        console.log('baseLayerName', baseLayerName);
+        console.log('css', 'input[name="base-layer"][value="' + baseLayerName + '"');
+        element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
         if (element) {
             element.checked = true;
             InteractiveMap.baseLayers.filter(function (layer) { return layer.get("layerId") == baseLayerName })[0].setVisible(true);
@@ -984,7 +987,7 @@ function setDefaults() {
     if (!element) {
         QueryString.setQueryString('BaseLayer', null);
         InteractiveMap.baseLayers[0].setVisible(true);
-        document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"').checked = true;
+        document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
     }
     
     InteractiveMap.layerDefs.forEach(function (layerDef) {
@@ -992,7 +995,7 @@ function setDefaults() {
         var value = QueryString.getParameterByName(param);
         if (value && value !== "false") {
             layerDef.visible = true;
-            document.querySelector('input[data-layer-id="' + layerDef.id + '"').checked = true;
+            document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
             QueryString.setQueryString(param, true);
         }
         else {
@@ -1118,12 +1121,12 @@ function initialize() {
             this.setAttribute('ward-type', this.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
         }
         if (this.getAttribute('ward-type') == 'sentry') {
-            document.querySelector('input[name="mode"][value="ward"').checked = true;
-            document.querySelector('input[name="ward-type"][value="sentry"').checked = true;
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            document.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
         }
         else {
-            document.querySelector('input[name="mode"][value="ward"').checked = true;
-            document.querySelector('input[name="ward-type"][value="observer"').checked = true;
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            document.querySelector('input[name="ward-type"][value="observer"]').checked = true;
         }
         this.classList.add('active');
         document.getElementById('btn-tree').classList.remove('active');
@@ -1136,12 +1139,12 @@ function initialize() {
             this.setAttribute('measure-type', this.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
         }
         if (this.getAttribute('measure-type') == 'circle') {
-            document.querySelector('input[name="mode"][value="measure"').checked = true;
-            document.querySelector('input[name="measure-type"][value="circle"').checked = true;
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            document.querySelector('input[name="measure-type"][value="circle"]').checked = true;
         }
         else {
-            document.querySelector('input[name="mode"][value="measure"').checked = true;
-            document.querySelector('input[name="measure-type"][value="line"').checked = true;
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            document.querySelector('input[name="measure-type"][value="line"]').checked = true;
         }
         this.classList.add('active');
         document.getElementById('btn-tree').classList.remove('active');
@@ -1150,7 +1153,7 @@ function initialize() {
     });
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./InteractiveMap":1,"./cursorControl":4,"./infoControl":9,"./mapConstants":11,"./measureControl":12,"./menuControl":13,"./notificationControl":14,"./projections":15,"./util/queryString":18,"./visionControl":20,"./wardControl":21,"dota-vision-simulation":26,"dota-vision-simulation/src/worlddata.json":27}],9:[function(require,module,exports){
+},{"./InteractiveMap":1,"./cursorControl":4,"./infoControl":9,"./mapConstants":11,"./measureControl":12,"./menuControl":13,"./notificationControl":14,"./projections":15,"./util/forEach":17,"./util/queryString":19,"./visionControl":21,"./wardControl":22,"dota-vision-simulation":27,"dota-vision-simulation/src/worlddata.json":28}],9:[function(require,module,exports){
 var getPopupContent = require('./getPopupContent');
 var styles = require('./styleDefinitions');
 
@@ -2210,6 +2213,14 @@ var styles = {
 module.exports = styles;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],17:[function(require,module,exports){
+var forEach = function (array, callback, scope) {
+    for (var i = 0; i < array.length; i++) {
+        callback.call(scope, array[i], i); // passes back stuff we need
+    }
+};
+
+module.exports = forEach;
+},{}],18:[function(require,module,exports){
 function getJSON(path, callback) {
     console.log('getJSON', path);
     var request = new XMLHttpRequest();
@@ -2231,7 +2242,7 @@ function getJSON(path, callback) {
 }
 
 module.exports = getJSON;
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var trim = require('./trim');
 
 function getParameterByName(name) {
@@ -2295,7 +2306,7 @@ module.exports = {
     removeQueryStringValue: removeQueryStringValue,
     updateQueryString: updateQueryString
 }
-},{"./trim":19}],19:[function(require,module,exports){
+},{"./trim":20}],20:[function(require,module,exports){
 function escapeRegex(string) {
     return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
 }
@@ -2316,7 +2327,7 @@ var trim = function trim(str, characters, flags) {
 };
 
 module.exports = trim;
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var latLonToWorld = require('./conversionFunctions').latLonToWorld;
@@ -2417,7 +2428,7 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
 
 module.exports = VisionControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./conversionFunctions":3,"./getLightUnion":6,"./styleDefinitions":16}],21:[function(require,module,exports){
+},{"./conversionFunctions":3,"./getLightUnion":6,"./styleDefinitions":16}],22:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var styles = require('./styleDefinitions');
@@ -2690,7 +2701,7 @@ WardControl.prototype.removeRangeCircle = function (feature, rangeType) {
 
 module.exports = WardControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./mapConstants":11,"./styleDefinitions":16}],22:[function(require,module,exports){
+},{"./mapConstants":11,"./styleDefinitions":16}],23:[function(require,module,exports){
 var PNG = require('png-js');
 
 function ImageHandler(imagePath) {
@@ -2724,7 +2735,7 @@ ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, gri
 }
 
 module.exports = ImageHandler;
-},{"png-js":23}],23:[function(require,module,exports){
+},{"png-js":24}],24:[function(require,module,exports){
 // Generated by CoffeeScript 1.4.0
 
 /*
@@ -3060,7 +3071,7 @@ var FlateStream = require('./zlib');
   })();
 
   module.exports = PNG;
-},{"./zlib":24}],24:[function(require,module,exports){
+},{"./zlib":25}],25:[function(require,module,exports){
 /*
  * Extracted from pdf.js
  * https://github.com/andreasgal/pdf.js
@@ -3527,7 +3538,7 @@ var FlateStream = (function() {
 })();
 
 module.exports = FlateStream;
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /*
 	This is rot.js, the ROguelike Toolkit in JavaScript.
 	Version 0.6~dev, generated on Tue Mar 17 16:16:31 CET 2015.
@@ -4090,7 +4101,7 @@ function diff_sum(SHADOWS) {
 }
 
 module.exports = ROT;
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var ImageHandler = require("./imageHandler.js");
 var ROT = require("./rot6.js");
 
@@ -4406,6 +4417,6 @@ VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
 
 module.exports = VisionSimulation;
-},{"./imageHandler.js":22,"./rot6.js":25}],27:[function(require,module,exports){
+},{"./imageHandler.js":23,"./rot6.js":26}],28:[function(require,module,exports){
 module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY":8288}
 },{}]},{},[8]);

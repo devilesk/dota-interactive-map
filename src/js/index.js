@@ -13,6 +13,7 @@ var WardControl = require('./wardControl');
 var CursorControl = require('./cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
+var forEach = require('./util/forEach');
 InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
 InteractiveMap.menuControl = new MenuControl(InteractiveMap);
 InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
@@ -90,11 +91,11 @@ function changeMode(mode) {
     InteractiveMap.notificationControl.show(modeNotificationText[InteractiveMap.MODE]);
 }
 
-document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]').forEach(function (element) {
+forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), function (element) {
     element.addEventListener("change", function () {
         changeMode(this.value);
     }, false);
-});
+}, this);
 
 function toggleLayerMenuOption(layerId, state) {
     var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
@@ -125,7 +126,7 @@ function baseLayerToggleHandler() {
 // updates element visibility based on map layer index
 // updates layer visibility based on element state
 function updateOverlayMenu() {
-    document.querySelectorAll('.data-layer > input').forEach(function (element) {
+    forEach(document.querySelectorAll('.data-layer > input'), function (element) {
         var label = element.nextSibling;
         var layerId = element.getAttribute('data-layer-id');
         var layerIndex = InteractiveMap.getMapLayerIndex();
@@ -138,7 +139,7 @@ function updateOverlayMenu() {
             label.style.display = "block";
             layer.setVisible(element.checked);
         }
-    });
+    }, this);
 }
 
 function setDefaults() {
@@ -162,7 +163,9 @@ function setDefaults() {
     var baseLayerName = QueryString.getParameterByName('BaseLayer');
     var element;
     if (baseLayerName) {
-        element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"');
+        console.log('baseLayerName', baseLayerName);
+        console.log('css', 'input[name="base-layer"][value="' + baseLayerName + '"');
+        element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
         if (element) {
             element.checked = true;
             InteractiveMap.baseLayers.filter(function (layer) { return layer.get("layerId") == baseLayerName })[0].setVisible(true);
@@ -171,7 +174,7 @@ function setDefaults() {
     if (!element) {
         QueryString.setQueryString('BaseLayer', null);
         InteractiveMap.baseLayers[0].setVisible(true);
-        document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"').checked = true;
+        document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
     }
     
     InteractiveMap.layerDefs.forEach(function (layerDef) {
@@ -179,7 +182,7 @@ function setDefaults() {
         var value = QueryString.getParameterByName(param);
         if (value && value !== "false") {
             layerDef.visible = true;
-            document.querySelector('input[data-layer-id="' + layerDef.id + '"').checked = true;
+            document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
             QueryString.setQueryString(param, true);
         }
         else {
@@ -305,12 +308,12 @@ function initialize() {
             this.setAttribute('ward-type', this.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
         }
         if (this.getAttribute('ward-type') == 'sentry') {
-            document.querySelector('input[name="mode"][value="ward"').checked = true;
-            document.querySelector('input[name="ward-type"][value="sentry"').checked = true;
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            document.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
         }
         else {
-            document.querySelector('input[name="mode"][value="ward"').checked = true;
-            document.querySelector('input[name="ward-type"][value="observer"').checked = true;
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            document.querySelector('input[name="ward-type"][value="observer"]').checked = true;
         }
         this.classList.add('active');
         document.getElementById('btn-tree').classList.remove('active');
@@ -323,12 +326,12 @@ function initialize() {
             this.setAttribute('measure-type', this.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
         }
         if (this.getAttribute('measure-type') == 'circle') {
-            document.querySelector('input[name="mode"][value="measure"').checked = true;
-            document.querySelector('input[name="measure-type"][value="circle"').checked = true;
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            document.querySelector('input[name="measure-type"][value="circle"]').checked = true;
         }
         else {
-            document.querySelector('input[name="mode"][value="measure"').checked = true;
-            document.querySelector('input[name="measure-type"][value="line"').checked = true;
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            document.querySelector('input[name="measure-type"][value="line"]').checked = true;
         }
         this.classList.add('active');
         document.getElementById('btn-tree').classList.remove('active');
