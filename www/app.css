@@ -48,7 +48,6 @@ hr {
 
 .btn-back {
   font-size: 36px;
-  right: 200px;
   z-index: 30; }
 
 #menu-right-back-btn:not(:checked):hover + .btn-back {
@@ -58,7 +57,7 @@ hr {
   height: 20px;
   width: 20px;
   background: transparent;
-  box-shadow: inset 0 0 0px 7px dimgray, inset 0 0 0px 8px #444;
+  box-shadow: inset 0 0 0px 5px #818181, inset 0 0 0px 8px #1e1e1e;
   border-radius: 50%;
   position: relative;
   margin: 15px; }
@@ -74,15 +73,15 @@ hr {
     content: '';
     border-radius: 20%;
     position: absolute;
-    background: dimgray; }
+    background: #818181; }
   .gear::before {
-    box-shadow: 10px 10px 0 0 dimgray, -10px 10px 0 0 dimgray, 0 20px 0 0 dimgray;
+    box-shadow: 10px 10px 0 0 #818181, -10px 10px 0 0 #818181, 0 20px 0 0 #818181;
     top: -2px;
     left: 8px; }
   .gear::after {
     top: 1px;
     left: 15px;
-    box-shadow: 0px 20px 0 0 dimgray, 10px 10px 0 0 dimgray, -10px 10px 0 0 dimgray;
+    box-shadow: 0px 20px 0 0 #818181, 10px 10px 0 0 #818181, -10px 10px 0 0 #818181;
     -moz-transform: rotate(45deg);
     -o-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
@@ -210,6 +209,8 @@ hr {
 
 .menu-item {
   position: relative; }
+  .menu-item .checkbox {
+    cursor: pointer; }
   .menu-item .text-label, .menu-item .select-label, .menu-item .checkbox, .menu-item input, .menu-item select {
     padding: 8px 8px 8px 24px;
     text-decoration: none;
@@ -227,6 +228,8 @@ hr {
     max-height: 0;
     transition: 0.3s;
     overflow: hidden; }
+  .menu-item input[type=radio]:checked + .checkbox {
+    cursor: default; }
   .menu-item input[type=radio], .menu-item input[type=checkbox] {
     display: none; }
     .menu-item input[type=radio] + .checkbox:hover, .menu-item input[type=checkbox] + .checkbox:hover {
@@ -244,7 +247,14 @@ hr {
         background-color: #111;
         color: #f1f1f1; }
   .menu-item input[type=button] {
-    border: 1px solid #818181; }
+    border: 1px solid #818181;
+    width: calc(100% - 4px);
+    margin: 2px;
+    border-radius: 5px;
+    cursor: pointer; }
+    .menu-item input[type=button]:hover {
+      border-color: #f1f1f1;
+      color: #f1f1f1; }
     .menu-item input[type=button]:active {
       background-color: #818181;
       color: #f1f1f1; }
@@ -279,7 +289,8 @@ hr {
   text-align: center; }
 
 .menu-item-group .menu-item .checkbox, .menu-item-group .menu-item input, .menu-item-group .menu-item select {
-  padding: 8px; }
+  padding: 8px;
+  cursor: pointer; }
 
 .menu-item-group.sub-menu .menu-item .checkbox {
   padding-left: 48px; }
@@ -544,7 +555,8 @@ hr {
   display: block;
   height: 100%;
   width: 100%;
-  position: relative; }
+  position: relative;
+  cursor: pointer; }
 
 input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   display: block; }
@@ -560,7 +572,7 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   border-radius: 5px;
   box-sizing: border-box;
   border: 2px solid #111;
-  background-color: black;
+  background-color: #111;
   transition: background 0.3s; }
 
 .btn-toggle label::after {
@@ -581,4 +593,4 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   margin-left: calc(50% - 2px); }
 
 .btn-toggle input[type="checkbox"]:checked + label::before {
-  background-color: #111; }
+  background-color: #414141; }

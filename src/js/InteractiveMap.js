@@ -196,6 +196,17 @@ InteractiveMap.toggleTree = function (feature, dotaProps) {
     feature.set('isCut', !feature.get('isCut'));
 }
 
+InteractiveMap.toggleAllTrees = function (state) {
+    var layer = InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        if (feature.get('isCut') != state) {
+            InteractiveMap.toggleTree(feature, feature.get('dotaProps'));
+        }
+    });
+}
+
 InteractiveMap.checkAndHighlightWard = function (pixel) {
     var feature = InteractiveMap.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
         return feature;

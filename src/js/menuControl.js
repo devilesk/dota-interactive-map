@@ -44,7 +44,7 @@ MenuPanel.prototype.createToggle = function (layerDef, handler) {
     
     return toggle;
 }
-MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType, inputName) {
+MenuPanel.prototype.createMenuPanelItem = function (InteractiveMap, layerDef, handler, inputType, inputName) {
     var optionId = layerDef.id;
     
     var menuItem = document.createElement('div');
@@ -69,11 +69,20 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
         menuItemLbl.innerHTML = layerDef.name;
     menuItem.appendChild(menuItemLbl);
     
-    function toggleHandler() {
-        console.log('toggled');
+    if (layerDef.toggle) {
+        function toggleHandler() {
+            console.log('toggled', layerDef);
+            var layer = InteractiveMap.getMapLayerIndex()[layerDef.id];
+            if (layerDef.id == 'ent_dota_tree') {
+                InteractiveMap.toggleAllTrees(this.checked);
+            }
+            else {
+                InteractiveMap.wardControl.toggleAll(layer, this.checked);
+            }
+        }
+        var toggle = MenuPanel.prototype.createToggle(layerDef, toggleHandler);
+        menuItem.appendChild(toggle);
     }
-    var toggle = MenuPanel.prototype.createToggle(layerDef, toggleHandler);
-    menuItem.appendChild(toggle);
     
     return menuItem;
 }
@@ -86,17 +95,18 @@ function MenuControl(InteractiveMap) {
     this.rightPanel.otherMenu = this.leftPanel;
 }
 MenuControl.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
+    var self = this;
     this.InteractiveMap.layerDefs.forEach(function (layerDef) {
         var group = layerDef.group;
         var menu = document.querySelector('#' + group + '-menu');
-        var menuItem = MenuPanel.prototype.createMenuPanelItem(layerDef, layerToggleHandler);
+        var menuItem = MenuPanel.prototype.createMenuPanelItem(self.InteractiveMap, layerDef, layerToggleHandler);
         menu.appendChild(menuItem);
     });
 
     this.InteractiveMap.baseLayerDefs.forEach(function (layerDef) {
         var group = layerDef.group;
         var menu = document.querySelector('#base-' + group + '-menu');
-        var menuItem = MenuPanel.prototype.createMenuPanelItem(layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
+        var menuItem = MenuPanel.prototype.createMenuPanelItem(self.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
         menu.appendChild(menuItem);
     });
 }

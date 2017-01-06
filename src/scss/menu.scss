@@ -47,6 +47,10 @@
 .menu-item {
     position: relative;
 
+    .checkbox {
+        cursor: pointer;
+    }
+    
     .text-label, .select-label, .checkbox, input, select {
         padding: 8px 8px 8px 24px;
         text-decoration: none;
@@ -69,6 +73,12 @@
     }
     
     input {
+        &[type=radio] {
+            &:checked + .checkbox {
+                cursor: default;
+            }
+        }
+        
         &[type=radio], &[type=checkbox] {
             display: none;
          
@@ -103,6 +113,15 @@
         
         &[type=button] {
             border: 1px solid $text-color;
+            width: calc(100% - 4px);
+            margin: 2px;
+            border-radius: 5px;
+            cursor: pointer;
+            
+            &:hover {
+                border-color: $hover-text-color;
+                color: $hover-text-color;
+            }
             
             &:active {
                 background-color: $text-color;
@@ -160,6 +179,7 @@
         
         .checkbox, input, select {
             padding: 8px;
+            cursor: pointer;
         }
     }
     

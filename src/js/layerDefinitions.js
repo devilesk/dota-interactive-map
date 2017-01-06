@@ -53,7 +53,8 @@ var layerDefinitions = [
             else {
                 return styles.tree.alive;
             }
-        }
+        },
+        toggle: true
     },
     {
         id: 'npc_dota_roshan_spawner',
@@ -77,25 +78,29 @@ var layerDefinitions = [
         id: 'ent_dota_fountain',
         name: 'Fountain',
         group: 'structure',
-        style: styles.ent_dota_fountain
+        style: styles.ent_dota_fountain,
+        toggle: true
     },
     {
         id: 'npc_dota_barracks',
         name: 'Barracks',
         group: 'structure',
-        style: styles.npc_dota_barracks
+        style: styles.npc_dota_barracks,
+        toggle: true
     },
     {
         id: 'npc_dota_filler',
         name: 'Buildings',
         group: 'structure',
-        style: styles.npc_dota_filler
+        style: styles.npc_dota_filler,
+        toggle: true
     },
     {
         id: 'npc_dota_tower',
         name: 'Towers',
         group: 'structure',
-        style: styles.npc_dota_tower
+        style: styles.npc_dota_tower,
+        toggle: true
     },
     {
         id: 'ent_dota_shop',
@@ -107,13 +112,15 @@ var layerDefinitions = [
         id: 'npc_dota_fort',
         name: 'Ancients',
         group: 'structure',
-        style: styles.npc_dota_fort
+        style: styles.npc_dota_fort,
+        toggle: true
     },
     {
         id: 'npc_dota_healer',
         name: 'Shrines',
         group: 'structure',
-        style: styles.npc_dota_healer
+        style: styles.npc_dota_healer,
+        toggle: true
     }
 ];
 

@@ -198,6 +198,17 @@ InteractiveMap.toggleTree = function (feature, dotaProps) {
     feature.set('isCut', !feature.get('isCut'));
 }
 
+InteractiveMap.toggleAllTrees = function (state) {
+    var layer = InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        if (feature.get('isCut') != state) {
+            InteractiveMap.toggleTree(feature, feature.get('dotaProps'));
+        }
+    });
+}
+
 InteractiveMap.checkAndHighlightWard = function (pixel) {
     var feature = InteractiveMap.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
         return feature;
@@ -1352,7 +1363,8 @@ var layerDefinitions = [
             else {
                 return styles.tree.alive;
             }
-        }
+        },
+        toggle: true
     },
     {
         id: 'npc_dota_roshan_spawner',
@@ -1376,25 +1388,29 @@ var layerDefinitions = [
         id: 'ent_dota_fountain',
         name: 'Fountain',
         group: 'structure',
-        style: styles.ent_dota_fountain
+        style: styles.ent_dota_fountain,
+        toggle: true
     },
     {
         id: 'npc_dota_barracks',
         name: 'Barracks',
         group: 'structure',
-        style: styles.npc_dota_barracks
+        style: styles.npc_dota_barracks,
+        toggle: true
     },
     {
         id: 'npc_dota_filler',
         name: 'Buildings',
         group: 'structure',
-        style: styles.npc_dota_filler
+        style: styles.npc_dota_filler,
+        toggle: true
     },
     {
         id: 'npc_dota_tower',
         name: 'Towers',
         group: 'structure',
-        style: styles.npc_dota_tower
+        style: styles.npc_dota_tower,
+        toggle: true
     },
     {
         id: 'ent_dota_shop',
@@ -1406,13 +1422,15 @@ var layerDefinitions = [
         id: 'npc_dota_fort',
         name: 'Ancients',
         group: 'structure',
-        style: styles.npc_dota_fort
+        style: styles.npc_dota_fort,
+        toggle: true
     },
     {
         id: 'npc_dota_healer',
         name: 'Shrines',
         group: 'structure',
-        style: styles.npc_dota_healer
+        style: styles.npc_dota_healer,
+        toggle: true
     }
 ];
 
@@ -1740,7 +1758,7 @@ MenuPanel.prototype.createToggle = function (layerDef, handler) {
     
     return toggle;
 }
-MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType, inputName) {
+MenuPanel.prototype.createMenuPanelItem = function (InteractiveMap, layerDef, handler, inputType, inputName) {
     var optionId = layerDef.id;
     
     var menuItem = document.createElement('div');
@@ -1765,11 +1783,20 @@ MenuPanel.prototype.createMenuPanelItem = function (layerDef, handler, inputType
         menuItemLbl.innerHTML = layerDef.name;
     menuItem.appendChild(menuItemLbl);
     
-    function toggleHandler() {
-        console.log('toggled');
+    if (layerDef.toggle) {
+        function toggleHandler() {
+            console.log('toggled', layerDef);
+            var layer = InteractiveMap.getMapLayerIndex()[layerDef.id];
+            if (layerDef.id == 'ent_dota_tree') {
+                InteractiveMap.toggleAllTrees(this.checked);
+            }
+            else {
+                InteractiveMap.wardControl.toggleAll(layer, this.checked);
+            }
+        }
+        var toggle = MenuPanel.prototype.createToggle(layerDef, toggleHandler);
+        menuItem.appendChild(toggle);
     }
-    var toggle = MenuPanel.prototype.createToggle(layerDef, toggleHandler);
-    menuItem.appendChild(toggle);
     
     return menuItem;
 }
@@ -1782,17 +1809,18 @@ function MenuControl(InteractiveMap) {
     this.rightPanel.otherMenu = this.leftPanel;
 }
 MenuControl.prototype.initialize = function (layerToggleHandler, baseLayerToggleHandler) {
+    var self = this;
     this.InteractiveMap.layerDefs.forEach(function (layerDef) {
         var group = layerDef.group;
         var menu = document.querySelector('#' + group + '-menu');
-        var menuItem = MenuPanel.prototype.createMenuPanelItem(layerDef, layerToggleHandler);
+        var menuItem = MenuPanel.prototype.createMenuPanelItem(self.InteractiveMap, layerDef, layerToggleHandler);
         menu.appendChild(menuItem);
     });
 
     this.InteractiveMap.baseLayerDefs.forEach(function (layerDef) {
         var group = layerDef.group;
         var menu = document.querySelector('#base-' + group + '-menu');
-        var menuItem = MenuPanel.prototype.createMenuPanelItem(layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
+        var menuItem = MenuPanel.prototype.createMenuPanelItem(self.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
         menu.appendChild(menuItem);
     });
 }
@@ -2508,6 +2536,35 @@ function WardControl(InteractiveMap, throttleTime) {
     this.clickListener = null;
 }
 
+WardControl.prototype.toggleAll = function (layer, state) {
+    if (state) {
+        this.showAll(layer);
+    }
+    else {
+        this.hideAll(layer);
+    }
+}
+
+WardControl.prototype.showAll = function (layer) {
+    var self = this;
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        self.InteractiveMap.select(feature);
+        self.highlight(feature);
+    });
+}
+
+WardControl.prototype.hideAll = function (layer) {
+    var self = this;
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        self.InteractiveMap.deselect(feature);
+        self.unhighlight(feature);
+    });
+}
+
 WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
     var info = this.InteractiveMap.infoControl;
     var vs = this.InteractiveMap.vs;
@@ -2590,8 +2647,8 @@ WardControl.prototype.highlight = function (feature) {
     return visionFeature;
 }
 
-WardControl.prototype.unhighlight = function () {
-    var highlightedFeature = this.InteractiveMap.highlightedFeature;
+WardControl.prototype.unhighlight = function (feature) {
+    var highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
     if (highlightedFeature && !highlightedFeature.get("clicked")) {
         this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);
         this.removeRangeCircles(highlightedFeature);

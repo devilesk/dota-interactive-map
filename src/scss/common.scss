@@ -13,7 +13,6 @@ hr {
     border-color: $bg-color;
     margin: 0;
 }
-
 .btn {
     text-decoration: none;
     background-color: $bg-color;
@@ -47,7 +46,6 @@ hr {
 }
 .btn-back {
     font-size: 36px;
-    right: #{$menu-width - 50px};
     z-index: 30;
 }
 

@@ -115,6 +115,35 @@ function WardControl(InteractiveMap, throttleTime) {
     this.clickListener = null;
 }
 
+WardControl.prototype.toggleAll = function (layer, state) {
+    if (state) {
+        this.showAll(layer);
+    }
+    else {
+        this.hideAll(layer);
+    }
+}
+
+WardControl.prototype.showAll = function (layer) {
+    var self = this;
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        self.InteractiveMap.select(feature);
+        self.highlight(feature);
+    });
+}
+
+WardControl.prototype.hideAll = function (layer) {
+    var self = this;
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        self.InteractiveMap.deselect(feature);
+        self.unhighlight(feature);
+    });
+}
+
 WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
     var info = this.InteractiveMap.infoControl;
     var vs = this.InteractiveMap.vs;
@@ -197,8 +226,8 @@ WardControl.prototype.highlight = function (feature) {
     return visionFeature;
 }
 
-WardControl.prototype.unhighlight = function () {
-    var highlightedFeature = this.InteractiveMap.highlightedFeature;
+WardControl.prototype.unhighlight = function (feature) {
+    var highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
     if (highlightedFeature && !highlightedFeature.get("clicked")) {
         this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);
         this.removeRangeCircles(highlightedFeature);

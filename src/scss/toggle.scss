@@ -12,6 +12,7 @@
     height: 100%;
     width: 100%;
     position: relative;
+    cursor: pointer;
 }
 
 input[type="checkbox"]:checked + .checkbox + .btn-toggle {
@@ -29,7 +30,7 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
     border-radius: 5px;
     box-sizing: border-box;
     border: 2px solid $bg-color;
-    background-color: black;
+    background-color: $bg-color;
     transition: background 0.3s;
 }
 .btn-toggle label::after {
@@ -52,5 +53,5 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
 }
 
 .btn-toggle input[type="checkbox"]:checked + label::before {
-    background-color: $bg-color;
+    background-color: darken($text-color, 25%);
 }
