@@ -474,12 +474,12 @@ var proj = require('./projections');
 function loadGeoJSON(map, layerDef) {
     var source = new ol.source.Vector({
         url: 'data/700/' + layerDef.filename,
-        format: new ol.format.GeoJSON({defaultDataProjection: proj.pixel})
+        format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
     });
-    
+    console.log('layerDef', layerDef);
     var layer = new ol.layer.Vector({
         title: layerDef.name,
-        projection: proj.pixel,
+        projection: layerDef.projection || proj.pixel,
         source: source,
         visible: !!layerDef.visible,
         style: layerDef.style
@@ -976,8 +976,6 @@ function setDefaults() {
     var baseLayerName = QueryString.getParameterByName('BaseLayer');
     var element;
     if (baseLayerName) {
-        console.log('baseLayerName', baseLayerName);
-        console.log('css', 'input[name="base-layer"][value="' + baseLayerName + '"');
         element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
         if (element) {
             element.checked = true;
@@ -1313,8 +1311,35 @@ module.exports = InfoControl;
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var styles = require('./styleDefinitions');
+var proj = require('./projections');
 
 var layerDefinitions = [
+    {
+        id: 'path_corner',
+        name: 'Lanes',
+        filename: 'path_corner.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: proj.dota,
+        style: function (feature, resolution) {
+            console.log(feature);
+            if (feature.get('name').indexOf('_bad_') == -1) {
+                return styles.radiant;
+            }
+            else {
+                return styles.dire;
+            }
+        }
+    },
+    {
+        id: 'npc_dota_spawner',
+        name: 'Lane Spawns',
+        filename: 'npc_dota_spawner.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: proj.dota,
+        style: styles.creepSpawn
+    },
     {
         id: 'ent_fow_blocker_node',
         name: 'Vision Blocker',
@@ -1439,7 +1464,7 @@ var layerDefinitions = [
 
 module.exports = layerDefinitions;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./styleDefinitions":16}],11:[function(require,module,exports){
+},{"./projections":15,"./styleDefinitions":16}],11:[function(require,module,exports){
 var mapConstants = {
     map_w: 16384,
     map_h: 16384,
@@ -1920,6 +1945,19 @@ var getFeatureCenter = function(feature) {
 };
 
 var styles = {
+    creepSpawn: new ol.style.Style({
+        image: new ol.style.RegularShape({
+            points: 6,
+            radius: 8,
+            fill: new ol.style.Fill({
+                color: 'rgba(0, 0, 255, 0.3)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0, 0, 255, 0.7)',
+                width: 2
+            })
+        })
+    }),
     neutralCamp: [
         new ol.style.Style({
             image: new ol.style.RegularShape({
@@ -1974,6 +2012,24 @@ var styles = {
             })
         })
     ],
+    dire: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 51, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#FF3333',
+            width: 2
+        })
+    }),
+    radiant: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(51, 255, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#33FF33',
+            width: 2
+        })
+    }),
     highlight: new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(255, 255, 0, 0.2)'

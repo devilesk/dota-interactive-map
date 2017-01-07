@@ -17,6 +17,19 @@ var getFeatureCenter = function(feature) {
 };
 
 var styles = {
+    creepSpawn: new ol.style.Style({
+        image: new ol.style.RegularShape({
+            points: 6,
+            radius: 8,
+            fill: new ol.style.Fill({
+                color: 'rgba(0, 0, 255, 0.3)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0, 0, 255, 0.7)',
+                width: 2
+            })
+        })
+    }),
     neutralCamp: [
         new ol.style.Style({
             image: new ol.style.RegularShape({
@@ -71,6 +84,24 @@ var styles = {
             })
         })
     ],
+    dire: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 51, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#FF3333',
+            width: 2
+        })
+    }),
+    radiant: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(51, 255, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#33FF33',
+            width: 2
+        })
+    }),
     highlight: new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(255, 255, 0, 0.2)'

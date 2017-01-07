@@ -163,8 +163,6 @@ function setDefaults() {
     var baseLayerName = QueryString.getParameterByName('BaseLayer');
     var element;
     if (baseLayerName) {
-        console.log('baseLayerName', baseLayerName);
-        console.log('css', 'input[name="base-layer"][value="' + baseLayerName + '"');
         element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
         if (element) {
             element.checked = true;

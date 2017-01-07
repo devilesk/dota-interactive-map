@@ -3,12 +3,12 @@ var proj = require('./projections');
 function loadGeoJSON(map, layerDef) {
     var source = new ol.source.Vector({
         url: 'data/700/' + layerDef.filename,
-        format: new ol.format.GeoJSON({defaultDataProjection: proj.pixel})
+        format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
     });
-    
+    console.log('layerDef', layerDef);
     var layer = new ol.layer.Vector({
         title: layerDef.name,
-        projection: proj.pixel,
+        projection: layerDef.projection || proj.pixel,
         source: source,
         visible: !!layerDef.visible,
         style: layerDef.style

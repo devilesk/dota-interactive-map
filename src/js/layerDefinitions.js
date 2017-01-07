@@ -1,7 +1,34 @@
 var ol = require('openlayers');
 var styles = require('./styleDefinitions');
+var proj = require('./projections');
 
 var layerDefinitions = [
+    {
+        id: 'path_corner',
+        name: 'Lanes',
+        filename: 'path_corner.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: proj.dota,
+        style: function (feature, resolution) {
+            console.log(feature);
+            if (feature.get('name').indexOf('_bad_') == -1) {
+                return styles.radiant;
+            }
+            else {
+                return styles.dire;
+            }
+        }
+    },
+    {
+        id: 'npc_dota_spawner',
+        name: 'Lane Spawns',
+        filename: 'npc_dota_spawner.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: proj.dota,
+        style: styles.creepSpawn
+    },
     {
         id: 'ent_fow_blocker_node',
         name: 'Vision Blocker',
