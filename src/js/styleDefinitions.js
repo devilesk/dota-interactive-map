@@ -102,6 +102,24 @@ var styles = {
             width: 2
         })
     }),
+    direCreep: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 51, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#FF3333',
+            width: 10
+        })
+    }),
+    radiantCreep: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(51, 255, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#33FF33',
+            width: 10
+        })
+    }),
     highlight: new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(255, 255, 0, 0.2)'
@@ -335,7 +353,33 @@ var styles = {
             src: 'img/roshan.png',
             anchor: [0.5, 0.5]
         })
-    })
+    }),
+    pullRange: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 153, 238, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(0, 153, 238, 0.5)',
+            width: 2
+        })
+    }),
 }
 
+styles.teamColor = function (feature, resolution) {
+    if (feature.getId().indexOf('_bad_') == -1) {
+        return styles.radiant;
+    }
+    else {
+        return styles.dire;
+    }
+}
+
+styles.creepColor = function (feature, resolution) {
+    if (feature.getId().indexOf('_bad_') == -1) {
+        return styles.radiantCreep;
+    }
+    else {
+        return styles.direCreep;
+    }
+}
 module.exports = styles;

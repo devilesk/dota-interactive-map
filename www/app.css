@@ -349,7 +349,7 @@ hr {
   #base-menu-open-btn {
     display: none; } }
 
-#notification {
+#timer, #notification {
   top: 50px;
   width: calc(100% - 120px);
   transition: 0.5s;
@@ -358,7 +358,7 @@ hr {
   z-index: 9999;
   position: absolute; }
   @media only screen and (min-width: 768px) {
-    #notification {
+    #timer, #notification {
       width: 500px;
       left: 50%;
       margin-left: 0px;
@@ -367,47 +367,47 @@ hr {
       -ms-transform: translateX(-50%);
       -webkit-transform: translateX(-50%);
       transform: translateX(-50%); } }
-  #notification.slideUp {
+  #timer.slideUp, #notification.slideUp {
     top: 0;
     -moz-transform: translateY(-100%);
     -o-transform: translateY(-100%);
     -ms-transform: translateY(-100%);
     -webkit-transform: translateY(-100%);
     transform: translateY(-100%); }
-  #notification.slideDown {
+  #timer.slideDown, #notification.slideDown {
     -moz-transform: translateY(0%);
     -o-transform: translateY(0%);
     -ms-transform: translateY(0%);
     -webkit-transform: translateY(0%);
     transform: translateY(0%); }
   @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
-    #notification {
+    #timer, #notification {
       top: 0; } }
   @media only screen and (min-width: 768px) {
-    #notification.slideUp {
+    #timer.slideUp, #notification.slideUp {
       -moz-transform: translateX(-50%) translateY(-100%);
       -o-transform: translateX(-50%) translateY(-100%);
       -ms-transform: translateX(-50%) translateY(-100%);
       -webkit-transform: translateX(-50%) translateY(-100%);
       transform: translateX(-50%) translateY(-100%); }
-    #notification.slideDown {
+    #timer.slideDown, #notification.slideDown {
       -moz-transform: translateX(-50%) translateY(0%);
       -o-transform: translateX(-50%) translateY(0%);
       -ms-transform: translateX(-50%) translateY(0%);
       -webkit-transform: translateX(-50%) translateY(0%);
       transform: translateX(-50%) translateY(0%); } }
-  #notification .message-content {
+  #timer .message-content, #notification .message-content {
     padding: 6px 10px;
     line-height: 24px;
     color: #818181;
     margin: 10px 0px;
     background-color: #111; }
-    #notification .message-content span {
+    #timer .message-content span, #notification .message-content span {
       display: block; }
     @media only screen and (min-width: 768px) {
-      #notification .message-content span {
+      #timer .message-content span, #notification .message-content span {
         display: inline-block; }
-        #notification .message-content span + span {
+        #timer .message-content span + span, #notification .message-content span + span {
           margin-left: 10px; } }
 
 #info {

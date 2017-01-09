@@ -15,7 +15,9 @@ var mapConstants = {
         sentry: 850,
         darkness: 675
     },
-    defaultMovementSpeed: 300
+    defaultMovementSpeed: 300,
+    creepBaseMovementSpeed: 325,
+    pullRangeTiming: [4, 2.25, 4.75]
 }
 mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2]
 mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;

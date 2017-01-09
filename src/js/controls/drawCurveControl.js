@@ -1,9 +1,9 @@
 var ol = require('openlayers');
-var latLonToWorld = require('./conversionFunctions').latLonToWorld;
-var worldToLatLon = require('./conversionFunctions').worldToLatLon;
-var getTileRadius = require('./conversionFunctions').getTileRadius;
-var getLightUnion = require('./getLightUnion');
-var styles = require('./styleDefinitions');
+var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
+var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
+var getTileRadius = require('./../conversionFunctions').getTileRadius;
+var getLightUnion = require('./../getLightUnion');
+var styles = require('./../styleDefinitions');
 var bezier = require("@turf/bezier");
 
 function DrawCurveControl(InteractiveMap) {

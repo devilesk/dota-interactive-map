@@ -1,10 +1,13 @@
-var getPopupContent = require('./getPopupContent');
-var styles = require('./styleDefinitions');
+var getPopupContent = require('./../getPopupContent');
+var styles = require('./../styleDefinitions');
+var mapConstants = require('./../mapConstants');
+var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
+var createCirclePointCoords = require('./../util/createCirclePointCoords');
 
 function InfoControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
-    this.highlight = null;
+    //this.highlight = null;
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function (evt) {
         // When user was dragging map, then coordinates didn't change and there's
@@ -25,7 +28,8 @@ function InfoControl(InteractiveMap) {
             if (!self.isActive()) {
                 self.displayFeatureInfo(feature, false);
             }
-            self.InteractiveMap.highlight(feature);
+            console.log(self);
+            self.highlight(feature);
         }
         else {
             self.close(false);
@@ -38,14 +42,14 @@ function InfoControl(InteractiveMap) {
             }
             // no highlighted feature so unhighlight current feature
             else if (!self.isActive()) {
-                self.InteractiveMap.unhighlight();
+                self.unhighlight();
             }
         }
     }
     this.pointerMoveListener = null;
     
     this.clickHandler = function (evt) {
-        self.InteractiveMap.unhighlight();
+        self.unhighlight();
         var feature = self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
             return feature;
         }, {
@@ -60,7 +64,7 @@ function InfoControl(InteractiveMap) {
                 }
                 else {
                     self.displayFeatureInfo(feature, true);
-                    self.InteractiveMap.select(feature);
+                    self.select(feature);
                     self.InteractiveMap.panTo(evt.coordinate);
                 }
             }
@@ -85,7 +89,7 @@ function InfoControl(InteractiveMap) {
             }
             // no highlighted feature so unhighlight current feature
             else if (!self.isActive()) {
-                self.InteractiveMap.unhighlight();            
+                self.unhighlight();            
                 self.close(true);
             }
             self.InteractiveMap.deselectAll();
@@ -148,8 +152,69 @@ InfoControl.prototype.initialize = function (id) {
 }
 
 InfoControl.prototype.displayFeatureInfo = function (feature, bClicked) {
+    console.log('feature', feature);
     this.setContent(getPopupContent(this.InteractiveMap.getMapData(), feature));
     this.open(bClicked);
 };
+
+InfoControl.prototype.unhighlight = function (feature) {
+    var highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
+    if (highlightedFeature && !highlightedFeature.get("clicked")) {
+        var dotaProps = highlightedFeature.get('dotaProps');
+        if (dotaProps) {
+            if (dotaProps.id == 'npc_dota_neutral_spawner') {
+                var pullRange = highlightedFeature.get('pullRange');
+                if (pullRange) {
+                    console.log('unhighlight', highlightedFeature, pullRange);
+                    this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(pullRange);
+                    highlightedFeature.set("pullRange", null, true);
+                }
+                var guardRange = highlightedFeature.get('guardRange');
+                if (guardRange) {
+                    console.log('unhighlight', highlightedFeature, guardRange);
+                    this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(guardRange);
+                    highlightedFeature.set("guardRange", null, true);
+                }
+            }
+        }
+    }
+    this.InteractiveMap.unhighlight();
+}
+
+InfoControl.prototype.highlight = function (feature) {
+    this.unhighlight();
+    var dotaProps = feature.get('dotaProps');
+    if (dotaProps) {
+        if (dotaProps.id == 'npc_dota_neutral_spawner') {
+            if (!feature.get('pullRange')) {
+                var circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
+                feature.set("guardRange", circle, true);
+                this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
+                
+                var center = worldToLatLon([dotaProps.x, dotaProps.y]);
+                var pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
+                var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
+                var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
+                var geom = new ol.geom.Polygon([pullMaxCoords]);
+                geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
+                var circle = new ol.Feature(geom);
+                feature.set("pullRange", circle, true);
+                console.log('unhighlight', feature, circle);
+                this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
+            }
+        }
+    }
+    this.InteractiveMap.highlight(feature);
+}
+
+InfoControl.prototype.select = function (feature) {    
+    if (feature && !feature.get("clicked")) {
+        if (feature == this.InteractiveMap.highlightedFeature) {
+            this.unhighlight();
+        }
+        this.InteractiveMap.selectSource.addFeature(feature);
+        feature.set("clicked", true, true);
+    }
+}
 
 module.exports = InfoControl;

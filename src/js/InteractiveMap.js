@@ -169,7 +169,7 @@ InteractiveMap.getDataJSON = function (version, callback) {
                     title: version + ' Layers',
                     layers: new ol.Collection([
                         InteractiveMap.baseLayerGroup,
-                        loadLayerGroupFromData(InteractiveMap.map, data, version, InteractiveMap.getMapLayerIndex(version), InteractiveMap.layerDefs)
+                        loadLayerGroupFromData(InteractiveMap, data, version, InteractiveMap.getMapLayerIndex(version), InteractiveMap.layerDefs)
                     ])
                 })
             };                
@@ -273,7 +273,6 @@ InteractiveMap.select = function (feature) {
         if (feature == InteractiveMap.highlightedFeature) {
             this.unhighlight();
         }
-        
         InteractiveMap.selectSource.addFeature(feature);
         feature.set("clicked", true, true);
     }
@@ -344,9 +343,9 @@ InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass,
     return radius;
 }
 
-InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeType) {
+InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeType, radius) {
     var dotaProps = feature.get('dotaProps');
-    var radius = InteractiveMap.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
+    var radius = radius || InteractiveMap.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
     if (radius == null) return null;
     if (!coordinate) {
         coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);

@@ -1,6 +1,6 @@
 var ol = require('openlayers');
-var styles = require('./styleDefinitions');
-var mapConstants = require('./mapConstants');
+var styles = require('./../styleDefinitions');
+var mapConstants = require('./../mapConstants');
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;

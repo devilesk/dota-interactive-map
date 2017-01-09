@@ -4,15 +4,23 @@ var QueryString = require('./util/queryString');
 var ol = require('openlayers');
 var proj = require('./projections');
 var mapConstants = require('./mapConstants');
-var MenuControl = require('./menuControl');
-var InfoControl = require('./infoControl');
-var NotificationControl = require('./notificationControl');
-var MeasureControl = require('./measureControl');
-var VisionControl = require('./visionControl');
-var WardControl = require('./wardControl');
-var CursorControl = require('./cursorControl');
+var MenuControl = require('./controls/menuControl');
+var InfoControl = require('./controls/infoControl');
+var NotificationControl = require('./controls/notificationControl');
+var MeasureControl = require('./controls/measureControl');
+var CreepControl = require('./controls/creepControl');
+var VisionControl = require('./controls/visionControl');
+var WardControl = require('./controls/wardControl');
+var CursorControl = require('./controls/cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
+
+InteractiveMap.toggleLayerMenuOption = function(layerId, state) {
+    var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
+    if (state != null) element.checked = state;
+    updateLayerAndQueryString(element, layerId);
+}
+
 var forEach = require('./util/forEach');
 InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
 InteractiveMap.menuControl = new MenuControl(InteractiveMap);
@@ -25,6 +33,8 @@ InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
 InteractiveMap.wardControl = new WardControl(InteractiveMap);
 InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
 InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
+InteractiveMap.creepControl = new CreepControl(InteractiveMap);
+InteractiveMap.creepControl.initialize('timer');
 
 //var DrawCurveControl = require('./drawCurveControl');
 //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
@@ -97,11 +107,6 @@ forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], 
     }, false);
 }, this);
 
-function toggleLayerMenuOption(layerId, state) {
-    var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
-    if (state != null) element.checked = state;
-    updateLayerAndQueryString(element, layerId);
-}
 function updateLayerAndQueryString(element, layerId) {
     layerId = layerId || element.getAttribute('data-layer-id');
     var layer = InteractiveMap.getMapLayerIndex()[layerId];
@@ -255,6 +260,8 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
+        
+        InteractiveMap.creepControl.activate();
     });
     
     InteractiveMap.map.on('moveend', onMoveEnd);
@@ -296,7 +303,7 @@ function initialize() {
         document.getElementById('btn-ward').classList.remove('active');
         document.getElementById('btn-measure').classList.remove('active');
         console.log('btn-tree', this.getAttribute('trees-enabled'));
-        toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
+        InteractiveMap.toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
         changeMode('navigate');
         InteractiveMap.notificationControl.show(this.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
     });

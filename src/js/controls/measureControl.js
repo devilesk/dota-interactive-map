@@ -1,4 +1,4 @@
-var styles = require('./styleDefinitions');
+var styles = require('./../styleDefinitions');
 
 function MeasureControl(InteractiveMap) {
     var self = this;

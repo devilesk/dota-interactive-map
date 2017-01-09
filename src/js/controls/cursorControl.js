@@ -1,5 +1,5 @@
 var ol = require('openlayers');
-var styles = require('./styleDefinitions');
+var styles = require('./../styleDefinitions');
 
 function CursorControl(InteractiveMap) {
     var self = this;

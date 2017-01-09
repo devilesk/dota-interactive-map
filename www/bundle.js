@@ -171,7 +171,7 @@ InteractiveMap.getDataJSON = function (version, callback) {
                     title: version + ' Layers',
                     layers: new ol.Collection([
                         InteractiveMap.baseLayerGroup,
-                        loadLayerGroupFromData(InteractiveMap.map, data, version, InteractiveMap.getMapLayerIndex(version), InteractiveMap.layerDefs)
+                        loadLayerGroupFromData(InteractiveMap, data, version, InteractiveMap.getMapLayerIndex(version), InteractiveMap.layerDefs)
                     ])
                 })
             };                
@@ -275,7 +275,6 @@ InteractiveMap.select = function (feature) {
         if (feature == InteractiveMap.highlightedFeature) {
             this.unhighlight();
         }
-        
         InteractiveMap.selectSource.addFeature(feature);
         feature.set("clicked", true, true);
     }
@@ -346,9 +345,9 @@ InteractiveMap.getFeatureVisionRadius = function (feature, dotaProps, unitClass,
     return radius;
 }
 
-InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeType) {
+InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeType, radius) {
     var dotaProps = feature.get('dotaProps');
-    var radius = InteractiveMap.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
+    var radius = radius || InteractiveMap.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
     if (radius == null) return null;
     if (!coordinate) {
         coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);
@@ -359,7 +358,7 @@ InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeT
 
 module.exports = InteractiveMap;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./baseLayerDefinitions":2,"./conversionFunctions":3,"./dataLoader":5,"./layerDefinitions":10,"./mapConstants":11,"./projections":15,"./styleDefinitions":16,"./util/getJSON":18}],2:[function(require,module,exports){
+},{"./baseLayerDefinitions":2,"./conversionFunctions":11,"./dataLoader":12,"./layerDefinitions":16,"./mapConstants":17,"./projections":18,"./styleDefinitions":19,"./util/getJSON":22}],2:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 
@@ -394,61 +393,240 @@ var layerDefinitions = [
 module.exports = layerDefinitions;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],3:[function(require,module,exports){
-var mapConstants = require('./mapConstants');
+var mapConstants = require('./../mapConstants');
+var styles = require('./../styleDefinitions');
 
-function lerp(minVal, maxVal, pos_r) {
-    return pos_r * (maxVal - minVal) + minVal;
+function CreepControl(InteractiveMap) {
+    this.InteractiveMap = InteractiveMap;
+    this.postComposeListener = null;
+    this.postComposeHandler = this.animateCreeps.bind(this);
+    this.playbackSpeed = 1;
+    this.paused = true;
+    this.pauseTime = null;
 }
 
-function reverseLerp(minVal, maxVal, pos) {
-    return (pos - minVal) / (maxVal - minVal);
+CreepControl.prototype.show = function (message) {
+    console.log('show', message);
+    this.setContent(message);
+    this.info.classList.remove('slideUp');
+    this.info.classList.add('slideDown');
 }
 
-function latLonToWorld(coordinate) {
-    var x_r = lerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], coordinate[0] / mapConstants.map_w),
-        y_r = lerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], (mapConstants.map_h - coordinate[1]) / mapConstants.map_h);
-    return [x_r, y_r];
+CreepControl.prototype.setContent = function (html) {
+    this.infoContent.innerHTML = html;
 }
 
-function worldToLatLon(coordinate) {
-    var x = reverseLerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], coordinate[0]) * mapConstants.map_w,
-        y = mapConstants.map_h - reverseLerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], coordinate[1]) * mapConstants.map_h;
-    return [x, y]
+CreepControl.prototype.open = function () {
+    this.info.classList.add('slideDown');
+    this.info.classList.remove('slideUp');
 }
 
-function getTileRadius(r) {
-    return parseInt(Math.floor(r / 64));
+CreepControl.prototype.close = function () {
+    this.info.classList.add('slideUp');
+    this.info.classList.remove('slideDown');
 }
 
-function getScaledRadius(r) {
-    return r / (mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) * mapConstants.map_w
+CreepControl.prototype.initialize = function (id) {
+    var self = this;
+    this.id = id;
+    this.info = document.getElementById(id);
+    this.infoContent = document.querySelector('#timer-time');
+    this.playPauseBtn = document.querySelector('#timer-playPause');
+    this.playPauseHandler = function (evt) {
+        self.playPause.call(self, true);
+    }
+    this.playPauseBtn.addEventListener('click', this.playPauseHandler, false);
+    
+    this.stopBtn = document.querySelector('#timer-stop');
+    this.stopHandler = function (evt) {
+        self.stop.call(self, true);
+    }
+    this.stopBtn.addEventListener('click', this.stopHandler, false);
+    
+    this.fasterBtn = document.querySelector('#timer-faster');
+    this.fasterHandler = function (evt) {
+        self.faster.call(self, true);
+    }
+    this.fasterBtn.addEventListener('click', this.fasterHandler, false);
+    
+    this.slowerBtn = document.querySelector('#timer-slower');
+    this.slowerHandler = function (evt) {
+        self.slower.call(self, true);
+    }
+    this.slowerBtn.addEventListener('click', this.slowerHandler, false);
+    
+    this.playPause();
 }
 
-function calculateDistance(order, units, measure) {
-    if (order == 1) {
-        if (units == "km") {
-            return measure * mapConstants.scale * 1000;
-        } else {
-            return measure * mapConstants.scale;
-        }
-    } else {
-        return measure * mapConstants.scale;
+CreepControl.prototype.slower = function () {
+    
+}
+
+CreepControl.prototype.faster = function () {
+    
+}
+
+CreepControl.prototype.stop = function () {
+    
+}
+
+CreepControl.prototype.playPause = function () {
+    console.log('playPause', this.paused);
+    this.paused = !this.paused;
+    if (this.paused) {
+        this.playPauseBtn.innerHTML = '&#9658;';
+    }
+    else {
+        this.playPauseBtn.innerHTML = '&#10074;&#10074;';
     }
 }
 
-module.exports = {
-    lerp: lerp,
-    reverseLerp: reverseLerp,
-    latLonToWorld: latLonToWorld,
-    worldToLatLon: worldToLatLon,
-    getTileRadius: getTileRadius,
-    getScaledRadius: getScaledRadius,
-    calculateDistance: calculateDistance
+CreepControl.prototype.activate = function () {
+    this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', true);
+    this.InteractiveMap.toggleLayerMenuOption('path_corner', true);
+    if (!this.postComposeListener) {
+        console.log('activate');
+        this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
+    }
+    this.show();
 }
-},{"./mapConstants":11}],4:[function(require,module,exports){
+
+CreepControl.prototype.deactivate = function () {
+    this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', false);
+    this.InteractiveMap.toggleLayerMenuOption('path_corner', false);
+    ol.Observable.unByKey(this.postComposeListener);
+    this.postComposeListener = null;
+    this.close();
+    this.startTime = null;
+}
+
+function getDistance(speed, elapsedTime) {
+    return speed * elapsedTime / 1000 * mapConstants.scale;
+}
+
+function getElapsedDistance(id, elapsedTime, playbackSpeed, bNoAdjust) {
+    elapsedTime = elapsedTime * playbackSpeed;
+    var base = mapConstants.creepBaseMovementSpeed;
+    if (bNoAdjust) return getDistance(base, elapsedTime);
+    switch (id) {
+        case 'npc_dota_spawner_good_bot':
+            if (elapsedTime < 10000) {
+                return getDistance(base * 1.25, elapsedTime);
+            }
+            else {
+                return getDistance(base * 1.25, 10000) + getDistance(base, elapsedTime - 10000);
+            }
+        break;
+        case 'npc_dota_spawner_bad_top':
+            if (elapsedTime < 2000) {
+                return getDistance(base * 1.25, elapsedTime);
+            }
+            else {
+                return getDistance(base * 1.25, 2000) + getDistance(base, elapsedTime - 2000);
+            }
+        break;
+        case 'npc_dota_spawner_good_top':
+            if (elapsedTime < 2000) {
+                return getDistance(base * 0.75, elapsedTime);
+            }
+            else {
+                return getDistance(base * 0.75, 2000) + getDistance(base, elapsedTime - 2000);
+            }
+        break;
+        case 'npc_dota_spawner_bad_bot':
+            if (elapsedTime < 22000) {
+                return getDistance(base * 0.75, elapsedTime);
+            }
+            else {
+                return getDistance(base * 0.75, 22000) + getDistance(base, elapsedTime - 22000);
+            }
+        break;
+        default:
+            return getDistance(base, elapsedTime);
+        break;
+    }
+}
+
+CreepControl.prototype.animateCreeps = function (event) {
+    var vectorContext = event.vectorContext;
+    var frameState = event.frameState;
+    var currentTime = frameState.time;
+    var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
+    var pathLayer = this.InteractiveMap.getMapLayerIndex()['path_corner'];
+    if (!this.startTime) this.startTime = currentTime;
+    if (this.paused) {
+        if (this.pauseTime == null) this.pauseTime = frameState.time;
+        currentTime = this.pauseTime;
+    }
+    else {
+        if (this.pauseTime != null) {
+            for (var i = 0; i < features.length; i++) {
+                var feature = features[i];
+                var waveTimes = feature.get('waveTimes');
+                if (waveTimes) {
+                    var j = waveTimes.length;
+                    while (j--) {
+                        waveTimes[j] += (currentTime - this.pauseTime);
+                    }
+                }
+            }
+            this.startTime += (currentTime - this.pauseTime);
+            this.pauseTime = null;
+        }
+    }
+    //console.log('InteractiveMap.getMapLayerIndex()', InteractiveMap.getMapLayerIndex());
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        var id = feature.getId();
+        var pathFeature = pathLayer.getSource().getFeatureById(id);
+        //console.log('npc_dota_spawner feature', feature, pathFeature);
+        var waveTimes = feature.get('waveTimes');
+        if (!waveTimes) {
+            waveTimes = [currentTime];
+            feature.set('waveTimes', waveTimes, true);
+        }
+        if (currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
+            waveTimes.push(currentTime);
+        }
+        var j = waveTimes.length;
+        while (j--) {                
+            var path = feature.get('path');
+            if (!path) {
+                var path = pathFeature.getGeometry().clone();
+                var coords = path.getCoordinates();
+                coords[0] = feature.getGeometry().getCoordinates();
+                path.setCoordinates(coords);
+                feature.set('path', path, true);
+            }
+            var pathLength = path.getLength();
+            var coords = path.getCoordinates();
+            var elapsedTime = currentTime - waveTimes[j];
+            var elapsedDistance = getElapsedDistance(id, elapsedTime, this.playbackSpeed);
+            var elapsedFraction = Math.max(0, elapsedDistance / pathLength);
+            if (elapsedFraction >= 1) {
+                var endPoint = coords[coords.length - 1];
+                waveTimes.splice(j, 1);
+            }
+            else {
+                var endPoint = path.getCoordinateAt(elapsedFraction);
+            }
+
+            var point = new ol.geom.Circle(endPoint);
+            vectorContext.setStyle(styles.creepColor(feature));
+            vectorContext.drawCircle(point);
+        }
+    }
+    var timeText = (((currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1);
+    if (this.playbackSpeed > 1) timeText += ' ' + this.playbackSpeed + 'x'
+    this.setContent(timeText);
+    frameState.animate = true;
+}
+
+module.exports = CreepControl;
+},{"./../mapConstants":17,"./../styleDefinitions":19}],4:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-var styles = require('./styleDefinitions');
+var styles = require('./../styleDefinitions');
 
 function CursorControl(InteractiveMap) {
     var self = this;
@@ -468,697 +646,17 @@ function CursorControl(InteractiveMap) {
 
 module.exports = CursorControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./styleDefinitions":16}],5:[function(require,module,exports){
-var proj = require('./projections');
-
-function loadGeoJSON(map, layerDef) {
-    var source = new ol.source.Vector({
-        url: 'data/700/' + layerDef.filename,
-        format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
-    });
-    console.log('layerDef', layerDef);
-    var layer = new ol.layer.Vector({
-        title: layerDef.name,
-        projection: layerDef.projection || proj.pixel,
-        source: source,
-        visible: !!layerDef.visible,
-        style: layerDef.style
-    });
-
-    return layer;
-}
-
-function loadPolygon(map, layerDef, data, layer) {
-    var features = [];
-    features = data.data[layerDef.id].map(function (obj) {
-        var points = obj.points;
-        var ring = points.map(function (point) {
-            return ol.proj.transform([point.x, point.y], proj.dota, proj.pixel)
-        });
-        ring.push(ol.proj.transform([points[0].x, points[0].y], proj.dota, proj.pixel))
-        var geom = new ol.geom.Polygon([ring]);
-        var feature = new ol.Feature(geom);
-        obj.id = layerDef.id;
-        feature.set('dotaProps', obj, true);
-        return feature;
-    });
-    
-    var vectorSource = new ol.source.Vector({
-        defaultDataProjection : 'dota',
-        features: features
-    });
-    
-    if (layer) {
-        layer.setSource(vectorSource);
-    }
-    else {
-        layer = new ol.layer.Vector({
-            title: layerDef.name,
-            source: vectorSource,
-            visible: !!layerDef.visible,
-            style: layerDef.style
-        });
-        layer.set('layerId', layerDef.id, true);
-        layer.set('layerDef', layerDef, true);
-        layer.set('showInfo', false, true);
-    }
-
-    return layer;
-}
-
-function loadJSON(map, layerDef, data, layer) {
-    var features = [];
-    features = data.data[layerDef.id].map(function (point) {
-        var unitClass = point.subType ? layerDef.id + '_' + point.subType : layerDef.id;
-        var stats = data.stats[unitClass];
-        //console.log(unitClass, stats);
-        var bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
-        if (bounds && bounds[0] > 0 && bounds[1] > 0) {
-            var geom = new ol.geom.Polygon([[
-                ol.proj.transform([point.x-bounds[0], point.y-bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x-bounds[0], point.y+bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x+bounds[0], point.y+bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x+bounds[0], point.y-bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x-bounds[0], point.y-bounds[1]], proj.dota, proj.pixel)
-            ]]);
-        }
-        else {
-            var geom = new ol.geom.Point(ol.proj.transform([point.x, point.y], proj.dota, proj.pixel));
-        }
-
-        var feature = new ol.Feature(geom);
-        
-        point.id = layerDef.id;
-        point.unitClass = unitClass;
-        feature.set('dotaProps', point, true);
-        return feature;
-    });
-    
-    var vectorSource = new ol.source.Vector({
-        defaultDataProjection : 'dota',
-        features: features
-    });
-    
-    if (layer) {
-        layer.setSource(vectorSource);
-    }
-    else {
-        layer = new ol.layer.Vector({
-            title: layerDef.name,
-            source: vectorSource,
-            visible: !!layerDef.visible,
-            style: layerDef.style
-        });
-        layer.set('layerId', layerDef.id, true);
-        layer.set('layerDef', layerDef, true);
-        layer.set('showInfo', false, true);
-    }
-
-    return layer;
-}
-
-function loadLayerGroupFromData(map, data, version, layersIndex, layerDefs) {
-    var layers = [];
-    for (var i = 0; i < layerDefs.length; i++) {
-        var layerDef = layerDefs[i];
-        if (!data.data[layerDef.id] && (layerDef.type !== 'GeoJSON' || version == '687')) continue;
-        var layer;
-        switch (layerDef.type) {
-            case 'GeoJSON':
-                layer = loadGeoJSON(map, layerDef, layersIndex[layerDef.id]);
-            break;
-            case 'polygon':
-                layer = loadPolygon(map, layerDef, data, layersIndex[layerDef.id]);
-            break;
-            default:
-                layer = loadJSON(map, layerDef, data, layersIndex[layerDef.id]);
-            break;
-        }
-        layersIndex[layerDef.id] = layer;
-        layers.push(layer);
-    }
-    var layerGroup = new ol.layer.Group({
-        title: 'Layers',
-        layers: new ol.Collection(layers)
-    });
-    return layerGroup;
-}
-
-module.exports = {
-    loadGeoJSON: loadGeoJSON,
-    loadJSON: loadJSON,
-    loadLayerGroupFromData: loadLayerGroupFromData,
-};
-},{"./projections":15}],6:[function(require,module,exports){
-var VisionSimulation = require("dota-vision-simulation");
-var key2pt = VisionSimulation.prototype.key2pt;
-var xy2key = VisionSimulation.prototype.xy2key;
-var xy2pt = VisionSimulation.prototype.xy2pt;
-
-function processNeighbors(grid, lights, components, key, index) {
-    var pt = key2pt(key);
-    var dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
-    for (var i = 0; i < dirs.length; i++) {
-        var aX = pt.x+dirs[i][0];
-        var aY = pt.y+dirs[i][1];
-        if (!grid[aX] || !grid[aX][aY]) continue;
-        var keyAdj = grid[aX][aY].key
-        if (components[keyAdj] || !lights[keyAdj]) continue;
-        components[keyAdj] = index;
-        processNeighbors(grid, lights, components, keyAdj, index);
-    }
-}
-
-function getLightUnion(grid, lights) {
-    var components = {};
-    var index = 1;
-    for (var key in lights) {
-        if (!components[key]) {
-            components[key] = index;
-            processNeighbors(grid, lights, components, key, index);
-            index++;
-        }
-    }
-    
-    var outlines = [];
-    for (var i = 1; i < index; i++) {
-        outlines.push(getOutline(grid, components, i))
-    }
-    return outlines;
-}
-
-function isSideFree(grid, components, pt, dir) {
-    var aX = pt.x+dir[0];
-    var aY = pt.y+dir[1];
-    if (!grid[aX] || !grid[aX][aY]) return true;
-    var keyAdj = grid[aX][aY].key
-    return !components[keyAdj];
-}
-
-function notSurrounded(grid, components, pt) {
-    for (var i = 0; i < 8; i+=2) {
-        var aX = pt.x+Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
-        var aY = pt.y+Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
-        if (!grid[aX] || !grid[aX][aY]) return i;
-        var keyAdj = grid[aX][aY].key
-        if (!components[keyAdj]) return i;
-    }
-    return null;
-}
-
-function mod(n, m) {
-        return ((n % m) + m) % m;
-}
-
-function getOutline(grid, components, index) {
-    var outlinePoints = [];
-    var startKey;
-    var dir = null;
-    for (var key in components) {
-        var pt = key2pt(key);
-        dir = notSurrounded(grid, components, pt);
-        if (components[key] == index && dir !== null) {
-            startKey = key;
-            break;
-        }
-    }
-    var next = processNext(grid, components, startKey, dir);
-    while (startKey !== next.key || dir !== next.dir) {
-        outlinePoints.push(next.point);
-        next = processNext(grid, components, next.key, next.dir);
-    }
-    outlinePoints.push(next.point);
-    return outlinePoints;
-}
-
-function checkAdj(grid, components, pt, key, dir, i, adjDir) {
-    var aX = pt.x+dir[0];
-    var aY = pt.y+dir[1];
-    if (!grid[aX] || !grid[aX][aY]) return;
-    var ptAdj = grid[pt.x+dir[0]][pt.y+dir[1]];
-    if (components[ptAdj.key] == components[key] && isSideFree(grid, components, ptAdj, adjDir)) {
-        return {
-            key: ptAdj.key,
-            dir: i
-        }
-    }
-}
-
-function processNext(grid, components, key, i) {
-    var pt = key2pt(key);
-    var next;
-    
-    var x = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
-    var y = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
-    
-    var nI = mod(i+2, 8);
-    var nX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * nI));
-    var nY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * nI));
-    
-    var bI = mod(i-1, 8);
-    var bX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * bI));
-    var bY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * bI));
-
-    if (isSideFree(grid, components, pt, [nX, nY])) {
-        return {
-            key: key,
-            dir: mod(i+2, 8),
-            point: xy2pt(pt.x+bX/2, pt.y+bY/2)
-        }
-    }
-    if (!next) next = checkAdj(grid, components, pt, key, [nX, nY], i, [x, y]);
-    if (!next) {
-        var aI = mod(i + 1, 8);
-        var aX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * aI));
-        var aY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * aI));
-        var pI = mod(i - 2, 8);
-        var pX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * pI));
-        var pY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * pI));
-        next = checkAdj(grid, components, pt, key, [aX, aY], pI, [pX, pY]);
-    }
-    if (next) {
-        next.point = xy2pt(pt.x+bX/2, pt.y+bY/2);
-        return next;
-    }
-    else {
-        console.log('error');
-    }
-}
-
-module.exports = getLightUnion;
-},{"dota-vision-simulation":27}],7:[function(require,module,exports){
-function capitalize(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-var unitNames = {
-    npc_dota_roshan_spawner: "Roshan",
-    dota_item_rune_spawner_powerup: "Rune",
-    dota_item_rune_spawner_bounty: "Bounty Rune",
-    ent_dota_tree: "Tree",
-    npc_dota_healer: "Shrine",
-    ent_dota_fountain: "Fountain",
-    npc_dota_fort: "Ancient",
-    ent_dota_shop: "Shop",
-    npc_dota_tower: "Tower",
-    npc_dota_barracks: "Barracks",
-    npc_dota_filler: "Building",
-    trigger_multiple: "Neutral Camp Spawn Box",
-    npc_dota_neutral_spawner: "Neutral Camp",
-    observer: "Observer Ward",
-    sentry: "Sentry Ward"
-};
-    
-function getUnitName(unitType, unitSubType) {
-    return (unitSubType ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' ' : '') + unitNames[unitType];
-}
-    
-var pullTypes = ['Normal', 'Fast', 'Slow'];
-var neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
-function getPopupContent(data, feature) {
-    var dotaProps = feature.get('dotaProps');
-    var unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
-    var stats = data.data.stats[unitClass];
-    var htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
-    if (dotaProps.pullType != null) {
-        htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
-    }
-    if (dotaProps.neutralType != null) {
-        htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
-    }
-    if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
-        htmlContent += '<br><span class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</span>';
-    }
-    if (stats.hasOwnProperty('bat')) {
-        htmlContent += '<br><span class="info-line">BAT: ' + stats.bat + '</span>';
-    }
-    if (stats.hasOwnProperty('attackRange')) {
-        htmlContent += '<br><span class="info-line">Attack Range: ' + stats.attackRange + '</span>';
-    }
-    if (stats.hasOwnProperty('health')) {
-        htmlContent += '<br><span class="info-line">Health: ' + stats.health + '</span>';
-    }
-    if (stats.hasOwnProperty('armor')) {
-        htmlContent += '<br><span class="info-line">Armor: ' + stats.armor + '</span>';
-    }
-    if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
-        htmlContent += '<br><span class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</span>';
-    }
-    htmlContent += '</span></div>';
-    return htmlContent;
-}
-
-module.exports = getPopupContent;
-},{}],8:[function(require,module,exports){
-(function (global){
-var VisionSimulation = require("dota-vision-simulation");
-var worlddata = require("dota-vision-simulation/src/worlddata.json");
-var QueryString = require('./util/queryString');
-var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-var proj = require('./projections');
-var mapConstants = require('./mapConstants');
-var MenuControl = require('./menuControl');
-var InfoControl = require('./infoControl');
-var NotificationControl = require('./notificationControl');
-var MeasureControl = require('./measureControl');
-var VisionControl = require('./visionControl');
-var WardControl = require('./wardControl');
-var CursorControl = require('./cursorControl');
-var vision_data_image_path = 'img/map_data.png';
-var InteractiveMap = require('./InteractiveMap');
-var forEach = require('./util/forEach');
-InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
-InteractiveMap.menuControl = new MenuControl(InteractiveMap);
-InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
-InteractiveMap.infoControl = new InfoControl(InteractiveMap);
-InteractiveMap.infoControl.initialize('info');
-InteractiveMap.notificationControl = new NotificationControl();
-InteractiveMap.notificationControl.initialize('notification');
-InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
-InteractiveMap.wardControl = new WardControl(InteractiveMap);
-InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
-InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
-
-//var DrawCurveControl = require('./drawCurveControl');
-//InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
-
-var modeNotificationText = {
-    observer: "Ward Mode: Observer",
-    sentry: "Ward Mode: Sentry",
-    navigate: "Navigation Mode",
-    line: "Measure Mode: Line",
-    circle: "Measure Mode: Circle",
-    treeEnable: "<span>Navigation Mode</span><span>Trees: On</span>",
-    treeDisable: "<span>Navigation Mode</span><span>Trees: Off</span>",
-    nightOn: "Nighttime Vision",
-    nightOff: "Daytime Vision",
-    darknessOn: "Darkness: On",
-    darknessOff: "Darkness: Off",
-}
-function changeMode(mode) {
-    console.log('changeMode', mode);
-    switch (mode) {
-        case 'observer':
-        case 'sentry':
-            document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
-        case 'ward':
-            document.querySelector('input[name="mode"][value="ward"]').checked = true;
-            InteractiveMap.MODE = document.querySelector('input[name="ward-type"]:checked').value;
-            document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
-            document.getElementById('btn-ward').classList.add('active');
-            document.getElementById('btn-tree').classList.remove('active');
-            document.getElementById('btn-measure').classList.remove('active');
-            QueryString.setQueryString('mode', InteractiveMap.MODE);
-            InteractiveMap.measureControl.deactivate();
-            InteractiveMap.wardControl.activate();
-            InteractiveMap.infoControl.deactivate();
-        break;
-        case 'line':
-        case 'circle':
-            document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
-        case 'measure':
-            document.querySelector('input[name="mode"][value="measure"]').checked = true;
-            InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
-            document.getElementById('btn-ward').classList.remove('active');
-            document.getElementById('btn-tree').classList.remove('active');
-            document.getElementById('btn-measure').classList.add('active');
-            document.getElementById('btn-measure').setAttribute('measure-type', InteractiveMap.MODE);
-            QueryString.setQueryString('mode', InteractiveMap.MODE);
-            InteractiveMap.measureControl.change(InteractiveMap.MODE);
-            InteractiveMap.wardControl.deactivate();
-            InteractiveMap.infoControl.deactivate();
-            
-        break;
-        default:
-            document.querySelector('input[name="mode"][value="navigate"]').checked = true;
-            InteractiveMap.MODE = mode || "navigate";
-            document.getElementById('btn-ward').classList.remove('active');
-            document.getElementById('btn-tree').classList.add('active');
-            document.getElementById('btn-measure').classList.remove('active');
-            QueryString.setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
-            InteractiveMap.measureControl.deactivate();
-            InteractiveMap.wardControl.deactivate();
-            InteractiveMap.infoControl.activate();
-        break;
-    }
-    InteractiveMap.notificationControl.show(modeNotificationText[InteractiveMap.MODE]);
-}
-
-forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), function (element) {
-    element.addEventListener("change", function () {
-        changeMode(this.value);
-    }, false);
-}, this);
-
-function toggleLayerMenuOption(layerId, state) {
-    var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
-    if (state != null) element.checked = state;
-    updateLayerAndQueryString(element, layerId);
-}
-function updateLayerAndQueryString(element, layerId) {
-    layerId = layerId || element.getAttribute('data-layer-id');
-    var layer = InteractiveMap.getMapLayerIndex()[layerId];
-    layer.setVisible(element.checked);
-    var param = layer.get("title").replace(/ /g, '');
-    QueryString.setQueryString(param, element.checked ? true : null);
-    if (layerId == 'ent_dota_tree') {
-        document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
-    }
-}
-function layerToggleHandler() {
-    updateLayerAndQueryString(this);
-}
-function baseLayerToggleHandler() {
-    var layerId = this.getAttribute('data-layer-id');
-    InteractiveMap.baseLayers.forEach(function (layer) {
-        layer.setVisible(layer.get('layerId') === layerId);
-    });
-    QueryString.setQueryString('BaseLayer', layerId);
-}
-
-// updates element visibility based on map layer index
-// updates layer visibility based on element state
-function updateOverlayMenu() {
-    forEach(document.querySelectorAll('.data-layer > input'), function (element) {
-        var label = element.nextSibling;
-        var layerId = element.getAttribute('data-layer-id');
-        var layerIndex = InteractiveMap.getMapLayerIndex();
-        var layer = layerIndex[layerId];
-        console.log('label', label);
-        if (!layer) {
-            label.style.display = "none";
-        }
-        else {
-            label.style.display = "block";
-            layer.setVisible(element.checked);
-        }
-    }, this);
-}
-
-function setDefaults() {
-    var x = QueryString.getParameterByName('x');
-    var y = QueryString.getParameterByName('y');
-    var zoom = QueryString.getParameterByName('zoom');
-    if (zoom) {
-        InteractiveMap.view.setZoom(zoom);
-    }
-    if (x && y) {
-        var coordinate = ol.proj.transform([x, y], proj.dota, proj.pixel);
-        if (ol.extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
-            InteractiveMap.panTo(coordinate);
-        }
-    }
-    
-    document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
-    var mode = QueryString.getParameterByName('mode');
-    changeMode(mode);
-
-    var baseLayerName = QueryString.getParameterByName('BaseLayer');
-    var element;
-    if (baseLayerName) {
-        element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
-        if (element) {
-            element.checked = true;
-            InteractiveMap.baseLayers.filter(function (layer) { return layer.get("layerId") == baseLayerName })[0].setVisible(true);
-        }
-    }
-    if (!element) {
-        QueryString.setQueryString('BaseLayer', null);
-        InteractiveMap.baseLayers[0].setVisible(true);
-        document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
-    }
-    
-    InteractiveMap.layerDefs.forEach(function (layerDef) {
-        var param = layerDef.name.replace(/ /g, '');
-        var value = QueryString.getParameterByName(param);
-        if (value && value !== "false") {
-            layerDef.visible = true;
-            document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
-            QueryString.setQueryString(param, true);
-        }
-        else {
-            QueryString.setQueryString(param, null);
-        }
-        if (layerDef.id == 'ent_dota_tree') {
-            document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
-        }
-    });
-
-    console.log('trees enabled', document.getElementById('btn-tree').getAttribute('trees-enabled'));
-}
-    
-document.getElementById('nightControl').addEventListener('change', function () {
-    InteractiveMap.isNight = this.checked;
-    if (this.checked) {
-        InteractiveMap.notificationControl.show(modeNotificationText.nightOn);
-    }
-    else {
-        InteractiveMap.notificationControl.show(modeNotificationText.nightOff);
-    }
-}, false);
-
-document.getElementById('darknessControl').addEventListener('change', function () {
-    InteractiveMap.isDarkness = this.checked;
-    if (this.checked) {
-        InteractiveMap.notificationControl.show(modeNotificationText.darknessOn);
-    }
-    else {
-        InteractiveMap.notificationControl.show(modeNotificationText.darknessOff);
-    }
-}, false);
-
-document.getElementById('version-select').addEventListener('change', function () {
-    InteractiveMap.version = this.value;
-}, false);
-
-document.getElementById('vision-radius').addEventListener('change', function () {
-    InteractiveMap.visionRadius = this.value;
-}, false);
-
-document.getElementById('movementSpeed').addEventListener('change', function () {
-    InteractiveMap.movementSpeed = this.value;
-}, false);
-
-function onMoveEnd(evt) {
-    var map = evt.map;
-    var extent = map.getView().calculateExtent(map.getSize());
-    var center = ol.extent.getCenter(extent);
-    var worldXY = ol.proj.transform(center, proj.pixel, proj.dota);
-    var coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
-    QueryString.setQueryString('x', coordinate[0]);
-    QueryString.setQueryString('y', coordinate[1]);
-    QueryString.setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
-}
-
-function initialize() {
-    InteractiveMap.infoControl.activate();
-    
-    setDefaults();
-
-    InteractiveMap.setMapLayers(InteractiveMap.version, function () {
-        updateOverlayMenu();
-        InteractiveMap.map.addLayer(InteractiveMap.measureControl.layer);
-        InteractiveMap.map.addLayer(InteractiveMap.cursorControl.layer);
-        InteractiveMap.map.addLayer(InteractiveMap.visionControl.layer);
-        InteractiveMap.map.addLayer(InteractiveMap.wardControl.layer);
-        InteractiveMap.map.addLayer(InteractiveMap.highlightLayer);
-        InteractiveMap.map.addLayer(InteractiveMap.selectLayer);
-        InteractiveMap.map.addLayer(InteractiveMap.wardRangeLayer);
-        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.dayVision);
-        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
-        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
-        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
-    });
-    
-    InteractiveMap.map.on('moveend', onMoveEnd);
-        
-    document.getElementById('option-dayVision').addEventListener('change', function () {
-        InteractiveMap.rangeLayers.dayVision.setVisible(this.checked);
-    });
-        
-    document.getElementById('option-nightVision').addEventListener('change', function () {
-        InteractiveMap.rangeLayers.nightVision.setVisible(this.checked);
-    });
-        
-    document.getElementById('option-trueSight').addEventListener('change', function () {
-        InteractiveMap.rangeLayers.trueSight.setVisible(this.checked);
-    });
-        
-    document.getElementById('option-attackRange').addEventListener('change', function () {
-        InteractiveMap.rangeLayers.attackRange.setVisible(this.checked);
-    });
-        
-    document.getElementById('version-select').addEventListener('change', function () {
-        InteractiveMap.setMapLayers(this.value);
-    });
-        
-    document.getElementById('btn-zoom-in').addEventListener('click', function () {
-        InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() + 1});
-    });
-        
-    document.getElementById('btn-zoom-out').addEventListener('click', function () {
-        InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() - 1});
-    });
-
-    document.getElementById('btn-tree').addEventListener('click', function () {
-        if (this.classList.contains('active')) {
-            console.log('swapping', this.getAttribute('trees-enabled'), !this.getAttribute('trees-enabled'));
-            this.setAttribute('trees-enabled', this.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
-        }
-        this.classList.add('active');
-        document.getElementById('btn-ward').classList.remove('active');
-        document.getElementById('btn-measure').classList.remove('active');
-        console.log('btn-tree', this.getAttribute('trees-enabled'));
-        toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
-        changeMode('navigate');
-        InteractiveMap.notificationControl.show(this.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
-    });
-
-    document.getElementById('btn-ward').addEventListener('click', function () {
-        if (this.classList.contains('active')) {
-            this.setAttribute('ward-type', this.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
-        }
-        if (this.getAttribute('ward-type') == 'sentry') {
-            document.querySelector('input[name="mode"][value="ward"]').checked = true;
-            document.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
-        }
-        else {
-            document.querySelector('input[name="mode"][value="ward"]').checked = true;
-            document.querySelector('input[name="ward-type"][value="observer"]').checked = true;
-        }
-        this.classList.add('active');
-        document.getElementById('btn-tree').classList.remove('active');
-        document.getElementById('btn-measure').classList.remove('active');
-        changeMode('ward');
-    });
-
-    document.getElementById('btn-measure').addEventListener('click', function () {
-        if (this.classList.contains('active')) {
-            this.setAttribute('measure-type', this.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
-        }
-        if (this.getAttribute('measure-type') == 'circle') {
-            document.querySelector('input[name="mode"][value="measure"]').checked = true;
-            document.querySelector('input[name="measure-type"][value="circle"]').checked = true;
-        }
-        else {
-            document.querySelector('input[name="mode"][value="measure"]').checked = true;
-            document.querySelector('input[name="measure-type"][value="line"]').checked = true;
-        }
-        this.classList.add('active');
-        document.getElementById('btn-tree').classList.remove('active');
-        document.getElementById('btn-ward').classList.remove('active');
-        changeMode('measure');
-    });
-}
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./InteractiveMap":1,"./cursorControl":4,"./infoControl":9,"./mapConstants":11,"./measureControl":12,"./menuControl":13,"./notificationControl":14,"./projections":15,"./util/forEach":17,"./util/queryString":19,"./visionControl":21,"./wardControl":22,"dota-vision-simulation":27,"dota-vision-simulation/src/worlddata.json":28}],9:[function(require,module,exports){
-var getPopupContent = require('./getPopupContent');
-var styles = require('./styleDefinitions');
+},{"./../styleDefinitions":19}],5:[function(require,module,exports){
+var getPopupContent = require('./../getPopupContent');
+var styles = require('./../styleDefinitions');
+var mapConstants = require('./../mapConstants');
+var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
+var createCirclePointCoords = require('./../util/createCirclePointCoords');
 
 function InfoControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
-    this.highlight = null;
+    //this.highlight = null;
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function (evt) {
         // When user was dragging map, then coordinates didn't change and there's
@@ -1179,7 +677,8 @@ function InfoControl(InteractiveMap) {
             if (!self.isActive()) {
                 self.displayFeatureInfo(feature, false);
             }
-            self.InteractiveMap.highlight(feature);
+            console.log(self);
+            self.highlight(feature);
         }
         else {
             self.close(false);
@@ -1192,14 +691,14 @@ function InfoControl(InteractiveMap) {
             }
             // no highlighted feature so unhighlight current feature
             else if (!self.isActive()) {
-                self.InteractiveMap.unhighlight();
+                self.unhighlight();
             }
         }
     }
     this.pointerMoveListener = null;
     
     this.clickHandler = function (evt) {
-        self.InteractiveMap.unhighlight();
+        self.unhighlight();
         var feature = self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
             return feature;
         }, {
@@ -1214,7 +713,7 @@ function InfoControl(InteractiveMap) {
                 }
                 else {
                     self.displayFeatureInfo(feature, true);
-                    self.InteractiveMap.select(feature);
+                    self.select(feature);
                     self.InteractiveMap.panTo(evt.coordinate);
                 }
             }
@@ -1239,7 +738,7 @@ function InfoControl(InteractiveMap) {
             }
             // no highlighted feature so unhighlight current feature
             else if (!self.isActive()) {
-                self.InteractiveMap.unhighlight();            
+                self.unhighlight();            
                 self.close(true);
             }
             self.InteractiveMap.deselectAll();
@@ -1302,194 +801,74 @@ InfoControl.prototype.initialize = function (id) {
 }
 
 InfoControl.prototype.displayFeatureInfo = function (feature, bClicked) {
+    console.log('feature', feature);
     this.setContent(getPopupContent(this.InteractiveMap.getMapData(), feature));
     this.open(bClicked);
 };
 
-module.exports = InfoControl;
-},{"./getPopupContent":7,"./styleDefinitions":16}],10:[function(require,module,exports){
-(function (global){
-var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-var styles = require('./styleDefinitions');
-var proj = require('./projections');
-
-var layerDefinitions = [
-    {
-        id: 'path_corner',
-        name: 'Lanes',
-        filename: 'path_corner.json',
-        type: 'GeoJSON',
-        group: 'overlay',
-        projection: proj.dota,
-        style: function (feature, resolution) {
-            console.log(feature);
-            if (feature.get('name').indexOf('_bad_') == -1) {
-                return styles.radiant;
-            }
-            else {
-                return styles.dire;
+InfoControl.prototype.unhighlight = function (feature) {
+    var highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
+    if (highlightedFeature && !highlightedFeature.get("clicked")) {
+        var dotaProps = highlightedFeature.get('dotaProps');
+        if (dotaProps) {
+            if (dotaProps.id == 'npc_dota_neutral_spawner') {
+                var pullRange = highlightedFeature.get('pullRange');
+                if (pullRange) {
+                    console.log('unhighlight', highlightedFeature, pullRange);
+                    this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(pullRange);
+                    highlightedFeature.set("pullRange", null, true);
+                }
+                var guardRange = highlightedFeature.get('guardRange');
+                if (guardRange) {
+                    console.log('unhighlight', highlightedFeature, guardRange);
+                    this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(guardRange);
+                    highlightedFeature.set("guardRange", null, true);
+                }
             }
         }
-    },
-    {
-        id: 'npc_dota_spawner',
-        name: 'Lane Spawns',
-        filename: 'npc_dota_spawner.json',
-        type: 'GeoJSON',
-        group: 'overlay',
-        projection: proj.dota,
-        style: styles.creepSpawn
-    },
-    {
-        id: 'ent_fow_blocker_node',
-        name: 'Vision Blocker',
-        filename: 'ent_fow_blocker_node2.json',
-        type: 'GeoJSON',
-        group: 'overlay',
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: [0, 0, 255, 0.3]}),
-            stroke: new ol.style.Stroke({color: [0, 0, 255, 0.8]})
-        })
-    },
-    {
-        id: 'no_wards',
-        name: 'Invalid Wards',
-        filename: 'no_wards2.json',
-        type: 'GeoJSON',
-        group: 'overlay',
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: [255, 0, 0, 0.3]}),
-            stroke: new ol.style.Stroke({color: [255, 0, 0, 0.8]})
-        })
-    },
-    {
-        id: 'trigger_multiple',
-        name: 'Spawn Boxes',
-        type: 'polygon',
-        group: 'overlay',
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: [0, 255, 125, 0.3]}),
-            stroke: new ol.style.Stroke({color: [0, 255, 125, 0.8]})
-        })
-    },
-    {
-        id: 'npc_dota_neutral_spawner',
-        name: 'Neutral Camps',
-        group: 'object',
-        style: function (feature, resolution) {
-            return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
-        }
-    },
-    {
-        id: 'ent_dota_tree',
-        name: 'Trees',
-        group: 'object',
-        style:  function (feature, resolution) {
-            if (feature.get('isCut')) {
-                return styles.tree.dead;
-            }
-            else {
-                return styles.tree.alive;
-            }
-        },
-        toggle: true
-    },
-    {
-        id: 'npc_dota_roshan_spawner',
-        name: 'Roshan',
-        group: 'object',
-        style: styles.roshan
-    },
-    {
-        id: 'dota_item_rune_spawner_powerup',
-        name: 'Runes',
-        group: 'object',
-        style: styles.rune
-    },
-    {
-        id: 'dota_item_rune_spawner_bounty',
-        name: 'Bounty Runes',
-        group: 'object',
-        style: styles.bountyRune
-    },
-    {
-        id: 'ent_dota_fountain',
-        name: 'Fountain',
-        group: 'structure',
-        style: styles.ent_dota_fountain,
-        toggle: true
-    },
-    {
-        id: 'npc_dota_barracks',
-        name: 'Barracks',
-        group: 'structure',
-        style: styles.npc_dota_barracks,
-        toggle: true
-    },
-    {
-        id: 'npc_dota_filler',
-        name: 'Buildings',
-        group: 'structure',
-        style: styles.npc_dota_filler,
-        toggle: true
-    },
-    {
-        id: 'npc_dota_tower',
-        name: 'Towers',
-        group: 'structure',
-        style: styles.npc_dota_tower,
-        toggle: true
-    },
-    {
-        id: 'ent_dota_shop',
-        name: 'Shops',
-        group: 'structure',
-        style: styles.ent_dota_shop
-    },
-    {
-        id: 'npc_dota_fort',
-        name: 'Ancients',
-        group: 'structure',
-        style: styles.npc_dota_fort,
-        toggle: true
-    },
-    {
-        id: 'npc_dota_healer',
-        name: 'Shrines',
-        group: 'structure',
-        style: styles.npc_dota_healer,
-        toggle: true
     }
-];
-
-module.exports = layerDefinitions;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./projections":15,"./styleDefinitions":16}],11:[function(require,module,exports){
-var mapConstants = {
-    map_w: 16384,
-    map_h: 16384,
-    map_x_boundaries: [-8475.58617377, 9327.49124559],
-    map_y_boundaries: [9028.52473332, -8836.61406266],
-    resolutions: [
-        16384 / 1024,
-        16384 / 1024 / 2,
-        16384 / 1024 / 4,
-        16384 / 1024 / 8,
-        16384 / 1024 / 16
-    ],
-    visionRadius: {
-        observer: 1600,
-        sentry: 850,
-        darkness: 675
-    },
-    defaultMovementSpeed: 300
+    this.InteractiveMap.unhighlight();
 }
-mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2]
-mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;
 
-module.exports = mapConstants;
-},{}],12:[function(require,module,exports){
-var styles = require('./styleDefinitions');
+InfoControl.prototype.highlight = function (feature) {
+    this.unhighlight();
+    var dotaProps = feature.get('dotaProps');
+    if (dotaProps) {
+        if (dotaProps.id == 'npc_dota_neutral_spawner') {
+            if (!feature.get('pullRange')) {
+                var circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
+                feature.set("guardRange", circle, true);
+                this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
+                
+                var center = worldToLatLon([dotaProps.x, dotaProps.y]);
+                var pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
+                var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
+                var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
+                var geom = new ol.geom.Polygon([pullMaxCoords]);
+                geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
+                var circle = new ol.Feature(geom);
+                feature.set("pullRange", circle, true);
+                console.log('unhighlight', feature, circle);
+                this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
+            }
+        }
+    }
+    this.InteractiveMap.highlight(feature);
+}
+
+InfoControl.prototype.select = function (feature) {    
+    if (feature && !feature.get("clicked")) {
+        if (feature == this.InteractiveMap.highlightedFeature) {
+            this.unhighlight();
+        }
+        this.InteractiveMap.selectSource.addFeature(feature);
+        feature.set("clicked", true, true);
+    }
+}
+
+module.exports = InfoControl;
+},{"./../conversionFunctions":11,"./../getPopupContent":14,"./../mapConstants":17,"./../styleDefinitions":19,"./../util/createCirclePointCoords":20}],6:[function(require,module,exports){
+var styles = require('./../styleDefinitions');
 
 function MeasureControl(InteractiveMap) {
     var self = this;
@@ -1739,7 +1118,7 @@ function MeasureControl(InteractiveMap) {
 }
 
 module.exports = MeasureControl;
-},{"./styleDefinitions":16}],13:[function(require,module,exports){
+},{"./../styleDefinitions":19}],7:[function(require,module,exports){
 function MenuPanel(panelId, openId, closeId, fullscreen) {
     this.panelId = panelId;
     this.openId = openId;
@@ -1854,8 +1233,8 @@ MenuControl.prototype.initialize = function (layerToggleHandler, baseLayerToggle
 }
 
 module.exports = MenuControl;
-},{}],14:[function(require,module,exports){
-var styles = require('./styleDefinitions');
+},{}],8:[function(require,module,exports){
+var styles = require('./../styleDefinitions');
 
 function NotificationControl() {
     this.timer = null;
@@ -1895,502 +1274,14 @@ NotificationControl.prototype.initialize = function (id) {
 }
 
 module.exports = NotificationControl;
-},{"./styleDefinitions":16}],15:[function(require,module,exports){
+},{"./../styleDefinitions":19}],9:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-var conversionFunctions = require('./conversionFunctions');
-var mapConstants = require('./mapConstants');
-
-var pixelProj = new ol.proj.Projection({
-    code: 'pixel',
-    units: 'pixels',
-    extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
-});
-
-var dotaProj = new ol.proj.Projection({
-    code: 'dota',
-    extent: [-8288, -8288, 8288, 8288],
-    units: 'units'
-});
-
-ol.proj.addProjection(pixelProj);
-ol.proj.addCoordinateTransforms('pixel', dotaProj, conversionFunctions.latLonToWorld, conversionFunctions.worldToLatLon);
-
-ol.proj.addProjection(dotaProj);
-ol.proj.addCoordinateTransforms('dota', pixelProj, conversionFunctions.worldToLatLon, conversionFunctions.latLonToWorld);
-
-module.exports = {
-    pixel: pixelProj,
-    dota: dotaProj
-}
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./conversionFunctions":3,"./mapConstants":11}],16:[function(require,module,exports){
-(function (global){
-var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-
-var defaultStyle = new ol.style.Style({
-    fill: new ol.style.Fill({
-        color: 'rgba(255,255,255,0.4)'
-    }),
-    stroke: new ol.style.Stroke({
-        color: '#3399CC',
-        width: 1.25
-    })
-});
-
-var getFeatureCenter = function(feature) {
-    var extent = feature.getGeometry().getExtent();
-    var center = ol.extent.getCenter(extent);
-    return new ol.geom.Point(center);
-};
-
-var styles = {
-    creepSpawn: new ol.style.Style({
-        image: new ol.style.RegularShape({
-            points: 6,
-            radius: 8,
-            fill: new ol.style.Fill({
-                color: 'rgba(0, 0, 255, 0.3)'
-            }),
-            stroke: new ol.style.Stroke({
-                color: 'rgba(0, 0, 255, 0.7)',
-                width: 2
-            })
-        })
-    }),
-    neutralCamp: [
-        new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 3,
-                radius: 8,
-                fill: new ol.style.Fill({
-                    color: 'rgba(0, 255, 0, 0.3)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(0, 255, 0, 0.7)',
-                    width: 2
-                })
-            })
-        }),
-        new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 3,
-                radius: 9,
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 255, 0, 0.3)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(255, 255, 0, 0.7)',
-                    width: 2
-                })
-            })
-        }),
-        new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 3,
-                radius: 10,
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 150, 0, 0.3)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(255, 150, 0, 0.7)',
-                    width: 2
-                })
-            })
-        }),
-        new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 3,
-                radius: 11,
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 0, 0, 0.3)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(255, 0, 0, 0.7)',
-                    width: 2
-                })
-            })
-        })
-    ],
-    dire: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 51, 51, 0.2)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: '#FF3333',
-            width: 2
-        })
-    }),
-    radiant: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(51, 255, 51, 0.2)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: '#33FF33',
-            width: 2
-        })
-    }),
-    highlight: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 255, 0, 0.2)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: '#ffff00',
-            width: 2
-        })
-    }),
-    select: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(0, 255, 0, 0.2)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: '#00ff00',
-            width: 2
-        })
-    }),
-    cursor: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 255, 255, 0.2)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(255, 255, 255, 1)',
-            width: 1
-        })
-    }),
-    visionSimulation: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 255, 0, 0.2)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(255, 255, 0, 1)',
-            width: 1
-        })
-    }),
-    dayVision: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(238, 153, 0, 0.1)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(238, 153, 0, 0.5)',
-            width: 2
-        })
-    }),
-    nightVision: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(0, 127, 255, 0.1)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(0, 0, 255, 0.5)',
-            width: 2
-        })
-    }),
-    trueSight: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(0, 127, 255, 0.1)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(0, 127, 255, 0.5)',
-            width: 2
-        })
-    }),
-    attackRange: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 0, 0, 0.1)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(255, 0, 0, 0.5)',
-            width: 2
-        })
-    }),
-    ent_dota_fountain: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/water-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    npc_dota_barracks: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/stadium-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    npc_dota_filler: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/landmark-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    npc_dota_tower: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/castle-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    ent_dota_shop: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/shop-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    npc_dota_fort: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/town-hall-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    npc_dota_healer: [
-        defaultStyle,
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/svgs/place-of-worship-15.svg',
-                anchor: [0.5, 0.5]
-            }),
-            geometry: getFeatureCenter
-        })
-    ],
-    measure: new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: 'rgba(255, 255, 255, 0.3)'
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'rgba(255,165,0, 0.7)',
-            lineDash: [10, 10],
-            width: 3
-        }),
-        image: new ol.style.Circle({
-            radius: 5,
-            stroke: new ol.style.Stroke({
-                color: 'rgba(255,165,0, 0.7)',
-                width: 2
-            }),
-            fill: new ol.style.Fill({
-                color: 'rgba(255,165,0, 0.3)'
-            })
-        })
-    }),
-    observer: {
-        normal: new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/ward_observer.png',
-                anchor: [0.5, 1]
-            })
-        }),
-        highlight: new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/ward_observer.png',
-                anchor: [0.5, 1],
-                color: '#0000ff'
-            })
-        }),
-        remove: new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/ward_observer.png',
-                anchor: [0.5, 1],
-                color: '#ff0000'
-            })
-        })
-    },
-    sentry: {
-        normal: new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/ward_sentry.png',
-                anchor: [0.5, 1]
-            })
-        }),
-        highlight: new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/ward_sentry.png',
-                anchor: [0.5, 1],
-                color: '#0000ff'
-            })
-        }),
-        remove: new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/ward_sentry.png',
-                anchor: [0.5, 1],
-                color: '#ff0000'
-            })
-        })
-    },
-    tree: {
-        alive: new ol.style.Style({
-            fill: new ol.style.Fill({color: [0, 255, 0, 0.3]}),
-            stroke: new ol.style.Stroke({color: [0, 255, 0, 0.8]})
-        }),
-        dead: new ol.style.Style({
-            fill: new ol.style.Fill({color: [51, 25, 0, 0.7]}),
-            stroke: new ol.style.Stroke({color: [255, 128, 0, 0.8]})
-        })
-    },
-    bountyRune: new ol.style.Style({
-        image: new ol.style.Icon({
-            src: 'img/bountyrune.png',
-            anchor: [0.5, 0.5]
-        })
-    }),
-    rune: new ol.style.Style({
-        image: new ol.style.Icon({
-            src: 'img/doubledamage.png',
-            anchor: [0.5, 0.5]
-        })
-    }),
-    roshan: new ol.style.Style({
-        image: new ol.style.Icon({
-            src: 'img/roshan.png',
-            anchor: [0.5, 0.5]
-        })
-    })
-}
-
-module.exports = styles;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],17:[function(require,module,exports){
-var forEach = function (array, callback, scope) {
-    for (var i = 0; i < array.length; i++) {
-        callback.call(scope, array[i], i); // passes back stuff we need
-    }
-};
-
-module.exports = forEach;
-},{}],18:[function(require,module,exports){
-function getJSON(path, callback) {
-    console.log('getJSON', path);
-    var request = new XMLHttpRequest();
-
-    request.open('GET', path, true);
-    request.onload = function() {
-        if (request.status >= 200 && request.status < 400) {
-            var data = JSON.parse(request.responseText);
-            callback(data);
-        } else {
-            alert('Error loading page.');
-        }
-    };
-    request.onerror = function() {
-        alert('Error loading page.');
-    };
-    request.send();
-    return request;
-}
-
-module.exports = getJSON;
-},{}],19:[function(require,module,exports){
-var trim = require('./trim');
-
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-function setQueryString(key, value) {
-    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, value));
-}
-
-function addQueryStringValue(key, value) {
-    console.log('addQueryStringValue', key, value);
-    var qs = getParameterByName(key);
-    qs = trim(trim(qs, ' ;') + ';' + value, ' ;');
-    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs));
-}
-
-function removeQueryStringValue(key, value) {
-    console.log('removeQueryStringValue', key, value);
-    var qs = getParameterByName(key);
-    qs = trim(trim(qs, ' ;').replace(value, '').replace(/;;/g, ''), ' ;');
-    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));
-}
-
-function updateQueryString(key, value, url) {
-    if (!url) url = window.location.href;
-    var re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
-        hash;
-
-    if (re.test(url)) {
-        if (typeof value !== 'undefined' && value !== null)
-            return url.replace(re, '$1' + key + "=" + value + '$2$3');
-        else {
-            hash = url.split('#');
-            url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
-            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
-                url += '#' + hash[1];
-            return url;
-        }
-    } else {
-        if (typeof value !== 'undefined' && value !== null) {
-            var separator = url.indexOf('?') !== -1 ? '&' : '?';
-            hash = url.split('#');
-            url = hash[0] + separator + key + '=' + value;
-            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
-                url += '#' + hash[1];
-            return url;
-        } else {
-            return url;
-        }
-    }
-}
-
-module.exports = {
-    getParameterByName: getParameterByName,
-    setQueryString: setQueryString,
-    addQueryStringValue: addQueryStringValue,
-    removeQueryStringValue: removeQueryStringValue,
-    updateQueryString: updateQueryString
-}
-},{"./trim":20}],20:[function(require,module,exports){
-function escapeRegex(string) {
-    return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
-}
-
-var trim = function trim(str, characters, flags) {
-    flags = flags || "g";
-    if (typeof str !== "string" || typeof characters !== "string" || typeof flags !== "string") {
-        throw new TypeError("argument must be string");
-    }
-
-    if (!/^[gi]*$/.test(flags)) {
-        throw new TypeError("Invalid flags supplied '" + flags.match(new RegExp("[^gi]*")) + "'");
-    }
-
-    characters = escapeRegex(characters);
-
-    return str.replace(new RegExp("^[" + characters + "]+|[" + characters + "]+$", flags), '');
-};
-
-module.exports = trim;
-},{}],21:[function(require,module,exports){
-(function (global){
-var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-var latLonToWorld = require('./conversionFunctions').latLonToWorld;
-var worldToLatLon = require('./conversionFunctions').worldToLatLon;
-var getTileRadius = require('./conversionFunctions').getTileRadius;
-var getLightUnion = require('./getLightUnion');
-var styles = require('./styleDefinitions');
+var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
+var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
+var getTileRadius = require('./../conversionFunctions').getTileRadius;
+var getLightUnion = require('./../getLightUnion');
+var styles = require('./../styleDefinitions');
 
 function VisionControl(InteractiveMap) {
     var self = this;
@@ -2484,11 +1375,11 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
 
 module.exports = VisionControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./conversionFunctions":3,"./getLightUnion":6,"./styleDefinitions":16}],22:[function(require,module,exports){
+},{"./../conversionFunctions":11,"./../getLightUnion":13,"./../styleDefinitions":19}],10:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
-var styles = require('./styleDefinitions');
-var mapConstants = require('./mapConstants');
+var styles = require('./../styleDefinitions');
+var mapConstants = require('./../mapConstants');
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;
@@ -2757,7 +1648,1526 @@ WardControl.prototype.removeRangeCircle = function (feature, rangeType) {
 
 module.exports = WardControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./mapConstants":11,"./styleDefinitions":16}],23:[function(require,module,exports){
+},{"./../mapConstants":17,"./../styleDefinitions":19}],11:[function(require,module,exports){
+var mapConstants = require('./mapConstants');
+
+function lerp(minVal, maxVal, pos_r) {
+    return pos_r * (maxVal - minVal) + minVal;
+}
+
+function reverseLerp(minVal, maxVal, pos) {
+    return (pos - minVal) / (maxVal - minVal);
+}
+
+function latLonToWorld(coordinate) {
+    var x_r = lerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], coordinate[0] / mapConstants.map_w),
+        y_r = lerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], (mapConstants.map_h - coordinate[1]) / mapConstants.map_h);
+    return [x_r, y_r];
+}
+
+function worldToLatLon(coordinate) {
+    var x = reverseLerp(mapConstants.map_x_boundaries[0], mapConstants.map_x_boundaries[1], coordinate[0]) * mapConstants.map_w,
+        y = mapConstants.map_h - reverseLerp(mapConstants.map_y_boundaries[0], mapConstants.map_y_boundaries[1], coordinate[1]) * mapConstants.map_h;
+    return [x, y]
+}
+
+function getTileRadius(r) {
+    return parseInt(Math.floor(r / 64));
+}
+
+function getScaledRadius(r) {
+    return r / (mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) * mapConstants.map_w
+}
+
+function calculateDistance(order, units, measure) {
+    if (order == 1) {
+        if (units == "km") {
+            return measure * mapConstants.scale * 1000;
+        } else {
+            return measure * mapConstants.scale;
+        }
+    } else {
+        return measure * mapConstants.scale;
+    }
+}
+
+module.exports = {
+    lerp: lerp,
+    reverseLerp: reverseLerp,
+    latLonToWorld: latLonToWorld,
+    worldToLatLon: worldToLatLon,
+    getTileRadius: getTileRadius,
+    getScaledRadius: getScaledRadius,
+    calculateDistance: calculateDistance
+}
+},{"./mapConstants":17}],12:[function(require,module,exports){
+var proj = require('./projections');
+
+function loadGeoJSON(map, layerDef) {
+    var source = new ol.source.Vector({
+        url: 'data/700/' + layerDef.filename,
+        format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
+    });
+    console.log('layerDef', layerDef);
+    var layer = new ol.layer.Vector({
+        title: layerDef.name,
+        projection: layerDef.projection || proj.pixel,
+        source: source,
+        visible: !!layerDef.visible,
+        style: layerDef.style
+    });
+
+    return layer;
+}
+
+function loadPolygon(map, layerDef, data, layer) {
+    var features = [];
+    features = data.data[layerDef.id].map(function (obj) {
+        var points = obj.points;
+        var ring = points.map(function (point) {
+            return ol.proj.transform([point.x, point.y], proj.dota, proj.pixel)
+        });
+        ring.push(ol.proj.transform([points[0].x, points[0].y], proj.dota, proj.pixel))
+        var geom = new ol.geom.Polygon([ring]);
+        var feature = new ol.Feature(geom);
+        obj.id = layerDef.id;
+        feature.set('dotaProps', obj, true);
+        return feature;
+    });
+    
+    var vectorSource = new ol.source.Vector({
+        defaultDataProjection : 'dota',
+        features: features
+    });
+    
+    if (layer) {
+        layer.setSource(vectorSource);
+    }
+    else {
+        layer = new ol.layer.Vector({
+            title: layerDef.name,
+            source: vectorSource,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        layer.set('showInfo', false, true);
+    }
+
+    return layer;
+}
+
+function loadJSON(map, layerDef, data, layer) {
+    var features = [];
+    features = data.data[layerDef.id].map(function (point) {
+        var unitClass = point.subType ? layerDef.id + '_' + point.subType : layerDef.id;
+        var stats = data.stats[unitClass];
+        var bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
+        if (bounds && bounds[0] > 0 && bounds[1] > 0) {
+            var geom = new ol.geom.Polygon([[
+                ol.proj.transform([point.x-bounds[0], point.y-bounds[1]], proj.dota, proj.pixel),
+                ol.proj.transform([point.x-bounds[0], point.y+bounds[1]], proj.dota, proj.pixel),
+                ol.proj.transform([point.x+bounds[0], point.y+bounds[1]], proj.dota, proj.pixel),
+                ol.proj.transform([point.x+bounds[0], point.y-bounds[1]], proj.dota, proj.pixel),
+                ol.proj.transform([point.x-bounds[0], point.y-bounds[1]], proj.dota, proj.pixel)
+            ]]);
+        }
+        else {
+            var geom = new ol.geom.Point(ol.proj.transform([point.x, point.y], proj.dota, proj.pixel));
+        }
+
+        var feature = new ol.Feature(geom);
+        
+        point.id = layerDef.id;
+        point.unitClass = unitClass;
+        feature.set('dotaProps', point, true);
+        
+        return feature;
+    });
+    
+    var vectorSource = new ol.source.Vector({
+        defaultDataProjection : 'dota',
+        features: features
+    });
+    
+    if (layer) {
+        layer.setSource(vectorSource);
+    }
+    else {
+        layer = new ol.layer.Vector({
+            title: layerDef.name,
+            source: vectorSource,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        layer.set('showInfo', false, true);
+    }
+
+    return layer;
+}
+
+function loadNeutralPullRange(InteractiveMap, layerDef, data, layer) {
+    /*var features = InteractiveMap.getMapLayerIndex().npc_dota_neutral_spawner.getSource().getFeatures();
+    var circles = features.map(function (feature) {
+        var circle = InteractiveMap.getRangeCircle(feature, null, null, null, 400);
+        feature.set("guard_range", circle, true);
+        return circle;
+    });
+    circles = circles.concat(features.map(function (feature) {
+        var dotaProps = feature.get("dotaProps");
+        var center = worldToLatLon([dotaProps.x, dotaProps.y]);
+        var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullRangeTiming[dotaProps.pullType] * 350, 360);
+        var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullRangeTiming[dotaProps.pullType] * 270, 360);
+        var geom = new ol.geom.Polygon([pullMaxCoords]);
+        geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
+        feature.set("pull_range_min", geom, true);
+        var circle = new ol.Feature({geometry: geom, visible: false});
+        circle.visible(false);
+        return circle;
+    }));*/
+    
+    var vectorSource = new ol.source.Vector({
+        defaultDataProjection : 'pixel',
+        features: []
+    });
+    
+    if (layer) {
+        layer.setSource(vectorSource);
+    }
+    else {
+        layer = new ol.layer.Vector({
+            title: layerDef.name,
+            source: vectorSource,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        layer.set('showInfo', false, true);
+    }
+
+    return layer;
+}
+
+function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, layerDefs) {
+    var layers = [];
+    for (var i = 0; i < layerDefs.length; i++) {
+        var layerDef = layerDefs[i];
+        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '687')) continue;
+        var layer;
+        switch (layerDef.type) {
+            case 'GeoJSON':
+                layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id]);
+            break;
+            case 'polygon':
+                layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
+            break;
+            case 'pullRange':
+                layer = loadNeutralPullRange(InteractiveMap, layerDef, data, layersIndex[layerDef.id]);
+            break;
+            default:
+                layer = loadJSON(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
+            break;
+        }
+        layersIndex[layerDef.id] = layer;
+        layers.push(layer);
+    }
+    var layerGroup = new ol.layer.Group({
+        title: 'Layers',
+        layers: new ol.Collection(layers)
+    });
+    
+    return layerGroup;
+}
+
+module.exports = {
+    loadGeoJSON: loadGeoJSON,
+    loadJSON: loadJSON,
+    loadLayerGroupFromData: loadLayerGroupFromData,
+};
+},{"./projections":18}],13:[function(require,module,exports){
+var VisionSimulation = require("dota-vision-simulation");
+var key2pt = VisionSimulation.prototype.key2pt;
+var xy2key = VisionSimulation.prototype.xy2key;
+var xy2pt = VisionSimulation.prototype.xy2pt;
+
+function processNeighbors(grid, lights, components, key, index) {
+    var pt = key2pt(key);
+    var dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
+    for (var i = 0; i < dirs.length; i++) {
+        var aX = pt.x+dirs[i][0];
+        var aY = pt.y+dirs[i][1];
+        if (!grid[aX] || !grid[aX][aY]) continue;
+        var keyAdj = grid[aX][aY].key
+        if (components[keyAdj] || !lights[keyAdj]) continue;
+        components[keyAdj] = index;
+        processNeighbors(grid, lights, components, keyAdj, index);
+    }
+}
+
+function getLightUnion(grid, lights) {
+    var components = {};
+    var index = 1;
+    for (var key in lights) {
+        if (!components[key]) {
+            components[key] = index;
+            processNeighbors(grid, lights, components, key, index);
+            index++;
+        }
+    }
+    
+    var outlines = [];
+    for (var i = 1; i < index; i++) {
+        outlines.push(getOutline(grid, components, i))
+    }
+    return outlines;
+}
+
+function isSideFree(grid, components, pt, dir) {
+    var aX = pt.x+dir[0];
+    var aY = pt.y+dir[1];
+    if (!grid[aX] || !grid[aX][aY]) return true;
+    var keyAdj = grid[aX][aY].key
+    return !components[keyAdj];
+}
+
+function notSurrounded(grid, components, pt) {
+    for (var i = 0; i < 8; i+=2) {
+        var aX = pt.x+Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
+        var aY = pt.y+Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
+        if (!grid[aX] || !grid[aX][aY]) return i;
+        var keyAdj = grid[aX][aY].key
+        if (!components[keyAdj]) return i;
+    }
+    return null;
+}
+
+function mod(n, m) {
+        return ((n % m) + m) % m;
+}
+
+function getOutline(grid, components, index) {
+    var outlinePoints = [];
+    var startKey;
+    var dir = null;
+    for (var key in components) {
+        var pt = key2pt(key);
+        dir = notSurrounded(grid, components, pt);
+        if (components[key] == index && dir !== null) {
+            startKey = key;
+            break;
+        }
+    }
+    var next = processNext(grid, components, startKey, dir);
+    while (startKey !== next.key || dir !== next.dir) {
+        outlinePoints.push(next.point);
+        next = processNext(grid, components, next.key, next.dir);
+    }
+    outlinePoints.push(next.point);
+    return outlinePoints;
+}
+
+function checkAdj(grid, components, pt, key, dir, i, adjDir) {
+    var aX = pt.x+dir[0];
+    var aY = pt.y+dir[1];
+    if (!grid[aX] || !grid[aX][aY]) return;
+    var ptAdj = grid[pt.x+dir[0]][pt.y+dir[1]];
+    if (components[ptAdj.key] == components[key] && isSideFree(grid, components, ptAdj, adjDir)) {
+        return {
+            key: ptAdj.key,
+            dir: i
+        }
+    }
+}
+
+function processNext(grid, components, key, i) {
+    var pt = key2pt(key);
+    var next;
+    
+    var x = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
+    var y = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
+    
+    var nI = mod(i+2, 8);
+    var nX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * nI));
+    var nY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * nI));
+    
+    var bI = mod(i-1, 8);
+    var bX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * bI));
+    var bY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * bI));
+
+    if (isSideFree(grid, components, pt, [nX, nY])) {
+        return {
+            key: key,
+            dir: mod(i+2, 8),
+            point: xy2pt(pt.x+bX/2, pt.y+bY/2)
+        }
+    }
+    if (!next) next = checkAdj(grid, components, pt, key, [nX, nY], i, [x, y]);
+    if (!next) {
+        var aI = mod(i + 1, 8);
+        var aX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * aI));
+        var aY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * aI));
+        var pI = mod(i - 2, 8);
+        var pX = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * pI));
+        var pY = Math.round(Math.sin(2 * Math.PI - Math.PI/4 * pI));
+        next = checkAdj(grid, components, pt, key, [aX, aY], pI, [pX, pY]);
+    }
+    if (next) {
+        next.point = xy2pt(pt.x+bX/2, pt.y+bY/2);
+        return next;
+    }
+    else {
+        console.log('error');
+    }
+}
+
+module.exports = getLightUnion;
+},{"dota-vision-simulation":29}],14:[function(require,module,exports){
+function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+var unitNames = {
+    npc_dota_roshan_spawner: "Roshan",
+    dota_item_rune_spawner_powerup: "Rune",
+    dota_item_rune_spawner_bounty: "Bounty Rune",
+    ent_dota_tree: "Tree",
+    npc_dota_healer: "Shrine",
+    ent_dota_fountain: "Fountain",
+    npc_dota_fort: "Ancient",
+    ent_dota_shop: "Shop",
+    npc_dota_tower: "Tower",
+    npc_dota_barracks: "Barracks",
+    npc_dota_filler: "Building",
+    trigger_multiple: "Neutral Camp Spawn Box",
+    npc_dota_neutral_spawner: "Neutral Camp",
+    observer: "Observer Ward",
+    sentry: "Sentry Ward"
+};
+    
+function getUnitName(unitType, unitSubType) {
+    return (unitSubType ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' ' : '') + unitNames[unitType];
+}
+    
+var pullTypes = ['Normal', 'Fast', 'Slow'];
+var neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
+function getPopupContent(data, feature) {
+    var dotaProps = feature.get('dotaProps');
+    var unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
+    var stats = data.data.stats[unitClass];
+    var htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
+    if (dotaProps.pullType != null) {
+        htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
+    }
+    if (dotaProps.neutralType != null) {
+        htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
+    }
+    if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
+        htmlContent += '<br><span class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</span>';
+    }
+    if (stats.hasOwnProperty('bat')) {
+        htmlContent += '<br><span class="info-line">BAT: ' + stats.bat + '</span>';
+    }
+    if (stats.hasOwnProperty('attackRange')) {
+        htmlContent += '<br><span class="info-line">Attack Range: ' + stats.attackRange + '</span>';
+    }
+    if (stats.hasOwnProperty('health')) {
+        htmlContent += '<br><span class="info-line">Health: ' + stats.health + '</span>';
+    }
+    if (stats.hasOwnProperty('armor')) {
+        htmlContent += '<br><span class="info-line">Armor: ' + stats.armor + '</span>';
+    }
+    if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
+        htmlContent += '<br><span class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</span>';
+    }
+    htmlContent += '</span></div>';
+    return htmlContent;
+}
+
+module.exports = getPopupContent;
+},{}],15:[function(require,module,exports){
+(function (global){
+var VisionSimulation = require("dota-vision-simulation");
+var worlddata = require("dota-vision-simulation/src/worlddata.json");
+var QueryString = require('./util/queryString');
+var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
+var proj = require('./projections');
+var mapConstants = require('./mapConstants');
+var MenuControl = require('./controls/menuControl');
+var InfoControl = require('./controls/infoControl');
+var NotificationControl = require('./controls/notificationControl');
+var MeasureControl = require('./controls/measureControl');
+var CreepControl = require('./controls/creepControl');
+var VisionControl = require('./controls/visionControl');
+var WardControl = require('./controls/wardControl');
+var CursorControl = require('./controls/cursorControl');
+var vision_data_image_path = 'img/map_data.png';
+var InteractiveMap = require('./InteractiveMap');
+
+InteractiveMap.toggleLayerMenuOption = function(layerId, state) {
+    var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
+    if (state != null) element.checked = state;
+    updateLayerAndQueryString(element, layerId);
+}
+
+var forEach = require('./util/forEach');
+InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
+InteractiveMap.menuControl = new MenuControl(InteractiveMap);
+InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
+InteractiveMap.infoControl = new InfoControl(InteractiveMap);
+InteractiveMap.infoControl.initialize('info');
+InteractiveMap.notificationControl = new NotificationControl();
+InteractiveMap.notificationControl.initialize('notification');
+InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
+InteractiveMap.wardControl = new WardControl(InteractiveMap);
+InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
+InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
+InteractiveMap.creepControl = new CreepControl(InteractiveMap);
+InteractiveMap.creepControl.initialize('timer');
+
+//var DrawCurveControl = require('./drawCurveControl');
+//InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
+
+var modeNotificationText = {
+    observer: "Ward Mode: Observer",
+    sentry: "Ward Mode: Sentry",
+    navigate: "Navigation Mode",
+    line: "Measure Mode: Line",
+    circle: "Measure Mode: Circle",
+    treeEnable: "<span>Navigation Mode</span><span>Trees: On</span>",
+    treeDisable: "<span>Navigation Mode</span><span>Trees: Off</span>",
+    nightOn: "Nighttime Vision",
+    nightOff: "Daytime Vision",
+    darknessOn: "Darkness: On",
+    darknessOff: "Darkness: Off",
+}
+function changeMode(mode) {
+    console.log('changeMode', mode);
+    switch (mode) {
+        case 'observer':
+        case 'sentry':
+            document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
+        case 'ward':
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            InteractiveMap.MODE = document.querySelector('input[name="ward-type"]:checked').value;
+            document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
+            document.getElementById('btn-ward').classList.add('active');
+            document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.remove('active');
+            QueryString.setQueryString('mode', InteractiveMap.MODE);
+            InteractiveMap.measureControl.deactivate();
+            InteractiveMap.wardControl.activate();
+            InteractiveMap.infoControl.deactivate();
+        break;
+        case 'line':
+        case 'circle':
+            document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
+        case 'measure':
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
+            document.getElementById('btn-ward').classList.remove('active');
+            document.getElementById('btn-tree').classList.remove('active');
+            document.getElementById('btn-measure').classList.add('active');
+            document.getElementById('btn-measure').setAttribute('measure-type', InteractiveMap.MODE);
+            QueryString.setQueryString('mode', InteractiveMap.MODE);
+            InteractiveMap.measureControl.change(InteractiveMap.MODE);
+            InteractiveMap.wardControl.deactivate();
+            InteractiveMap.infoControl.deactivate();
+            
+        break;
+        default:
+            document.querySelector('input[name="mode"][value="navigate"]').checked = true;
+            InteractiveMap.MODE = mode || "navigate";
+            document.getElementById('btn-ward').classList.remove('active');
+            document.getElementById('btn-tree').classList.add('active');
+            document.getElementById('btn-measure').classList.remove('active');
+            QueryString.setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
+            InteractiveMap.measureControl.deactivate();
+            InteractiveMap.wardControl.deactivate();
+            InteractiveMap.infoControl.activate();
+        break;
+    }
+    InteractiveMap.notificationControl.show(modeNotificationText[InteractiveMap.MODE]);
+}
+
+forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), function (element) {
+    element.addEventListener("change", function () {
+        changeMode(this.value);
+    }, false);
+}, this);
+
+function updateLayerAndQueryString(element, layerId) {
+    layerId = layerId || element.getAttribute('data-layer-id');
+    var layer = InteractiveMap.getMapLayerIndex()[layerId];
+    layer.setVisible(element.checked);
+    var param = layer.get("title").replace(/ /g, '');
+    QueryString.setQueryString(param, element.checked ? true : null);
+    if (layerId == 'ent_dota_tree') {
+        document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+    }
+}
+function layerToggleHandler() {
+    updateLayerAndQueryString(this);
+}
+function baseLayerToggleHandler() {
+    var layerId = this.getAttribute('data-layer-id');
+    InteractiveMap.baseLayers.forEach(function (layer) {
+        layer.setVisible(layer.get('layerId') === layerId);
+    });
+    QueryString.setQueryString('BaseLayer', layerId);
+}
+
+// updates element visibility based on map layer index
+// updates layer visibility based on element state
+function updateOverlayMenu() {
+    forEach(document.querySelectorAll('.data-layer > input'), function (element) {
+        var label = element.nextSibling;
+        var layerId = element.getAttribute('data-layer-id');
+        var layerIndex = InteractiveMap.getMapLayerIndex();
+        var layer = layerIndex[layerId];
+        console.log('label', label);
+        if (!layer) {
+            label.style.display = "none";
+        }
+        else {
+            label.style.display = "block";
+            layer.setVisible(element.checked);
+        }
+    }, this);
+}
+
+function setDefaults() {
+    var x = QueryString.getParameterByName('x');
+    var y = QueryString.getParameterByName('y');
+    var zoom = QueryString.getParameterByName('zoom');
+    if (zoom) {
+        InteractiveMap.view.setZoom(zoom);
+    }
+    if (x && y) {
+        var coordinate = ol.proj.transform([x, y], proj.dota, proj.pixel);
+        if (ol.extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
+            InteractiveMap.panTo(coordinate);
+        }
+    }
+    
+    document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
+    var mode = QueryString.getParameterByName('mode');
+    changeMode(mode);
+
+    var baseLayerName = QueryString.getParameterByName('BaseLayer');
+    var element;
+    if (baseLayerName) {
+        element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
+        if (element) {
+            element.checked = true;
+            InteractiveMap.baseLayers.filter(function (layer) { return layer.get("layerId") == baseLayerName })[0].setVisible(true);
+        }
+    }
+    if (!element) {
+        QueryString.setQueryString('BaseLayer', null);
+        InteractiveMap.baseLayers[0].setVisible(true);
+        document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
+    }
+    
+    InteractiveMap.layerDefs.forEach(function (layerDef) {
+        var param = layerDef.name.replace(/ /g, '');
+        var value = QueryString.getParameterByName(param);
+        if (value && value !== "false") {
+            layerDef.visible = true;
+            document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
+            QueryString.setQueryString(param, true);
+        }
+        else {
+            QueryString.setQueryString(param, null);
+        }
+        if (layerDef.id == 'ent_dota_tree') {
+            document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
+        }
+    });
+
+    console.log('trees enabled', document.getElementById('btn-tree').getAttribute('trees-enabled'));
+}
+    
+document.getElementById('nightControl').addEventListener('change', function () {
+    InteractiveMap.isNight = this.checked;
+    if (this.checked) {
+        InteractiveMap.notificationControl.show(modeNotificationText.nightOn);
+    }
+    else {
+        InteractiveMap.notificationControl.show(modeNotificationText.nightOff);
+    }
+}, false);
+
+document.getElementById('darknessControl').addEventListener('change', function () {
+    InteractiveMap.isDarkness = this.checked;
+    if (this.checked) {
+        InteractiveMap.notificationControl.show(modeNotificationText.darknessOn);
+    }
+    else {
+        InteractiveMap.notificationControl.show(modeNotificationText.darknessOff);
+    }
+}, false);
+
+document.getElementById('version-select').addEventListener('change', function () {
+    InteractiveMap.version = this.value;
+}, false);
+
+document.getElementById('vision-radius').addEventListener('change', function () {
+    InteractiveMap.visionRadius = this.value;
+}, false);
+
+document.getElementById('movementSpeed').addEventListener('change', function () {
+    InteractiveMap.movementSpeed = this.value;
+}, false);
+
+function onMoveEnd(evt) {
+    var map = evt.map;
+    var extent = map.getView().calculateExtent(map.getSize());
+    var center = ol.extent.getCenter(extent);
+    var worldXY = ol.proj.transform(center, proj.pixel, proj.dota);
+    var coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
+    QueryString.setQueryString('x', coordinate[0]);
+    QueryString.setQueryString('y', coordinate[1]);
+    QueryString.setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
+}
+
+function initialize() {
+    InteractiveMap.infoControl.activate();
+    
+    setDefaults();
+
+    InteractiveMap.setMapLayers(InteractiveMap.version, function () {
+        updateOverlayMenu();
+        InteractiveMap.map.addLayer(InteractiveMap.measureControl.layer);
+        InteractiveMap.map.addLayer(InteractiveMap.cursorControl.layer);
+        InteractiveMap.map.addLayer(InteractiveMap.visionControl.layer);
+        InteractiveMap.map.addLayer(InteractiveMap.wardControl.layer);
+        InteractiveMap.map.addLayer(InteractiveMap.highlightLayer);
+        InteractiveMap.map.addLayer(InteractiveMap.selectLayer);
+        InteractiveMap.map.addLayer(InteractiveMap.wardRangeLayer);
+        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.dayVision);
+        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
+        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
+        InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
+        
+        InteractiveMap.creepControl.activate();
+    });
+    
+    InteractiveMap.map.on('moveend', onMoveEnd);
+        
+    document.getElementById('option-dayVision').addEventListener('change', function () {
+        InteractiveMap.rangeLayers.dayVision.setVisible(this.checked);
+    });
+        
+    document.getElementById('option-nightVision').addEventListener('change', function () {
+        InteractiveMap.rangeLayers.nightVision.setVisible(this.checked);
+    });
+        
+    document.getElementById('option-trueSight').addEventListener('change', function () {
+        InteractiveMap.rangeLayers.trueSight.setVisible(this.checked);
+    });
+        
+    document.getElementById('option-attackRange').addEventListener('change', function () {
+        InteractiveMap.rangeLayers.attackRange.setVisible(this.checked);
+    });
+        
+    document.getElementById('version-select').addEventListener('change', function () {
+        InteractiveMap.setMapLayers(this.value);
+    });
+        
+    document.getElementById('btn-zoom-in').addEventListener('click', function () {
+        InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() + 1});
+    });
+        
+    document.getElementById('btn-zoom-out').addEventListener('click', function () {
+        InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() - 1});
+    });
+
+    document.getElementById('btn-tree').addEventListener('click', function () {
+        if (this.classList.contains('active')) {
+            console.log('swapping', this.getAttribute('trees-enabled'), !this.getAttribute('trees-enabled'));
+            this.setAttribute('trees-enabled', this.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
+        }
+        this.classList.add('active');
+        document.getElementById('btn-ward').classList.remove('active');
+        document.getElementById('btn-measure').classList.remove('active');
+        console.log('btn-tree', this.getAttribute('trees-enabled'));
+        InteractiveMap.toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
+        changeMode('navigate');
+        InteractiveMap.notificationControl.show(this.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
+    });
+
+    document.getElementById('btn-ward').addEventListener('click', function () {
+        if (this.classList.contains('active')) {
+            this.setAttribute('ward-type', this.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
+        }
+        if (this.getAttribute('ward-type') == 'sentry') {
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            document.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
+        }
+        else {
+            document.querySelector('input[name="mode"][value="ward"]').checked = true;
+            document.querySelector('input[name="ward-type"][value="observer"]').checked = true;
+        }
+        this.classList.add('active');
+        document.getElementById('btn-tree').classList.remove('active');
+        document.getElementById('btn-measure').classList.remove('active');
+        changeMode('ward');
+    });
+
+    document.getElementById('btn-measure').addEventListener('click', function () {
+        if (this.classList.contains('active')) {
+            this.setAttribute('measure-type', this.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
+        }
+        if (this.getAttribute('measure-type') == 'circle') {
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            document.querySelector('input[name="measure-type"][value="circle"]').checked = true;
+        }
+        else {
+            document.querySelector('input[name="mode"][value="measure"]').checked = true;
+            document.querySelector('input[name="measure-type"][value="line"]').checked = true;
+        }
+        this.classList.add('active');
+        document.getElementById('btn-tree').classList.remove('active');
+        document.getElementById('btn-ward').classList.remove('active');
+        changeMode('measure');
+    });
+}
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./InteractiveMap":1,"./controls/creepControl":3,"./controls/cursorControl":4,"./controls/infoControl":5,"./controls/measureControl":6,"./controls/menuControl":7,"./controls/notificationControl":8,"./controls/visionControl":9,"./controls/wardControl":10,"./mapConstants":17,"./projections":18,"./util/forEach":21,"./util/queryString":23,"dota-vision-simulation":29,"dota-vision-simulation/src/worlddata.json":30}],16:[function(require,module,exports){
+(function (global){
+var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
+var styles = require('./styleDefinitions');
+var proj = require('./projections');
+
+var layerDefinitions = [
+    {
+        id: 'path_corner',
+        name: 'Lanes',
+        filename: 'path_corner.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: proj.dota,
+        style: styles.teamColor
+    },
+    {
+        id: 'npc_dota_spawner',
+        name: 'Lane Spawns',
+        filename: 'npc_dota_spawner.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: proj.dota,
+        style: styles.creepSpawn
+    },
+    {
+        id: 'ent_fow_blocker_node',
+        name: 'Vision Blocker',
+        filename: 'ent_fow_blocker_node2.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        style: new ol.style.Style({
+            fill: new ol.style.Fill({color: [0, 0, 255, 0.3]}),
+            stroke: new ol.style.Stroke({color: [0, 0, 255, 0.8]})
+        })
+    },
+    {
+        id: 'no_wards',
+        name: 'Invalid Wards',
+        filename: 'no_wards2.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        style: new ol.style.Style({
+            fill: new ol.style.Fill({color: [255, 0, 0, 0.3]}),
+            stroke: new ol.style.Stroke({color: [255, 0, 0, 0.8]})
+        })
+    },
+    {
+        id: 'trigger_multiple',
+        name: 'Spawn Boxes',
+        type: 'polygon',
+        group: 'overlay',
+        style: new ol.style.Style({
+            fill: new ol.style.Fill({color: [0, 255, 125, 0.3]}),
+            stroke: new ol.style.Stroke({color: [0, 255, 125, 0.8]})
+        })
+    },
+    {
+        id: 'npc_dota_neutral_spawner',
+        name: 'Neutral Camps',
+        group: 'object',
+        style: function (feature, resolution) {
+            return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
+        }
+    },
+    {
+        id: 'ent_dota_tree',
+        name: 'Trees',
+        group: 'object',
+        style:  function (feature, resolution) {
+            if (feature.get('isCut')) {
+                return styles.tree.dead;
+            }
+            else {
+                return styles.tree.alive;
+            }
+        },
+        toggle: true
+    },
+    {
+        id: 'npc_dota_roshan_spawner',
+        name: 'Roshan',
+        group: 'object',
+        style: styles.roshan
+    },
+    {
+        id: 'dota_item_rune_spawner_powerup',
+        name: 'Runes',
+        group: 'object',
+        style: styles.rune
+    },
+    {
+        id: 'dota_item_rune_spawner_bounty',
+        name: 'Bounty Runes',
+        group: 'object',
+        style: styles.bountyRune
+    },
+    {
+        id: 'ent_dota_fountain',
+        name: 'Fountain',
+        group: 'structure',
+        style: styles.ent_dota_fountain,
+        toggle: true
+    },
+    {
+        id: 'npc_dota_barracks',
+        name: 'Barracks',
+        group: 'structure',
+        style: styles.npc_dota_barracks,
+        toggle: true
+    },
+    {
+        id: 'npc_dota_filler',
+        name: 'Buildings',
+        group: 'structure',
+        style: styles.npc_dota_filler,
+        toggle: true
+    },
+    {
+        id: 'npc_dota_tower',
+        name: 'Towers',
+        group: 'structure',
+        style: styles.npc_dota_tower,
+        toggle: true
+    },
+    {
+        id: 'ent_dota_shop',
+        name: 'Shops',
+        group: 'structure',
+        style: styles.ent_dota_shop
+    },
+    {
+        id: 'npc_dota_fort',
+        name: 'Ancients',
+        group: 'structure',
+        style: styles.npc_dota_fort,
+        toggle: true
+    },
+    {
+        id: 'npc_dota_healer',
+        name: 'Shrines',
+        group: 'structure',
+        style: styles.npc_dota_healer,
+        toggle: true
+    },
+    {
+        id: 'pullRange',
+        name: 'Pull Range',
+        type: 'pullRange',
+        group: 'overlay',
+        style: styles.pullRange,
+        visible: true
+    }
+];
+
+module.exports = layerDefinitions;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./projections":18,"./styleDefinitions":19}],17:[function(require,module,exports){
+var mapConstants = {
+    map_w: 16384,
+    map_h: 16384,
+    map_x_boundaries: [-8475.58617377, 9327.49124559],
+    map_y_boundaries: [9028.52473332, -8836.61406266],
+    resolutions: [
+        16384 / 1024,
+        16384 / 1024 / 2,
+        16384 / 1024 / 4,
+        16384 / 1024 / 8,
+        16384 / 1024 / 16
+    ],
+    visionRadius: {
+        observer: 1600,
+        sentry: 850,
+        darkness: 675
+    },
+    defaultMovementSpeed: 300,
+    creepBaseMovementSpeed: 325,
+    pullRangeTiming: [4, 2.25, 4.75]
+}
+mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2]
+mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;
+
+module.exports = mapConstants;
+},{}],18:[function(require,module,exports){
+(function (global){
+var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
+var conversionFunctions = require('./conversionFunctions');
+var mapConstants = require('./mapConstants');
+
+var pixelProj = new ol.proj.Projection({
+    code: 'pixel',
+    units: 'pixels',
+    extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
+});
+
+var dotaProj = new ol.proj.Projection({
+    code: 'dota',
+    extent: [-8288, -8288, 8288, 8288],
+    units: 'units'
+});
+
+ol.proj.addProjection(pixelProj);
+ol.proj.addCoordinateTransforms('pixel', dotaProj, conversionFunctions.latLonToWorld, conversionFunctions.worldToLatLon);
+
+ol.proj.addProjection(dotaProj);
+ol.proj.addCoordinateTransforms('dota', pixelProj, conversionFunctions.worldToLatLon, conversionFunctions.latLonToWorld);
+
+module.exports = {
+    pixel: pixelProj,
+    dota: dotaProj
+}
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./conversionFunctions":11,"./mapConstants":17}],19:[function(require,module,exports){
+(function (global){
+var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
+
+var defaultStyle = new ol.style.Style({
+    fill: new ol.style.Fill({
+        color: 'rgba(255,255,255,0.4)'
+    }),
+    stroke: new ol.style.Stroke({
+        color: '#3399CC',
+        width: 1.25
+    })
+});
+
+var getFeatureCenter = function(feature) {
+    var extent = feature.getGeometry().getExtent();
+    var center = ol.extent.getCenter(extent);
+    return new ol.geom.Point(center);
+};
+
+var styles = {
+    creepSpawn: new ol.style.Style({
+        image: new ol.style.RegularShape({
+            points: 6,
+            radius: 8,
+            fill: new ol.style.Fill({
+                color: 'rgba(0, 0, 255, 0.3)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0, 0, 255, 0.7)',
+                width: 2
+            })
+        })
+    }),
+    neutralCamp: [
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 8,
+                fill: new ol.style.Fill({
+                    color: 'rgba(0, 255, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(0, 255, 0, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 9,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255, 255, 0, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 10,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 150, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255, 150, 0, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 3,
+                radius: 11,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 0, 0, 0.3)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(255, 0, 0, 0.7)',
+                    width: 2
+                })
+            })
+        })
+    ],
+    dire: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 51, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#FF3333',
+            width: 2
+        })
+    }),
+    radiant: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(51, 255, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#33FF33',
+            width: 2
+        })
+    }),
+    direCreep: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 51, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#FF3333',
+            width: 10
+        })
+    }),
+    radiantCreep: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(51, 255, 51, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#33FF33',
+            width: 10
+        })
+    }),
+    highlight: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 0, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#ffff00',
+            width: 2
+        })
+    }),
+    select: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 255, 0, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#00ff00',
+            width: 2
+        })
+    }),
+    cursor: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 255, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255, 255, 255, 1)',
+            width: 1
+        })
+    }),
+    visionSimulation: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 0, 0.2)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255, 255, 0, 1)',
+            width: 1
+        })
+    }),
+    dayVision: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(238, 153, 0, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(238, 153, 0, 0.5)',
+            width: 2
+        })
+    }),
+    nightVision: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 127, 255, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(0, 0, 255, 0.5)',
+            width: 2
+        })
+    }),
+    trueSight: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 127, 255, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(0, 127, 255, 0.5)',
+            width: 2
+        })
+    }),
+    attackRange: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 0, 0, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255, 0, 0, 0.5)',
+            width: 2
+        })
+    }),
+    ent_dota_fountain: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/water-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_barracks: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/stadium-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_filler: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/landmark-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_tower: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/castle-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    ent_dota_shop: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/shop-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_fort: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/town-hall-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    npc_dota_healer: [
+        defaultStyle,
+        new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/svgs/place-of-worship-15.svg',
+                anchor: [0.5, 0.5]
+            }),
+            geometry: getFeatureCenter
+        })
+    ],
+    measure: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 255, 0.3)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255,165,0, 0.7)',
+            lineDash: [10, 10],
+            width: 3
+        }),
+        image: new ol.style.Circle({
+            radius: 5,
+            stroke: new ol.style.Stroke({
+                color: 'rgba(255,165,0, 0.7)',
+                width: 2
+            }),
+            fill: new ol.style.Fill({
+                color: 'rgba(255,165,0, 0.3)'
+            })
+        })
+    }),
+    observer: {
+        normal: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/ward_observer.png',
+                anchor: [0.5, 1]
+            })
+        }),
+        highlight: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/ward_observer.png',
+                anchor: [0.5, 1],
+                color: '#0000ff'
+            })
+        }),
+        remove: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/ward_observer.png',
+                anchor: [0.5, 1],
+                color: '#ff0000'
+            })
+        })
+    },
+    sentry: {
+        normal: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/ward_sentry.png',
+                anchor: [0.5, 1]
+            })
+        }),
+        highlight: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/ward_sentry.png',
+                anchor: [0.5, 1],
+                color: '#0000ff'
+            })
+        }),
+        remove: new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'img/ward_sentry.png',
+                anchor: [0.5, 1],
+                color: '#ff0000'
+            })
+        })
+    },
+    tree: {
+        alive: new ol.style.Style({
+            fill: new ol.style.Fill({color: [0, 255, 0, 0.3]}),
+            stroke: new ol.style.Stroke({color: [0, 255, 0, 0.8]})
+        }),
+        dead: new ol.style.Style({
+            fill: new ol.style.Fill({color: [51, 25, 0, 0.7]}),
+            stroke: new ol.style.Stroke({color: [255, 128, 0, 0.8]})
+        })
+    },
+    bountyRune: new ol.style.Style({
+        image: new ol.style.Icon({
+            src: 'img/bountyrune.png',
+            anchor: [0.5, 0.5]
+        })
+    }),
+    rune: new ol.style.Style({
+        image: new ol.style.Icon({
+            src: 'img/doubledamage.png',
+            anchor: [0.5, 0.5]
+        })
+    }),
+    roshan: new ol.style.Style({
+        image: new ol.style.Icon({
+            src: 'img/roshan.png',
+            anchor: [0.5, 0.5]
+        })
+    }),
+    pullRange: new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(0, 153, 238, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(0, 153, 238, 0.5)',
+            width: 2
+        })
+    }),
+}
+
+styles.teamColor = function (feature, resolution) {
+    if (feature.getId().indexOf('_bad_') == -1) {
+        return styles.radiant;
+    }
+    else {
+        return styles.dire;
+    }
+}
+
+styles.creepColor = function (feature, resolution) {
+    if (feature.getId().indexOf('_bad_') == -1) {
+        return styles.radiantCreep;
+    }
+    else {
+        return styles.direCreep;
+    }
+}
+module.exports = styles;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],20:[function(require,module,exports){
+function createCirclePointCoords(circleCenterX, circleCenterY, circleRadius, pointsToFind) {
+    var angleToAdd = 360/pointsToFind;
+    var coords = [];  
+    var angle = 0;
+    for (var i=0;i<pointsToFind;i++){
+        angle = angle+angleToAdd;
+        var coordX = circleCenterX + circleRadius * Math.cos(angle*Math.PI/180);
+        var coordY = circleCenterY + circleRadius * Math.sin(angle*Math.PI/180);
+        coords.push([coordX,coordY]);
+    }
+    return coords;
+}
+
+module.exports = createCirclePointCoords;
+},{}],21:[function(require,module,exports){
+var forEach = function (array, callback, scope) {
+    for (var i = 0; i < array.length; i++) {
+        callback.call(scope, array[i], i); // passes back stuff we need
+    }
+};
+
+module.exports = forEach;
+},{}],22:[function(require,module,exports){
+function getJSON(path, callback) {
+    console.log('getJSON', path);
+    var request = new XMLHttpRequest();
+
+    request.open('GET', path, true);
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 400) {
+            var data = JSON.parse(request.responseText);
+            callback(data);
+        } else {
+            alert('Error loading page.');
+        }
+    };
+    request.onerror = function() {
+        alert('Error loading page.');
+    };
+    request.send();
+    return request;
+}
+
+module.exports = getJSON;
+},{}],23:[function(require,module,exports){
+var trim = require('./trim');
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function setQueryString(key, value) {
+    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, value));
+}
+
+function addQueryStringValue(key, value) {
+    console.log('addQueryStringValue', key, value);
+    var qs = getParameterByName(key);
+    qs = trim(trim(qs, ' ;') + ';' + value, ' ;');
+    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs));
+}
+
+function removeQueryStringValue(key, value) {
+    console.log('removeQueryStringValue', key, value);
+    var qs = getParameterByName(key);
+    qs = trim(trim(qs, ' ;').replace(value, '').replace(/;;/g, ''), ' ;');
+    if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));
+}
+
+function updateQueryString(key, value, url) {
+    if (!url) url = window.location.href;
+    var re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
+        hash;
+
+    if (re.test(url)) {
+        if (typeof value !== 'undefined' && value !== null)
+            return url.replace(re, '$1' + key + "=" + value + '$2$3');
+        else {
+            hash = url.split('#');
+            url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
+            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
+                url += '#' + hash[1];
+            return url;
+        }
+    } else {
+        if (typeof value !== 'undefined' && value !== null) {
+            var separator = url.indexOf('?') !== -1 ? '&' : '?';
+            hash = url.split('#');
+            url = hash[0] + separator + key + '=' + value;
+            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
+                url += '#' + hash[1];
+            return url;
+        } else {
+            return url;
+        }
+    }
+}
+
+module.exports = {
+    getParameterByName: getParameterByName,
+    setQueryString: setQueryString,
+    addQueryStringValue: addQueryStringValue,
+    removeQueryStringValue: removeQueryStringValue,
+    updateQueryString: updateQueryString
+}
+},{"./trim":24}],24:[function(require,module,exports){
+function escapeRegex(string) {
+    return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
+}
+
+var trim = function trim(str, characters, flags) {
+    flags = flags || "g";
+    if (typeof str !== "string" || typeof characters !== "string" || typeof flags !== "string") {
+        throw new TypeError("argument must be string");
+    }
+
+    if (!/^[gi]*$/.test(flags)) {
+        throw new TypeError("Invalid flags supplied '" + flags.match(new RegExp("[^gi]*")) + "'");
+    }
+
+    characters = escapeRegex(characters);
+
+    return str.replace(new RegExp("^[" + characters + "]+|[" + characters + "]+$", flags), '');
+};
+
+module.exports = trim;
+},{}],25:[function(require,module,exports){
 var PNG = require('png-js');
 
 function ImageHandler(imagePath) {
@@ -2791,7 +3201,7 @@ ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, gri
 }
 
 module.exports = ImageHandler;
-},{"png-js":24}],24:[function(require,module,exports){
+},{"png-js":26}],26:[function(require,module,exports){
 // Generated by CoffeeScript 1.4.0
 
 /*
@@ -3127,7 +3537,7 @@ var FlateStream = require('./zlib');
   })();
 
   module.exports = PNG;
-},{"./zlib":25}],25:[function(require,module,exports){
+},{"./zlib":27}],27:[function(require,module,exports){
 /*
  * Extracted from pdf.js
  * https://github.com/andreasgal/pdf.js
@@ -3594,7 +4004,7 @@ var FlateStream = (function() {
 })();
 
 module.exports = FlateStream;
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /*
 	This is rot.js, the ROguelike Toolkit in JavaScript.
 	Version 0.6~dev, generated on Tue Mar 17 16:16:31 CET 2015.
@@ -4157,7 +4567,7 @@ function diff_sum(SHADOWS) {
 }
 
 module.exports = ROT;
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var ImageHandler = require("./imageHandler.js");
 var ROT = require("./rot6.js");
 
@@ -4473,6 +4883,6 @@ VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
 
 module.exports = VisionSimulation;
-},{"./imageHandler.js":23,"./rot6.js":26}],28:[function(require,module,exports){
+},{"./imageHandler.js":25,"./rot6.js":28}],30:[function(require,module,exports){
 module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY":8288}
-},{}]},{},[8]);
+},{}]},{},[15]);

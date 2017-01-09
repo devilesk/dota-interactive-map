@@ -10,15 +10,7 @@ var layerDefinitions = [
         type: 'GeoJSON',
         group: 'overlay',
         projection: proj.dota,
-        style: function (feature, resolution) {
-            console.log(feature);
-            if (feature.get('name').indexOf('_bad_') == -1) {
-                return styles.radiant;
-            }
-            else {
-                return styles.dire;
-            }
-        }
+        style: styles.teamColor
     },
     {
         id: 'npc_dota_spawner',
@@ -148,6 +140,14 @@ var layerDefinitions = [
         group: 'structure',
         style: styles.npc_dota_healer,
         toggle: true
+    },
+    {
+        id: 'pullRange',
+        name: 'Pull Range',
+        type: 'pullRange',
+        group: 'overlay',
+        style: styles.pullRange,
+        visible: true
     }
 ];
 

@@ -60,7 +60,6 @@ function loadJSON(map, layerDef, data, layer) {
     features = data.data[layerDef.id].map(function (point) {
         var unitClass = point.subType ? layerDef.id + '_' + point.subType : layerDef.id;
         var stats = data.stats[unitClass];
-        //console.log(unitClass, stats);
         var bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
         if (bounds && bounds[0] > 0 && bounds[1] > 0) {
             var geom = new ol.geom.Polygon([[
@@ -80,6 +79,7 @@ function loadJSON(map, layerDef, data, layer) {
         point.id = layerDef.id;
         point.unitClass = unitClass;
         feature.set('dotaProps', point, true);
+        
         return feature;
     });
     
@@ -106,21 +106,67 @@ function loadJSON(map, layerDef, data, layer) {
     return layer;
 }
 
-function loadLayerGroupFromData(map, data, version, layersIndex, layerDefs) {
+function loadNeutralPullRange(InteractiveMap, layerDef, data, layer) {
+    /*var features = InteractiveMap.getMapLayerIndex().npc_dota_neutral_spawner.getSource().getFeatures();
+    var circles = features.map(function (feature) {
+        var circle = InteractiveMap.getRangeCircle(feature, null, null, null, 400);
+        feature.set("guard_range", circle, true);
+        return circle;
+    });
+    circles = circles.concat(features.map(function (feature) {
+        var dotaProps = feature.get("dotaProps");
+        var center = worldToLatLon([dotaProps.x, dotaProps.y]);
+        var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullRangeTiming[dotaProps.pullType] * 350, 360);
+        var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullRangeTiming[dotaProps.pullType] * 270, 360);
+        var geom = new ol.geom.Polygon([pullMaxCoords]);
+        geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
+        feature.set("pull_range_min", geom, true);
+        var circle = new ol.Feature({geometry: geom, visible: false});
+        circle.visible(false);
+        return circle;
+    }));*/
+    
+    var vectorSource = new ol.source.Vector({
+        defaultDataProjection : 'pixel',
+        features: []
+    });
+    
+    if (layer) {
+        layer.setSource(vectorSource);
+    }
+    else {
+        layer = new ol.layer.Vector({
+            title: layerDef.name,
+            source: vectorSource,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        layer.set('showInfo', false, true);
+    }
+
+    return layer;
+}
+
+function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, layerDefs) {
     var layers = [];
     for (var i = 0; i < layerDefs.length; i++) {
         var layerDef = layerDefs[i];
-        if (!data.data[layerDef.id] && (layerDef.type !== 'GeoJSON' || version == '687')) continue;
+        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '687')) continue;
         var layer;
         switch (layerDef.type) {
             case 'GeoJSON':
-                layer = loadGeoJSON(map, layerDef, layersIndex[layerDef.id]);
+                layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id]);
             break;
             case 'polygon':
-                layer = loadPolygon(map, layerDef, data, layersIndex[layerDef.id]);
+                layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
+            break;
+            case 'pullRange':
+                layer = loadNeutralPullRange(InteractiveMap, layerDef, data, layersIndex[layerDef.id]);
             break;
             default:
-                layer = loadJSON(map, layerDef, data, layersIndex[layerDef.id]);
+                layer = loadJSON(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
             break;
         }
         layersIndex[layerDef.id] = layer;
@@ -130,6 +176,7 @@ function loadLayerGroupFromData(map, data, version, layersIndex, layerDefs) {
         title: 'Layers',
         layers: new ol.Collection(layers)
     });
+    
     return layerGroup;
 }
 
