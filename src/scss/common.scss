@@ -29,6 +29,24 @@ hr {
     }
 }
 
+.button {
+    color: $text-color;
+    background-color: $bg-color;
+    border: 1px solid $text-color;
+    border-radius: 5px;
+    cursor: pointer;
+    
+    &:hover {
+        border-color: $hover-text-color;
+        color: $hover-text-color;
+    }
+    
+    &:active {
+        background-color: $text-color;
+        color: $hover-text-color;
+    }
+}
+
 .btn-close, .btn-open, .btn-back {
     @extend .btn;
     position: absolute;

@@ -30,6 +30,19 @@ hr {
     -webkit-transform: scale(0.9);
     transform: scale(0.9); }
 
+.button, .menu-item input[type=button] {
+  color: #818181;
+  background-color: #111;
+  border: 1px solid #818181;
+  border-radius: 5px;
+  cursor: pointer; }
+  .button:hover, .menu-item input[type=button]:hover {
+    border-color: #f1f1f1;
+    color: #f1f1f1; }
+  .button:active, .menu-item input[type=button]:active {
+    background-color: #818181;
+    color: #f1f1f1; }
+
 .btn-close, .btn-open, .btn-back {
   position: absolute;
   top: 0; }
@@ -247,17 +260,8 @@ hr {
         background-color: #111;
         color: #f1f1f1; }
   .menu-item input[type=button] {
-    border: 1px solid #818181;
     width: calc(100% - 4px);
-    margin: 2px;
-    border-radius: 5px;
-    cursor: pointer; }
-    .menu-item input[type=button]:hover {
-      border-color: #f1f1f1;
-      color: #f1f1f1; }
-    .menu-item input[type=button]:active {
-      background-color: #818181;
-      color: #f1f1f1; }
+    margin: 2px; }
   .menu-item input:checked + .checkbox, .menu-item input:checked + .checkbox + .sub-menu, .menu-item input:checked + .checkbox {
     max-height: 999px;
     display: block; }
@@ -349,16 +353,16 @@ hr {
   #base-menu-open-btn {
     display: none; } }
 
-#timer, #notification {
+#notification {
+  z-index: 9999;
+  position: absolute;
   top: 50px;
   width: calc(100% - 120px);
   transition: 0.5s;
   text-align: center;
-  margin-left: 60px;
-  z-index: 9999;
-  position: absolute; }
+  margin-left: 60px; }
   @media only screen and (min-width: 768px) {
-    #timer, #notification {
+    #notification {
       width: 500px;
       left: 50%;
       margin-left: 0px;
@@ -367,48 +371,119 @@ hr {
       -ms-transform: translateX(-50%);
       -webkit-transform: translateX(-50%);
       transform: translateX(-50%); } }
-  #timer.slideUp, #notification.slideUp {
+  #notification.slideUp {
     top: 0;
     -moz-transform: translateY(-100%);
     -o-transform: translateY(-100%);
     -ms-transform: translateY(-100%);
     -webkit-transform: translateY(-100%);
     transform: translateY(-100%); }
-  #timer.slideDown, #notification.slideDown {
+  #notification.slideDown {
     -moz-transform: translateY(0%);
     -o-transform: translateY(0%);
     -ms-transform: translateY(0%);
     -webkit-transform: translateY(0%);
     transform: translateY(0%); }
   @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
-    #timer, #notification {
+    #notification {
       top: 0; } }
   @media only screen and (min-width: 768px) {
-    #timer.slideUp, #notification.slideUp {
+    #notification.slideUp {
       -moz-transform: translateX(-50%) translateY(-100%);
       -o-transform: translateX(-50%) translateY(-100%);
       -ms-transform: translateX(-50%) translateY(-100%);
       -webkit-transform: translateX(-50%) translateY(-100%);
       transform: translateX(-50%) translateY(-100%); }
-    #timer.slideDown, #notification.slideDown {
+    #notification.slideDown {
       -moz-transform: translateX(-50%) translateY(0%);
       -o-transform: translateX(-50%) translateY(0%);
       -ms-transform: translateX(-50%) translateY(0%);
       -webkit-transform: translateX(-50%) translateY(0%);
       transform: translateX(-50%) translateY(0%); } }
-  #timer .message-content, #notification .message-content {
+  #notification .message-content {
     padding: 6px 10px;
     line-height: 24px;
     color: #818181;
     margin: 10px 0px;
     background-color: #111; }
-    #timer .message-content span, #notification .message-content span {
+    #notification .message-content span {
       display: block; }
     @media only screen and (min-width: 768px) {
-      #timer .message-content span, #notification .message-content span {
+      #notification .message-content span {
         display: inline-block; }
-        #timer .message-content span + span, #notification .message-content span + span {
+        #notification .message-content span + span {
           margin-left: 10px; } }
+
+#timer {
+  z-index: 9999;
+  position: absolute;
+  top: 50px;
+  width: calc(100% - 120px);
+  transition: 0.5s;
+  text-align: center;
+  margin-left: 60px;
+  z-index: 10; }
+  @media only screen and (min-width: 768px) {
+    #timer {
+      width: 500px;
+      left: 50%;
+      margin-left: 0px;
+      -moz-transform: translateX(-50%);
+      -o-transform: translateX(-50%);
+      -ms-transform: translateX(-50%);
+      -webkit-transform: translateX(-50%);
+      transform: translateX(-50%); } }
+  #timer.slideUp {
+    top: 0;
+    -moz-transform: translateY(-100%);
+    -o-transform: translateY(-100%);
+    -ms-transform: translateY(-100%);
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%); }
+  #timer.slideDown {
+    -moz-transform: translateY(0%);
+    -o-transform: translateY(0%);
+    -ms-transform: translateY(0%);
+    -webkit-transform: translateY(0%);
+    transform: translateY(0%); }
+  @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
+    #timer {
+      top: 0; } }
+  @media only screen and (min-width: 768px) {
+    #timer.slideUp {
+      -moz-transform: translateX(-50%) translateY(-100%);
+      -o-transform: translateX(-50%) translateY(-100%);
+      -ms-transform: translateX(-50%) translateY(-100%);
+      -webkit-transform: translateX(-50%) translateY(-100%);
+      transform: translateX(-50%) translateY(-100%); }
+    #timer.slideDown {
+      -moz-transform: translateX(-50%) translateY(0%);
+      -o-transform: translateX(-50%) translateY(0%);
+      -ms-transform: translateX(-50%) translateY(0%);
+      -webkit-transform: translateX(-50%) translateY(0%);
+      transform: translateX(-50%) translateY(0%); } }
+  #timer .message-content {
+    padding: 6px 10px;
+    line-height: 24px;
+    color: #818181;
+    margin: 10px 0px;
+    background-color: #111; }
+    #timer .message-content span {
+      display: block; }
+    @media only screen and (min-width: 768px) {
+      #timer .message-content span {
+        display: inline-block; }
+        #timer .message-content span + span {
+          margin-left: 10px; } }
+  #timer .message-content {
+    background-color: white;
+    color: black;
+    line-height: 12px; }
+  @media only screen and (min-width: 768px) {
+    #timer {
+      width: 240px; } }
+  #timer #timer-time {
+    margin-top: 10px; }
 
 #info {
   bottom: 0px;
@@ -470,10 +545,10 @@ hr {
 
 .message-content {
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   background-color: white;
   margin: 10px;
-  box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.5);
+  box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4);
   line-height: 22px; }
 
 .info-header {
@@ -594,3 +669,71 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
 
 .btn-toggle input[type="checkbox"]:checked + label::before {
   background-color: #414141; }
+
+.btn-playback {
+  border: 1px solid #818181;
+  cursor: pointer;
+  display: inline-block;
+  width: 50px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 0;
+  position: relative;
+  vertical-align: middle;
+  border-radius: 2px;
+  background-color: white;
+  color: black; }
+  .btn-playback:hover {
+    border: 1px solid #818181;
+    color: #818181; }
+  .btn-playback:active {
+    background-color: #818181;
+    color: #f1f1f1; }
+
+.icon, #timer-faster::before, #timer-faster::after, #timer-slower::before, #timer-slower::after, #timer-stop::before, #timer-playPause.icon-pause::before, #timer-playPause.icon-play::before {
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: 15px;
+  top: 0;
+  content: ''; }
+
+#timer-faster::before {
+  border: 5px solid transparent;
+  border-left: 6px solid;
+  margin: 4px; }
+
+#timer-faster::after {
+  top: 4px;
+  left: 25px;
+  border: 5px solid transparent;
+  border-left: 6px solid; }
+
+#timer-slower::before {
+  border: 5px solid transparent;
+  border-right: 6px solid;
+  margin: 4px; }
+
+#timer-slower::after {
+  top: 4px;
+  left: 13px;
+  border: 5px solid transparent;
+  border-right: 6px solid; }
+
+#timer-stop::before {
+  border: 4px solid;
+  margin: 5px; }
+
+#timer-playPause.icon-pause::before {
+  width: 3px;
+  height: 10px;
+  margin: 4px;
+  box-shadow: inset 0 0 0 16px, 6px 0 0 0; }
+
+#timer-playPause.icon-play::before {
+  border-width: 5px 0 5px 8px;
+  border-style: solid;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  margin: 4px 6px; }

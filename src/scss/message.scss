@@ -10,14 +10,12 @@
     }
 }
 
-#timer, #notification {
+@mixin top-message() {
     top: 50px;
     width: calc(100% - 120px);
     transition: 0.5s;
     text-align: center;
     margin-left: 60px;
-    
-    @include message();
     
     &.slideUp {
         top: 0;
@@ -61,6 +59,32 @@
                 }
             }
         }
+    }
+}
+
+#notification {    
+    @include message();
+    @include top-message();
+}
+
+#timer {
+    @include message();
+    @include top-message();
+    
+    z-index: 10;
+    
+    .message-content {
+        background-color: white;
+        color: black;
+        line-height: 12px;
+    }
+    
+    @media #{$not-mobile} {
+        width: 240px;
+    }
+    
+    #timer-time {
+        margin-top: 10px;
     }
 }
 
@@ -112,10 +136,10 @@
 
 .message-content {
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 5px;
     background-color: white;
     margin: 10px;
-    box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.5);
+    box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4);
     line-height: 22px;
 }
 

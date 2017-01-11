@@ -51,6 +51,8 @@ var modeNotificationText = {
     nightOff: "Daytime Vision",
     darknessOn: "Darkness: On",
     darknessOff: "Darkness: Off",
+    creepControlOn: "Lane Animation: On",
+    creepControlOff: "Lane Animation: Off"
 }
 function changeMode(mode) {
     console.log('changeMode', mode);
@@ -219,6 +221,17 @@ document.getElementById('darknessControl').addEventListener('change', function (
     }
 }, false);
 
+document.getElementById('creepControl').addEventListener('change', function () {
+    if (this.checked) {
+        InteractiveMap.creepControl.activate();
+        InteractiveMap.notificationControl.show(modeNotificationText.creepControlOn);
+    }
+    else {
+        InteractiveMap.creepControl.deactivate();
+        InteractiveMap.notificationControl.show(modeNotificationText.creepControlOff);
+    }
+}, false);
+
 document.getElementById('version-select').addEventListener('change', function () {
     InteractiveMap.version = this.value;
 }, false);
@@ -260,8 +273,6 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
-        
-        InteractiveMap.creepControl.activate();
     });
     
     InteractiveMap.map.on('moveend', onMoveEnd);

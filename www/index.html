@@ -65,6 +65,11 @@
                 </div>
                 <hr>
                 <div class="menu-item">
+                    <input type="checkbox" id="creepControl"/>
+                    <label for="creepControl" class="checkbox">Lane Animation</label>
+                </div>
+                <hr>
+                <div class="menu-item">
                     <label class="text-label" for="vision-radius">Radius</label><!--
                     --><input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
                 </div>
@@ -177,11 +182,13 @@
     </div>
     <div id="timer" class="slideUp">
         <div id="timer-content" class="message-content">
+            <div id="timer-controls">
+                <button id="timer-slower" class="btn-playback"></button>
+                <button id="timer-stop" class="btn-playback"></button>
+                <button id="timer-playPause" class="btn-playback icon-play"></button>
+                <button id="timer-faster" class="btn-playback"></button>
+            </div>
             <div id="timer-time"></div>
-            <button id="timer-stop">&#9724;</button>
-            <button id="timer-playPause">&#9658;</button>
-            <button id="timer-faster">&#9193;</button>
-            <button id="timer-slower">&#9194;</button>
         </div>
     </div>
     <div id="notification" class="slideUp">

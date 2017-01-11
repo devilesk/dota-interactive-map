@@ -1,0 +1,88 @@
+.btn-playback {
+    border: 1px solid $text-color;
+    cursor: pointer;
+    display: inline-block;
+    width: 50px;
+    height: 20px;
+    font-size: 12px;
+    line-height: 12px;
+    padding: 0;
+    position: relative;
+    vertical-align: middle;
+    border-radius: 2px;
+    background-color: white;
+    color: black;
+    
+    
+    &:hover {
+        border: 1px solid $text-color;
+        color: $text-color;
+    }
+    
+    &:active {
+        background-color: $text-color;
+        color: $hover-text-color;
+    }
+}
+
+.icon {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: 15px;
+    top: 0;
+    content: '';
+}
+
+#timer-faster::before {
+    @extend .icon;
+    border: 5px solid transparent;
+    border-left: 6px solid;
+    margin: 4px;
+}
+
+#timer-faster::after {
+    @extend .icon;
+    top: 4px;
+    left: 25px;
+    border: 5px solid transparent;
+    border-left: 6px solid;
+}
+
+#timer-slower::before {
+    @extend .icon;
+    border: 5px solid transparent;
+    border-right: 6px solid;
+    margin: 4px;
+}
+
+#timer-slower::after {
+    @extend .icon;
+    top: 4px;
+    left: 13px;
+    border: 5px solid transparent;
+    border-right: 6px solid;
+}
+
+#timer-stop::before {
+    @extend .icon;
+    border: 4px solid;
+    margin: 5px;
+}
+
+#timer-playPause.icon-pause::before {
+    @extend .icon;
+    width: 3px;
+    height: 10px;
+    margin: 4px;
+    box-shadow: inset 0 0 0 16px, 6px 0 0 0;
+}
+
+#timer-playPause.icon-play::before {
+    @extend .icon;
+    border-width: 5px 0 5px 8px;
+    border-style: solid;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    margin: 4px 6px;
+}

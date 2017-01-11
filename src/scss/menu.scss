@@ -112,21 +112,9 @@
         }
         
         &[type=button] {
-            border: 1px solid $text-color;
+            @extend .button;
             width: calc(100% - 4px);
             margin: 2px;
-            border-radius: 5px;
-            cursor: pointer;
-            
-            &:hover {
-                border-color: $hover-text-color;
-                color: $hover-text-color;
-            }
-            
-            &:active {
-                background-color: $text-color;
-                color: $hover-text-color;
-            }
         }
         
         &:checked {

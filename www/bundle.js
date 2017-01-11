@@ -403,6 +403,7 @@ function CreepControl(InteractiveMap) {
     this.playbackSpeed = 1;
     this.paused = true;
     this.pauseTime = null;
+    this.title = 'Lane Animation';
 }
 
 CreepControl.prototype.show = function (message) {
@@ -454,50 +455,90 @@ CreepControl.prototype.initialize = function (id) {
         self.slower.call(self, true);
     }
     this.slowerBtn.addEventListener('click', this.slowerHandler, false);
-    
-    this.playPause();
 }
 
 CreepControl.prototype.slower = function () {
-    
+    var oldVal = this.playbackSpeed;
+    this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
+    this.updatePlayback(oldVal, this.playbackSpeed);
+    console.log(this.playbackSpeed);
 }
 
 CreepControl.prototype.faster = function () {
-    
+    var oldVal = this.playbackSpeed;
+    this.playbackSpeed += 1;
+    this.updatePlayback(oldVal, this.playbackSpeed);
+    console.log(this.playbackSpeed);
+}
+
+CreepControl.prototype.updatePlayback = function (oldVal, newVal) {
+    var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
+    var elapsedTime = this.currentTime - this.startTime;
+    var adjustedElapsedTime = elapsedTime * oldVal / newVal;
+    this.startTime = this.currentTime - adjustedElapsedTime;
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        var waveTimes = feature.get('waveTimes');
+        if (waveTimes) {
+            var j = waveTimes.length;
+            while (j--) {
+                var elapsedTime = this.currentTime - waveTimes[j];
+                var adjustedElapsedTime = elapsedTime * oldVal / newVal;
+                waveTimes[j] = this.currentTime - adjustedElapsedTime;
+            }
+        }
+    }
+}
+
+CreepControl.prototype.start = function () {
+    if (!this.postComposeListener) {
+        console.log('activate');
+        this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
+    }
+    if (this.paused) this.playPause();
+    this.InteractiveMap.map.render();
 }
 
 CreepControl.prototype.stop = function () {
-    
+    ol.Observable.unByKey(this.postComposeListener);
+    this.postComposeListener = null;
+    var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
+    for (var i = 0; i < features.length; i++) {
+        var feature = features[i];
+        feature.set('waveTimes', null, true);
+    }
+    this.startTime = null;
+    if (!this.paused) this.playPause();
+    this.pauseTime = null;
+    this.InteractiveMap.map.render();
+    this.setContent(this.title);
 }
 
 CreepControl.prototype.playPause = function () {
     console.log('playPause', this.paused);
     this.paused = !this.paused;
     if (this.paused) {
-        this.playPauseBtn.innerHTML = '&#9658;';
+        this.playPauseBtn.classList.add('icon-play');
+        this.playPauseBtn.classList.remove('icon-pause');
     }
     else {
-        this.playPauseBtn.innerHTML = '&#10074;&#10074;';
+        this.playPauseBtn.classList.add('icon-pause');
+        this.playPauseBtn.classList.remove('icon-play');
+        this.start();
     }
 }
 
 CreepControl.prototype.activate = function () {
     this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', true);
     this.InteractiveMap.toggleLayerMenuOption('path_corner', true);
-    if (!this.postComposeListener) {
-        console.log('activate');
-        this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
-    }
-    this.show();
+    this.show(this.title);
 }
 
 CreepControl.prototype.deactivate = function () {
     this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', false);
     this.InteractiveMap.toggleLayerMenuOption('path_corner', false);
-    ol.Observable.unByKey(this.postComposeListener);
-    this.postComposeListener = null;
+    this.stop();
     this.close();
-    this.startTime = null;
 }
 
 function getDistance(speed, elapsedTime) {
@@ -550,13 +591,13 @@ function getElapsedDistance(id, elapsedTime, playbackSpeed, bNoAdjust) {
 CreepControl.prototype.animateCreeps = function (event) {
     var vectorContext = event.vectorContext;
     var frameState = event.frameState;
-    var currentTime = frameState.time;
+    this.currentTime = frameState.time;
     var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
     var pathLayer = this.InteractiveMap.getMapLayerIndex()['path_corner'];
-    if (!this.startTime) this.startTime = currentTime;
+    if (!this.startTime) this.startTime = this.currentTime;
     if (this.paused) {
         if (this.pauseTime == null) this.pauseTime = frameState.time;
-        currentTime = this.pauseTime;
+        this.currentTime = this.pauseTime;
     }
     else {
         if (this.pauseTime != null) {
@@ -566,11 +607,11 @@ CreepControl.prototype.animateCreeps = function (event) {
                 if (waveTimes) {
                     var j = waveTimes.length;
                     while (j--) {
-                        waveTimes[j] += (currentTime - this.pauseTime);
+                        waveTimes[j] += (this.currentTime - this.pauseTime);
                     }
                 }
             }
-            this.startTime += (currentTime - this.pauseTime);
+            this.startTime += (this.currentTime - this.pauseTime);
             this.pauseTime = null;
         }
     }
@@ -582,11 +623,11 @@ CreepControl.prototype.animateCreeps = function (event) {
         //console.log('npc_dota_spawner feature', feature, pathFeature);
         var waveTimes = feature.get('waveTimes');
         if (!waveTimes) {
-            waveTimes = [currentTime];
+            waveTimes = [this.currentTime];
             feature.set('waveTimes', waveTimes, true);
         }
-        if (currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
-            waveTimes.push(currentTime);
+        if (this.currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
+            waveTimes.push(this.currentTime);
         }
         var j = waveTimes.length;
         while (j--) {                
@@ -600,7 +641,7 @@ CreepControl.prototype.animateCreeps = function (event) {
             }
             var pathLength = path.getLength();
             var coords = path.getCoordinates();
-            var elapsedTime = currentTime - waveTimes[j];
+            var elapsedTime = this.currentTime - waveTimes[j];
             var elapsedDistance = getElapsedDistance(id, elapsedTime, this.playbackSpeed);
             var elapsedFraction = Math.max(0, elapsedDistance / pathLength);
             if (elapsedFraction >= 1) {
@@ -616,8 +657,8 @@ CreepControl.prototype.animateCreeps = function (event) {
             vectorContext.drawCircle(point);
         }
     }
-    var timeText = (((currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1);
-    if (this.playbackSpeed > 1) timeText += ' ' + this.playbackSpeed + 'x'
+    var timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
+    if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x'
     this.setContent(timeText);
     frameState.animate = true;
 }
@@ -2143,6 +2184,8 @@ var modeNotificationText = {
     nightOff: "Daytime Vision",
     darknessOn: "Darkness: On",
     darknessOff: "Darkness: Off",
+    creepControlOn: "Lane Animation: On",
+    creepControlOff: "Lane Animation: Off"
 }
 function changeMode(mode) {
     console.log('changeMode', mode);
@@ -2311,6 +2354,17 @@ document.getElementById('darknessControl').addEventListener('change', function (
     }
 }, false);
 
+document.getElementById('creepControl').addEventListener('change', function () {
+    if (this.checked) {
+        InteractiveMap.creepControl.activate();
+        InteractiveMap.notificationControl.show(modeNotificationText.creepControlOn);
+    }
+    else {
+        InteractiveMap.creepControl.deactivate();
+        InteractiveMap.notificationControl.show(modeNotificationText.creepControlOff);
+    }
+}, false);
+
 document.getElementById('version-select').addEventListener('change', function () {
     InteractiveMap.version = this.value;
 }, false);
@@ -2352,8 +2406,6 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
-        
-        InteractiveMap.creepControl.activate();
     });
     
     InteractiveMap.map.on('moveend', onMoveEnd);
