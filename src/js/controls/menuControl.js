@@ -74,7 +74,7 @@ MenuPanel.prototype.createMenuPanelItem = function (InteractiveMap, layerDef, ha
             console.log('toggled', layerDef);
             var layer = InteractiveMap.getMapLayerIndex()[layerDef.id];
             if (layerDef.id == 'ent_dota_tree') {
-                InteractiveMap.toggleAllTrees(this.checked);
+                InteractiveMap.treeControl.toggleAllTrees(this.checked);
             }
             else {
                 InteractiveMap.wardControl.toggleAll(layer, this.checked);

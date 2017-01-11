@@ -1,4 +1,5 @@
 var ol = require('openlayers');
+var getFeatureCenter = require('./util/getFeatureCenter');
 
 var defaultStyle = new ol.style.Style({
     fill: new ol.style.Fill({
@@ -9,12 +10,6 @@ var defaultStyle = new ol.style.Style({
         width: 1.25
     })
 });
-
-var getFeatureCenter = function(feature) {
-    var extent = feature.getGeometry().getExtent();
-    var center = ol.extent.getCenter(extent);
-    return new ol.geom.Point(center);
-};
 
 var styles = {
     creepSpawn: new ol.style.Style({

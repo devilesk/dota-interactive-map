@@ -11,6 +11,7 @@ var MeasureControl = require('./controls/measureControl');
 var CreepControl = require('./controls/creepControl');
 var VisionControl = require('./controls/visionControl');
 var WardControl = require('./controls/wardControl');
+var TreeControl = require('./controls/treeControl');
 var CursorControl = require('./controls/cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
@@ -31,6 +32,7 @@ InteractiveMap.notificationControl = new NotificationControl();
 InteractiveMap.notificationControl.initialize('notification');
 InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
 InteractiveMap.wardControl = new WardControl(InteractiveMap);
+InteractiveMap.treeControl = new TreeControl(InteractiveMap);
 InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
 InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
 InteractiveMap.creepControl = new CreepControl(InteractiveMap);
@@ -273,6 +275,9 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
+        
+        InteractiveMap.treeControl.parseQueryString();
+        InteractiveMap.wardControl.parseQueryString();
     });
     
     InteractiveMap.map.on('moveend', onMoveEnd);

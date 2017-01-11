@@ -9,8 +9,11 @@ var loadGeoJSON = require('./dataLoader').loadGeoJSON;
 var loadJSON = require('./dataLoader').loadJSON;
 var loadLayerGroupFromData = require('./dataLoader').loadLayerGroupFromData;
 var getJSON = require('./util/getJSON');
+var latLonToWorld = require('./conversionFunctions').latLonToWorld;
 var worldToLatLon = require('./conversionFunctions').worldToLatLon;
 var getScaledRadius = require('./conversionFunctions').getScaledRadius;
+var QueryString = require('./util/queryString');
+var getFeatureCenter = require('./util/getFeatureCenter');
 
 var InteractiveMap = {
     MODE: 'navigation',
@@ -192,22 +195,6 @@ InteractiveMap.panTo = function (coordinate, duration) {
       duration: 1000
     });
 }
-InteractiveMap.toggleTree = function (feature, dotaProps) {
-    var gridXY = InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
-    InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
-    feature.set('isCut', !feature.get('isCut'));
-}
-
-InteractiveMap.toggleAllTrees = function (state) {
-    var layer = InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
-    var source = layer.getSource();
-    var features = source.getFeatures();
-    features.forEach(function (feature) {
-        if (feature.get('isCut') != state) {
-            InteractiveMap.toggleTree(feature, feature.get('dotaProps'));
-        }
-    });
-}
 
 InteractiveMap.checkAndHighlightWard = function (pixel) {
     var feature = InteractiveMap.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
@@ -358,7 +345,7 @@ InteractiveMap.getRangeCircle = function (feature, coordinate, unitClass, rangeT
 
 module.exports = InteractiveMap;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./baseLayerDefinitions":2,"./conversionFunctions":11,"./dataLoader":12,"./layerDefinitions":16,"./mapConstants":17,"./projections":18,"./styleDefinitions":19,"./util/getJSON":22}],2:[function(require,module,exports){
+},{"./baseLayerDefinitions":2,"./conversionFunctions":12,"./dataLoader":13,"./layerDefinitions":17,"./mapConstants":18,"./projections":19,"./styleDefinitions":20,"./util/getFeatureCenter":23,"./util/getJSON":24,"./util/queryString":25}],2:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 
@@ -664,7 +651,7 @@ CreepControl.prototype.animateCreeps = function (event) {
 }
 
 module.exports = CreepControl;
-},{"./../mapConstants":17,"./../styleDefinitions":19}],4:[function(require,module,exports){
+},{"./../mapConstants":18,"./../styleDefinitions":20}],4:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var styles = require('./../styleDefinitions');
@@ -687,7 +674,7 @@ function CursorControl(InteractiveMap) {
 
 module.exports = CursorControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../styleDefinitions":19}],5:[function(require,module,exports){
+},{"./../styleDefinitions":20}],5:[function(require,module,exports){
 var getPopupContent = require('./../getPopupContent');
 var styles = require('./../styleDefinitions');
 var mapConstants = require('./../mapConstants');
@@ -750,7 +737,7 @@ function InfoControl(InteractiveMap) {
                 self.InteractiveMap.deselectAll();
                 var dotaProps = feature.get('dotaProps');
                 if (feature.get('dotaProps').id == "ent_dota_tree") {
-                    self.InteractiveMap.toggleTree(feature, dotaProps);
+                    self.InteractiveMap.treeControl.toggleTree(feature, dotaProps);
                 }
                 else {
                     self.displayFeatureInfo(feature, true);
@@ -842,7 +829,6 @@ InfoControl.prototype.initialize = function (id) {
 }
 
 InfoControl.prototype.displayFeatureInfo = function (feature, bClicked) {
-    console.log('feature', feature);
     this.setContent(getPopupContent(this.InteractiveMap.getMapData(), feature));
     this.open(bClicked);
 };
@@ -908,7 +894,7 @@ InfoControl.prototype.select = function (feature) {
 }
 
 module.exports = InfoControl;
-},{"./../conversionFunctions":11,"./../getPopupContent":14,"./../mapConstants":17,"./../styleDefinitions":19,"./../util/createCirclePointCoords":20}],6:[function(require,module,exports){
+},{"./../conversionFunctions":12,"./../getPopupContent":15,"./../mapConstants":18,"./../styleDefinitions":20,"./../util/createCirclePointCoords":21}],6:[function(require,module,exports){
 var styles = require('./../styleDefinitions');
 
 function MeasureControl(InteractiveMap) {
@@ -1159,7 +1145,7 @@ function MeasureControl(InteractiveMap) {
 }
 
 module.exports = MeasureControl;
-},{"./../styleDefinitions":19}],7:[function(require,module,exports){
+},{"./../styleDefinitions":20}],7:[function(require,module,exports){
 function MenuPanel(panelId, openId, closeId, fullscreen) {
     this.panelId = panelId;
     this.openId = openId;
@@ -1236,7 +1222,7 @@ MenuPanel.prototype.createMenuPanelItem = function (InteractiveMap, layerDef, ha
             console.log('toggled', layerDef);
             var layer = InteractiveMap.getMapLayerIndex()[layerDef.id];
             if (layerDef.id == 'ent_dota_tree') {
-                InteractiveMap.toggleAllTrees(this.checked);
+                InteractiveMap.treeControl.toggleAllTrees(this.checked);
             }
             else {
                 InteractiveMap.wardControl.toggleAll(layer, this.checked);
@@ -1315,7 +1301,85 @@ NotificationControl.prototype.initialize = function (id) {
 }
 
 module.exports = NotificationControl;
-},{"./../styleDefinitions":19}],9:[function(require,module,exports){
+},{"./../styleDefinitions":20}],9:[function(require,module,exports){
+var QueryString = require('./../util/queryString');
+
+function TreeControl(InteractiveMap) {
+    var self = this;
+    this.InteractiveMap = InteractiveMap;
+    this.allTreesCutState = false;
+}
+
+TreeControl.prototype.updateQueryString = function () {
+    var self = this;
+    var keys = ['cut_trees', 'uncut_trees'];
+    var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    var values = features.filter(function (feature) {
+        return !!feature.get('isCut') != self.allTreesCutState;
+    }).map(function (feature) {
+        var dotaProps = feature.get('dotaProps');
+        return dotaProps.x + ',' + dotaProps.y;
+    }).join(';');
+    QueryString.setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
+    QueryString.setQueryString(keys[this.allTreesCutState ? 0 : 1], null);
+    document.getElementById('toggle-ent_dota_tree').checked = this.allTreesCutState;
+}
+
+TreeControl.prototype.parseQueryString = function () {
+    var self = this;
+    var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    var treeMap = {};
+    features.forEach(function (feature) {
+        var dotaProps = feature.get('dotaProps');
+        var worldXY = dotaProps.x + ',' + dotaProps.y;
+        treeMap[worldXY] = feature;
+    });
+    ['uncut_trees', 'cut_trees'].forEach(function (treeCutState, index) {
+        var values = QueryString.getParameterByName(treeCutState);
+        if (values) {
+            console.log(treeCutState, values, index, !index);
+            self.toggleAllTrees(!index, true);
+            values = values.split(';');
+            values.forEach(function (worldXY) {
+                var feature = treeMap[worldXY];
+                if (feature) {
+                    if (!!feature.get('isCut') == !index) {
+                        self.toggleTree(feature, feature.get('dotaProps'), true)
+                    }
+                }
+            });
+        }
+    });
+    this.updateQueryString();
+}
+
+TreeControl.prototype.toggleTree = function (feature, dotaProps, bSkipQueryStringUpdate) {
+    var gridXY = this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
+    this.InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
+    feature.set('isCut', !feature.get('isCut'));
+    if (!bSkipQueryStringUpdate) this.updateQueryString();
+}
+
+TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate) {
+    var self = this;
+    this.allTreesCutState = state;
+    var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var source = layer.getSource();
+    var features = source.getFeatures();
+    features.forEach(function (feature) {
+        if (!!feature.get('isCut') != state) {
+            self.toggleTree(feature, feature.get('dotaProps'), true);
+        }
+    });
+    if (!bSkipQueryStringUpdate) this.updateQueryString();
+}
+
+module.exports = TreeControl;
+},{"./../util/queryString":25}],10:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
@@ -1416,11 +1480,14 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
 
 module.exports = VisionControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../conversionFunctions":11,"./../getLightUnion":13,"./../styleDefinitions":19}],10:[function(require,module,exports){
+},{"./../conversionFunctions":12,"./../getLightUnion":14,"./../styleDefinitions":20}],11:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var styles = require('./../styleDefinitions');
 var mapConstants = require('./../mapConstants');
+var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
+var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
+var QueryString = require('./../util/queryString');
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;
@@ -1434,6 +1501,12 @@ function WardControl(InteractiveMap, throttleTime) {
     this.layerFilter = function(layer) {
         return layer === self.layer;
     }
+    
+    this.placedWardCoordinates = {
+        observer: {},
+        sentry: {}
+    };
+    
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function(evt) {
         if (evt.dragging) {
@@ -1607,7 +1680,33 @@ WardControl.prototype.deactivate = function () {
     this.clickListener = null;
 }
 
-WardControl.prototype.addWard = function (coordinate, wardType) {
+WardControl.prototype.parseQueryString = function () {
+    var self = this;
+    ['observer', 'sentry'].forEach(function (wardType) {
+        var values = QueryString.getParameterByName(wardType);
+        if (values) {
+            values = values.split(';');
+            values.forEach(function (worldXY) {
+                worldXY = worldXY.split(',');
+                if (worldXY.length == 2) {
+                    worldXY = worldXY.map(parseFloat);
+                    if (!worldXY.some(isNaN)) {
+                        var coordinate = worldToLatLon(worldXY);
+                        self.addWard(coordinate, wardType, true);
+                    }
+                }
+            });
+        }
+        self.updateQueryString(wardType);
+    });
+}
+
+WardControl.prototype.updateQueryString = function (wardType) {
+    var values = Object.keys(this.placedWardCoordinates[wardType]).join(';');
+    QueryString.setQueryString(wardType, values || null);
+}
+
+WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryStringUpdate) {
     if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
     var geom = new ol.geom.Point(coordinate);
     var feature = new ol.Feature(geom);
@@ -1626,6 +1725,10 @@ WardControl.prototype.addWard = function (coordinate, wardType) {
         feature.set('wardRange', circle, true);
         this.InteractiveMap.wardRangeSource.addFeature(circle);
     }
+    var worldXY = latLonToWorld(coordinate).map(Math.round).join(',');
+    console.log('addWard', worldXY);
+    this.placedWardCoordinates[wardType][worldXY] = true;
+    if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
 WardControl.prototype.removeWard = function (feature) {
@@ -1635,6 +1738,12 @@ WardControl.prototype.removeWard = function (feature) {
     }
     this.source.removeFeature(feature);
     this.InteractiveMap.visionControl.removeVisionFeature(feature);
+    
+    var worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
+    var wardType = feature.get('wardType');
+    console.log(feature, worldXY, this.placedWardCoordinates[wardType][worldXY]);
+    delete this.placedWardCoordinates[wardType][worldXY];
+    this.updateQueryString(wardType);
 }
 
 WardControl.prototype.highlight = function (feature) {
@@ -1689,7 +1798,7 @@ WardControl.prototype.removeRangeCircle = function (feature, rangeType) {
 
 module.exports = WardControl;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../mapConstants":17,"./../styleDefinitions":19}],11:[function(require,module,exports){
+},{"./../conversionFunctions":12,"./../mapConstants":18,"./../styleDefinitions":20,"./../util/queryString":25}],12:[function(require,module,exports){
 var mapConstants = require('./mapConstants');
 
 function lerp(minVal, maxVal, pos_r) {
@@ -1741,7 +1850,7 @@ module.exports = {
     getScaledRadius: getScaledRadius,
     calculateDistance: calculateDistance
 }
-},{"./mapConstants":17}],12:[function(require,module,exports){
+},{"./mapConstants":18}],13:[function(require,module,exports){
 var proj = require('./projections');
 
 function loadGeoJSON(map, layerDef) {
@@ -1929,7 +2038,7 @@ module.exports = {
     loadJSON: loadJSON,
     loadLayerGroupFromData: loadLayerGroupFromData,
 };
-},{"./projections":18}],13:[function(require,module,exports){
+},{"./projections":19}],14:[function(require,module,exports){
 var VisionSimulation = require("dota-vision-simulation");
 var key2pt = VisionSimulation.prototype.key2pt;
 var xy2key = VisionSimulation.prototype.xy2key;
@@ -2066,7 +2175,7 @@ function processNext(grid, components, key, i) {
 }
 
 module.exports = getLightUnion;
-},{"dota-vision-simulation":29}],14:[function(require,module,exports){
+},{"dota-vision-simulation":31}],15:[function(require,module,exports){
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -2129,7 +2238,7 @@ function getPopupContent(data, feature) {
 }
 
 module.exports = getPopupContent;
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 (function (global){
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
@@ -2144,6 +2253,7 @@ var MeasureControl = require('./controls/measureControl');
 var CreepControl = require('./controls/creepControl');
 var VisionControl = require('./controls/visionControl');
 var WardControl = require('./controls/wardControl');
+var TreeControl = require('./controls/treeControl');
 var CursorControl = require('./controls/cursorControl');
 var vision_data_image_path = 'img/map_data.png';
 var InteractiveMap = require('./InteractiveMap');
@@ -2164,6 +2274,7 @@ InteractiveMap.notificationControl = new NotificationControl();
 InteractiveMap.notificationControl.initialize('notification');
 InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
 InteractiveMap.wardControl = new WardControl(InteractiveMap);
+InteractiveMap.treeControl = new TreeControl(InteractiveMap);
 InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
 InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
 InteractiveMap.creepControl = new CreepControl(InteractiveMap);
@@ -2406,6 +2517,9 @@ function initialize() {
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
         InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
+        
+        InteractiveMap.treeControl.parseQueryString();
+        InteractiveMap.wardControl.parseQueryString();
     });
     
     InteractiveMap.map.on('moveend', onMoveEnd);
@@ -2489,7 +2603,7 @@ function initialize() {
     });
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./InteractiveMap":1,"./controls/creepControl":3,"./controls/cursorControl":4,"./controls/infoControl":5,"./controls/measureControl":6,"./controls/menuControl":7,"./controls/notificationControl":8,"./controls/visionControl":9,"./controls/wardControl":10,"./mapConstants":17,"./projections":18,"./util/forEach":21,"./util/queryString":23,"dota-vision-simulation":29,"dota-vision-simulation/src/worlddata.json":30}],16:[function(require,module,exports){
+},{"./InteractiveMap":1,"./controls/creepControl":3,"./controls/cursorControl":4,"./controls/infoControl":5,"./controls/measureControl":6,"./controls/menuControl":7,"./controls/notificationControl":8,"./controls/treeControl":9,"./controls/visionControl":10,"./controls/wardControl":11,"./mapConstants":18,"./projections":19,"./util/forEach":22,"./util/queryString":25,"dota-vision-simulation":31,"dota-vision-simulation/src/worlddata.json":32}],17:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var styles = require('./styleDefinitions');
@@ -2646,7 +2760,7 @@ var layerDefinitions = [
 
 module.exports = layerDefinitions;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./projections":18,"./styleDefinitions":19}],17:[function(require,module,exports){
+},{"./projections":19,"./styleDefinitions":20}],18:[function(require,module,exports){
 var mapConstants = {
     map_w: 16384,
     map_h: 16384,
@@ -2672,7 +2786,7 @@ mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2]
 mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;
 
 module.exports = mapConstants;
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
 var conversionFunctions = require('./conversionFunctions');
@@ -2701,9 +2815,10 @@ module.exports = {
     dota: dotaProj
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./conversionFunctions":11,"./mapConstants":17}],19:[function(require,module,exports){
+},{"./conversionFunctions":12,"./mapConstants":18}],20:[function(require,module,exports){
 (function (global){
 var ol = (typeof window !== "undefined" ? window['ol'] : typeof global !== "undefined" ? global['ol'] : null);
+var getFeatureCenter = require('./util/getFeatureCenter');
 
 var defaultStyle = new ol.style.Style({
     fill: new ol.style.Fill({
@@ -2714,12 +2829,6 @@ var defaultStyle = new ol.style.Style({
         width: 1.25
     })
 });
-
-var getFeatureCenter = function(feature) {
-    var extent = feature.getGeometry().getExtent();
-    var center = ol.extent.getCenter(extent);
-    return new ol.geom.Point(center);
-};
 
 var styles = {
     creepSpawn: new ol.style.Style({
@@ -3089,7 +3198,7 @@ styles.creepColor = function (feature, resolution) {
 }
 module.exports = styles;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],20:[function(require,module,exports){
+},{"./util/getFeatureCenter":23}],21:[function(require,module,exports){
 function createCirclePointCoords(circleCenterX, circleCenterY, circleRadius, pointsToFind) {
     var angleToAdd = 360/pointsToFind;
     var coords = [];  
@@ -3104,7 +3213,7 @@ function createCirclePointCoords(circleCenterX, circleCenterY, circleRadius, poi
 }
 
 module.exports = createCirclePointCoords;
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var forEach = function (array, callback, scope) {
     for (var i = 0; i < array.length; i++) {
         callback.call(scope, array[i], i); // passes back stuff we need
@@ -3112,7 +3221,15 @@ var forEach = function (array, callback, scope) {
 };
 
 module.exports = forEach;
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
+var getFeatureCenter = function(feature) {
+    var extent = feature.getGeometry().getExtent();
+    var center = ol.extent.getCenter(extent);
+    return new ol.geom.Point(center);
+};
+
+module.exports = getFeatureCenter;
+},{}],24:[function(require,module,exports){
 function getJSON(path, callback) {
     console.log('getJSON', path);
     var request = new XMLHttpRequest();
@@ -3134,7 +3251,7 @@ function getJSON(path, callback) {
 }
 
 module.exports = getJSON;
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 var trim = require('./trim');
 
 function getParameterByName(name) {
@@ -3198,7 +3315,7 @@ module.exports = {
     removeQueryStringValue: removeQueryStringValue,
     updateQueryString: updateQueryString
 }
-},{"./trim":24}],24:[function(require,module,exports){
+},{"./trim":26}],26:[function(require,module,exports){
 function escapeRegex(string) {
     return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
 }
@@ -3219,7 +3336,7 @@ var trim = function trim(str, characters, flags) {
 };
 
 module.exports = trim;
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var PNG = require('png-js');
 
 function ImageHandler(imagePath) {
@@ -3253,7 +3370,7 @@ ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, gri
 }
 
 module.exports = ImageHandler;
-},{"png-js":26}],26:[function(require,module,exports){
+},{"png-js":28}],28:[function(require,module,exports){
 // Generated by CoffeeScript 1.4.0
 
 /*
@@ -3589,7 +3706,7 @@ var FlateStream = require('./zlib');
   })();
 
   module.exports = PNG;
-},{"./zlib":27}],27:[function(require,module,exports){
+},{"./zlib":29}],29:[function(require,module,exports){
 /*
  * Extracted from pdf.js
  * https://github.com/andreasgal/pdf.js
@@ -4056,7 +4173,7 @@ var FlateStream = (function() {
 })();
 
 module.exports = FlateStream;
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /*
 	This is rot.js, the ROguelike Toolkit in JavaScript.
 	Version 0.6~dev, generated on Tue Mar 17 16:16:31 CET 2015.
@@ -4619,7 +4736,7 @@ function diff_sum(SHADOWS) {
 }
 
 module.exports = ROT;
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 var ImageHandler = require("./imageHandler.js");
 var ROT = require("./rot6.js");
 
@@ -4935,6 +5052,6 @@ VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
 
 module.exports = VisionSimulation;
-},{"./imageHandler.js":25,"./rot6.js":28}],30:[function(require,module,exports){
+},{"./imageHandler.js":27,"./rot6.js":30}],32:[function(require,module,exports){
 module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY":8288}
-},{}]},{},[15]);
+},{}]},{},[16]);

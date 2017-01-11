@@ -60,7 +60,7 @@ function InfoControl(InteractiveMap) {
                 self.InteractiveMap.deselectAll();
                 var dotaProps = feature.get('dotaProps');
                 if (feature.get('dotaProps').id == "ent_dota_tree") {
-                    self.InteractiveMap.toggleTree(feature, dotaProps);
+                    self.InteractiveMap.treeControl.toggleTree(feature, dotaProps);
                 }
                 else {
                     self.displayFeatureInfo(feature, true);
@@ -152,7 +152,6 @@ InfoControl.prototype.initialize = function (id) {
 }
 
 InfoControl.prototype.displayFeatureInfo = function (feature, bClicked) {
-    console.log('feature', feature);
     this.setContent(getPopupContent(this.InteractiveMap.getMapData(), feature));
     this.open(bClicked);
 };

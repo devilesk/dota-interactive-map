@@ -1,6 +1,9 @@
 var ol = require('openlayers');
 var styles = require('./../styleDefinitions');
 var mapConstants = require('./../mapConstants');
+var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
+var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
+var QueryString = require('./../util/queryString');
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;
@@ -14,6 +17,12 @@ function WardControl(InteractiveMap, throttleTime) {
     this.layerFilter = function(layer) {
         return layer === self.layer;
     }
+    
+    this.placedWardCoordinates = {
+        observer: {},
+        sentry: {}
+    };
+    
     this.lastPointerMoveTime = Date.now();
     this.pointerMoveHandler = function(evt) {
         if (evt.dragging) {
@@ -187,7 +196,33 @@ WardControl.prototype.deactivate = function () {
     this.clickListener = null;
 }
 
-WardControl.prototype.addWard = function (coordinate, wardType) {
+WardControl.prototype.parseQueryString = function () {
+    var self = this;
+    ['observer', 'sentry'].forEach(function (wardType) {
+        var values = QueryString.getParameterByName(wardType);
+        if (values) {
+            values = values.split(';');
+            values.forEach(function (worldXY) {
+                worldXY = worldXY.split(',');
+                if (worldXY.length == 2) {
+                    worldXY = worldXY.map(parseFloat);
+                    if (!worldXY.some(isNaN)) {
+                        var coordinate = worldToLatLon(worldXY);
+                        self.addWard(coordinate, wardType, true);
+                    }
+                }
+            });
+        }
+        self.updateQueryString(wardType);
+    });
+}
+
+WardControl.prototype.updateQueryString = function (wardType) {
+    var values = Object.keys(this.placedWardCoordinates[wardType]).join(';');
+    QueryString.setQueryString(wardType, values || null);
+}
+
+WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryStringUpdate) {
     if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
     var geom = new ol.geom.Point(coordinate);
     var feature = new ol.Feature(geom);
@@ -206,6 +241,10 @@ WardControl.prototype.addWard = function (coordinate, wardType) {
         feature.set('wardRange', circle, true);
         this.InteractiveMap.wardRangeSource.addFeature(circle);
     }
+    var worldXY = latLonToWorld(coordinate).map(Math.round).join(',');
+    console.log('addWard', worldXY);
+    this.placedWardCoordinates[wardType][worldXY] = true;
+    if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
 WardControl.prototype.removeWard = function (feature) {
@@ -215,6 +254,12 @@ WardControl.prototype.removeWard = function (feature) {
     }
     this.source.removeFeature(feature);
     this.InteractiveMap.visionControl.removeVisionFeature(feature);
+    
+    var worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
+    var wardType = feature.get('wardType');
+    console.log(feature, worldXY, this.placedWardCoordinates[wardType][worldXY]);
+    delete this.placedWardCoordinates[wardType][worldXY];
+    this.updateQueryString(wardType);
 }
 
 WardControl.prototype.highlight = function (feature) {

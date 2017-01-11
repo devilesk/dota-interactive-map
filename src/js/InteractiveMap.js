@@ -7,8 +7,11 @@ var loadGeoJSON = require('./dataLoader').loadGeoJSON;
 var loadJSON = require('./dataLoader').loadJSON;
 var loadLayerGroupFromData = require('./dataLoader').loadLayerGroupFromData;
 var getJSON = require('./util/getJSON');
+var latLonToWorld = require('./conversionFunctions').latLonToWorld;
 var worldToLatLon = require('./conversionFunctions').worldToLatLon;
 var getScaledRadius = require('./conversionFunctions').getScaledRadius;
+var QueryString = require('./util/queryString');
+var getFeatureCenter = require('./util/getFeatureCenter');
 
 var InteractiveMap = {
     MODE: 'navigation',
@@ -188,22 +191,6 @@ InteractiveMap.panTo = function (coordinate, duration) {
     InteractiveMap.view.animate({
       center: coordinate,
       duration: 1000
-    });
-}
-InteractiveMap.toggleTree = function (feature, dotaProps) {
-    var gridXY = InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
-    InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
-    feature.set('isCut', !feature.get('isCut'));
-}
-
-InteractiveMap.toggleAllTrees = function (state) {
-    var layer = InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
-    var source = layer.getSource();
-    var features = source.getFeatures();
-    features.forEach(function (feature) {
-        if (feature.get('isCut') != state) {
-            InteractiveMap.toggleTree(feature, feature.get('dotaProps'));
-        }
     });
 }
 
