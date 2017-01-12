@@ -101,5 +101,6 @@
     ],
     "compilation_level": "ADVANCED",
     "manage_closure_dependencies": true
-  }
+  },
+  "umd": true
 }

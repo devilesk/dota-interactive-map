@@ -1,6 +1,4 @@
-function capitalize(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
+var capitalize = require('./util/capitalize');
 
 var unitNames = {
     npc_dota_roshan_spawner: "Roshan",

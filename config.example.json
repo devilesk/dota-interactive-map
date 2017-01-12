@@ -1,0 +1,16 @@
+{
+    "rollbar": {
+        "client_token": "",
+        "server_token": "",
+        "local_username": "",
+        "username": "",
+        "sourceMappingURLPrefix": ""
+    },
+    "deployPath": {
+        "production": "dist",
+        "development": "dist"
+    },
+    "google_analytics": "",
+    "map_data_path": "tiles/",
+    "vision_data_image_path": "img/map_data.png"
+}

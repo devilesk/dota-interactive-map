@@ -1,3 +1,4 @@
+var ol = require('openlayers');
 var mapConstants = require('./../mapConstants');
 var styles = require('./../styleDefinitions');
 

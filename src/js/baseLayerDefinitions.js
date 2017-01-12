@@ -1,5 +1,3 @@
-var ol = require('openlayers');
-
 var layerDefinitions = [
     {
         id: 'default',

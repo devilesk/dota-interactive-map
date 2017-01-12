@@ -1,3 +1,4 @@
+var ol = require('openlayers');
 var proj = require('./projections');
 
 function loadGeoJSON(map, layerDef) {
