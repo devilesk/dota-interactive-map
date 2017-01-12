@@ -319,6 +319,17 @@ function App(map_tile_path, vision_data_image_path) {
             InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() - 1});
         });
 
+            
+        document.getElementById('reset').addEventListener('click', function () {
+            if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
+            setDefaults();
+            updateOverlayMenu();
+            InteractiveMap.treeControl.toggleAllTrees(false, true);
+            InteractiveMap.treeControl.parseQueryString();
+            InteractiveMap.wardControl.clearWards();
+            InteractiveMap.wardControl.parseQueryString();
+        });
+
         document.getElementById('btn-tree').addEventListener('click', function () {
             if (this.classList.contains('active')) {
                 this.setAttribute('trees-enabled', this.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
