@@ -17,8 +17,15 @@ var InteractiveMapConstructor = require('./InteractiveMap');
 
 var rollbar = require('./rollbar');
 
+var ModalControl = require('./controls/modalControl');
+var aboutModal = new ModalControl('about', 'about-open', 'about-close');
+var helpModal = new ModalControl('help', 'help-open', 'help-close');
+
 var buildDate = "#build_date";
+document.getElementById('buildDate').innerHTML = buildDate;
+
 var releaseTag = "#release_tag";
+document.getElementById('releaseTag').innerHTML = releaseTag;
 
 function App(map_tile_path, vision_data_image_path) {
     var InteractiveMap = new InteractiveMapConstructor(map_tile_path);
