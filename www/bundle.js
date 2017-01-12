@@ -2231,7 +2231,7 @@ var InteractiveMapConstructor = require('./InteractiveMap');
 
 var rollbar = require('./rollbar');
 
-var buildDate = "2017-01-12 16:47:41 UTC";
+var buildDate = "2017-01-12 16:58:00 UTC";
 var releaseTag = "4.0.0";
 
 function App(map_tile_path, vision_data_image_path) {
@@ -3288,7 +3288,7 @@ var rollbarConfig = {
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "521b895f9a4053db87e0f9b865fa2e0b67b77bc5",
+                code_version: "4eac1c0e61ae75859e961008f5948f72c3ffdc57",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true
