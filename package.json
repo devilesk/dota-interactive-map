@@ -19,7 +19,7 @@
     "build:copy": "cp -r www/img build/img && cp -r www/data build/data",
     "build": "npm run clean:build && npm run build:js && npm run build:css && npm run build:html && npm run build:copy",
     "watch:js": "node scripts/browserify.js -- development watch",
-    "watch:css": "nodemon -e scss --watch src/scss -x \"npm run build:css\"",
+    "watch:css": "nodemon -e scss --watch src/scss -x \"npm run sass\"",
     "watch:html": "nodemon -e html,md --watch src -x \"npm run preprocess:html\"",
     "watch": "npm run watch:js & npm run watch:css & npm run watch:html",
     "rollbar:sourcemap": "gulp rollbar:sourcemap",

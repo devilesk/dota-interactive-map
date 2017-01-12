@@ -2269,10 +2269,10 @@ var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "2017-01-12 20:17:07 UTC";
+var buildDate = "#build_date";
 document.getElementById('buildDate').innerHTML = buildDate;
 
-var releaseTag = "4.0.0";
+var releaseTag = "#release_tag";
 document.getElementById('releaseTag').innerHTML = releaseTag;
 
 function App(map_tile_path, vision_data_image_path) {
@@ -3327,7 +3327,7 @@ module.exports = {
 var Rollbar = require("rollbar-browser");
 
 var rollbarConfig = {
-    accessToken: "fe7cf327f2b24bb8991e252239f6200f",
+    accessToken: "#rollbar_client_token",
     captureUncaught: true,
     ignoredMessages: [
         "Error:  DOM Exception 18",
@@ -3336,11 +3336,11 @@ var rollbarConfig = {
         "Script error."
     ],
     payload: {
-        environment: "development",
+        environment: "#rollbar_environment",
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "bf01f576a5bc351753b7b5fe46950852f237a38f",
+                code_version: "521b895f9a4053db87e0f9b865fa2e0b67b77bc5",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true
