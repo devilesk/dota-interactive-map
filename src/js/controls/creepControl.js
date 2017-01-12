@@ -12,7 +12,6 @@ function CreepControl(InteractiveMap) {
 }
 
 CreepControl.prototype.show = function (message) {
-    console.log('show', message);
     this.setContent(message);
     this.info.classList.remove('slideUp');
     this.info.classList.add('slideDown');
@@ -66,14 +65,12 @@ CreepControl.prototype.slower = function () {
     var oldVal = this.playbackSpeed;
     this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
     this.updatePlayback(oldVal, this.playbackSpeed);
-    console.log(this.playbackSpeed);
 }
 
 CreepControl.prototype.faster = function () {
     var oldVal = this.playbackSpeed;
     this.playbackSpeed += 1;
     this.updatePlayback(oldVal, this.playbackSpeed);
-    console.log(this.playbackSpeed);
 }
 
 CreepControl.prototype.updatePlayback = function (oldVal, newVal) {
@@ -97,7 +94,6 @@ CreepControl.prototype.updatePlayback = function (oldVal, newVal) {
 
 CreepControl.prototype.start = function () {
     if (!this.postComposeListener) {
-        console.log('activate');
         this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
     }
     if (this.paused) this.playPause();
@@ -120,7 +116,6 @@ CreepControl.prototype.stop = function () {
 }
 
 CreepControl.prototype.playPause = function () {
-    console.log('playPause', this.paused);
     this.paused = !this.paused;
     if (this.paused) {
         this.playPauseBtn.classList.add('icon-play');
@@ -220,12 +215,10 @@ CreepControl.prototype.animateCreeps = function (event) {
             this.pauseTime = null;
         }
     }
-    //console.log('InteractiveMap.getMapLayerIndex()', InteractiveMap.getMapLayerIndex());
     for (var i = 0; i < features.length; i++) {
         var feature = features[i];
         var id = feature.getId();
         var pathFeature = pathLayer.getSource().getFeatureById(id);
-        //console.log('npc_dota_spawner feature', feature, pathFeature);
         var waveTimes = feature.get('waveTimes');
         if (!waveTimes) {
             waveTimes = [this.currentTime];

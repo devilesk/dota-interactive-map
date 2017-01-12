@@ -33,7 +33,6 @@ VisionControl.prototype.getVisionFeature = function (feature, coordinate, radius
     
     // get radius from feature if not provided
     radius = radius || this.InteractiveMap.getFeatureVisionRadius(feature, dotaProps)
-    console.log('getVisionFeature', radius);
     if (radius == null) return;
     
     var gridXY = vs.WorldXYtoGridXY(worldCoordinate[0], worldCoordinate[1]);
@@ -84,7 +83,6 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
     
     // determine radius according to unit type
     var radius = this.InteractiveMap.getFeatureVisionRadius(feature, feature.get('dotaProps'), unitClass);
-    console.log('setVisionFeature', unitClass, radius);
     // create and add vision feature
     visionFeature = this.getVisionFeature(feature, coordinate, radius);
     if (visionFeature) {

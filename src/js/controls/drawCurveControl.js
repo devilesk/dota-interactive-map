@@ -37,7 +37,6 @@ function DrawCurveControl(InteractiveMap) {
         var curved = bezier(line);
         geometry.setCoordinates(curved["geometry"]["coordinates"]);
         sketch = geometry.simplify(10);
-        //console.log(format.writeFeatureObject(geometry));
         return sketch;
     };
 

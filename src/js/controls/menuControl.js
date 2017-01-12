@@ -26,7 +26,6 @@ MenuPanel.prototype.close = function (evt) {
     this.panel.classList.add('collapsed-horizontal');
     this.openBtn.classList.remove('collapsed-horizontal');
     this.openBtn.classList.add('expand-horizontal');
-    console.log('menu close', evt);
 }
 MenuPanel.prototype.createToggle = function (layerDef, handler) {
     var toggle = document.createElement('div');
@@ -71,7 +70,6 @@ MenuPanel.prototype.createMenuPanelItem = function (InteractiveMap, layerDef, ha
     
     if (layerDef.toggle) {
         function toggleHandler() {
-            console.log('toggled', layerDef);
             var layer = InteractiveMap.getMapLayerIndex()[layerDef.id];
             if (layerDef.id == 'ent_dota_tree') {
                 InteractiveMap.treeControl.toggleAllTrees(this.checked);

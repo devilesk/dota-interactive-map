@@ -12,14 +12,12 @@ function setQueryString(key, value) {
 }
 
 function addQueryStringValue(key, value) {
-    console.log('addQueryStringValue', key, value);
     var qs = getParameterByName(key);
     qs = trim(trim(qs, ' ;') + ';' + value, ' ;');
     if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs));
 }
 
 function removeQueryStringValue(key, value) {
-    console.log('removeQueryStringValue', key, value);
     var qs = getParameterByName(key);
     qs = trim(trim(qs, ' ;').replace(value, '').replace(/;;/g, ''), ' ;');
     if (history && history.replaceState) history.replaceState(null, "", updateQueryString(key, qs != '' ? qs : null));

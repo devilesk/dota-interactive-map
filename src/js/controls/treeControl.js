@@ -1,7 +1,6 @@
 var QueryString = require('./../util/queryString');
 
 function TreeControl(InteractiveMap) {
-    var self = this;
     this.InteractiveMap = InteractiveMap;
     this.allTreesCutState = false;
 }
@@ -37,7 +36,6 @@ TreeControl.prototype.parseQueryString = function () {
     ['uncut_trees', 'cut_trees'].forEach(function (treeCutState, index) {
         var values = QueryString.getParameterByName(treeCutState);
         if (values) {
-            console.log(treeCutState, values, index, !index);
             self.toggleAllTrees(!index, true);
             values = values.split(';');
             values.forEach(function (worldXY) {

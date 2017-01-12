@@ -242,7 +242,6 @@ WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryString
         this.InteractiveMap.wardRangeSource.addFeature(circle);
     }
     var worldXY = latLonToWorld(coordinate).map(Math.round).join(',');
-    console.log('addWard', worldXY);
     this.placedWardCoordinates[wardType][worldXY] = true;
     if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
@@ -257,7 +256,6 @@ WardControl.prototype.removeWard = function (feature) {
     
     var worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
     var wardType = feature.get('wardType');
-    console.log(feature, worldXY, this.placedWardCoordinates[wardType][worldXY]);
     delete this.placedWardCoordinates[wardType][worldXY];
     this.updateQueryString(wardType);
 }

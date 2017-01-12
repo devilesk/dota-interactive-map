@@ -5,7 +5,6 @@ function loadGeoJSON(map, layerDef) {
         url: 'data/700/' + layerDef.filename,
         format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
     });
-    console.log('layerDef', layerDef);
     var layer = new ol.layer.Vector({
         title: layerDef.name,
         projection: layerDef.projection || proj.pixel,

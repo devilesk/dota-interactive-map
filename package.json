@@ -5,6 +5,7 @@
   "main": "interactivemap.js",
   "scripts": {
     "watch:js": "watchify src/js/index.js --outfile www/bundle.js",
+    "build:ol": "node node_modules/openlayers/tasks/build.js src/ol-custom.json www/ol-custom.js",
     "build:css" : "node-sass src/scss/app.scss www/app.css",
     "watch:css": "nodemon -e scss -x \"npm run build:css\"",
     "watch": "npm run watch:js & npm run watch:css"

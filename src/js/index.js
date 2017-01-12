@@ -14,8 +14,9 @@ var WardControl = require('./controls/wardControl');
 var TreeControl = require('./controls/treeControl');
 var CursorControl = require('./controls/cursorControl');
 var vision_data_image_path = 'img/map_data.png';
-var InteractiveMap = require('./InteractiveMap');
-
+var InteractiveMapConstructor = require('./InteractiveMap');
+var map_tile_path = "http://devilesk.com/media/images/map/";
+var InteractiveMap = new InteractiveMapConstructor(map_tile_path);
 InteractiveMap.toggleLayerMenuOption = function(layerId, state) {
     var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
     if (state != null) element.checked = state;
@@ -57,7 +58,6 @@ var modeNotificationText = {
     creepControlOff: "Lane Animation: Off"
 }
 function changeMode(mode) {
-    console.log('changeMode', mode);
     switch (mode) {
         case 'observer':
         case 'sentry':
@@ -140,7 +140,6 @@ function updateOverlayMenu() {
         var layerId = element.getAttribute('data-layer-id');
         var layerIndex = InteractiveMap.getMapLayerIndex();
         var layer = layerIndex[layerId];
-        console.log('label', label);
         if (!layer) {
             label.style.display = "none";
         }
@@ -199,8 +198,6 @@ function setDefaults() {
             document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
         }
     });
-
-    console.log('trees enabled', document.getElementById('btn-tree').getAttribute('trees-enabled'));
 }
     
 document.getElementById('nightControl').addEventListener('change', function () {
@@ -312,13 +309,11 @@ function initialize() {
 
     document.getElementById('btn-tree').addEventListener('click', function () {
         if (this.classList.contains('active')) {
-            console.log('swapping', this.getAttribute('trees-enabled'), !this.getAttribute('trees-enabled'));
             this.setAttribute('trees-enabled', this.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
         }
         this.classList.add('active');
         document.getElementById('btn-ward').classList.remove('active');
         document.getElementById('btn-measure').classList.remove('active');
-        console.log('btn-tree', this.getAttribute('trees-enabled'));
         InteractiveMap.toggleLayerMenuOption("ent_dota_tree", this.getAttribute('trees-enabled') == "yes");
         changeMode('navigate');
         InteractiveMap.notificationControl.show(this.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);

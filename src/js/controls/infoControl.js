@@ -28,7 +28,6 @@ function InfoControl(InteractiveMap) {
             if (!self.isActive()) {
                 self.displayFeatureInfo(feature, false);
             }
-            console.log(self);
             self.highlight(feature);
         }
         else {
@@ -164,13 +163,11 @@ InfoControl.prototype.unhighlight = function (feature) {
             if (dotaProps.id == 'npc_dota_neutral_spawner') {
                 var pullRange = highlightedFeature.get('pullRange');
                 if (pullRange) {
-                    console.log('unhighlight', highlightedFeature, pullRange);
                     this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(pullRange);
                     highlightedFeature.set("pullRange", null, true);
                 }
                 var guardRange = highlightedFeature.get('guardRange');
                 if (guardRange) {
-                    console.log('unhighlight', highlightedFeature, guardRange);
                     this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(guardRange);
                     highlightedFeature.set("guardRange", null, true);
                 }
@@ -198,7 +195,6 @@ InfoControl.prototype.highlight = function (feature) {
                 geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
                 var circle = new ol.Feature(geom);
                 feature.set("pullRange", circle, true);
-                console.log('unhighlight', feature, circle);
                 this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
             }
         }
