@@ -756,7 +756,7 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   width: 100%;
   max-width: 500px;
   height: 100%;
-  overflow: scroll;
+  overflow: auto;
   box-sizing: border-box; }
 
 .close {
