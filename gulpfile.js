@@ -8,8 +8,8 @@ gulp.task('rollbar:sourcemap', function () {
     return gulp.src('build/**/*.min.js')
         .pipe(sourcemaps.init({loadMaps: true}))
         .pipe(rollbar({
-          accessToken: config.rollbar_token,
+          accessToken: config.rollbar.server_token,
           version: git.long(),
-          sourceMappingURLPrefix: config.sourceMappingURLPrefix
+          sourceMappingURLPrefix: config.rollbar.sourceMappingURLPrefix
         }))
 });
