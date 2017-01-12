@@ -246,7 +246,15 @@ WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryString
     if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
-WardControl.prototype.removeWard = function (feature) {
+WardControl.prototype.clearWards = function () {
+    var self = this;
+    var features = this.source.getFeatures();
+    features.forEach(function (feature) {
+        self.removeWard(feature, true);
+    });
+}
+
+WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
     var wardRange = feature.get('wardRange');
     if (wardRange) {
         this.InteractiveMap.wardRangeSource.removeFeature(wardRange);

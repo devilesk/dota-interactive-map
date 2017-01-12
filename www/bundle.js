@@ -1734,7 +1734,15 @@ WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryString
     if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
-WardControl.prototype.removeWard = function (feature) {
+WardControl.prototype.clearWards = function () {
+    var self = this;
+    var features = this.source.getFeatures();
+    features.forEach(function (feature) {
+        self.removeWard(feature, true);
+    });
+}
+
+WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
     var wardRange = feature.get('wardRange');
     if (wardRange) {
         this.InteractiveMap.wardRangeSource.removeFeature(wardRange);
@@ -2261,7 +2269,7 @@ var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "2017-01-12 19:59:27 UTC";
+var buildDate = "2017-01-12 20:17:07 UTC";
 document.getElementById('buildDate').innerHTML = buildDate;
 
 var releaseTag = "4.0.0";
@@ -2557,6 +2565,17 @@ function App(map_tile_path, vision_data_image_path) {
             
         document.getElementById('btn-zoom-out').addEventListener('click', function () {
             InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() - 1});
+        });
+
+            
+        document.getElementById('reset').addEventListener('click', function () {
+            if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
+            setDefaults();
+            updateOverlayMenu();
+            InteractiveMap.treeControl.toggleAllTrees(false, true);
+            InteractiveMap.treeControl.parseQueryString();
+            InteractiveMap.wardControl.clearWards();
+            InteractiveMap.wardControl.parseQueryString();
         });
 
         document.getElementById('btn-tree').addEventListener('click', function () {
@@ -3321,7 +3340,7 @@ var rollbarConfig = {
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "b6d4e609dfef22fb425d55df03bc0fcb4afeb13c",
+                code_version: "bf01f576a5bc351753b7b5fe46950852f237a38f",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true
