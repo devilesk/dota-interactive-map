@@ -2269,11 +2269,12 @@ var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "#build_date";
+var buildDate = "2017-01-12 22:33:37 UTC";
 document.getElementById('buildDate').innerHTML = buildDate;
 
-var releaseTag = "#release_tag";
+var releaseTag = "4.0.0";
 document.getElementById('releaseTag').innerHTML = releaseTag;
+
 
 function App(map_tile_path, vision_data_image_path) {
     var InteractiveMap = new InteractiveMapConstructor(map_tile_path);
@@ -2313,9 +2314,7 @@ function App(map_tile_path, vision_data_image_path) {
         nightOn: "Nighttime Vision",
         nightOff: "Daytime Vision",
         darknessOn: "Darkness: On",
-        darknessOff: "Darkness: Off",
-        creepControlOn: "Lane Animation: On",
-        creepControlOff: "Lane Animation: Off"
+        darknessOff: "Darkness: Off"
     }
     function changeMode(mode) {
         switch (mode) {
@@ -2483,11 +2482,9 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('creepControl').addEventListener('change', function () {
         if (this.checked) {
             InteractiveMap.creepControl.activate();
-            InteractiveMap.notificationControl.show(modeNotificationText.creepControlOn);
         }
         else {
             InteractiveMap.creepControl.deactivate();
-            InteractiveMap.notificationControl.show(modeNotificationText.creepControlOff);
         }
     }, false);
 
@@ -3327,7 +3324,7 @@ module.exports = {
 var Rollbar = require("rollbar-browser");
 
 var rollbarConfig = {
-    accessToken: "#rollbar_client_token",
+    accessToken: "fe7cf327f2b24bb8991e252239f6200f",
     captureUncaught: true,
     ignoredMessages: [
         "Error:  DOM Exception 18",
@@ -3336,11 +3333,11 @@ var rollbarConfig = {
         "Script error."
     ],
     payload: {
-        environment: "#rollbar_environment",
+        environment: "development",
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "521b895f9a4053db87e0f9b865fa2e0b67b77bc5",
+                code_version: "96b4c9681050c6d301328969831fcce5005b3bb7",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true
