@@ -27,6 +27,7 @@ document.getElementById('buildDate').innerHTML = buildDate;
 var releaseTag = "#release_tag";
 document.getElementById('releaseTag').innerHTML = releaseTag;
 
+
 function App(map_tile_path, vision_data_image_path) {
     var InteractiveMap = new InteractiveMapConstructor(map_tile_path);
     InteractiveMap.toggleLayerMenuOption = function(layerId, state) {
@@ -65,9 +66,7 @@ function App(map_tile_path, vision_data_image_path) {
         nightOn: "Nighttime Vision",
         nightOff: "Daytime Vision",
         darknessOn: "Darkness: On",
-        darknessOff: "Darkness: Off",
-        creepControlOn: "Lane Animation: On",
-        creepControlOff: "Lane Animation: Off"
+        darknessOff: "Darkness: Off"
     }
     function changeMode(mode) {
         switch (mode) {
@@ -235,11 +234,9 @@ function App(map_tile_path, vision_data_image_path) {
     document.getElementById('creepControl').addEventListener('change', function () {
         if (this.checked) {
             InteractiveMap.creepControl.activate();
-            InteractiveMap.notificationControl.show(modeNotificationText.creepControlOn);
         }
         else {
             InteractiveMap.creepControl.deactivate();
-            InteractiveMap.notificationControl.show(modeNotificationText.creepControlOff);
         }
     }, false);
 

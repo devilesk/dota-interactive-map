@@ -260,8 +260,8 @@ hr {
         background-color: #111;
         color: #f1f1f1; }
   .menu-item input[type=button] {
-    width: calc(100% - 4px);
-    margin: 2px; }
+    width: calc(100% - 8px);
+    margin: 2px 4px; }
   .menu-item input:checked + .checkbox, .menu-item input:checked + .checkbox + .sub-menu, .menu-item input:checked + .checkbox {
     max-height: 999px;
     display: block; }
@@ -757,7 +757,8 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   max-width: 500px;
   height: 100%;
   overflow: auto;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4); }
 
 .close {
   color: #aaa;
@@ -776,6 +777,11 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
 
 .modal-close {
   display: none; }
+
+#about .modal-content {
+  height: 200px;
+  margin-top: 100px;
+  border-radius: 10px; }
 
 .ol-box {
   box-sizing: border-box;
