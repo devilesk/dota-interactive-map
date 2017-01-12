@@ -7,8 +7,13 @@
     <meta name="author" content="devilesk">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-    
+    <!-- @if NODE_ENV!='production' -->
     <link rel="stylesheet" href="app.css" type="text/css">
+    <!-- @endif -->
+    <!-- @if NODE_ENV='production' !>
+    <link rel="stylesheet" href="app-<!-- @echo COMMIT_HASH !>.min.css" type="text/css">
+    <!-- @endif -->
+
   </head>
   <body>
     <div id="map"></div>
@@ -197,8 +202,19 @@
         <a href="javascript:void(0)" id="info-close-btn" class="btn-close">&times;</a>
         <div id="info-content" class="message-content"></div>
     </div>
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol-debug.js"></script>-->
-    <script src="ol-custom.js"></script>
+    <!-- @if NODE_ENV!='production' -->
     <script src="bundle.js"></script>
+    <script>InteractiveMap("tiles/", "img/map_data.png")</script>
+    <!-- @endif -->
+    <!-- @if NODE_ENV='production' !>
+    <script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', '<!-- @echo google_analytics !>', 'auto');
+    ga('send', 'pageview');
+    </script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
+    <script>InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>")</script>
+    <!-- @endif -->
   </body>
 </html>

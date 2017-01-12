@@ -1,88 +1,202 @@
+<!doctype html>
 <html>
-	<head>
-        <link rel="shortcut icon" href="/media/favicon.png">
-		<title>Dota 2 Interactive Map 3</title>
-        <meta name="description" content="Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.">
-        <meta name="author" content="devilesk">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="app.min.f18371e.css">
-	</head>
-	<body>
-		<div id="map1" style="width: 100%; height: 100%"></div>
-		<div id="controls-container" class="controls-container left">
-            <div id="controls-max" class="controls-button left maximizeDiv" style="display:none">+</div>
-            <div id="controls-min" class="controls-button left minimizeDiv">&times;</div>
-            <div class="controls left">
-                <ul id="controls-list" class="controls-list left">
-                    <li class="controls-list-header">Map Controls</li>
-                    <li>
-                        <label for="navigateToggle"><input type="radio" name="mode" value="navigate" id="navigateToggle" checked="checked" />Navigate</label>
-                    </li>
-                    <li>
-                        <label for="observerToggle"><input type="radio" name="mode" value="observer" id="observerToggle" />Place Observer Ward</label>
-                        <ul>
-                            <li>
-                                <label for="visionSimulationControl"><input type="checkbox" id="visionSimulationControl" checked=true/>Vision Simulation</label>
-                            </li>
-                            <li>
-                                <label for="alwaysSimulateControl"><input type="checkbox" id="alwaysSimulateControl" checked=true/>Follow Cursor</label>
-                            </li>
-                            <li id="vision-radius-container">
-                                <label id="vision-radius-label">Radius</label>
-                                <input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <label for="sentryToggle"><input type="radio" name="mode" value="sentry" id="sentryToggle" />Place Sentry Ward</label>
-                    </li>
-                    <li>
-                        <label for="lineToggle"><input type="radio" name="mode" value="line" id="lineToggle" />Measure Distance</label>
-                    </li>
-                    <li>
-                        <label for="circleToggle"><input type="radio" name="mode" value="circle" id="circleToggle" />Measure Circle</label>
-                    </li>
-                    <li style="display:none">
-                        <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/>Show Coordinates</label>
-                    </li>
-                    <li>
-                        <label for="nightControl"><input type="checkbox" id="nightControl"/>Night</label>
-                    </li>
-                    <li>
-                        <label for="darknessControl"><input type="checkbox" id="darknessControl"/>Darkness</label>
-                    </li>
-                    <li id="dataControl-container">
-                        <label id="dataControl-label" for="dataControl">Version Data</label>
-                        <select id="dataControl">
-                            <option value="700">7.00</option>
-                            <option value="687">6.87</option>
-                        </select>
-                    </li>
-                    <li>
-                        <input type="button" id="reset" value="Reset Map"/>
-                    </li>
-                </ul>
-                <div id="output-panel">
-                    <div id="output"></div>
-                    <div id="traveltime-container" style="display: none">
-                        <div>Travel time: <span id="traveltime"></span>s</div>
-                        <div id="movespeed-container">with <input type="text" id="movespeed" value="300" /> ms</div>
+  <head>
+    <meta charset="utf-8">
+    <title>Dota 2 Interactive Map v4</title>
+    <meta name="description" content="Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.">
+    <meta name="author" content="devilesk">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+    <link rel="stylesheet" href="app-521b895.min.css" type="text/css">
+
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="tool-btn-container"><!--
+     --><a id="btn-zoom-in" href="javascript:void(0)" class="btn-tool"><div class="zoom-label">+</div></a><!--
+     --><a id="btn-zoom-out" href="javascript:void(0)" class="btn-tool"><div class="zoom-label">&minus;</div></a><!--
+     --><a id="btn-tree" href="javascript:void(0)" class="btn-tool"></a><!--
+     --><a id="btn-ward" href="javascript:void(0)" class="btn-tool"></a><!--
+     --><a id="btn-measure" href="javascript:void(0)" class="btn-tool" measure-type="line">
+            <div class="line-icon"></div>
+            <div class="circle-icon"></div>
+        </a>
+    </div>
+    <a id="menu-left-open-btn" href="javascript:void(0)" class="btn-open">
+        <div class="gear"></div>
+    </a>
+    <a id="menu-right-open-btn" href="javascript:void(0)" class="btn-open"></a>
+    <div id="menu-left" class="menu-panel collapsed-horizontal">
+        <div class="menu-panel-inner">
+            <a href="javascript:void(0)" id="menu-left-close-btn" class="btn-close">&times;</a>
+            <div class="menu-contents">
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="navigate" id="navigateToggle" checked />
+                    <label for="navigateToggle" class="checkbox">Navigate</label>
+                </div>
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="ward" id="wardToggle" />
+                    <label for="wardToggle" class="checkbox">Place Ward</label>
+                    <div class="menu-item-group sub-menu"><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="ward-type" value="observer" id="observer-option" />
+                            <label for="observer-option" class="checkbox">Observer</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="ward-type" value="sentry" id="sentry-option"  checked />
+                            <label for="sentry-option" class="checkbox">Sentry</label>
+                        </div>
                     </div>
                 </div>
-                <div id="last-update"></div>
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="measure" id="measureToggle" />
+                    <label for="measureToggle" class="checkbox">Measure</label>
+                    <div class="menu-item-group sub-menu"><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="measure-type" value="line" id="line-option"  checked />
+                            <label for="line-option" class="checkbox">Line</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="measure-type" value="circle" id="circle-option" />
+                            <label for="circle-option" class="checkbox">Circle</label>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="checkbox" id="creepControl"/>
+                    <label for="creepControl" class="checkbox">Lane Animation</label>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <label class="text-label" for="vision-radius">Radius</label><!--
+                    --><input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="checkbox" id="nightControl"/>
+                    <label for="nightControl" class="checkbox">Night</label>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="checkbox" id="darknessControl"/>
+                    <label for="darknessControl" class="checkbox">Darkness</label>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <label class="text-label" for="movementSpeed">MS</label><!--
+                    --><input type="number" id="movementSpeed" value="300" min="0" max="9999" step="1" />
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <label class="select-label" for="version-select">Version</label><!--
+                     --><select id="version-select">
+                        <option value="700">7.00</option>
+                        <option value="687">6.87</option>
+                    </select>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="button" id="reset" value="Reset Map"/>
+                </div>
             </div>
         </div>
-        <div id="overlays-container" class="controls-container right">
+    </div>
+    <div id="menu-right" class="menu-panel collapsed-horizontal">
+        <div class="menu-panel-inner">
+            <a href="javascript:void(0)" id="menu-right-close-btn" class="btn-close">&times;</a>
+            <input type="radio" id="menu-right-back-btn" name="right-menu" value="back" checked />
+            <label id="back-btn" class="btn-back" for="menu-right-back-btn">&#x2190;</label>
+            <div class="back-group">
+                <div class="menu-contents">
+                    <div class="menu-item">
+                        <input type="radio" id="overlay-menu-toggle" name="right-menu" value="overlay" />
+                        <label for="overlay-menu-toggle" class="root checkbox inverse">Overlays</label>
+                        <div id="overlay-menu" class="menu-item-group sub-menu"><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-drawn-circles"/>
+                                <label for="option-drawn-circles" class="checkbox">Drawn Circles</label>
+                                <div class="btn-toggle">
+                                    <input id="toggle-1" type="checkbox"></input>
+                                    <label for="toggle-1"></label>
+                                </div>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-placed-wards" checked />
+                                <label for="option-placed-wards" class="checkbox">Placed Wards</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="structure-menu-toggle" name="right-menu" value="structure" />
+                        <label for="structure-menu-toggle" class="root checkbox inverse">Structures</label>
+                        <div id="structure-menu" class="menu-item-group sub-menu"></div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="object-menu-toggle" name="right-menu" value="object" />
+                        <label for="object-menu-toggle" class="root checkbox inverse">Neutral</label>
+                        <div id="object-menu" class="menu-item-group sub-menu"></div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="vision-menu-toggle" name="right-menu" value="vision" />
+                        <label for="vision-menu-toggle" class="root checkbox inverse">Vision Range</label>
+                        <div id="vision-menu" class="menu-item-group sub-menu"><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-dayVision" checked />
+                                <label for="option-dayVision" class="checkbox">Day Vision</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-nightVision" checked />
+                                <label for="option-nightVision" class="checkbox">Night Vision</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-trueSight" checked />
+                                <label for="option-trueSight" class="checkbox">True Sight</label>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="checkbox" id="option-attackRange" checked />
+                                <label for="option-attackRange" class="checkbox">Attack Range</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        <input type="radio" id="base-menu-toggle" name="right-menu" value="base" />
+                        <label for="base-menu-toggle" class="root checkbox inverse">Base Layers</label>
+                        <div id="base-menu" class="menu-item-group sub-menu"><!--
+                         --><div class="menu-item">
+                                <input type="radio" name="base-type" value="700" id="base-700-option" checked />
+                                <label for="base-700-option" class="checkbox">7.00</label>
+                                <div id="base-700-menu" class="menu-item-group sub-menu"></div>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="radio" name="base-type" value="687" id="base-687-option" />
+                                <label for="base-687-option" class="checkbox">6.87</label>
+                                <div id="base-687-menu" class="menu-item-group sub-menu"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="visible-area"></div>
-        <script src="bundle.min.f18371e.js"></script>
-        <script>InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.f18371e.png');</script>
-        <script>
-        window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-        ga('create', 'UA-39435120-1', 'auto');
-        ga('send', 'pageview');
-        </script>
-        <script async src='https://www.google-analytics.com/analytics.js'></script>
-	</body>
+    </div>
+    <div id="timer" class="slideUp">
+        <div id="timer-content" class="message-content">
+            <div id="timer-controls">
+                <button id="timer-slower" class="btn-playback"></button>
+                <button id="timer-stop" class="btn-playback"></button>
+                <button id="timer-playPause" class="btn-playback icon-play"></button>
+                <button id="timer-faster" class="btn-playback"></button>
+            </div>
+            <div id="timer-time"></div>
+        </div>
+    </div>
+    <div id="notification" class="slideUp">
+        <div id="notification-content" class="message-content"></div>
+    </div>
+    <div id="info" class="slideDown">
+        <a href="javascript:void(0)" id="info-close-btn" class="btn-close">&times;</a>
+        <div id="info-content" class="message-content"></div>
+    </div>
+    <script src="bundle-521b895.min.js"></script>
+  </body>
 </html>

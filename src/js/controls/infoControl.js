@@ -1,3 +1,4 @@
+var ol = require('openlayers');
 var getPopupContent = require('./../getPopupContent');
 var styles = require('./../styleDefinitions');
 var mapConstants = require('./../mapConstants');

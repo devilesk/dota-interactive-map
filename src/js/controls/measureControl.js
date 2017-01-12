@@ -1,3 +1,4 @@
+var ol = require('openlayers');
 var styles = require('./../styleDefinitions');
 
 function MeasureControl(InteractiveMap) {
