@@ -1,5 +1,5 @@
 @mixin message() {
-    z-index: 9999;
+    z-index: 100;
     position: absolute;
     
     @media #{$not-mobile} {

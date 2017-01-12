@@ -104,6 +104,14 @@
                 <div class="menu-item">
                     <input type="button" id="reset" value="Reset Map"/>
                 </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="button" id="help-open" value="Help"/>
+                </div>
+                <hr>
+                <div class="menu-item">
+                    <input type="button" id="about-open" value="About"/>
+                </div>
             </div>
         </div>
     </div>
@@ -201,6 +209,20 @@
     <div id="info" class="slideDown">
         <a href="javascript:void(0)" id="info-close-btn" class="btn-close">&times;</a>
         <div id="info-content" class="message-content"></div>
+    </div>
+    <div id="help" class="modal modal-close">
+        <div class="modal-content">
+            <span id="help-close" class="close">&times;</span>
+            <!-- @include help.html -->
+        </div>
+    </div>
+    <div id="about" class="modal modal-close">
+        <div class="modal-content">
+            <span id="about-close" class="close">&times;</span>
+            <p>Interactive Map v<span id="releaseTag"></span></p>
+            <p>Last updated on <span id="buildDate"></span></p>
+            <a href="https://github.com/devilesk/dota-interactive-map">GitHub</a>
+        </div>
     </div>
     <!-- @if NODE_ENV!='production' -->
     <script src="bundle.js"></script>
