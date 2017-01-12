@@ -5,4 +5,5 @@ var env = process.argv.indexOf('production') !== -1 ? 'production': 'development
 console.log('env', env);
 config.NODE_ENV = env;
 config.COMMIT_HASH = git.short();
-pp.preprocessFileSync('www/index.html', 'build/index.html', config);
+var outDir = env == 'production' ? 'build' : 'www';
+pp.preprocessFileSync('src/index.html', outDir + '/index.html', config);

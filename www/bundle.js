@@ -2261,7 +2261,7 @@ var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "2017-01-12 19:41:19 UTC";
+var buildDate = "2017-01-12 19:59:27 UTC";
 document.getElementById('buildDate').innerHTML = buildDate;
 
 var releaseTag = "4.0.0";
@@ -3321,7 +3321,7 @@ var rollbarConfig = {
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "d3295abe339e9122bfe53a8256d9ff9a70b16ae1",
+                code_version: "b6d4e609dfef22fb425d55df03bc0fcb4afeb13c",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true
