@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <title>Dota 2 Interactive Map</title>
+    <meta name="description" content="Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+<!-- @if NODE_ENV='dev' -->
+<link rel="stylesheet" type="text/css" href="openlayers.css">
+<link rel="stylesheet" type="text/css" href="interactivemap.css" />
+<!-- @endif -->
+<!-- @if NODE_ENV='prod' !>
+<link rel="stylesheet" type="text/css" href="app.min.css">
+<!-- @endif -->
+</head>
+<body>
+    <div id="map1" style="width: 100%; height: 100%"></div>
+    <div id="controls-container" class="controls-container left">
+        <div id="controls-max" class="controls-button left maximizeDiv" style="display:none">+</div>
+        <div id="controls-min" class="controls-button left minimizeDiv">&times;</div>
+        <div class="controls left">
+            <ul id="controls-list" class="controls-list left">
+                <li class="controls-list-header">Map Controls</li>
+                <li>
+                    <label for="navigateToggle"><input type="radio" name="mode" value="navigate" id="navigateToggle" checked="checked" />Navigate</label>
+                </li>
+                <li>
+                    <label for="observerToggle"><input type="radio" name="mode" value="observer" id="observerToggle" />Place Observer Ward</label>
+                    <ul>
+                        <li>
+                            <label for="visionSimulationControl"><input type="checkbox" id="visionSimulationControl" checked=true/>Vision Simulation</label>
+                        </li>
+                        <li>
+                            <label for="alwaysSimulateControl"><input type="checkbox" id="alwaysSimulateControl" checked=true/>Follow Cursor</label>
+                        </li>
+                        <li id="vision-radius-container">
+                            <label id="vision-radius-label">Radius</label>
+                            <input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <label for="sentryToggle"><input type="radio" name="mode" value="sentry" id="sentryToggle" />Place Sentry Ward</label>
+                </li>
+                <li>
+                    <label for="lineToggle"><input type="radio" name="mode" value="line" id="lineToggle" />Measure Distance</label>
+                </li>
+                <li>
+                    <label for="circleToggle"><input type="radio" name="mode" value="circle" id="circleToggle" />Measure Circle</label>
+                </li>
+                <li style="display:none">
+                    <label for="coordControl"><input type="checkbox" id="coordControl" checked=true/>Show Coordinates</label>
+                </li>
+                <li>
+                    <label for="nightControl"><input type="checkbox" id="nightControl"/>Night</label>
+                </li>
+                <li>
+                    <label for="darknessControl"><input type="checkbox" id="darknessControl"/>Darkness</label>
+                </li>
+                <li id="dataControl-container">
+                    <label id="dataControl-label" for="dataControl">Version Data</label>
+                    <select id="dataControl">
+                        <option value="700">7.00</option>
+                        <option value="687">6.87</option>
+                    </select>
+                </li>
+                <li>
+                    <input type="button" id="reset" value="Reset Map"/>
+                </li>
+            </ul>
+            <div id="output-panel">
+                <div id="output"></div>
+                <div id="traveltime-container" style="display: none">
+                    <div>Travel time: <span id="traveltime"></span>s</div>
+                    <div id="movespeed-container">with <input type="text" id="movespeed" value="300" /> ms</div>
+                </div>
+            </div>
+            <div id="last-update"></div>
+        </div>
+    </div>
+    <div id="overlays-container" class="controls-container right">
+    </div>
+    <div id="visible-area"></div>
+    
+    
+        
+        <!-- @if NODE_ENV='dev' -->
+        <script src="../src/OpenLayers.js"></script>
+        <script src="bundle.js"></script>
+        <script>InteractiveMap('http://devilesk.com/media/images/map/', 'img/map_data.png');</script>
+        <!-- @endif -->
+        <!-- @if NODE_ENV='prod' !>
+        <script src="bundle.min.js"></script>
+        <script>InteractiveMap('<!-- @echo map_data_path !>', '<!-- @echo vision_data_image_path !>');</script>
+        <!-- @endif -->
+    
+</body>
+</html>
