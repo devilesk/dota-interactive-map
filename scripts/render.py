@@ -16,7 +16,7 @@ with open(os.path.join(sys.path[0], "../src/template/template_data.yaml"), 'r') 
     data = yaml.load_all(f.read())
 context = next(data)
 
-result = render(os.path.join(sys.path[0], "../src/template/.index.html"), context)
+result = render(os.path.join(sys.path[0], "../src/template/index.j2"), context)
 
 with open(os.path.join(sys.path[0], "../src/index.html"), 'w') as f:
     f.write(result)

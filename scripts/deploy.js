@@ -15,4 +15,4 @@ var paths = [
 ]
 console.log(paths);
 del.sync(paths, {force: true});
-execSync('cp -r build/* ' + normalizedPath);
+execSync('cp -r dist/* ' + normalizedPath);

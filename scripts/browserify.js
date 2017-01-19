@@ -24,7 +24,7 @@ console.log('version', releaseVersion);
 console.log('watch', bWatch);
 
 var src = './src/js/index.js';
-var root = env == 'development' ? './www/' : './build/';
+var root = env == 'development' ? './www/' : './dist/';
 var hash = env == 'development' ? '.' : '-' + git.short() + '.' ;
 var dst = root + 'bundle' + hash + 'js';
 var mapfile = dst + '.map';
