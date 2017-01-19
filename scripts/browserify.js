@@ -23,7 +23,7 @@ console.log('env', env);
 console.log('version', releaseVersion);
 console.log('watch', bWatch);
 
-var src = './src/js/index.js';
+var src = npmConfig.main;
 var root = env == 'development' ? './www/' : './dist/';
 var hash = env == 'development' ? '.' : '-' + git.short() + '.' ;
 var dst = root + 'bundle' + hash + 'js';
@@ -31,7 +31,7 @@ var mapfile = dst + '.map';
 
 var opts = {
     debug:true,
-    standalone: 'InteractiveMap',
+    standalone: config.appName,
     entries: [src],
     cache: {},
     packageCache: {}
@@ -54,7 +54,7 @@ b.transform('browserify-replace', {
         { from: /#rollbar_client_token/, to: config.rollbar.client_token || "" },
         { from: /#rollbar_environment/, to: env }
     ]
-})
+});
 if (bWatch) b.on('update', bundle);
 
 bundle();

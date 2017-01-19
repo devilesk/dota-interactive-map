@@ -3987,7 +3987,7 @@ var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "2017-01-19 13:42:41 UTC";
+var buildDate = "2017-01-19 14:52:37 UTC";
 document.getElementById('buildDate').innerHTML = buildDate;
 
 var releaseTag = "4.0.0";
@@ -5055,7 +5055,7 @@ var rollbarConfig = {
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "a8970140eaacdc2efc832ca93198c902c130da8c",
+                code_version: "4d7f02b17bf198ff593e9fb158363577ac03deca",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true
@@ -5593,4 +5593,4 @@ var trim = function trim(str, characters, flags) {
 module.exports = trim;
 },{}]},{},[24])(24)
 });
-//# sourceMappingURL=bundle-a897014.js.map
+//# sourceMappingURL=bundle-4d7f02b.js.map

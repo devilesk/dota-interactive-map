@@ -2,7 +2,8 @@
   "name": "dota-interactive-map",
   "version": "4.0.0",
   "description": "Interactive Dota 2 Map",
-  "main": "interactivemap.js",
+  "main": "src/js/index.js",
+  "private": true,
   "scripts": {
     "browserify": "node scripts/browserify.js",
     "uglify": "node scripts/uglify.js",
@@ -10,14 +11,12 @@
     "openlayers": "node node_modules/openlayers/tasks/build.js src/ol-custom.json src/js/lib/ol-custom.js",
     "markdown:help": "marked src/help.md -o www/help.html",
     "preprocess:html": "npm run markdown:help && node scripts/preprocess.js",
-    "clean:build": "rm -rf dist/*",
-    "clean:dist": "rm -rf dist/*",
-    "clean": "npm run clean:build && npm run clean:dist",
+    "clean": "rm -rf dist/*",
     "build:js": "npm run browserify -- production && npm run uglify",
     "build:css": "npm run sass && cleancss www/app.css --skip-rebase -o dist/app-`git rev-parse --short HEAD`.min.css",
-    "build:html": "npm run markdown:help && node scripts/preprocess.js -- production",
+    "build:html": "npm run render && npm run markdown:help && node scripts/preprocess.js -- production",
     "build:copy": "cp -r www/img dist/img && cp -r www/data dist/data",
-    "build": "npm run clean:build && npm run build:js && npm run build:css && npm run build:html && npm run build:copy",
+    "build": "npm run clean && npm run build:js && npm run build:css && npm run build:html && npm run build:copy",
     "watch:js": "node scripts/browserify.js -- development watch",
     "watch:css": "nodemon -e scss --watch src/scss -x \"npm run sass\"",
     "watch:html": "nodemon -e html,md --watch src -x \"npm run preprocess:html\"",
@@ -29,29 +28,22 @@
     "deploy:prod": "npm run deploy -- production && npm run rollbar",
     "render": "python scripts/render.py"
   },
-  "keywords": [
-    "dota",
-    "map"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/devilesk/dota-interactive-map.git"
   },
   "author": "devilesk",
-  "license": "MIT",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/devilesk/dota-interactive-map/issues"
   },
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "devDependencies": {
-    "@turf/bezier": "^3.7.0",
-    "@turf/union": "^3.7.0",
     "browserify": "^13.1.1",
     "browserify-replace": "^0.9.0",
     "browserify-shim": "^3.8.12",
     "clean-css": "^3.4.22",
     "del": "^2.2.2",
-    "dota-vision-simulation": "^0.14.4",
     "exorcist": "^0.4.0",
     "git-rev-sync": "^1.8.0",
     "glob": "^7.1.1",
@@ -62,12 +54,17 @@
     "marked": "^0.3.6",
     "node-sass": "^4.1.1",
     "nodemon": "^1.11.0",
-    "openlayers": "^3.20.1",
     "preprocess": "^3.1.0",
     "replace": "^0.3.0",
-    "rollbar-browser": "^1.9.2",
     "uglify-js": "^2.7.5",
     "watchify": "^3.8.0"
+  },
+  "dependencies": {
+    "dota-vision-simulation": "^0.14.4",
+    "openlayers": "^3.20.1",
+    "rollbar-browser": "^1.9.2",
+    "@turf/bezier": "^3.7.0",
+    "@turf/union": "^3.7.0"
   },
   "browser": {
     "openlayers": "./src/js/lib/ol-custom.js"
