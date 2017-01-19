@@ -2,7 +2,7 @@ var fs = require('fs');
 var git = require('git-rev-sync');
 var UglifyJS = require("uglify-js");
 
-var root = './build/';
+var root = './dist/';
 var src = root + 'bundle-' + git.short() + '.js';
 var dst = root + 'bundle-' + git.short() + '.min.js';
 var srcMap = root + 'bundle-' + git.short() + '.js.map';
