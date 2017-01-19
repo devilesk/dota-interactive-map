@@ -1,4 +1,5 @@
 {
+    "appName": "InteractiveMap",
     "rollbar": {
         "client_token": "",
         "server_token": "",
