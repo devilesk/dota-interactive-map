@@ -26,7 +26,8 @@
     "rollbar:deploy": "node scripts/rollbar_deploy.js",
     "rollbar": "npm run rollbar:sourcemap && npm run rollbar:deploy -- production",
     "deploy": "node scripts/deploy.js",
-    "deploy:prod": "npm run deploy -- production && npm run rollbar"
+    "deploy:prod": "npm run deploy -- production && npm run rollbar",
+    "render": "python scripts/render.py"
   },
   "keywords": [
     "dota",

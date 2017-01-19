@@ -1,0 +1,7 @@
+---
+extends: root.j2
+title: Dota 2 Interactive Map v4
+description: Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.
+active_menu: page-interactivemap
+header: Interactive Map
+---
