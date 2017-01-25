@@ -13,6 +13,7 @@ var VisionControl = require('./controls/visionControl');
 var WardControl = require('./controls/wardControl');
 var TreeControl = require('./controls/treeControl');
 var CursorControl = require('./controls/cursorControl');
+var CoordinateControl = require('./controls/coordinateControl');
 var InteractiveMapConstructor = require('./InteractiveMap');
 
 var rollbar = require('./rollbar');
@@ -48,6 +49,7 @@ function App(map_tile_path, vision_data_image_path) {
     InteractiveMap.wardControl = new WardControl(InteractiveMap);
     InteractiveMap.treeControl = new TreeControl(InteractiveMap);
     InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
+    InteractiveMap.coordinateControl = new CoordinateControl(InteractiveMap, 'coordinates');
     InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
     InteractiveMap.creepControl = new CreepControl(InteractiveMap);
     InteractiveMap.creepControl.initialize('timer');

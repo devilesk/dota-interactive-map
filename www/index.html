@@ -1,15 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
+<head>
+
     <meta charset="utf-8">
     <title>Dota 2 Interactive Map v4</title>
     <meta name="description" content="Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.">
-    <meta name="author" content="devilesk">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
-    <link rel="stylesheet" href="app.css" type="text/css">
-  </head>
-  <body>
+    
+<link rel="stylesheet" href="app.css" type="text/css">
+</head>
+<body>
     <div id="map"></div>
     <div id="tool-btn-container"><!--
      --><a id="btn-zoom-in" href="javascript:void(0)" class="btn-tool"><div class="zoom-label">+</div></a><!--
@@ -272,7 +272,14 @@
             <a href="https://github.com/devilesk/dota-interactive-map">GitHub</a>
         </div>
     </div>
-    <script src="bundle.js"></script>
-    <script>InteractiveMap("tiles/", "img/map_data.png")</script>
-  </body>
+    <div class="coordinates-container">
+        <div id="coordinates"></div>
+    </div>
+    
+    
+        
+        <script src="bundle.js"></script>
+        <script>InteractiveMap("tiles/", "img/map_data.png")</script>
+    
+</body>
 </html>

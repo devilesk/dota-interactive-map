@@ -70,3 +70,18 @@ hr {
 #menu-right-back-btn:not(:checked):hover + .btn-back {
     cursor: pointer;
 }
+
+.coordinates-container  {
+    position: absolute;
+    bottom: 0;
+    z-index: 40;
+    right: 0;
+    padding: 5px;
+    font-size: 14px;
+    background-color: #fff;
+    display: none;
+    
+    @media #{$not-mobile} {
+        display: block;
+    }
+}

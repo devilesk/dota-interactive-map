@@ -66,6 +66,19 @@ hr {
 #menu-right-back-btn:not(:checked):hover + .btn-back {
   cursor: pointer; }
 
+.coordinates-container {
+  position: absolute;
+  bottom: 0;
+  z-index: 40;
+  right: 0;
+  padding: 5px;
+  font-size: 14px;
+  background-color: #fff;
+  display: none; }
+  @media only screen and (min-width: 768px) {
+    .coordinates-container {
+      display: block; } }
+
 .gear {
   height: 20px;
   width: 20px;
