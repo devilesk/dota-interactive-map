@@ -1,5 +1,6 @@
 var ol = require('openlayers');
 var getFeatureCenter = require('./util/getFeatureCenter');
+var heroClassMap = require('./heroClassMap.json');
 
 var defaultStyle = new ol.style.Style({
     fill: new ol.style.Fill({
@@ -377,4 +378,63 @@ styles.creepColor = function (feature, resolution) {
         return styles.direCreep;
     }
 }
+
+styles.replayViewer = {
+    heroes: {},
+    creeps: {
+        2: new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255, 51, 51, 0.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#FF3333',
+                width: 4
+            })
+        }),
+        3: new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(51, 255, 51, 0.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#33FF33',
+                width: 4
+            })
+        }),
+        4: new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255, 150, 0, 0.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#FF9600',
+                width: 4
+            })
+        })
+    }
+}
+
+function createHeroIcon(h) {
+    var iconImageSrc = 'img/miniheroes/' + heroClassMap[h] + '.png';
+    var iconImage = new Image();
+    iconImage.src = iconImageSrc;
+    iconImage.addEventListener('load', function () {
+        // icon image is loaded, create the icon
+        styles.replayViewer.heroes[h] = new ol.style.Style({
+            image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+                imgSize : [32, 32],
+                img: iconImage
+            }))
+        });
+        /*styles.replayViewer.heroes[h] = new ol.style.Icon({
+            imgSize : [32, 32],
+            img: iconImage
+        });*/
+    }, false);
+}
+for (h in heroClassMap) {
+    if (heroClassMap.hasOwnProperty(h)) {
+        createHeroIcon(h);
+    }
+}
+console.log(styles.replayViewer.heroes);
+
 module.exports = styles;

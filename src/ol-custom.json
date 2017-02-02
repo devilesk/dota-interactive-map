@@ -73,6 +73,7 @@
     "ol.render.Event#vectorContext",
     "ol.render.VectorContext",
     "ol.render.canvas.Immediate#drawCircle",
+    "ol.render.canvas.Immediate#drawFeature",
     "ol.render.canvas.Immediate#setStyle",
     "ol.source.TileImage",
     "ol.source.Vector",

@@ -1,0 +1,2 @@
+rsync -a devilesk@45.55.254.131:/home/devilesk/aegis/replayviewer.js /home/devilesk/sites/devilesk.com/apps/dota-interactive-map/src/js/replayviewer
+rsync -a devilesk@45.55.254.131:/home/devilesk/aegis/replayviewer.js.mem /home/devilesk/sites/devilesk.com/apps/dota-interactive-map/src/js/replayviewer

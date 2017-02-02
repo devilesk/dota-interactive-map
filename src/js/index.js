@@ -14,9 +14,10 @@ var WardControl = require('./controls/wardControl');
 var TreeControl = require('./controls/treeControl');
 var CursorControl = require('./controls/cursorControl');
 var CoordinateControl = require('./controls/coordinateControl');
+var ReplayViewerControl = require('./replayviewer');
 var InteractiveMapConstructor = require('./InteractiveMap');
 
-var rollbar = require('./rollbar');
+//var rollbar = require('./rollbar');
 
 var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
@@ -27,7 +28,6 @@ document.getElementById('buildDate').innerHTML = buildDate;
 
 var releaseTag = "#release_tag";
 document.getElementById('releaseTag').innerHTML = releaseTag;
-
 
 function App(map_tile_path, vision_data_image_path) {
     var InteractiveMap = new InteractiveMapConstructor(map_tile_path);
@@ -53,6 +53,8 @@ function App(map_tile_path, vision_data_image_path) {
     InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
     InteractiveMap.creepControl = new CreepControl(InteractiveMap);
     InteractiveMap.creepControl.initialize('timer');
+    InteractiveMap.replayViewerControl = new ReplayViewerControl(InteractiveMap, 'file-input');
+    InteractiveMap.replayViewerControl.start();
 
     //var DrawCurveControl = require('./drawCurveControl');
     //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);

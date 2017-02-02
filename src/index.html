@@ -111,6 +111,12 @@
                 <div class="menu-item">
                     <input type="button" id="about-open" value="About"/>
                 </div>
+                <hr>
+                <div class="menu-item">
+                    <div id="file-input-container" class="hidden">
+                        <div id="dropbox">Drop a replay file here or <input type="file" id="file-input" value="" autocomplete="off"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -226,7 +232,7 @@
     <div class="coordinates-container">
         <div id="coordinates"></div>
     </div>
-    
+    <script src="replayviewer.js"></script>
     
         
         <!-- @if NODE_ENV!='production' -->
