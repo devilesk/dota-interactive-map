@@ -24,9 +24,10 @@ var layerDefinitions = [
     {
         id: 'ent_fow_blocker_node',
         name: 'Vision Blocker',
-        filename: 'ent_fow_blocker_node2.json',
+        filename: 'ent_fow_blocker_node.json',
         type: 'GeoJSON',
         group: 'overlay',
+        projection: proj.dota,
         style: new ol.style.Style({
             fill: new ol.style.Fill({color: [0, 0, 255, 0.3]}),
             stroke: new ol.style.Stroke({color: [0, 0, 255, 0.8]})
@@ -35,9 +36,10 @@ var layerDefinitions = [
     {
         id: 'no_wards',
         name: 'Invalid Wards',
-        filename: 'no_wards2.json',
+        filename: 'no_wards.json',
         type: 'GeoJSON',
         group: 'overlay',
+        projection: proj.dota,
         style: new ol.style.Style({
             fill: new ol.style.Fill({color: [255, 0, 0, 0.3]}),
             stroke: new ol.style.Stroke({color: [255, 0, 0, 0.8]})

@@ -1,9 +1,9 @@
 var ol = require('openlayers');
 var proj = require('./projections');
 
-function loadGeoJSON(map, layerDef) {
+function loadGeoJSON(map, layerDef, data, version) {
     var source = new ol.source.Vector({
-        url: 'data/700/' + layerDef.filename,
+        url: 'data/' + version + '/' + layerDef.filename,
         format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
     });
     var layer = new ol.layer.Vector({
@@ -153,11 +153,11 @@ function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, laye
     var layers = [];
     for (var i = 0; i < layerDefs.length; i++) {
         var layerDef = layerDefs[i];
-        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '687')) continue;
+        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '688')) continue;
         var layer;
         switch (layerDef.type) {
             case 'GeoJSON':
-                layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id]);
+                layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id], version);
             break;
             case 'polygon':
                 layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);

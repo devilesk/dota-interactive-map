@@ -4,7 +4,7 @@ var union = require("@turf/union");
 var conversionFunctions = require("./conversionFunctions");
 var fs = require('fs');
 
-var vs = new VisionSimulation(worlddata, "../www/img/map_data2.png", onReady);
+var vs = new VisionSimulation(worlddata, "../../www/img/map_data_706.png", onReady);
 
 function onReady() {
     var t1 = Date.now();
@@ -48,7 +48,7 @@ function generateGeoJSON(vs, grids, dst) {
             count++;
         }        
     });
-    transformData(result);
+    //transformData(result);
     
     fs.writeFile(dst, JSON.stringify(result), function (err) {});
 }

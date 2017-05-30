@@ -1746,7 +1746,7 @@ function InteractiveMap(map_tile_path) {
     });
     this.data = {};
     this.layerIndex = {};
-    this.version = '700';
+    this.version = '706';
     this.visionRadius = mapConstants.visionRadius.observer;
     this.movementSpeed = mapConstants.defaultMovementSpeed;
     this.isNight = false;
@@ -1871,7 +1871,7 @@ InteractiveMap.prototype.getMapLayerIndex = function (version) {
 
 InteractiveMap.prototype.getMapDataPath = function (version) {
     version = version || this.version;
-    return 'data/' + version + '/mapdata2.json';
+    return 'data/' + version + '/mapdata.json';
 }
 
 InteractiveMap.prototype.setMapLayers = function (version, callback) {
@@ -2069,27 +2069,52 @@ var layerDefinitions = [
     {
         id: 'default',
         name: 'Default',
-        group: '700'
+        group: '706'
+    },
+    {
+        id: 'autumn',
+        name: 'Autumn',
+        group: '706'
+    },
+    {
+        id: 'desert',
+        name: 'Desert',
+        group: '706'
+    },
+    {
+        id: 'immortalgardens',
+        name: 'Immortal Gardens',
+        group: '706'
     },
     {
         id: 'journey',
         name: 'New Journey',
+        group: '706'
+    },
+    {
+        id: 'reef',
+        name: 'Reef\'s Edge',
+        group: '706'
+    },
+    {
+        id: 'spring',
+        name: 'Spring',
+        group: '706'
+    },
+    {
+        id: 'winter',
+        name: 'Winter',
+        group: '706'
+    },
+    {
+        id: 'default',
+        name: 'Default',
         group: '700'
     },
     {
         id: 'default',
         name: 'Default',
-        group: '687'
-    },
-    {
-        id: 'desert',
-        name: 'Desert',
-        group: '687'
-    },
-    {
-        id: 'immortalgardens',
-        name: 'Immortal Gardens',
-        group: '687'
+        group: '688'
     }
 ];
 
@@ -3598,9 +3623,9 @@ module.exports = {
 var ol = require('openlayers');
 var proj = require('./projections');
 
-function loadGeoJSON(map, layerDef) {
+function loadGeoJSON(map, layerDef, data, version) {
     var source = new ol.source.Vector({
-        url: 'data/700/' + layerDef.filename,
+        url: 'data/' + version + '/' + layerDef.filename,
         format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
     });
     var layer = new ol.layer.Vector({
@@ -3750,11 +3775,11 @@ function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, laye
     var layers = [];
     for (var i = 0; i < layerDefs.length; i++) {
         var layerDef = layerDefs[i];
-        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '687')) continue;
+        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '688')) continue;
         var layer;
         switch (layerDef.type) {
             case 'GeoJSON':
-                layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id]);
+                layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id], version);
             break;
             case 'polygon':
                 layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
@@ -4005,7 +4030,7 @@ var ModalControl = require('./controls/modalControl');
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "2017-01-25 20:21:20 UTC";
+var buildDate = "2017-05-30 03:53:32 UTC";
 document.getElementById('buildDate').innerHTML = buildDate;
 
 var releaseTag = "4.0.0";
@@ -4390,9 +4415,10 @@ var layerDefinitions = [
     {
         id: 'ent_fow_blocker_node',
         name: 'Vision Blocker',
-        filename: 'ent_fow_blocker_node2.json',
+        filename: 'ent_fow_blocker_node.json',
         type: 'GeoJSON',
         group: 'overlay',
+        projection: proj.dota,
         style: new ol.style.Style({
             fill: new ol.style.Fill({color: [0, 0, 255, 0.3]}),
             stroke: new ol.style.Stroke({color: [0, 0, 255, 0.8]})
@@ -4401,9 +4427,10 @@ var layerDefinitions = [
     {
         id: 'no_wards',
         name: 'Invalid Wards',
-        filename: 'no_wards2.json',
+        filename: 'no_wards.json',
         type: 'GeoJSON',
         group: 'overlay',
+        projection: proj.dota,
         style: new ol.style.Style({
             fill: new ol.style.Fill({color: [255, 0, 0, 0.3]}),
             stroke: new ol.style.Stroke({color: [255, 0, 0, 0.8]})
@@ -5010,8 +5037,8 @@ Bp.prototype.removeFeature=Bp.prototype.ld;t("ol.style.Circle",Tg);t("ol.style.F
 var mapConstants = {
     map_w: 16384,
     map_h: 16384,
-    map_x_boundaries: [-8475.58617377, 9327.49124559],
-    map_y_boundaries: [9028.52473332, -8836.61406266],
+    map_x_boundaries: [-8507.4, 9515],
+    map_y_boundaries: [8888.12001679, -8953.45782627],
     resolutions: [
         16384 / 1024,
         16384 / 1024 / 2,
@@ -5076,7 +5103,7 @@ var rollbarConfig = {
         client: {
             javascript: {
                 source_map_enabled: true,
-                code_version: "5cefa1d0af17a3ed67951c4fcae24cc1f4473544",
+                code_version: "87d3ff2938bf07d24cd176dbf72af975bb501f1f",
                 // Optionally have Rollbar guess which frames the error was thrown from
                 // when the browser does not provide line and column numbers.
                 guess_uncaught_frames: true

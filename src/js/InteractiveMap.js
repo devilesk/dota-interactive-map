@@ -25,7 +25,7 @@ function InteractiveMap(map_tile_path) {
     });
     this.data = {};
     this.layerIndex = {};
-    this.version = '700';
+    this.version = '706';
     this.visionRadius = mapConstants.visionRadius.observer;
     this.movementSpeed = mapConstants.defaultMovementSpeed;
     this.isNight = false;
@@ -150,7 +150,7 @@ InteractiveMap.prototype.getMapLayerIndex = function (version) {
 
 InteractiveMap.prototype.getMapDataPath = function (version) {
     version = version || this.version;
-    return 'data/' + version + '/mapdata2.json';
+    return 'data/' + version + '/mapdata.json';
 }
 
 InteractiveMap.prototype.setMapLayers = function (version, callback) {

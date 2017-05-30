@@ -1,8 +1,8 @@
 var mapConstants = {
     map_w: 16384,
     map_h: 16384,
-    map_x_boundaries: [-8475.58617377, 9327.49124559],
-    map_y_boundaries: [9028.52473332, -8836.61406266],
+    map_x_boundaries: [-8507.4, 9515],
+    map_y_boundaries: [8888.12001679, -8953.45782627],
     resolutions: [
         16384 / 1024,
         16384 / 1024 / 2,
