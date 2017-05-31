@@ -11,4 +11,4 @@ function createCirclePointCoords(circleCenterX, circleCenterY, circleRadius, poi
     return coords;
 }
 
-module.exports = createCirclePointCoords;
+export default createCirclePointCoords;

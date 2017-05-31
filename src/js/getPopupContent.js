@@ -1,4 +1,4 @@
-var capitalize = require('./util/capitalize');
+import capitalize from './util/capitalize';
 
 var unitNames = {
     npc_dota_roshan_spawner: "Roshan",
@@ -57,4 +57,4 @@ function getPopupContent(data, feature) {
     return htmlContent;
 }
 
-module.exports = getPopupContent;
+export default getPopupContent;

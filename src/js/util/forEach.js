@@ -4,4 +4,4 @@ var forEach = function (array, callback, scope) {
     }
 };
 
-module.exports = forEach;
+export default forEach;

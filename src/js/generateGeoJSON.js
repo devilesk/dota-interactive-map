@@ -1,8 +1,8 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var union = require("@turf/union");
-var conversionFunctions = require("./conversionFunctions");
-var fs = require('fs');
+import { worldToLatLon } from "./conversionFunctions";
+import fs from 'fs';
 
 var vs = new VisionSimulation(worlddata, "../../www/img/map_data_706.png", onReady);
 
@@ -60,7 +60,7 @@ function transformData(data) {
             var polygon = polygons[j];
             for (var k = 0; k < polygon.length; k++) {
                 var point = polygon[k];
-                var latlon = conversionFunctions.worldToLatLon(point[0], point[1]);
+                var latlon = worldToLatLon(point[0], point[1]);
                 point[0] = Math.round(latlon.x);
                 point[1] = Math.round(latlon.y);
             }

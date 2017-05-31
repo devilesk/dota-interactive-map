@@ -1,4 +1,4 @@
-var styles = require('./../styleDefinitions');
+import styles from './../styleDefinitions';
 
 function NotificationControl() {
     this.timer = null;
@@ -37,4 +37,4 @@ NotificationControl.prototype.initialize = function (id) {
     this.infoContent = document.querySelector('#' + id + ' .message-content');
 }
 
-module.exports = NotificationControl;
+export default NotificationControl;

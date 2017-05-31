@@ -1,6 +1,8 @@
-var ol = require('openlayers');
-var styles = require('./styleDefinitions');
-var proj = require('./projections');
+import Style from 'ol/style/style';
+import Fill from 'ol/style/fill';
+import Stroke from 'ol/style/stroke';
+import styles from './styleDefinitions';
+import { dotaProj } from './projections';
 
 var layerDefinitions = [
     {
@@ -9,7 +11,7 @@ var layerDefinitions = [
         filename: 'path_corner.json',
         type: 'GeoJSON',
         group: 'overlay',
-        projection: proj.dota,
+        projection: dotaProj,
         style: styles.teamColor
     },
     {
@@ -18,7 +20,7 @@ var layerDefinitions = [
         filename: 'npc_dota_spawner.json',
         type: 'GeoJSON',
         group: 'overlay',
-        projection: proj.dota,
+        projection: dotaProj,
         style: styles.creepSpawn
     },
     {
@@ -27,10 +29,10 @@ var layerDefinitions = [
         filename: 'ent_fow_blocker_node.json',
         type: 'GeoJSON',
         group: 'overlay',
-        projection: proj.dota,
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: [0, 0, 255, 0.3]}),
-            stroke: new ol.style.Stroke({color: [0, 0, 255, 0.8]})
+        projection: dotaProj,
+        style: new Style({
+            fill: new Fill({color: [0, 0, 255, 0.3]}),
+            stroke: new Stroke({color: [0, 0, 255, 0.8]})
         })
     },
     {
@@ -39,10 +41,10 @@ var layerDefinitions = [
         filename: 'no_wards.json',
         type: 'GeoJSON',
         group: 'overlay',
-        projection: proj.dota,
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: [255, 0, 0, 0.3]}),
-            stroke: new ol.style.Stroke({color: [255, 0, 0, 0.8]})
+        projection: dotaProj,
+        style: new Style({
+            fill: new Fill({color: [255, 0, 0, 0.3]}),
+            stroke: new Stroke({color: [255, 0, 0, 0.8]})
         })
     },
     {
@@ -50,9 +52,9 @@ var layerDefinitions = [
         name: 'Spawn Boxes',
         type: 'polygon',
         group: 'overlay',
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({color: [0, 255, 125, 0.3]}),
-            stroke: new ol.style.Stroke({color: [0, 255, 125, 0.8]})
+        style: new Style({
+            fill: new Fill({color: [0, 255, 125, 0.3]}),
+            stroke: new Stroke({color: [0, 255, 125, 0.8]})
         })
     },
     {
@@ -153,4 +155,4 @@ var layerDefinitions = [
     }
 ];
 
-module.exports = layerDefinitions;
+export default layerDefinitions;

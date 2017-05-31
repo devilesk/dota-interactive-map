@@ -109,4 +109,4 @@ MenuControl.prototype.initialize = function (layerToggleHandler, baseLayerToggle
     });
 }
 
-module.exports = MenuControl;
+export default MenuControl;

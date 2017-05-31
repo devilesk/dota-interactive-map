@@ -1,16 +1,23 @@
-var ol = require('openlayers');
-var styles = require('./../styleDefinitions');
+import SourceVector from 'ol/source/vector';
+import LayerVector from 'ol/layer/vector';
+import Polygon from 'ol/geom/polygon';
+import LineString from 'ol/geom/linestring';
+import Circle from 'ol/geom/circle';
+import Draw from 'ol/interaction/draw';
+import Overlay from 'ol/overlay';
+import Observable from 'ol/observable';
+import styles from './../styleDefinitions';
 
 function MeasureControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
     this.map = InteractiveMap.map;
     this.info = InteractiveMap.infoControl;
-    this.source = new ol.source.Vector({
+    this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
     
-    this.layer =  new ol.layer.Vector({
+    this.layer =  new LayerVector({
         source: this.source
     });
 
@@ -69,9 +76,9 @@ function MeasureControl(InteractiveMap) {
 
         if (sketch) {
             var geom = (sketch.getGeometry());
-            if (geom instanceof ol.geom.Polygon) {
+            if (geom instanceof Polygon) {
                 helpMsg = continuePolygonMsg;
-            } else if (geom instanceof ol.geom.LineString) {
+            } else if (geom instanceof LineString) {
                 helpMsg = continueLineMsg;
             }
         }
@@ -132,7 +139,7 @@ function MeasureControl(InteractiveMap) {
     var self = this;
     function addInteraction() {
         var type = (self.type == 'circle' ? 'Circle' : 'LineString');
-        draw = new ol.interaction.Draw({
+        draw = new Draw({
             source: self.source,
             type: /** @type {ol.geom.GeometryType} */ (type),
             style: styles.measure
@@ -156,10 +163,10 @@ function MeasureControl(InteractiveMap) {
                 listener = sketch.getGeometry().on('change', function(evt) {
                     var geom = evt.target;
                     var output;
-                    if (geom instanceof ol.geom.Circle) {
+                    if (geom instanceof Circle) {
                         output = formatRadius(geom);
                         tooltipCoord = geom.getLastCoordinate();
-                    } else if (geom instanceof ol.geom.LineString) {
+                    } else if (geom instanceof LineString) {
                         output = formatLength(geom);
                         tooltipCoord = geom.getLastCoordinate();
                     }
@@ -179,7 +186,7 @@ function MeasureControl(InteractiveMap) {
                 // unset tooltip so that a new one can be created
                 //measureTooltipElement = null;
                 //createMeasureTooltip();
-                ol.Observable.unByKey(listener);
+                Observable.unByKey(listener);
             }, self);
     }
 
@@ -193,7 +200,7 @@ function MeasureControl(InteractiveMap) {
         }
         helpTooltipElement = document.createElement('div');
         helpTooltipElement.className = 'tooltip hidden';
-        helpTooltip = new ol.Overlay({
+        helpTooltip = new Overlay({
             element: helpTooltipElement,
             offset: [15, 0],
             positioning: 'center-left'
@@ -211,7 +218,7 @@ function MeasureControl(InteractiveMap) {
         }
         measureTooltipElement = document.createElement('div');
         measureTooltipElement.className = 'tooltip tooltip-measure';
-        measureTooltip = new ol.Overlay({
+        measureTooltip = new Overlay({
             element: measureTooltipElement,
             offset: [0, -15],
             positioning: 'bottom-center'
@@ -221,7 +228,7 @@ function MeasureControl(InteractiveMap) {
 
     this.change = function (type) {
         self.type = type;
-        ol.Observable.unByKey(pointerMoveListener);
+        Observable.unByKey(pointerMoveListener);
         self.map.getViewport().removeEventListener('mouseout', mouseOutHandler);
         self.map.removeInteraction(draw);
         self.source.clear(true);
@@ -240,7 +247,7 @@ function MeasureControl(InteractiveMap) {
     }
     
     this.deactivate = function () {
-        ol.Observable.unByKey(pointerMoveListener);
+        Observable.unByKey(pointerMoveListener);
         self.map.getViewport().removeEventListener('mouseout', mouseOutHandler);
         self.map.removeInteraction(draw);
         self.source.clear(true);
@@ -248,4 +255,4 @@ function MeasureControl(InteractiveMap) {
     }
 }
 
-module.exports = MeasureControl;
+export default MeasureControl;

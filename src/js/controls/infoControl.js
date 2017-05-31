@@ -1,9 +1,12 @@
-var ol = require('openlayers');
-var getPopupContent = require('./../getPopupContent');
-var styles = require('./../styleDefinitions');
-var mapConstants = require('./../mapConstants');
-var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
-var createCirclePointCoords = require('./../util/createCirclePointCoords');
+import Observable from 'ol/observable';
+import Polygon from 'ol/geom/polygon';
+import LinearRing from 'ol/geom/linearring';
+import Feature from 'ol/feature';
+import getPopupContent from './../getPopupContent';
+import styles from './../styleDefinitions';
+import mapConstants from './../mapConstants';
+import { worldToLatLon } from './../conversionFunctions';
+import createCirclePointCoords from './../util/createCirclePointCoords';
 
 function InfoControl(InteractiveMap) {
     var self = this;
@@ -109,9 +112,9 @@ InfoControl.prototype.activate = function () {
 
 InfoControl.prototype.deactivate = function () {
     this.InteractiveMap.unhighlightWard();
-    ol.Observable.unByKey(this.pointerMoveListener);
+    Observable.unByKey(this.pointerMoveListener);
     this.pointerMoveListener = null;
-    ol.Observable.unByKey(this.clickListener);
+    Observable.unByKey(this.clickListener);
     this.clickListener = null;
 }
 
@@ -192,9 +195,9 @@ InfoControl.prototype.highlight = function (feature) {
                 var pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
                 var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
                 var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
-                var geom = new ol.geom.Polygon([pullMaxCoords]);
-                geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
-                var circle = new ol.Feature(geom);
+                var geom = new Polygon([pullMaxCoords]);
+                geom.appendLinearRing(new LinearRing(pullMinCoords));
+                var circle = new Feature(geom);
                 feature.set("pullRange", circle, true);
                 this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
             }
@@ -213,4 +216,4 @@ InfoControl.prototype.select = function (feature) {
     }
 }
 
-module.exports = InfoControl;
+export default InfoControl;

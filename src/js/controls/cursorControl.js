@@ -1,13 +1,14 @@
-var ol = require('openlayers');
-var styles = require('./../styleDefinitions');
+import SourceVector from 'ol/source/vector';
+import LayerVector from 'ol/layer/vector';
+import styles from './../styleDefinitions';
 
 function CursorControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
-    this.source = new ol.source.Vector({
+    this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.layer =  new ol.layer.Vector({
+    this.layer =  new LayerVector({
         source: this.source,
         style: styles.cursor
     });
@@ -16,5 +17,4 @@ function CursorControl(InteractiveMap) {
     }
 }
 
-
-module.exports = CursorControl;
+export default CursorControl;

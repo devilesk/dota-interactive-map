@@ -1,9 +1,12 @@
-var ol = require('openlayers');
-var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
-var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
-var getTileRadius = require('./../conversionFunctions').getTileRadius;
-var getLightUnion = require('./../getLightUnion');
-var styles = require('./../styleDefinitions');
+import SourceVector from 'ol/source/vector';
+import LayerVector from 'ol/layer/vector';
+import LineString from 'ol/geom/linestring';
+import GeoJSON from 'ol/format/geojson';
+import Draw from 'ol/interaction/draw';
+import Feature from 'ol/feature';
+import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversionFunctions';
+import getLightUnion from './../getLightUnion';
+import styles from './../styleDefinitions';
 var bezier = require("@turf/bezier");
 
 function DrawCurveControl(InteractiveMap) {
@@ -11,19 +14,19 @@ function DrawCurveControl(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
     map = InteractiveMap.map;
     this.vs = InteractiveMap.vs;
-    this.source = new ol.source.Vector({
+    this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.layer =  new ol.layer.Vector({
+    this.layer =  new LayerVector({
         source: this.source,
         style: styles.visionSimulation
     });
     map.addLayer(this.layer);
-    var format = new ol.format.GeoJSON();
+    var format = new GeoJSON();
     var sketch;
     geometryFunction = function(coordinates, geometry) {
         if (!geometry) {
-            geometry = new ol.geom.LineString(null);
+            geometry = new LineString(null);
         }
 
         var line = {
@@ -40,7 +43,7 @@ function DrawCurveControl(InteractiveMap) {
         return sketch;
     };
 
-    draw = new ol.interaction.Draw({
+    draw = new Draw({
         source: this.source,
         type: 'LineString',
         geometryFunction: geometryFunction
@@ -49,7 +52,7 @@ function DrawCurveControl(InteractiveMap) {
     draw.on('drawend',
         function() {
             console.log('drawend', sketch);
-            var feature = new ol.Feature({geometry: sketch});
+            var feature = new Feature({geometry: sketch});
             console.log(JSON.stringify(format.writeFeatureObject(feature)));
             self.InteractiveMap.wardRangeSource.addFeature(feature);
             sketch = null;
@@ -58,4 +61,4 @@ function DrawCurveControl(InteractiveMap) {
     map.addInteraction(draw);
 }
 
-module.exports = DrawCurveControl;
+export default DrawCurveControl;

@@ -1,17 +1,20 @@
-var ol = require('openlayers');
-var styles = require('./../styleDefinitions');
-var mapConstants = require('./../mapConstants');
-var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
-var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
-var QueryString = require('./../util/queryString');
+import SourceVector from 'ol/source/vector';
+import LayerVector from 'ol/layer/vector';
+import Feature from 'ol/feature';
+import Point from 'ol/geom/point';
+import Observable from 'ol/observable';
+import styles from './../styleDefinitions';
+import mapConstants from './../mapConstants';
+import { latLonToWorld, worldToLatLon } from './../conversionFunctions';
+import { setQueryString, getParameterByName } from './../util/queryString';
 
 function WardControl(InteractiveMap, throttleTime) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
-    this.source = new ol.source.Vector({
+    this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.layer =  new ol.layer.Vector({
+    this.layer =  new LayerVector({
         source: this.source
     });
     this.layerFilter = function(layer) {
@@ -190,16 +193,16 @@ WardControl.prototype.activate = function () {
 WardControl.prototype.deactivate = function () {
     this.InteractiveMap.unhighlightWard();
     this.InteractiveMap.cursorControl.source.clear(true);
-    ol.Observable.unByKey(this.pointerMoveListener);
+    Observable.unByKey(this.pointerMoveListener);
     this.pointerMoveListener = null;
-    ol.Observable.unByKey(this.clickListener);
+    Observable.unByKey(this.clickListener);
     this.clickListener = null;
 }
 
 WardControl.prototype.parseQueryString = function () {
     var self = this;
     ['observer', 'sentry'].forEach(function (wardType) {
-        var values = QueryString.getParameterByName(wardType);
+        var values = getParameterByName(wardType);
         if (values) {
             values = values.split(';');
             values.forEach(function (worldXY) {
@@ -219,13 +222,13 @@ WardControl.prototype.parseQueryString = function () {
 
 WardControl.prototype.updateQueryString = function (wardType) {
     var values = Object.keys(this.placedWardCoordinates[wardType]).join(';');
-    QueryString.setQueryString(wardType, values || null);
+    setQueryString(wardType, values || null);
 }
 
 WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryStringUpdate) {
     if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
-    var geom = new ol.geom.Point(coordinate);
-    var feature = new ol.Feature(geom);
+    var geom = new Point(coordinate);
+    var feature = new Feature(geom);
     feature.set('wardType', wardType, true);
     feature.setStyle(styles[wardType].normal);
     this.source.addFeature(feature);
@@ -318,4 +321,4 @@ WardControl.prototype.removeRangeCircle = function (feature, rangeType) {
     }
 }
 
-module.exports = WardControl;
+export default WardControl;

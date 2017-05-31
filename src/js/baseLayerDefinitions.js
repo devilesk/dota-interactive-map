@@ -1,4 +1,4 @@
-var layerDefinitions = [
+var baseLayerDefinitions = [
     {
         id: 'default',
         name: 'Default',
@@ -51,4 +51,4 @@ var layerDefinitions = [
     }
 ];
 
-module.exports = layerDefinitions;
+export default baseLayerDefinitions;

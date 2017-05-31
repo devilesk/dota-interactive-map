@@ -17,4 +17,4 @@ var trim = function trim(str, characters, flags) {
     return str.replace(new RegExp("^[" + characters + "]+|[" + characters + "]+$", flags), '');
 };
 
-module.exports = trim;
+export default trim;

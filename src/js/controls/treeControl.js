@@ -1,4 +1,4 @@
-var QueryString = require('./../util/queryString');
+import { setQueryString, getParameterByName } from './../util/queryString';
 
 function TreeControl(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
@@ -17,8 +17,8 @@ TreeControl.prototype.updateQueryString = function () {
         var dotaProps = feature.get('dotaProps');
         return dotaProps.x + ',' + dotaProps.y;
     }).join(';');
-    QueryString.setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
-    QueryString.setQueryString(keys[this.allTreesCutState ? 0 : 1], null);
+    setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
+    setQueryString(keys[this.allTreesCutState ? 0 : 1], null);
     document.getElementById('toggle-ent_dota_tree').checked = this.allTreesCutState;
 }
 
@@ -34,7 +34,7 @@ TreeControl.prototype.parseQueryString = function () {
         treeMap[worldXY] = feature;
     });
     ['uncut_trees', 'cut_trees'].forEach(function (treeCutState, index) {
-        var values = QueryString.getParameterByName(treeCutState);
+        var values = getParameterByName(treeCutState);
         if (values) {
             self.toggleAllTrees(!index, true);
             values = values.split(';');
@@ -72,4 +72,4 @@ TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate) 
     if (!bSkipQueryStringUpdate) this.updateQueryString();
 }
 
-module.exports = TreeControl;
+export default TreeControl;

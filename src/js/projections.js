@@ -1,26 +1,24 @@
-var ol = require('openlayers');
-var conversionFunctions = require('./conversionFunctions');
-var mapConstants = require('./mapConstants');
+import proj from 'ol/proj';
+import Projection from 'ol/proj/projection';
+import {latLonToWorld, worldToLatLon} from './conversionFunctions';
+import mapConstants from './mapConstants';
 
-var pixelProj = new ol.proj.Projection({
+var pixelProj = new Projection({
     code: 'pixel',
     units: 'pixels',
     extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
 });
 
-var dotaProj = new ol.proj.Projection({
+var dotaProj = new Projection({
     code: 'dota',
     extent: [-8288, -8288, 8288, 8288],
     units: 'units'
 });
 
-ol.proj.addProjection(pixelProj);
-ol.proj.addCoordinateTransforms('pixel', dotaProj, conversionFunctions.latLonToWorld, conversionFunctions.worldToLatLon);
+proj.addProjection(pixelProj);
+proj.addCoordinateTransforms('pixel', dotaProj, latLonToWorld, worldToLatLon);
 
-ol.proj.addProjection(dotaProj);
-ol.proj.addCoordinateTransforms('dota', pixelProj, conversionFunctions.worldToLatLon, conversionFunctions.latLonToWorld);
+proj.addProjection(dotaProj);
+proj.addCoordinateTransforms('dota', pixelProj, worldToLatLon, latLonToWorld);
 
-module.exports = {
-    pixel: pixelProj,
-    dota: dotaProj
-}
+export { pixelProj, dotaProj };

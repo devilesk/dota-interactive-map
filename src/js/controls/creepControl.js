@@ -1,6 +1,7 @@
-var ol = require('openlayers');
-var mapConstants = require('./../mapConstants');
-var styles = require('./../styleDefinitions');
+import Circle from 'ol/geom/circle';
+import Observable from 'ol/observable';
+import mapConstants from './../mapConstants';
+import styles from './../styleDefinitions';
 
 function CreepControl(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
@@ -102,7 +103,7 @@ CreepControl.prototype.start = function () {
 }
 
 CreepControl.prototype.stop = function () {
-    ol.Observable.unByKey(this.postComposeListener);
+    Observable.unByKey(this.postComposeListener);
     this.postComposeListener = null;
     var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
     for (var i = 0; i < features.length; i++) {
@@ -251,7 +252,7 @@ CreepControl.prototype.animateCreeps = function (event) {
                 var endPoint = path.getCoordinateAt(elapsedFraction);
             }
 
-            var point = new ol.geom.Circle(endPoint);
+            var point = new Circle(endPoint);
             vectorContext.setStyle(styles.creepColor(feature));
             vectorContext.drawCircle(point);
         }
@@ -262,4 +263,4 @@ CreepControl.prototype.animateCreeps = function (event) {
     frameState.animate = true;
 }
 
-module.exports = CreepControl;
+export default CreepControl;

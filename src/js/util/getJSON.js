@@ -17,4 +17,4 @@ function getJSON(path, callback) {
     return request;
 }
 
-module.exports = getJSON;
+export default getJSON;

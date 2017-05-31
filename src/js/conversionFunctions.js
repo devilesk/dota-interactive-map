@@ -1,4 +1,4 @@
-var mapConstants = require('./mapConstants');
+import mapConstants from './mapConstants';
 
 function lerp(minVal, maxVal, pos_r) {
     return pos_r * (maxVal - minVal) + minVal;
@@ -40,12 +40,12 @@ function calculateDistance(order, units, measure) {
     }
 }
 
-module.exports = {
-    lerp: lerp,
-    reverseLerp: reverseLerp,
-    latLonToWorld: latLonToWorld,
-    worldToLatLon: worldToLatLon,
-    getTileRadius: getTileRadius,
-    getScaledRadius: getScaledRadius,
-    calculateDistance: calculateDistance
+export {
+    lerp,
+    reverseLerp,
+    latLonToWorld,
+    worldToLatLon,
+    getTileRadius,
+    getScaledRadius,
+    calculateDistance
 }

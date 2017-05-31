@@ -1,9 +1,10 @@
-var ol = require('openlayers');
+import extent from 'ol/extent';
+import Point from 'ol/geom/point';
 
 var getFeatureCenter = function(feature) {
-    var extent = feature.getGeometry().getExtent();
-    var center = ol.extent.getCenter(extent);
-    return new ol.geom.Point(center);
+    var ext = feature.getGeometry().getExtent();
+    var center = extent.getCenter(ext);
+    return new Point(center);
 };
 
-module.exports = getFeatureCenter;
+export default getFeatureCenter;

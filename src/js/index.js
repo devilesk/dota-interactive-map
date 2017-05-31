@@ -1,24 +1,27 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
-var QueryString = require('./util/queryString');
-var ol = require('openlayers');
-var proj = require('./projections');
-var mapConstants = require('./mapConstants');
-var MenuControl = require('./controls/menuControl');
-var InfoControl = require('./controls/infoControl');
-var NotificationControl = require('./controls/notificationControl');
-var MeasureControl = require('./controls/measureControl');
-var CreepControl = require('./controls/creepControl');
-var VisionControl = require('./controls/visionControl');
-var WardControl = require('./controls/wardControl');
-var TreeControl = require('./controls/treeControl');
-var CursorControl = require('./controls/cursorControl');
-var CoordinateControl = require('./controls/coordinateControl');
-var InteractiveMapConstructor = require('./InteractiveMap');
+import { setQueryString, getParameterByName } from './util/queryString';
+import proj from 'ol/proj';
+import extent from 'ol/extent';
+import { pixelProj, dotaProj } from './projections';
+import mapConstants from './mapConstants';
+import MenuControl from './controls/menuControl';
+import InfoControl from './controls/infoControl';
+import NotificationControl from './controls/notificationControl';
+import MeasureControl from './controls/measureControl';
+import CreepControl from './controls/creepControl';
+import VisionControl from './controls/visionControl';
+import WardControl from './controls/wardControl';
+import TreeControl from './controls/treeControl';
+import CursorControl from './controls/cursorControl';
+import CoordinateControl from './controls/coordinateControl';
+import InteractiveMapConstructor from './InteractiveMap';
 
-var rollbar = require('./rollbar');
+import forEach from './util/forEach';
 
-var ModalControl = require('./controls/modalControl');
+import rollbar from './rollbar';
+
+import ModalControl from './controls/modalControl';
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
@@ -37,7 +40,6 @@ function App(map_tile_path, vision_data_image_path) {
         updateLayerAndQueryString(element, layerId);
     }
 
-    var forEach = require('./util/forEach');
     InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, initialize);
     InteractiveMap.menuControl = new MenuControl(InteractiveMap);
     InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
@@ -82,7 +84,7 @@ function App(map_tile_path, vision_data_image_path) {
                 document.getElementById('btn-ward').classList.add('active');
                 document.getElementById('btn-tree').classList.remove('active');
                 document.getElementById('btn-measure').classList.remove('active');
-                QueryString.setQueryString('mode', InteractiveMap.MODE);
+                setQueryString('mode', InteractiveMap.MODE);
                 InteractiveMap.measureControl.deactivate();
                 InteractiveMap.wardControl.activate();
                 InteractiveMap.infoControl.deactivate();
@@ -97,7 +99,7 @@ function App(map_tile_path, vision_data_image_path) {
                 document.getElementById('btn-tree').classList.remove('active');
                 document.getElementById('btn-measure').classList.add('active');
                 document.getElementById('btn-measure').setAttribute('measure-type', InteractiveMap.MODE);
-                QueryString.setQueryString('mode', InteractiveMap.MODE);
+                setQueryString('mode', InteractiveMap.MODE);
                 InteractiveMap.measureControl.change(InteractiveMap.MODE);
                 InteractiveMap.wardControl.deactivate();
                 InteractiveMap.infoControl.deactivate();
@@ -109,7 +111,7 @@ function App(map_tile_path, vision_data_image_path) {
                 document.getElementById('btn-ward').classList.remove('active');
                 document.getElementById('btn-tree').classList.add('active');
                 document.getElementById('btn-measure').classList.remove('active');
-                QueryString.setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
+                setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
                 InteractiveMap.measureControl.deactivate();
                 InteractiveMap.wardControl.deactivate();
                 InteractiveMap.infoControl.activate();
@@ -129,7 +131,7 @@ function App(map_tile_path, vision_data_image_path) {
         var layer = InteractiveMap.getMapLayerIndex()[layerId];
         layer.setVisible(element.checked);
         var param = layer.get("title").replace(/ /g, '');
-        QueryString.setQueryString(param, element.checked ? true : null);
+        setQueryString(param, element.checked ? true : null);
         if (layerId == 'ent_dota_tree') {
             document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
         }
@@ -142,7 +144,7 @@ function App(map_tile_path, vision_data_image_path) {
         InteractiveMap.baseLayers.forEach(function (layer) {
             layer.setVisible(layer.get('layerId') === layerId);
         });
-        QueryString.setQueryString('BaseLayer', layerId);
+        setQueryString('BaseLayer', layerId);
     }
 
     // updates element visibility based on map layer index
@@ -164,24 +166,24 @@ function App(map_tile_path, vision_data_image_path) {
     }
 
     function setDefaults() {
-        var x = QueryString.getParameterByName('x');
-        var y = QueryString.getParameterByName('y');
-        var zoom = QueryString.getParameterByName('zoom');
+        var x = getParameterByName('x');
+        var y = getParameterByName('y');
+        var zoom = getParameterByName('zoom');
         if (zoom) {
             InteractiveMap.view.setZoom(zoom);
         }
         if (x && y) {
-            var coordinate = ol.proj.transform([x, y], proj.dota, proj.pixel);
-            if (ol.extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
+            var coordinate = proj.transform([x, y], dotaProj, pixelProj);
+            if (extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
                 InteractiveMap.panTo(coordinate);
             }
         }
         
         document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
-        var mode = QueryString.getParameterByName('mode');
+        var mode = getParameterByName('mode');
         changeMode(mode);
 
-        var baseLayerName = QueryString.getParameterByName('BaseLayer');
+        var baseLayerName = getParameterByName('BaseLayer');
         var element;
         if (baseLayerName) {
             element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
@@ -191,21 +193,21 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }
         if (!element) {
-            QueryString.setQueryString('BaseLayer', null);
+            setQueryString('BaseLayer', null);
             InteractiveMap.baseLayers[0].setVisible(true);
             document.querySelector('input[name="base-layer"][value="' + InteractiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
         }
         
         InteractiveMap.layerDefs.forEach(function (layerDef) {
             var param = layerDef.name.replace(/ /g, '');
-            var value = QueryString.getParameterByName(param);
+            var value = getParameterByName(param);
             if (value && value !== "false") {
                 layerDef.visible = true;
                 document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
-                QueryString.setQueryString(param, true);
+                setQueryString(param, true);
             }
             else {
-                QueryString.setQueryString(param, null);
+                setQueryString(param, null);
             }
             if (layerDef.id == 'ent_dota_tree') {
                 document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
@@ -256,13 +258,13 @@ function App(map_tile_path, vision_data_image_path) {
 
     function onMoveEnd(evt) {
         var map = evt.map;
-        var extent = map.getView().calculateExtent(map.getSize());
-        var center = ol.extent.getCenter(extent);
-        var worldXY = ol.proj.transform(center, proj.pixel, proj.dota);
+        var ext = map.getView().calculateExtent(map.getSize());
+        var center = extent.getCenter(ext);
+        var worldXY = proj.transform(center, pixelProj, dotaProj);
         var coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
-        QueryString.setQueryString('x', coordinate[0]);
-        QueryString.setQueryString('y', coordinate[1]);
-        QueryString.setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
+        setQueryString('x', coordinate[0]);
+        setQueryString('y', coordinate[1]);
+        setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
     }
 
     function initialize() {
@@ -379,4 +381,4 @@ function App(map_tile_path, vision_data_image_path) {
     }
 }
 
-module.exports = App;
+export default App;

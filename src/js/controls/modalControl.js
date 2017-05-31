@@ -22,4 +22,4 @@ ModalControl.prototype.close = function (event) {
     }
 }
 
-module.exports = ModalControl;
+export default ModalControl;

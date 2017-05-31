@@ -1,25 +1,36 @@
-var proj = require('./projections');
-var ol = require('openlayers');
-var mapConstants = require('./mapConstants');
-var styles = require('./styleDefinitions');
-var loadGeoJSON = require('./dataLoader').loadGeoJSON;
-var loadJSON = require('./dataLoader').loadJSON;
-var loadLayerGroupFromData = require('./dataLoader').loadLayerGroupFromData;
-var getJSON = require('./util/getJSON');
-var worldToLatLon = require('./conversionFunctions').worldToLatLon;
-var getScaledRadius = require('./conversionFunctions').getScaledRadius;
-var QueryString = require('./util/queryString');
+import View from 'ol/view';
+import Map from 'ol/map';
+import Collection from 'ol/collection';
+import SourceVector from 'ol/source/vector';
+import TileImage from 'ol/source/tileimage';
+import LayerVector from 'ol/layer/vector';
+import LayerTile from 'ol/layer/tile';
+import LayerGroup from 'ol/layer/group';
+import TileGrid from 'ol/tilegrid/tilegrid';
+//import proj from 'ol/proj';
+import control from 'ol/control';
+import interaction from 'ol/interaction';
+import Feature from 'ol/feature';
+import Circle from 'ol/geom/circle';
+import { pixelProj } from './projections';
+import mapConstants from './mapConstants';
+import styles from './styleDefinitions';
+import { loadGeoJSON, loadJSON, loadLayerGroupFromData } from './dataLoader';
+import getJSON from './util/getJSON';
+import {getScaledRadius, worldToLatLon} from './conversionFunctions';
+import baseLayerDefinitions from './baseLayerDefinitions';
+import layerDefinitions from './layerDefinitions';
 
 function InteractiveMap(map_tile_path) {
     var self = this;
     this.map_tile_path = map_tile_path;
     this.MODE = 'navigation';
-    this.layerDefs = require('./layerDefinitions');
-    this.baseLayerDefs = require('./baseLayerDefinitions');
-    this.view = new ol.View({
+    this.layerDefs = layerDefinitions;
+    this.baseLayerDefs = baseLayerDefinitions;
+    this.view = new View({
         zoom: 0,
         center: mapConstants.imgCenter,
-        projection: proj.pixel,
+        projection: pixelProj,
         resolutions: mapConstants.resolutions,
         extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
     });
@@ -36,64 +47,64 @@ function InteractiveMap(map_tile_path) {
             return layer.getVisible() && layerDef && (layerDef.group == 'structure' || layerDef.group == 'object');
         }
     };
-    this.map = new ol.Map({
-        controls: ol.control.defaults({ zoom: false, attribution: false, rotate: false }),
-        interactions: ol.interaction.defaults({altShiftDragRotate:false, pinchRotate:false}),
+    this.map = new Map({
+        controls: control.defaults({ zoom: false, attribution: false, rotate: false }),
+        interactions: interaction.defaults({altShiftDragRotate:false, pinchRotate:false}),
         target: 'map',
         view: this.view
     });
     
-    this.highlightSource = new ol.source.Vector({
+    this.highlightSource = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.highlightLayer =  new ol.layer.Vector({
+    this.highlightLayer =  new LayerVector({
         source: this.highlightSource,
         style: styles.highlight
     });
 
-    this.selectSource = new ol.source.Vector({
+    this.selectSource = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.selectLayer =  new ol.layer.Vector({
+    this.selectLayer =  new LayerVector({
         source: this.selectSource,
         style: styles.select
     });
 
-    this.wardRangeSource = new ol.source.Vector({
+    this.wardRangeSource = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.wardRangeLayer =  new ol.layer.Vector({
+    this.wardRangeLayer =  new LayerVector({
         source: this.wardRangeSource
     });
 
     this.rangeSources = {
-        dayVision: new ol.source.Vector({
+        dayVision: new SourceVector({
             defaultDataProjection : 'pixel'
         }),
-        nightVision: new ol.source.Vector({
+        nightVision: new SourceVector({
             defaultDataProjection : 'pixel'
         }),
-        trueSight: new ol.source.Vector({
+        trueSight: new SourceVector({
             defaultDataProjection : 'pixel'
         }),
-        attackRange: new ol.source.Vector({
+        attackRange: new SourceVector({
             defaultDataProjection : 'pixel'
         })
     }
     this.rangeLayers = {
-        dayVision: new ol.layer.Vector({
+        dayVision: new LayerVector({
             source: this.rangeSources.dayVision,
             style: styles.dayVision
         }),
-        nightVision: new ol.layer.Vector({
+        nightVision: new LayerVector({
             source: this.rangeSources.nightVision,
             style: styles.nightVision
         }),
-        trueSight: new ol.layer.Vector({
+        trueSight: new LayerVector({
             source: this.rangeSources.trueSight,
             style: styles.trueSight
         }),
-        attackRange: new ol.layer.Vector({
+        attackRange: new LayerVector({
             source: this.rangeSources.attackRange,
             style: styles.attackRange
         })
@@ -101,16 +112,16 @@ function InteractiveMap(map_tile_path) {
 
     // setup base layers
     this.baseLayers = this.baseLayerDefs.map(function (layerDef) {
-        var layer = new ol.layer.Tile({
+        var layer = new LayerTile({
             title: layerDef.name,
             type: 'base',
-            extent: proj.pixel.getExtent(),
-            source: new ol.source.TileImage({
-                tileGrid: new ol.tilegrid.TileGrid({
+            extent: pixelProj.getExtent(), //proj.pixel.getExtent()
+            source: new TileImage({
+                tileGrid: new TileGrid({
                     origin: [0, mapConstants.map_h],
                     resolutions: mapConstants.resolutions
                 }),
-                projection: proj.pixel,
+                projection: pixelProj,
                 url: self.map_tile_path + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
             }),
             visible: !!layerDef.visible
@@ -120,9 +131,9 @@ function InteractiveMap(map_tile_path) {
         return layer;
     });
     
-    this.baseLayerGroup = new ol.layer.Group({
+    this.baseLayerGroup = new LayerGroup({
         title: 'Base Layers',
-        layers: new ol.Collection(this.baseLayers)
+        layers: new Collection(this.baseLayers)
     });
 }
 
@@ -173,9 +184,9 @@ InteractiveMap.prototype.getDataJSON = function (version, callback) {
         getJSON(self.getMapDataPath(version), function (data) {
             self.data[version] = {
                 data: data,
-                layerGroup: new ol.layer.Group({
+                layerGroup: new LayerGroup({
                     title: version + ' Layers',
-                    layers: new ol.Collection([
+                    layers: new Collection([
                         self.baseLayerGroup,
                         loadLayerGroupFromData(self, data, version, self.getMapLayerIndex(version), self.layerDefs)
                     ])
@@ -338,8 +349,8 @@ InteractiveMap.prototype.getRangeCircle = function (feature, coordinate, unitCla
     if (!coordinate) {
         coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);
     }
-    var circle = new ol.Feature(new ol.geom.Circle(coordinate, getScaledRadius(radius)));
+    var circle = new Feature(new Circle(coordinate, getScaledRadius(radius)));
     return circle;
 }
 
-module.exports = InteractiveMap;
+export default InteractiveMap;

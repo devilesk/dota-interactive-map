@@ -4,6 +4,8 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var exorcist = require('exorcist');
 var UglifyJS = require("uglify-js");
+var resolve = require('rollup-plugin-node-resolve');
+var commonjs = require('rollup-plugin-commonjs');
 
 var env = process.argv.indexOf('production') !== -1 ? 'production': 'development';
 var bWatch = process.argv.indexOf('watch') !== -1 ? true : false;
@@ -46,6 +48,15 @@ function bundle() {
 }
     
 var b = browserify(opts);
+b.transform('rollupify', {
+    config: {
+        plugins: [
+            resolve({}),
+            commonjs()
+        ]
+    }
+});
+b.transform("babelify", {plugins: ["transform-es2015-modules-commonjs"]});
 b.transform('browserify-replace', {
     replace: [
         { from: /#build_date/, to: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' UTC' },

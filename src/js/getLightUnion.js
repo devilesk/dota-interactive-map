@@ -133,4 +133,4 @@ function processNext(grid, components, key, i) {
     }
 }
 
-module.exports = getLightUnion;
+export default getLightUnion;

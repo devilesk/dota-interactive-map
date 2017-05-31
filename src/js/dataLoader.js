@@ -1,14 +1,22 @@
-var ol = require('openlayers');
-var proj = require('./projections');
+import SourceVector from 'ol/source/vector';
+import LayerVector from 'ol/layer/vector';
+import GeoJSON from 'ol/format/geojson';
+import proj from 'ol/proj';
+import Polygon from 'ol/geom/polygon';
+import Point from 'ol/geom/point';
+import Feature from 'ol/feature';
+import LayerGroup from 'ol/layer/group';
+import Collection from 'ol/collection';
+import { dotaProj, pixelProj } from './projections';
 
 function loadGeoJSON(map, layerDef, data, version) {
-    var source = new ol.source.Vector({
+    var source = new SourceVector({
         url: 'data/' + version + '/' + layerDef.filename,
-        format: new ol.format.GeoJSON({defaultDataProjection: layerDef.projection || proj.pixel})
+        format: new GeoJSON({defaultDataProjection: layerDef.projection || pixelProj})
     });
-    var layer = new ol.layer.Vector({
+    var layer = new LayerVector({
         title: layerDef.name,
-        projection: layerDef.projection || proj.pixel,
+        projection: layerDef.projection || pixelProj,
         source: source,
         visible: !!layerDef.visible,
         style: layerDef.style
@@ -22,17 +30,17 @@ function loadPolygon(map, layerDef, data, layer) {
     features = data.data[layerDef.id].map(function (obj) {
         var points = obj.points;
         var ring = points.map(function (point) {
-            return ol.proj.transform([point.x, point.y], proj.dota, proj.pixel)
+            return proj.transform([point.x, point.y], dotaProj, pixelProj)
         });
-        ring.push(ol.proj.transform([points[0].x, points[0].y], proj.dota, proj.pixel))
-        var geom = new ol.geom.Polygon([ring]);
-        var feature = new ol.Feature(geom);
+        ring.push(proj.transform([points[0].x, points[0].y], dotaProj, pixelProj))
+        var geom = new Polygon([ring]);
+        var feature = new Feature(geom);
         obj.id = layerDef.id;
         feature.set('dotaProps', obj, true);
         return feature;
     });
     
-    var vectorSource = new ol.source.Vector({
+    var vectorSource = new SourceVector({
         defaultDataProjection : 'dota',
         features: features
     });
@@ -41,7 +49,7 @@ function loadPolygon(map, layerDef, data, layer) {
         layer.setSource(vectorSource);
     }
     else {
-        layer = new ol.layer.Vector({
+        layer = new LayerVector({
             title: layerDef.name,
             source: vectorSource,
             visible: !!layerDef.visible,
@@ -62,19 +70,19 @@ function loadJSON(map, layerDef, data, layer) {
         var stats = data.stats[unitClass];
         var bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
         if (bounds && bounds[0] > 0 && bounds[1] > 0) {
-            var geom = new ol.geom.Polygon([[
-                ol.proj.transform([point.x-bounds[0], point.y-bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x-bounds[0], point.y+bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x+bounds[0], point.y+bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x+bounds[0], point.y-bounds[1]], proj.dota, proj.pixel),
-                ol.proj.transform([point.x-bounds[0], point.y-bounds[1]], proj.dota, proj.pixel)
+            var geom = new Polygon([[
+                proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
+                proj.transform([point.x-bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
+                proj.transform([point.x+bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
+                proj.transform([point.x+bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
+                proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj)
             ]]);
         }
         else {
-            var geom = new ol.geom.Point(ol.proj.transform([point.x, point.y], proj.dota, proj.pixel));
+            var geom = new Point(proj.transform([point.x, point.y], dotaProj, pixelProj));
         }
 
-        var feature = new ol.Feature(geom);
+        var feature = new Feature(geom);
         
         point.id = layerDef.id;
         point.unitClass = unitClass;
@@ -83,7 +91,7 @@ function loadJSON(map, layerDef, data, layer) {
         return feature;
     });
     
-    var vectorSource = new ol.source.Vector({
+    var vectorSource = new SourceVector({
         defaultDataProjection : 'dota',
         features: features
     });
@@ -92,7 +100,7 @@ function loadJSON(map, layerDef, data, layer) {
         layer.setSource(vectorSource);
     }
     else {
-        layer = new ol.layer.Vector({
+        layer = new LayerVector({
             title: layerDef.name,
             source: vectorSource,
             visible: !!layerDef.visible,
@@ -118,15 +126,15 @@ function loadNeutralPullRange(InteractiveMap, layerDef, data, layer) {
         var center = worldToLatLon([dotaProps.x, dotaProps.y]);
         var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullRangeTiming[dotaProps.pullType] * 350, 360);
         var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullRangeTiming[dotaProps.pullType] * 270, 360);
-        var geom = new ol.geom.Polygon([pullMaxCoords]);
+        var geom = new Polygon([pullMaxCoords]);
         geom.appendLinearRing(new ol.geom.LinearRing(pullMinCoords));
         feature.set("pull_range_min", geom, true);
-        var circle = new ol.Feature({geometry: geom, visible: false});
+        var circle = new Feature({geometry: geom, visible: false});
         circle.visible(false);
         return circle;
     }));*/
     
-    var vectorSource = new ol.source.Vector({
+    var vectorSource = new SourceVector({
         defaultDataProjection : 'pixel',
         features: []
     });
@@ -135,7 +143,7 @@ function loadNeutralPullRange(InteractiveMap, layerDef, data, layer) {
         layer.setSource(vectorSource);
     }
     else {
-        layer = new ol.layer.Vector({
+        layer = new LayerVector({
             title: layerDef.name,
             source: vectorSource,
             visible: !!layerDef.visible,
@@ -172,16 +180,16 @@ function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, laye
         layersIndex[layerDef.id] = layer;
         layers.push(layer);
     }
-    var layerGroup = new ol.layer.Group({
+    var layerGroup = new LayerGroup({
         title: 'Layers',
-        layers: new ol.Collection(layers)
+        layers: new Collection(layers)
     });
     
     return layerGroup;
 }
 
-module.exports = {
-    loadGeoJSON: loadGeoJSON,
-    loadJSON: loadJSON,
-    loadLayerGroupFromData: loadLayerGroupFromData,
+export {
+    loadGeoJSON,
+    loadJSON,
+    loadLayerGroupFromData,
 };

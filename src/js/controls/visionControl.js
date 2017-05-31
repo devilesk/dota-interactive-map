@@ -1,18 +1,19 @@
-var ol = require('openlayers');
-var latLonToWorld = require('./../conversionFunctions').latLonToWorld;
-var worldToLatLon = require('./../conversionFunctions').worldToLatLon;
-var getTileRadius = require('./../conversionFunctions').getTileRadius;
-var getLightUnion = require('./../getLightUnion');
-var styles = require('./../styleDefinitions');
+import SourceVector from 'ol/source/vector';
+import LayerVector from 'ol/layer/vector';
+import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversionFunctions';
+import getLightUnion from './../getLightUnion';
+import styles from './../styleDefinitions';
+import MultiPolygon from 'ol/geom/multipolygon';
+import Feature from 'ol/feature';
 
 function VisionControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
     this.vs = InteractiveMap.vs;
-    this.source = new ol.source.Vector({
+    this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
-    this.layer =  new ol.layer.Vector({
+    this.layer =  new LayerVector({
         source: this.source,
         style: styles.visionSimulation
     });
@@ -45,8 +46,8 @@ VisionControl.prototype.getVisionFeature = function (feature, coordinate, radius
                 return worldToLatLon([worldXY.x, worldXY.y]);
             })
         });
-        var multiPolygon = new ol.geom.MultiPolygon([outlines], 'XY');
-        var feature = new ol.Feature({
+        var multiPolygon = new MultiPolygon([outlines], 'XY');
+        var feature = new Feature({
             geometry: multiPolygon
         });
         feature.set('visionData', {
@@ -93,4 +94,4 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
 }
 
 
-module.exports = VisionControl;
+export default VisionControl;

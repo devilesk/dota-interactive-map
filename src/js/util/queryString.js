@@ -1,4 +1,4 @@
-var trim = require('./trim');
+import trim from './trim';
 
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -52,10 +52,10 @@ function updateQueryString(key, value, url) {
     }
 }
 
-module.exports = {
-    getParameterByName: getParameterByName,
-    setQueryString: setQueryString,
-    addQueryStringValue: addQueryStringValue,
-    removeQueryStringValue: removeQueryStringValue,
-    updateQueryString: updateQueryString
+export {
+    getParameterByName,
+    setQueryString,
+    addQueryStringValue,
+    removeQueryStringValue,
+    updateQueryString
 }
