@@ -1,5 +1,5 @@
-#dota-interactive-map
+# dota-interactive-map
 
-Interactive dota map for patch 7.00
+[Interactive Dota Map](http://devilesk.com/dota2/apps/interactivemap/)
 
-http://devilesk.com/dota2/apps/interactivemap/
+Powered by [OpenLayers](https://github.com/openlayers/openlayers)
