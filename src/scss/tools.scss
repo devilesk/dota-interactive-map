@@ -30,6 +30,10 @@
     @include transform(scale(0.9));
 }
 
+.btn-tool:active:hover {
+    @include transform(scale(1));
+}
+
 #btn-tree {
     background-image: url('img/dota_cursor.png');
     &[trees-enabled="yes"] {

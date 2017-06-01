@@ -58,6 +58,12 @@ hr {
 
 .btn-close {
   z-index: 30; }
+  .btn-close:active:hover {
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1); }
 
 .btn-back {
   font-size: 36px;
@@ -93,6 +99,12 @@ hr {
     -ms-animation: rotate 0.5s ease-out 1;
     -o-animation: rotate 0.5s ease-out 1;
     animation: rotate 0.5s ease-out 1; }
+  .gear:active:hover {
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9); }
   .gear::before, .gear::after {
     height: 4px;
     width: 4px;
@@ -351,6 +363,12 @@ hr {
     -ms-transform: scale(0.9);
     -webkit-transform: scale(0.9);
     transform: scale(0.9); }
+  #menu-right-open-btn:active:hover::before {
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1); }
 
 #menu-right-back-btn {
   display: none; }
@@ -604,6 +622,13 @@ hr {
   -ms-transform: scale(0.9);
   -webkit-transform: scale(0.9);
   transform: scale(0.9); }
+
+.btn-tool:active:hover {
+  -moz-transform: scale(1);
+  -o-transform: scale(1);
+  -ms-transform: scale(1);
+  -webkit-transform: scale(1);
+  transform: scale(1); }
 
 #btn-tree {
   background-image: url("img/dota_cursor.png"); }

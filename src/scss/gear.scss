@@ -11,6 +11,10 @@
         @include animation('rotate 0.5s ease-out 1');
     }
     
+    &:active:hover {
+        @include transform(scale(0.9));
+    }
+    
     &::before, &::after {
         height: 4px;
         width: 4px;

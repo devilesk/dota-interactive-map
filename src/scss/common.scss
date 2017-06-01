@@ -61,6 +61,10 @@ hr {
 }
 .btn-close {
     z-index: 30;
+    
+    &:active:hover {
+        @include transform(scale(1));
+    }
 }
 .btn-back {
     font-size: 36px;

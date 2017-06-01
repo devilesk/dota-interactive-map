@@ -224,6 +224,10 @@
     &:hover::before {
         @include transform(scale(0.9));
     }
+    
+    &:active:hover::before {
+        @include transform(scale(1));
+    }
 }
 
 #menu-right-back-btn {
