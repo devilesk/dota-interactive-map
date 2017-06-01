@@ -5,23 +5,23 @@ import proj from 'ol/proj';
 import extent from 'ol/extent';
 import { pixelProj, dotaProj } from './projections';
 import mapConstants from './mapConstants';
-import MenuControl from './controls/menuControl';
-import InfoControl from './controls/infoControl';
-import NotificationControl from './controls/notificationControl';
-import MeasureControl from './controls/measureControl';
-import CreepControl from './controls/creepControl';
-import VisionControl from './controls/visionControl';
-import WardControl from './controls/wardControl';
-import TreeControl from './controls/treeControl';
-import CursorControl from './controls/cursorControl';
-import CoordinateControl from './controls/coordinateControl';
+import MenuControl from './controls/menu';
+import InfoControl from './controls/info';
+import NotificationControl from './controls/notification';
+import MeasureControl from './controls/measure';
+import CreepControl from './controls/creep';
+import VisionControl from './controls/vision';
+import WardControl from './controls/ward';
+import TreeControl from './controls/tree';
+import CursorControl from './controls/cursor';
+import CoordinateControl from './controls/coordinate';
 import InteractiveMapConstructor from './InteractiveMap';
 
 import forEach from './util/forEach';
 
 import rollbar from './rollbar';
 
-import ModalControl from './controls/modalControl';
+import ModalControl from './controls/modal';
 var aboutModal = new ModalControl('about', 'about-open', 'about-close');
 var helpModal = new ModalControl('help', 'help-open', 'help-close');
 
@@ -56,7 +56,7 @@ function App(map_tile_path, vision_data_image_path) {
     InteractiveMap.creepControl = new CreepControl(InteractiveMap);
     InteractiveMap.creepControl.initialize('timer');
 
-    //var DrawCurveControl = require('./drawCurveControl');
+    //var DrawCurveControl = require('./controls/drawCurve');
     //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
 
     var modeNotificationText = {
