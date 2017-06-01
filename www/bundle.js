@@ -10,10 +10,10 @@ ImageHandler.prototype.load = function (callback) {
     var self = this;
     var t1 = Date.now();
     self.canvas = document.createElement("canvas");
-    PNG.load(this.imagePath, self.canvas, function(png) {
+    PNG.load(this.imagePath, self.canvas, function(err, png) {
         self.png = png;
         self.ctx = self.canvas.getContext("2d");
-        callback();
+        callback(err);
     });
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {
@@ -70,13 +70,23 @@ var FlateStream = require('./zlib');
       xhr.open("GET", url, true);
       xhr.responseType = "arraybuffer";
       xhr.onload = function() {
-        var data, png;
-        data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
-        png = new PNG(data);
-        if (typeof (canvas != null ? canvas.getContext : void 0) === 'function') {
-          png.render(canvas);
+        var err, data, png;
+        if (xhr.status == 200) {
+          data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
+          try {
+            png = new PNG(data);
+            if (typeof (canvas != null ? canvas.getContext : void 0) === 'function') {
+              png.render(canvas);
+            }
+          }
+          catch (e) {
+            err = e;
+          }
         }
-        return typeof callback === "function" ? callback(png) : void 0;
+        else {
+          err = new Error("Image request failed " + xhr.status);
+        }
+        return typeof callback === "function" ? callback(err, png) : void 0;
       };
       return xhr.send(null);
     };
@@ -1509,35 +1519,37 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
     var t1 = Date.now();
-    this.imageHandler.load(function () {
-        var t2 = Date.now();
-        console.log('image load', t2 - t1 + 'ms');
-        self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
-        parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
-        self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
-        var t3 = Date.now();
-        console.log('image process', t3 - t2 + 'ms');
-        self.elevationValues.forEach(function (elevation) {
-            //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
-            self.treeWalls[elevation] = {};
-            setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
-        });
-        var t4 = Date.now();
-        console.log('walls generation', t4 - t3 + 'ms');
-        for (var i = 0; i < self.gridWidth; i++) {
-            self.grid[i] = [];
-            for (var j = 0; j < self.gridHeight; j++) {
-                var pt = xy2pt(i, j);
-                key2pt_cache[pt.key] = pt;
-                self.grid[i].push(pt);
+    this.imageHandler.load(function (err) {
+        if (!err) {
+            var t2 = Date.now();
+            console.log('image load', t2 - t1 + 'ms');
+            self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
+            self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
+            self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
+            parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+            self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+            var t3 = Date.now();
+            console.log('image process', t3 - t2 + 'ms');
+            self.elevationValues.forEach(function (elevation) {
+                //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
+                self.treeWalls[elevation] = {};
+                setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
+            });
+            var t4 = Date.now();
+            console.log('walls generation', t4 - t3 + 'ms');
+            for (var i = 0; i < self.gridWidth; i++) {
+                self.grid[i] = [];
+                for (var j = 0; j < self.gridHeight; j++) {
+                    var pt = xy2pt(i, j);
+                    key2pt_cache[pt.key] = pt;
+                    self.grid[i].push(pt);
+                }
             }
+            var t5 = Date.now();
+            console.log('cache prime', t5 - t4 + 'ms');
+            self.ready = true;
         }
-        var t5 = Date.now();
-        console.log('cache prime', t5 - t4 + 'ms');
-        self.ready = true;
-        onReady();
+        onReady(err);
     });
 
     function parseImage(imageHandler, offset, width, height, pixelHandler) {
@@ -1800,26 +1812,10 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
  */_ol_.WEBGL_TEXTURE_CACHE_HIGH_WATER_MARK=1024;/**
  * @define {string} OpenLayers version.
  */_ol_.VERSION='4.1.1';/**
- * Inherit the prototype methods from one constructor into another.
- *
- * Usage:
- *
- *     function ParentClass(a, b) { }
- *     ParentClass.prototype.foo = function(a) { }
- *
- *     function ChildClass(a, b, c) {
- *       // Call parent constructor
- *       ParentClass.call(this, a, b);
- *     }
- *     ol.inherits(ChildClass, ParentClass);
- *
- *     var child = new ChildClass('a', 'b', 'see');
- *     child.foo(); // This works.
- *
- * @param {!Function} childCtor Child constructor.
- * @param {!Function} parentCtor Parent constructor.
- * @function
- * @api
+ * The maximum supported WebGL texture size in pixels. If WebGL is not
+ * supported, the value is set to `undefined`.
+ * @const
+ * @type {number|undefined}
  */_ol_.inherits=function(childCtor,parentCtor){childCtor.prototype=Object.create(parentCtor.prototype);childCtor.prototype.constructor=childCtor;};/**
  * A reusable function, used e.g. as a default for callbacks.
  *
@@ -1835,15 +1831,7 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
  * Counter for getUid.
  * @type {number}
  * @private
- */_ol_.uidCounter_=0;/**
- * Error object thrown when an assertion failed. This is an ECMA-262 Error,
- * extended with a `code` property.
- * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error}
- * @constructor
- * @extends {Error}
- * @implements {oli.AssertionError}
- * @param {number} code Error code.
- */var _ol_AssertionError_=function(code){var path=_ol_.VERSION?_ol_.VERSION.split('-')[0]:'latest';/**
+ */_ol_.uidCounter_=0;var _ol_AssertionError_=function(code){var path=_ol_.VERSION?_ol_.VERSION.split('-')[0]:'latest';/**
    * @type {string}
    */this.message='Assertion failed. See https://openlayers.org/en/'+path+'/doc/errors/#'+code+' for details.';/**
    * Error code. The meaning of the code can be found on
@@ -2191,21 +2179,6 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  * Latitude/longitude spherical geodesy formulae taken from
  * http://www.movable-type.co.uk/scripts/latlong.html
  * Licensed under CC-BY-3.0.
- *//**
- * @classdesc
- * Class to create objects that can be used with {@link
- * ol.geom.Polygon.circular}.
- *
- * For example to create a sphere whose radius is equal to the semi-major
- * axis of the WGS84 ellipsoid:
- *
- * ```js
- * var wgs84Sphere= new ol.Sphere(6378137);
- * ```
- *
- * @constructor
- * @param {number} radius Radius.
- * @api
  */var _ol_Sphere_=function(radius){/**
    * @type {number}
    */this.radius=radius;};/**
@@ -2236,15 +2209,7 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  *     point and the target point.
  * @param {number} bearing The bearing (in radians).
  * @return {ol.Coordinate} The target point.
- */_ol_Sphere_.prototype.offset=function(c1,distance,bearing){var lat1=_ol_math_.toRadians(c1[1]);var lon1=_ol_math_.toRadians(c1[0]);var dByR=distance/this.radius;var lat=Math.asin(Math.sin(lat1)*Math.cos(dByR)+Math.cos(lat1)*Math.sin(dByR)*Math.cos(bearing));var lon=lon1+Math.atan2(Math.sin(bearing)*Math.sin(dByR)*Math.cos(lat1),Math.cos(dByR)-Math.sin(lat1)*Math.sin(lat));return[_ol_math_.toDegrees(lon),_ol_math_.toDegrees(lat)];};/**
- * The normal sphere.
- * @const
- * @type {ol.Sphere}
- */var _ol_sphere_NORMAL_=new _ol_Sphere_(6370997);/**
- * Projection units: `'degrees'`, `'ft'`, `'m'`, `'pixels'`, `'tile-pixels'` or
- * `'us-ft'`.
- * @enum {string}
- */var _ol_proj_Units_={DEGREES:'degrees',FEET:'ft',METERS:'m',PIXELS:'pixels',TILE_PIXELS:'tile-pixels',USFEET:'us-ft'};/**
+ */_ol_Sphere_.prototype.offset=function(c1,distance,bearing){var lat1=_ol_math_.toRadians(c1[1]);var lon1=_ol_math_.toRadians(c1[0]);var dByR=distance/this.radius;var lat=Math.asin(Math.sin(lat1)*Math.cos(dByR)+Math.cos(lat1)*Math.sin(dByR)*Math.cos(bearing));var lon=lon1+Math.atan2(Math.sin(bearing)*Math.sin(dByR)*Math.cos(lat1),Math.cos(dByR)-Math.sin(lat1)*Math.sin(lat));return[_ol_math_.toDegrees(lon),_ol_math_.toDegrees(lat)];};var _ol_sphere_NORMAL_=new _ol_Sphere_(6370997);var _ol_proj_Units_={DEGREES:'degrees',FEET:'ft',METERS:'m',PIXELS:'pixels',TILE_PIXELS:'tile-pixels',USFEET:'us-ft'};/**
  * Meters per unit lookup table.
  * @const
  * @type {Object.<ol.proj.Units, number>}
@@ -2258,36 +2223,7 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  */_ol_proj_proj4_.set=function(proj4){_ol_proj_proj4_.cache_=proj4;};/**
  * Get proj4.
  * @return {Proj4} The proj4 function set above or available globally.
- */_ol_proj_proj4_.get=function(){return _ol_proj_proj4_.cache_||window['proj4'];};/**
- * @classdesc
- * Projection definition class. One of these is created for each projection
- * supported in the application and stored in the {@link ol.proj} namespace.
- * You can use these in applications, but this is not required, as API params
- * and options use {@link ol.ProjectionLike} which means the simple string
- * code will suffice.
- *
- * You can use {@link ol.proj.get} to retrieve the object for a particular
- * projection.
- *
- * The library includes definitions for `EPSG:4326` and `EPSG:3857`, together
- * with the following aliases:
- * * `EPSG:4326`: CRS:84, urn:ogc:def:crs:EPSG:6.6:4326,
- *     urn:ogc:def:crs:OGC:1.3:CRS84, urn:ogc:def:crs:OGC:2:84,
- *     http://www.opengis.net/gml/srs/epsg.xml#4326,
- *     urn:x-ogc:def:crs:EPSG:4326
- * * `EPSG:3857`: EPSG:102100, EPSG:102113, EPSG:900913,
- *     urn:ogc:def:crs:EPSG:6.18:3:3857,
- *     http://www.opengis.net/gml/srs/epsg.xml#3857
- *
- * If you use proj4js, aliases can be added using `proj4.defs()`; see
- * [documentation](https://github.com/proj4js/proj4js). To set an alternative
- * namespace for proj4, use {@link ol.proj.setProj4}.
- *
- * @constructor
- * @param {olx.ProjectionOptions} options Projection options.
- * @struct
- * @api
- */var _ol_proj_Projection_$1=function(options){/**
+ */_ol_proj_proj4_.get=function(){return _ol_proj_proj4_.cache_||window['proj4'];};var _ol_proj_Projection_$1=function(options){/**
   * @private
   * @type {string}
   */this.code_=options.code;/**
@@ -2424,11 +2360,7 @@ output=input.slice();}else{output=new Array(length);}}var halfSize=_ol_proj_EPSG
  * @param {number=} opt_dimension Dimension (default is `2`).
  * @return {Array.<number>} Output array of coordinate values.
  */_ol_proj_EPSG3857_.toEPSG4326=function(input,opt_output,opt_dimension){var length=input.length,dimension=opt_dimension>1?opt_dimension:2,output=opt_output;if(output===undefined){if(dimension>2){// preserve values beyond second dimension
-output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=dimension){output[i]=180*input[i]/_ol_proj_EPSG3857_.HALF_SIZE;output[i+1]=360*Math.atan(Math.exp(input[i+1]/_ol_proj_EPSG3857_.RADIUS))/Math.PI-90;}return output;};/**
- * A sphere with radius equal to the semi-major axis of the WGS84 ellipsoid.
- * @const
- * @type {ol.Sphere}
- */var _ol_sphere_WGS84_=new _ol_Sphere_(6378137);var _ol_proj_EPSG4326_={};/**
+output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=dimension){output[i]=180*input[i]/_ol_proj_EPSG3857_.HALF_SIZE;output[i+1]=360*Math.atan(Math.exp(input[i+1]/_ol_proj_EPSG3857_.RADIUS))/Math.PI-90;}return output;};var _ol_sphere_WGS84_=new _ol_Sphere_(6378137);var _ol_proj_EPSG4326_={};/**
  * @classdesc
  * Projection object for WGS84 geographic coordinates (EPSG:4326).
  *
@@ -2793,10 +2725,7 @@ listenerObj.callOnce=false;}}else{listenerObj=/** @type {ol.EventsKey} */{bindTo
  * {@link https://google.github.io/closure-library/api/source/closure/goog/events/events.js.src.html}
  *
  * @param {ol.EventTargetLike} target Target.
- */_ol_events_.unlistenAll=function(target){var listenerMap=_ol_events_.getListenerMap_(target);for(var type in listenerMap){_ol_events_.removeListeners_(target,type);}};/**
- * Objects that need to clean up after themselves.
- * @constructor
- */var _ol_Disposable_=function(){};/**
+ */_ol_events_.unlistenAll=function(target){var listenerMap=_ol_events_.getListenerMap_(target);for(var type in listenerMap){_ol_events_.removeListeners_(target,type);}};var _ol_Disposable_=function(){};/**
  * The object has already been disposed.
  * @type {boolean}
  * @private
@@ -2842,24 +2771,7 @@ listenerObj.callOnce=false;}}else{listenerObj=/** @type {ol.EventsKey} */{bindTo
  * @param {Event|ol.events.Event} evt Event
  */_ol_events_Event_.stopPropagation=function(evt){evt.stopPropagation();};/**
  * @param {Event|ol.events.Event} evt Event
- */_ol_events_Event_.preventDefault=function(evt){evt.preventDefault();};/**
- * @classdesc
- * A simplified implementation of the W3C DOM Level 2 EventTarget interface.
- * @see {@link https://www.w3.org/TR/2000/REC-DOM-Level-2-Events-20001113/events.html#Events-EventTarget}
- *
- * There are two important simplifications compared to the specification:
- *
- * 1. The handling of `useCapture` in `addEventListener` and
- *    `removeEventListener`. There is no real capture model.
- * 2. The handling of `stopPropagation` and `preventDefault` on `dispatchEvent`.
- *    There is no event target hierarchy. When a listener calls
- *    `stopPropagation` or `preventDefault` on an event object, it means that no
- *    more listeners after this one will be called. Same as when the listener
- *    returns false.
- *
- * @constructor
- * @extends {ol.Disposable}
- */var _ol_events_EventTarget_=function(){_ol_Disposable_.call(this);/**
+ */_ol_events_Event_.preventDefault=function(evt){evt.preventDefault();};var _ol_events_EventTarget_=function(){_ol_Disposable_.call(this);/**
    * @private
    * @type {!Object.<string, number>}
    */this.pendingRemovals_={};/**
@@ -2900,20 +2812,7 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
    * Generic change event. Triggered when the revision counter is increased.
    * @event ol.events.Event#change
    * @api
-   */CHANGE:'change',CLICK:'click',DBLCLICK:'dblclick',DRAGENTER:'dragenter',DRAGOVER:'dragover',DROP:'drop',ERROR:'error',KEYDOWN:'keydown',KEYPRESS:'keypress',LOAD:'load',MOUSEDOWN:'mousedown',MOUSEMOVE:'mousemove',MOUSEOUT:'mouseout',MOUSEUP:'mouseup',MOUSEWHEEL:'mousewheel',MSPOINTERDOWN:'MSPointerDown',RESIZE:'resize',TOUCHSTART:'touchstart',TOUCHMOVE:'touchmove',TOUCHEND:'touchend',WHEEL:'wheel'};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * An event target providing convenient methods for listener registration
- * and unregistration. A generic `change` event is always available through
- * {@link ol.Observable#changed}.
- *
- * @constructor
- * @extends {ol.events.EventTarget}
- * @fires ol.events.Event
- * @struct
- * @api
- */var _ol_Observable_=function(){_ol_events_EventTarget_.call(this);/**
+   */CHANGE:'change',CLICK:'click',DBLCLICK:'dblclick',DRAGENTER:'dragenter',DRAGOVER:'dragover',DROP:'drop',ERROR:'error',KEYDOWN:'keydown',KEYPRESS:'keypress',LOAD:'load',MOUSEDOWN:'mousedown',MOUSEMOVE:'mousemove',MOUSEOUT:'mouseout',MOUSEUP:'mouseup',MOUSEWHEEL:'mousewheel',MSPOINTERDOWN:'MSPointerDown',RESIZE:'resize',TOUCHSTART:'touchstart',TOUCHMOVE:'touchmove',TOUCHEND:'touchend',WHEEL:'wheel'};var _ol_Observable_=function(){_ol_events_EventTarget_.call(this);/**
    * @private
    * @type {number}
    */this.revision_=0;};_ol_.inherits(_ol_Observable_,_ol_events_EventTarget_);/**
@@ -2925,9 +2824,14 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
  * Increases the revision counter and dispatches a 'change' event.
  * @api
  */_ol_Observable_.prototype.changed=function(){++this.revision_;this.dispatchEvent(_ol_events_EventType_.CHANGE);};/**
- * Get the version number for this object.  Each time the object is modified,
- * its version number will be incremented.
- * @return {number} Revision.
+ * Dispatches an event and calls all listeners listening for events
+ * of this type. The event parameter can either be a string or an
+ * Object with a `type` property.
+ *
+ * @param {{type: string,
+ *     target: (EventTarget|ol.events.EventTarget|undefined)}|ol.events.Event|
+ *     string} event Event object.
+ * @function
  * @api
  */_ol_Observable_.prototype.getRevision=function(){return this.revision_;};/**
  * Listen for a certain type of event.
@@ -3038,51 +2942,7 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
    * Triggered when a property is changed.
    * @event ol.Object.Event#propertychange
    * @api
-   */PROPERTYCHANGE:'propertychange'};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Most non-trivial classes inherit from this.
- *
- * This extends {@link ol.Observable} with observable properties, where each
- * property is observable as well as the object as a whole.
- *
- * Classes that inherit from this have pre-defined properties, to which you can
- * add your owns. The pre-defined properties are listed in this documentation as
- * 'Observable Properties', and have their own accessors; for example,
- * {@link ol.Map} has a `target` property, accessed with `getTarget()`  and
- * changed with `setTarget()`. Not all properties are however settable. There
- * are also general-purpose accessors `get()` and `set()`. For example,
- * `get('target')` is equivalent to `getTarget()`.
- *
- * The `set` accessors trigger a change event, and you can monitor this by
- * registering a listener. For example, {@link ol.View} has a `center`
- * property, so `view.on('change:center', function(evt) {...});` would call the
- * function whenever the value of the center property changes. Within the
- * function, `evt.target` would be the view, so `evt.target.getCenter()` would
- * return the new center.
- *
- * You can add your own observable properties with
- * `object.set('prop', 'value')`, and retrieve that with `object.get('prop')`.
- * You can listen for changes on that property value with
- * `object.on('change:prop', listener)`. You can get a list of all
- * properties with {@link ol.Object#getProperties object.getProperties()}.
- *
- * Note that the observable properties are separate from standard JS properties.
- * You can, for example, give your map object a title with
- * `map.title='New title'` and with `map.set('title', 'Another title')`. The
- * first will be a `hasOwnProperty`; the second will appear in
- * `getProperties()`. Only the second is observable.
- *
- * Properties can be deleted by using the unset method. E.g.
- * object.unset('foo').
- *
- * @constructor
- * @extends {ol.Observable}
- * @param {Object.<string, *>=} opt_values An object with key-value pairs.
- * @fires ol.Object.Event
- * @api
- */var _ol_Object_=function(opt_values){_ol_Observable_.call(this);// Call ol.getUid to ensure that the order of objects' ids is the same as
+   */PROPERTYCHANGE:'propertychange'};var _ol_Object_=function(opt_values){_ol_Observable_.call(this);// Call ol.getUid to ensure that the order of objects' ids is the same as
 // the order in which they were created.  This also helps to ensure that
 // object properties are always added in the same order, which helps many
 // JavaScript engines generate faster code.
@@ -3147,20 +3007,7 @@ _ol_.getUid(this);/**
    * `e` is the event object.
    * @type {*}
    * @api
-   */this.oldValue=oldValue;};_ol_.inherits(_ol_Object_.Event,_ol_events_Event_);/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Base class for vector geometries.
- *
- * To get notified of changes to the geometry, register a listener for the
- * generic `change` event on your geometry instance.
- *
- * @constructor
- * @abstract
- * @extends {ol.Object}
- * @api
- */var _ol_geom_Geometry_=function(){_ol_Object_.call(this);/**
+   */this.oldValue=oldValue;};_ol_.inherits(_ol_Object_.Event,_ol_events_Event_);var _ol_geom_Geometry_=function(){_ol_Object_.call(this);/**
    * @private
    * @type {ol.Extent}
    */this.extent_=_ol_extent_.createEmpty();/**
@@ -3321,16 +3168,7 @@ _ol_.getUid(this);/**
  * @param {number} deltaY Delta Y.
  * @param {Array.<number>=} opt_dest Destination.
  * @return {Array.<number>} Transformed coordinates.
- */_ol_geom_flat_transform_.translate=function(flatCoordinates,offset,end,stride,deltaX,deltaY,opt_dest){var dest=opt_dest?opt_dest:[];var i=0;var j,k;for(j=offset;j<end;j+=stride){dest[i++]=flatCoordinates[j]+deltaX;dest[i++]=flatCoordinates[j+1]+deltaY;for(k=j+2;k<j+stride;++k){dest[i++]=flatCoordinates[k];}}if(opt_dest&&dest.length!=i){dest.length=i;}return dest;};/**
- * @classdesc
- * Abstract base class; only used for creating subclasses; do not instantiate
- * in apps, as cannot be rendered.
- *
- * @constructor
- * @abstract
- * @extends {ol.geom.Geometry}
- * @api
- */var _ol_geom_SimpleGeometry_=function(){_ol_geom_Geometry_.call(this);/**
+ */_ol_geom_flat_transform_.translate=function(flatCoordinates,offset,end,stride,deltaX,deltaY,opt_dest){var dest=opt_dest?opt_dest:[];var i=0;var j,k;for(j=offset;j<end;j+=stride){dest[i++]=flatCoordinates[j]+deltaX;dest[i++]=flatCoordinates[j+1]+deltaY;for(k=j+2;k<j+stride;++k){dest[i++]=flatCoordinates[k];}}if(opt_dest&&dest.length!=i){dest.length=i;}return dest;};var _ol_geom_SimpleGeometry_=function(){_ol_geom_Geometry_.call(this);/**
    * @protected
    * @type {ol.geom.GeometryLayout}
    */this.layout=_ol_geom_GeometryLayout_.XY;/**
@@ -3710,17 +3548,7 @@ simplifiedFlatCoordinates[simplifiedOffset++]=x2;simplifiedFlatCoordinates[simpl
  * @param {number} simplifiedOffset Simplified offset.
  * @param {Array.<Array.<number>>} simplifiedEndss Simplified endss.
  * @return {number} Simplified offset.
- */_ol_geom_flat_simplify_.quantizess=function(flatCoordinates,offset,endss,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEndss){var i,ii;for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];var simplifiedEnds=[];simplifiedOffset=_ol_geom_flat_simplify_.quantizes(flatCoordinates,offset,ends,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEnds);simplifiedEndss.push(simplifiedEnds);offset=ends[ends.length-1];}return simplifiedOffset;};/**
- * @classdesc
- * Linear ring geometry. Only used as part of polygon; cannot be rendered
- * on its own.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {Array.<ol.Coordinate>} coordinates Coordinates.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_LinearRing_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_simplify_.quantizess=function(flatCoordinates,offset,endss,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEndss){var i,ii;for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];var simplifiedEnds=[];simplifiedOffset=_ol_geom_flat_simplify_.quantizes(flatCoordinates,offset,ends,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEnds);simplifiedEndss.push(simplifiedEnds);offset=ends[ends.length-1];}return simplifiedOffset;};var _ol_geom_LinearRing_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @private
    * @type {number}
    */this.maxDelta_=-1;/**
@@ -3758,16 +3586,7 @@ simplifiedFlatCoordinates[simplifiedOffset++]=x2;simplifiedFlatCoordinates[simpl
  */_ol_geom_LinearRing_.prototype.setCoordinates=function(coordinates,opt_layout){if(!coordinates){this.setFlatCoordinates(_ol_geom_GeometryLayout_.XY,null);}else{this.setLayout(opt_layout,coordinates,1);if(!this.flatCoordinates){this.flatCoordinates=[];}this.flatCoordinates.length=_ol_geom_flat_deflate_.coordinates(this.flatCoordinates,0,coordinates,this.stride);this.changed();}};/**
  * @param {ol.geom.GeometryLayout} layout Layout.
  * @param {Array.<number>} flatCoordinates Flat coordinates.
- */_ol_geom_LinearRing_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};/**
- * @classdesc
- * Point geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {ol.Coordinate} coordinates Coordinates.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_Point_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_Point_,_ol_geom_SimpleGeometry_);/**
+ */_ol_geom_LinearRing_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};var _ol_geom_Point_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_Point_,_ol_geom_SimpleGeometry_);/**
  * Make a complete copy of the geometry.
  * @return {!ol.geom.Point} Clone.
  * @override
@@ -3972,21 +3791,7 @@ var edge=0;var x1=flatCoordinates[end-stride];var y1=flatCoordinates[end-stride+
  * @param {number} stride Stride.
  * @param {boolean=} opt_right Follow the right-hand rule for orientation.
  * @return {number} End.
- */_ol_geom_flat_orient_.orientLinearRingss=function(flatCoordinates,offset,endss,stride,opt_right){var i,ii;for(i=0,ii=endss.length;i<ii;++i){offset=_ol_geom_flat_orient_.orientLinearRings(flatCoordinates,offset,endss[i],stride,opt_right);}return offset;};/**
- * @classdesc
- * Polygon geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {Array.<Array.<ol.Coordinate>>} coordinates Array of linear
- *     rings that define the polygon. The first linear ring of the array
- *     defines the outer-boundary or surface of the polygon. Each subsequent
- *     linear ring defines a hole in the surface of the polygon. A linear ring
- *     is an array of vertices' coordinates where the first coordinate and the
- *     last are equivalent.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_Polygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_orient_.orientLinearRingss=function(flatCoordinates,offset,endss,stride,opt_right){var i,ii;for(i=0,ii=endss.length;i<ii;++i){offset=_ol_geom_flat_orient_.orientLinearRings(flatCoordinates,offset,endss[i],stride,opt_right);}return offset;};var _ol_geom_Polygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @type {Array.<number>}
    * @private
    */this.ends_=[];/**
@@ -4258,6 +4063,12 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * @const
  * @type {boolean}
  */_ol_has_.MSPOINTER=!!navigator.msPointerEnabled;/**
+ * True if both OpenLayers and browser support WebGL.  Always `false`
+ * if `ol.ENABLE_WEBGL` is set to `false` at compile time.
+ * @const
+ * @type {boolean}
+ * @api
+ *//**
  * @enum {number}
  */var _ol_ImageState_={IDLE:0,LOADING:1,LOADED:2,ERROR:3};var _ol_render_canvas_={};/**
  * @const
@@ -4410,17 +4221,7 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * @param {function(this: T, ol.events.Event)} listener Listener function.
  * @param {T} thisArg Value to use as `this` when executing `listener`.
  * @template T
- */_ol_style_Image_.prototype.unlistenImageChange=function(listener,thisArg){};/**
- * @classdesc
- * Set regular shape style for vector features. The resulting shape will be
- * a regular polygon when `radius` is provided, or a star when `radius1` and
- * `radius2` are provided.
- *
- * @constructor
- * @param {olx.style.RegularShapeOptions} options Options.
- * @extends {ol.style.Image}
- * @api
- */var _ol_style_RegularShape_=function(options){/**
+ */_ol_style_Image_.prototype.unlistenImageChange=function(listener,thisArg){};var _ol_style_RegularShape_=function(options){/**
    * @private
    * @type {Array.<string>}
    */this.checksums_=null;/**
@@ -4553,15 +4354,7 @@ var context=_ol_dom_.createCanvasContext2D(renderOptions.size,renderOptions.size
 context.setTransform(1,0,0,1,0,0);// then move to (x, y)
 context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.arc(renderOptions.size/2,renderOptions.size/2,this.radius_,0,2*Math.PI,true);}else{if(this.radius2_!==this.radius_){this.points_=2*this.points_;}var i,radiusC,angle0;for(i=0;i<=this.points_;i++){angle0=i*2*Math.PI/this.points_-Math.PI/2+this.angle_;radiusC=i%2===0?this.radius_:this.radius2_;context.lineTo(renderOptions.size/2+radiusC*Math.cos(angle0),renderOptions.size/2+radiusC*Math.sin(angle0));}}context.fillStyle=_ol_render_canvas_.defaultFillStyle;context.fill();if(this.stroke_){context.strokeStyle=renderOptions.strokeStyle;context.lineWidth=renderOptions.strokeWidth;if(renderOptions.lineDash){context.setLineDash(renderOptions.lineDash);}context.stroke();}context.closePath();};/**
  * @return {string} The checksum.
- */_ol_style_RegularShape_.prototype.getChecksum=function(){var strokeChecksum=this.stroke_?this.stroke_.getChecksum():'-';var fillChecksum=this.fill_?this.fill_.getChecksum():'-';var recalculate=!this.checksums_||strokeChecksum!=this.checksums_[1]||fillChecksum!=this.checksums_[2]||this.radius_!=this.checksums_[3]||this.radius2_!=this.checksums_[4]||this.angle_!=this.checksums_[5]||this.points_!=this.checksums_[6];if(recalculate){var checksum='r'+strokeChecksum+fillChecksum+(this.radius_!==undefined?this.radius_.toString():'-')+(this.radius2_!==undefined?this.radius2_.toString():'-')+(this.angle_!==undefined?this.angle_.toString():'-')+(this.points_!==undefined?this.points_.toString():'-');this.checksums_=[checksum,strokeChecksum,fillChecksum,this.radius_,this.radius2_,this.angle_,this.points_];}return this.checksums_[0];};/**
- * @classdesc
- * Set circle style for vector features.
- *
- * @constructor
- * @param {olx.style.CircleOptions=} opt_options Options.
- * @extends {ol.style.RegularShape}
- * @api
- */var _ol_style_Circle_=function(opt_options){var options=opt_options||{};_ol_style_RegularShape_.call(this,{points:Infinity,fill:options.fill,radius:options.radius,snapToPixel:options.snapToPixel,stroke:options.stroke,atlasManager:options.atlasManager});};_ol_.inherits(_ol_style_Circle_,_ol_style_RegularShape_);/**
+ */_ol_style_RegularShape_.prototype.getChecksum=function(){var strokeChecksum=this.stroke_?this.stroke_.getChecksum():'-';var fillChecksum=this.fill_?this.fill_.getChecksum():'-';var recalculate=!this.checksums_||strokeChecksum!=this.checksums_[1]||fillChecksum!=this.checksums_[2]||this.radius_!=this.checksums_[3]||this.radius2_!=this.checksums_[4]||this.angle_!=this.checksums_[5]||this.points_!=this.checksums_[6];if(recalculate){var checksum='r'+strokeChecksum+fillChecksum+(this.radius_!==undefined?this.radius_.toString():'-')+(this.radius2_!==undefined?this.radius2_.toString():'-')+(this.angle_!==undefined?this.angle_.toString():'-')+(this.points_!==undefined?this.points_.toString():'-');this.checksums_=[checksum,strokeChecksum,fillChecksum,this.radius_,this.radius2_,this.angle_,this.points_];}return this.checksums_[0];};var _ol_style_Circle_=function(opt_options){var options=opt_options||{};_ol_style_RegularShape_.call(this,{points:Infinity,fill:options.fill,radius:options.radius,snapToPixel:options.snapToPixel,stroke:options.stroke,atlasManager:options.atlasManager});};_ol_.inherits(_ol_style_Circle_,_ol_style_RegularShape_);/**
  * Clones the style.  If an atlasmanager was provided to the original style it will be used in the cloned style, too.
  * @return {ol.style.Circle} The cloned style.
  * @override
@@ -4571,14 +4364,7 @@ context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.a
  *
  * @param {number} radius Circle radius.
  * @api
- */_ol_style_Circle_.prototype.setRadius=function(radius){this.radius_=radius;this.render_(this.atlasManager_);};/**
- * @classdesc
- * Set fill style for vector features.
- *
- * @constructor
- * @param {olx.style.FillOptions=} opt_options Options.
- * @api
- */var _ol_style_Fill_=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Circle_.prototype.setRadius=function(radius){this.radius_=radius;this.render_(this.atlasManager_);};var _ol_style_Fill_=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {ol.Color|ol.ColorLike}
    */this.color_=options.color!==undefined?options.color:null;/**
@@ -4599,17 +4385,7 @@ context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.a
  * @api
  */_ol_style_Fill_.prototype.setColor=function(color){this.color_=color;this.checksum_=undefined;};/**
  * @return {string} The checksum.
- */_ol_style_Fill_.prototype.getChecksum=function(){if(this.checksum_===undefined){if(this.color_ instanceof CanvasPattern||this.color_ instanceof CanvasGradient){this.checksum_=_ol_.getUid(this.color_).toString();}else{this.checksum_='f'+(this.color_?_ol_color_.asString(this.color_):'-');}}return this.checksum_;};/**
- * @classdesc
- * Set stroke style for vector features.
- * Note that the defaults given are the Canvas defaults, which will be used if
- * option is not defined. The `get` functions return whatever was entered in
- * the options; they will not return the default.
- *
- * @constructor
- * @param {olx.style.StrokeOptions=} opt_options Options.
- * @api
- */var _ol_style_Stroke_=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Fill_.prototype.getChecksum=function(){if(this.checksum_===undefined){if(this.color_ instanceof CanvasPattern||this.color_ instanceof CanvasGradient){this.checksum_=_ol_.getUid(this.color_).toString();}else{this.checksum_='f'+(this.color_?_ol_color_.asString(this.color_):'-');}}return this.checksum_;};var _ol_style_Stroke_=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {ol.Color|ol.ColorLike}
    */this.color_=options.color!==undefined?options.color:null;/**
@@ -4708,17 +4484,7 @@ context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.a
  * @api
  */_ol_style_Stroke_.prototype.setWidth=function(width){this.width_=width;this.checksum_=undefined;};/**
  * @return {string} The checksum.
- */_ol_style_Stroke_.prototype.getChecksum=function(){if(this.checksum_===undefined){this.checksum_='s';if(this.color_){if(typeof this.color_==='string'){this.checksum_+=this.color_;}else{this.checksum_+=_ol_.getUid(this.color_).toString();}}else{this.checksum_+='-';}this.checksum_+=','+(this.lineCap_!==undefined?this.lineCap_.toString():'-')+','+(this.lineDash_?this.lineDash_.toString():'-')+','+(this.lineDashOffset_!==undefined?this.lineDashOffset_:'-')+','+(this.lineJoin_!==undefined?this.lineJoin_:'-')+','+(this.miterLimit_!==undefined?this.miterLimit_.toString():'-')+','+(this.width_!==undefined?this.width_.toString():'-');}return this.checksum_;};/**
- * @classdesc
- * Container for vector feature rendering styles. Any changes made to the style
- * or its children through `set*()` methods will not take effect until the
- * feature or layer that uses the style is re-rendered.
- *
- * @constructor
- * @struct
- * @param {olx.style.StyleOptions=} opt_options Style options.
- * @api
- */var _ol_style_Style_$1=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Stroke_.prototype.getChecksum=function(){if(this.checksum_===undefined){this.checksum_='s';if(this.color_){if(typeof this.color_==='string'){this.checksum_+=this.color_;}else{this.checksum_+=_ol_.getUid(this.color_).toString();}}else{this.checksum_+='-';}this.checksum_+=','+(this.lineCap_!==undefined?this.lineCap_.toString():'-')+','+(this.lineDash_?this.lineDash_.toString():'-')+','+(this.lineDashOffset_!==undefined?this.lineDashOffset_:'-')+','+(this.lineJoin_!==undefined?this.lineJoin_:'-')+','+(this.miterLimit_!==undefined?this.miterLimit_.toString():'-')+','+(this.width_!==undefined?this.width_.toString():'-');}return this.checksum_;};var _ol_style_Style_$1=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {string|ol.geom.Geometry|ol.StyleGeometryFunction}
    */this.geometry_=null;/**
@@ -4832,51 +4598,7 @@ if(!_ol_style_Style_$1.default_){var fill=new _ol_style_Fill_({color:'rgba(255,2
  * @param {ol.Feature|ol.render.Feature} feature Feature to get the geometry
  *     for.
  * @return {ol.geom.Geometry|ol.render.Feature|undefined} Geometry to render.
- */_ol_style_Style_$1.defaultGeometryFunction=function(feature){return feature.getGeometry();};/**
- * @classdesc
- * A vector object for geographic features with a geometry and other
- * attribute properties, similar to the features in vector file formats like
- * GeoJSON.
- *
- * Features can be styled individually with `setStyle`; otherwise they use the
- * style of their vector layer.
- *
- * Note that attribute properties are set as {@link ol.Object} properties on
- * the feature object, so they are observable, and have get/set accessors.
- *
- * Typically, a feature has a single geometry property. You can set the
- * geometry using the `setGeometry` method and get it with `getGeometry`.
- * It is possible to store more than one geometry on a feature using attribute
- * properties. By default, the geometry used for rendering is identified by
- * the property name `geometry`. If you want to use another geometry property
- * for rendering, use the `setGeometryName` method to change the attribute
- * property associated with the geometry for the feature.  For example:
- *
- * ```js
- * var feature = new ol.Feature({
- *   geometry: new ol.geom.Polygon(polyCoords),
- *   labelPoint: new ol.geom.Point(labelCoords),
- *   name: 'My Polygon'
- * });
- *
- * // get the polygon geometry
- * var poly = feature.getGeometry();
- *
- * // Render the feature as a point using the coordinates from labelPoint
- * feature.setGeometryName('labelPoint');
- *
- * // get the point geometry
- * var point = feature.getGeometry();
- * ```
- *
- * @constructor
- * @extends {ol.Object}
- * @param {ol.geom.Geometry|Object.<string, *>=} opt_geometryOrProperties
- *     You may pass a Geometry object directly, or an object literal
- *     containing properties.  If you pass an object literal, you may
- *     include a Geometry associated with a `geometry` key.
- * @api
- */var _ol_Feature_=function(opt_geometryOrProperties){_ol_Object_.call(this);/**
+ */_ol_style_Style_$1.defaultGeometryFunction=function(feature){return feature.getGeometry();};var _ol_Feature_=function(opt_geometryOrProperties){_ol_Object_.call(this);/**
    * @private
    * @type {number|string|undefined}
    */this.id_=undefined;/**
@@ -4973,9 +4695,7 @@ if(!_ol_style_Style_$1.default_){var fill=new _ol_style_Fill_({color:'rgba(255,2
 styles=[obj];}styleFunction=function(){return styles;};}return styleFunction;};function capitalize(string){return string.charAt(0).toUpperCase()+string.slice(1);}var unitNames={npc_dota_roshan_spawner:"Roshan",dota_item_rune_spawner_powerup:"Rune",dota_item_rune_spawner_bounty:"Bounty Rune",ent_dota_tree:"Tree",npc_dota_healer:"Shrine",ent_dota_fountain:"Fountain",npc_dota_fort:"Ancient",ent_dota_shop:"Shop",npc_dota_tower:"Tower",npc_dota_barracks:"Barracks",npc_dota_filler:"Building",trigger_multiple:"Neutral Camp Spawn Box",npc_dota_neutral_spawner:"Neutral Camp",observer:"Observer Ward",sentry:"Sentry Ward"};function getUnitName(unitType,unitSubType){return(unitSubType?capitalize(unitSubType.replace('tower','Tier ').replace('range','Ranged'))+' ':'')+unitNames[unitType];}var pullTypes=['Normal','Fast','Slow'];var neutralTypes=['Easy','Medium','Hard','Ancient'];function getPopupContent(data,feature){var dotaProps=feature.get('dotaProps');var unitClass=dotaProps.subType?dotaProps.id+'_'+dotaProps.subType:dotaProps.id;var stats=data.data.stats[unitClass];var htmlContent='<div class="info"><span class="info-header">'+getUnitName(dotaProps.id,dotaProps.subType)+'</span><span class="info-body">';if(dotaProps.pullType!=null){htmlContent+='<br><span class="info-line">Pull Type: '+pullTypes[dotaProps.pullType]+'</span>';}if(dotaProps.neutralType!=null){htmlContent+='<br><span class="info-line">Difficulty: '+neutralTypes[dotaProps.neutralType]+'</span>';}if(stats.hasOwnProperty('damageMin')&&stats.hasOwnProperty('damageMax')){htmlContent+='<br><span class="info-line">Damage: '+stats.damageMin+"&ndash;"+stats.damageMax+'</span>';}if(stats.hasOwnProperty('bat')){htmlContent+='<br><span class="info-line">BAT: '+stats.bat+'</span>';}if(stats.hasOwnProperty('attackRange')){htmlContent+='<br><span class="info-line">Attack Range: '+stats.attackRange+'</span>';}if(stats.hasOwnProperty('health')){htmlContent+='<br><span class="info-line">Health: '+stats.health+'</span>';}if(stats.hasOwnProperty('armor')){htmlContent+='<br><span class="info-line">Armor: '+stats.armor+'</span>';}if(stats.hasOwnProperty('dayVision')&&stats.hasOwnProperty('nightVision')){htmlContent+='<br><span class="info-line">Vision: '+stats.dayVision+"/"+stats.nightVision+'</span>';}htmlContent+='</span></div>';return htmlContent;}/**
  * Icon anchor units. One of 'fraction', 'pixels'.
  * @enum {string}
- */var _ol_style_IconAnchorUnits_={FRACTION:'fraction',PIXELS:'pixels'};/**
- * @constructor
- */var _ol_style_IconImageCache_=function(){/**
+ */var _ol_style_IconAnchorUnits_={FRACTION:'fraction',PIXELS:'pixels'};var _ol_style_IconImageCache_=function(){/**
    * @type {Object.<string, ol.style.IconImage>}
    * @private
    */this.cache_={};/**
@@ -5004,16 +4724,7 @@ styles=[obj];}styleFunction=function(){return styles;};}return styleFunction;};f
  * @param {?string} crossOrigin Cross origin.
  * @param {ol.Color} color Color.
  * @param {ol.style.IconImage} iconImage Icon image.
- */_ol_style_IconImageCache_.prototype.set=function(src,crossOrigin,color,iconImage){var key=_ol_style_IconImageCache_.getKey(src,crossOrigin,color);this.cache_[key]=iconImage;++this.cacheSize_;};var _ol_style_={};_ol_style_.iconImageCache=new _ol_style_IconImageCache_();/**
- * @constructor
- * @param {Image|HTMLCanvasElement} image Image.
- * @param {string|undefined} src Src.
- * @param {ol.Size} size Size.
- * @param {?string} crossOrigin Cross origin.
- * @param {ol.ImageState} imageState Image state.
- * @param {ol.Color} color Color.
- * @extends {ol.events.EventTarget}
- */var _ol_style_IconImage_=function(image,src,size,crossOrigin,imageState,color){_ol_events_EventTarget_.call(this);/**
+ */_ol_style_IconImageCache_.prototype.set=function(src,crossOrigin,color,iconImage){var key=_ol_style_IconImageCache_.getKey(src,crossOrigin,color);this.cache_[key]=iconImage;++this.cacheSize_;};var _ol_style_={};_ol_style_.iconImageCache=new _ol_style_IconImageCache_();var _ol_style_IconImage_=function(image,src,size,crossOrigin,imageState,color){_ol_events_EventTarget_.call(this);/**
    * @private
    * @type {Image|HTMLCanvasElement}
    */this.hitDetectionImage_=null;/**
@@ -5079,15 +4790,7 @@ styles=[obj];}styleFunction=function(){return styles;};}return styleFunction;};f
  */_ol_style_IconImage_.prototype.unlistenImage_=function(){this.imageListenerKeys_.forEach(_ol_events_.unlistenByKey);this.imageListenerKeys_=null;};/**
  * Icon origin. One of 'bottom-left', 'bottom-right', 'top-left', 'top-right'.
  * @enum {string}
- */var _ol_style_IconOrigin_={BOTTOM_LEFT:'bottom-left',BOTTOM_RIGHT:'bottom-right',TOP_LEFT:'top-left',TOP_RIGHT:'top-right'};/**
- * @classdesc
- * Set icon style for vector features.
- *
- * @constructor
- * @param {olx.style.IconOptions=} opt_options Options.
- * @extends {ol.style.Image}
- * @api
- */var _ol_style_Icon_=function(opt_options){var options=opt_options||{};/**
+ */var _ol_style_IconOrigin_={BOTTOM_LEFT:'bottom-left',BOTTOM_RIGHT:'bottom-right',TOP_LEFT:'top-left',TOP_RIGHT:'top-right'};var _ol_style_Icon_=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {Array.<number>}
    */this.anchor_=options.anchor!==undefined?options.anchor:[0.5,0.5];/**
@@ -5211,21 +4914,6 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
    */REMOVE:'remove'};/**
  * An implementation of Google Maps' MVCArray.
  * @see https://developers.google.com/maps/documentation/javascript/reference
- *//**
- * @classdesc
- * An expanded version of standard JS Array, adding convenience methods for
- * manipulation. Add and remove changes to the Collection trigger a Collection
- * event. Note that this does not cover changes to the objects _within_ the
- * Collection; they trigger events on the appropriate object, not on the
- * Collection as a whole.
- *
- * @constructor
- * @extends {ol.Object}
- * @fires ol.Collection.Event
- * @param {!Array.<T>=} opt_array Array.
- * @param {olx.CollectionOptions=} opt_options Collection options.
- * @template T
- * @api
  */var _ol_Collection_=function(opt_array,opt_options){_ol_Object_.call(this);var options=opt_options||{};/**
    * @private
    * @type {boolean}
@@ -5696,16 +5384,7 @@ charCode=48;if(tileCoord[1]&mask){charCode+=1;}if(tileCoord[2]&mask){charCode+=2
  * @param {ol.TileCoord} tileCoord Tile coordinate.
  * @param {!ol.tilegrid.TileGrid} tileGrid Tile grid.
  * @return {boolean} Tile coordinate is within extent and zoom level range.
- */_ol_tilecoord_.withinExtentAndZ=function(tileCoord,tileGrid){var z=tileCoord[0];var x=tileCoord[1];var y=tileCoord[2];if(tileGrid.getMinZoom()>z||z>tileGrid.getMaxZoom()){return false;}var extent=tileGrid.getExtent();var tileRange;if(!extent){tileRange=tileGrid.getFullTileRange(z);}else{tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z);}if(!tileRange){return true;}else{return tileRange.containsXY(x,y);}};/**
- * @classdesc
- * Base class for setting the grid pattern for sources accessing tiled-image
- * servers.
- *
- * @constructor
- * @param {olx.tilegrid.TileGridOptions} options Tile grid options.
- * @struct
- * @api
- */var _ol_tilegrid_TileGrid_=function(options){/**
+ */_ol_tilecoord_.withinExtentAndZ=function(tileCoord,tileGrid){var z=tileCoord[0];var x=tileCoord[1];var y=tileCoord[2];if(tileGrid.getMinZoom()>z||z>tileGrid.getMaxZoom()){return false;}var extent=tileGrid.getExtent();var tileRange;if(!extent){tileRange=tileGrid.getFullTileRange(z);}else{tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z);}if(!tileRange){return true;}else{return tileRange.containsXY(x,y);}};var _ol_tilegrid_TileGrid_=function(options){/**
    * @protected
    * @type {number}
    */this.minZoom=options.minZoom!==undefined?options.minZoom:0;/**
@@ -5906,27 +5585,7 @@ charCode=48;if(tileCoord[1]&mask){charCode+=1;}if(tileCoord[2]&mask){charCode+=2
  * extent, it is used.  If not, a global extent is assumed.
  * @param {ol.ProjectionLike} projection Projection.
  * @return {ol.Extent} Extent.
- */_ol_tilegrid_.extentFromProjection=function(projection){projection=_ol_proj_.get(projection);var extent=projection.getExtent();if(!extent){var half=180*_ol_proj_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]/projection.getMetersPerUnit();extent=_ol_extent_.createOrUpdate(-half,-half,half,half);}return extent;};/**
- * @classdesc
- * An attribution for a layer source.
- *
- * Example:
- *
- *     source: new ol.source.OSM({
- *       attributions: [
- *         new ol.Attribution({
- *           html: 'All maps &copy; ' +
- *               '<a href="https://www.opencyclemap.org/">OpenCycleMap</a>'
- *         }),
- *         ol.source.OSM.ATTRIBUTION
- *       ],
- *     ..
- *
- * @constructor
- * @param {olx.AttributionOptions} options Attribution options.
- * @struct
- * @api
- */var _ol_Attribution_=function(options){/**
+ */_ol_tilegrid_.extentFromProjection=function(projection){projection=_ol_proj_.get(projection);var extent=projection.getExtent();if(!extent){var half=180*_ol_proj_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]/projection.getMetersPerUnit();extent=_ol_extent_.createOrUpdate(-half,-half,half,half);}return extent;};var _ol_Attribution_=function(options){/**
    * @private
    * @type {string}
    */this.html_=options.html;/**
@@ -5944,20 +5603,7 @@ charCode=48;if(tileCoord[1]&mask){charCode+=1;}if(tileCoord[2]&mask){charCode+=2
  */_ol_Attribution_.prototype.intersectsAnyTileRange=function(tileRanges,tileGrid,projection){if(!this.tileRanges_){return true;}var i,ii,tileRange,zKey;for(zKey in tileRanges){if(!(zKey in this.tileRanges_)){continue;}tileRange=tileRanges[zKey];var testTileRange;for(i=0,ii=this.tileRanges_[zKey].length;i<ii;++i){testTileRange=this.tileRanges_[zKey][i];if(testTileRange.intersects(tileRange)){return true;}var extentTileRange=tileGrid.getTileRangeForExtentAndZ(_ol_tilegrid_.extentFromProjection(projection),parseInt(zKey,10));var width=extentTileRange.getWidth();if(tileRange.minX<extentTileRange.minX||tileRange.maxX>extentTileRange.maxX){if(testTileRange.intersects(new _ol_TileRange_(_ol_math_.modulo(tileRange.minX,width),_ol_math_.modulo(tileRange.maxX,width),tileRange.minY,tileRange.maxY))){return true;}if(tileRange.getWidth()>width&&testTileRange.intersects(extentTileRange)){return true;}}}}return false;};/**
  * State of the source, one of 'undefined', 'loading', 'ready' or 'error'.
  * @enum {string}
- */var _ol_source_State_={UNDEFINED:'undefined',LOADING:'loading',READY:'ready',ERROR:'error'};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Base class for {@link ol.layer.Layer} sources.
- *
- * A generic `change` event is triggered when the state of the source changes.
- *
- * @constructor
- * @abstract
- * @extends {ol.Object}
- * @param {ol.SourceSourceOptions} options Source options.
- * @api
- */var _ol_source_Source_=function(options){_ol_Object_.call(this);/**
+ */var _ol_source_State_={UNDEFINED:'undefined',LOADING:'loading',READY:'ready',ERROR:'error'};var _ol_source_Source_=function(options){_ol_Object_.call(this);/**
    * @private
    * @type {ol.proj.Projection}
    */this.projection_=_ol_proj_.get(options.projection);/**
@@ -6091,15 +5737,7 @@ var compareArr=['return a',' - b',';'];this.compareMinX=new Function('a','b',com
 function calcBBox(node,toBBox){distBBox(node,0,node.children.length,toBBox,node);}// min bounding rectangle of node children from k to p-1
 function distBBox(node,k,p,toBBox,destNode){if(!destNode)destNode=createNode(null);destNode.minX=Infinity;destNode.minY=Infinity;destNode.maxX=-Infinity;destNode.maxY=-Infinity;for(var i=k,child;i<p;i++){child=node.children[i];extend(destNode,node.leaf?toBBox(child):child);}return destNode;}function extend(a,b){a.minX=Math.min(a.minX,b.minX);a.minY=Math.min(a.minY,b.minY);a.maxX=Math.max(a.maxX,b.maxX);a.maxY=Math.max(a.maxY,b.maxY);return a;}function compareNodeMinX(a,b){return a.minX-b.minX;}function compareNodeMinY(a,b){return a.minY-b.minY;}function bboxArea(a){return(a.maxX-a.minX)*(a.maxY-a.minY);}function bboxMargin(a){return a.maxX-a.minX+(a.maxY-a.minY);}function enlargedArea(a,b){return(Math.max(b.maxX,a.maxX)-Math.min(b.minX,a.minX))*(Math.max(b.maxY,a.maxY)-Math.min(b.minY,a.minY));}function intersectionArea(a,b){var minX=Math.max(a.minX,b.minX),minY=Math.max(a.minY,b.minY),maxX=Math.min(a.maxX,b.maxX),maxY=Math.min(a.maxY,b.maxY);return Math.max(0,maxX-minX)*Math.max(0,maxY-minY);}function contains(a,b){return a.minX<=b.minX&&a.minY<=b.minY&&b.maxX<=a.maxX&&b.maxY<=a.maxY;}function intersects(a,b){return b.minX<=a.maxX&&b.minY<=a.maxY&&b.maxX>=a.minX&&b.maxY>=a.minY;}function createNode(children){return{children:children,height:1,leaf:true,minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};}// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
 // combines selection algorithm with binary divide & conquer approach
-function multiSelect(arr,left,right,n,compare){var stack=[left,right],mid;while(stack.length){right=stack.pop();left=stack.pop();if(right-left<=n)continue;mid=left+Math.ceil((right-left)/n/2)*n;index$1(arr,mid,left,right,compare);stack.push(left,mid,mid,right);}}/**
- * Wrapper around the RBush by Vladimir Agafonkin.
- *
- * @constructor
- * @param {number=} opt_maxEntries Max entries.
- * @see https://github.com/mourner/rbush
- * @struct
- * @template T
- */var _ol_structs_RBush_=function(opt_maxEntries){/**
+function multiSelect(arr,left,right,n,compare){var stack=[left,right],mid;while(stack.length){right=stack.pop();left=stack.pop();if(right-left<=n)continue;mid=left+Math.ceil((right-left)/n/2)*n;index$1(arr,mid,left,right,compare);stack.push(left,mid,mid,right);}}var _ol_structs_RBush_=function(opt_maxEntries){/**
    * @private
    */this.rbush_=index(opt_maxEntries);/**
    * A mapping between the objects added to this rbush wrapper
@@ -6163,18 +5801,7 @@ var item=this.items_[uid];delete this.items_[uid];return this.rbush_.remove(item
  */_ol_structs_RBush_.prototype.getExtent=function(opt_extent){// FIXME add getExtent() to rbush
 var data=this.rbush_.data;return _ol_extent_.createOrUpdate(data.minX,data.minY,data.maxX,data.maxY,opt_extent);};// FIXME bulk feature upload - suppress events
 // FIXME make change-detection more refined (notably, geometry hint)
-/**
- * @classdesc
- * Provides a source of features for vector layers. Vector features provided
- * by this source are suitable for editing. See {@link ol.source.VectorTile} for
- * vector data that is optimized for rendering.
- *
- * @constructor
- * @extends {ol.source.Source}
- * @fires ol.source.Vector.Event
- * @param {olx.source.VectorOptions=} opt_options Vector source options.
- * @api
- */var _ol_source_Vector_=function(opt_options){var options=opt_options||{};_ol_source_Source_.call(this,{attributions:options.attributions,logo:options.logo,projection:undefined,state:_ol_source_State_.READY,wrapX:options.wrapX!==undefined?options.wrapX:true});/**
+var _ol_source_Vector_=function(opt_options){var options=opt_options||{};_ol_source_Source_.call(this,{attributions:options.attributions,logo:options.logo,projection:undefined,state:_ol_source_State_.READY,wrapX:options.wrapX!==undefined?options.wrapX:true});/**
    * @private
    * @type {ol.FeatureLoader}
    */this.loader_=_ol_.nullFunction;/**
@@ -6437,20 +6064,7 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
    * @api
    */this.feature=opt_feature;};_ol_.inherits(_ol_source_Vector_.Event,_ol_events_Event_);/**
  * @enum {string}
- */var _ol_layer_Property_={OPACITY:'opacity',VISIBLE:'visible',EXTENT:'extent',Z_INDEX:'zIndex',MAX_RESOLUTION:'maxResolution',MIN_RESOLUTION:'minResolution',SOURCE:'source'};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Note that with `ol.layer.Base` and all its subclasses, any property set in
- * the options is set as a {@link ol.Object} property on the layer object, so
- * is observable, and has get/set accessors.
- *
- * @constructor
- * @abstract
- * @extends {ol.Object}
- * @param {olx.layer.BaseOptions} options Layer options.
- * @api
- */var _ol_layer_Base_=function(options){_ol_Object_.call(this);/**
+ */var _ol_layer_Property_={OPACITY:'opacity',VISIBLE:'visible',EXTENT:'extent',Z_INDEX:'zIndex',MAX_RESOLUTION:'maxResolution',MIN_RESOLUTION:'minResolution',SOURCE:'source'};var _ol_layer_Base_=function(options){_ol_Object_.call(this);/**
    * @type {Object.<string, *>}
    */var properties=_ol_obj_.assign({},options);properties[_ol_layer_Property_.OPACITY]=options.opacity!==undefined?options.opacity:1;properties[_ol_layer_Property_.VISIBLE]=options.visible!==undefined?options.visible:true;properties[_ol_layer_Property_.Z_INDEX]=options.zIndex!==undefined?options.zIndex:0;properties[_ol_layer_Property_.MAX_RESOLUTION]=options.maxResolution!==undefined?options.maxResolution:Infinity;properties[_ol_layer_Property_.MIN_RESOLUTION]=options.minResolution!==undefined?options.minResolution:0;this.setProperties(properties);/**
    * @type {ol.LayerState}
@@ -6550,28 +6164,7 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
    */PRECOMPOSE:'precompose',/**
    * @event ol.render.Event#render
    * @api
-   */RENDER:'render'};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * A visual representation of raster or vector map data.
- * Layers group together those properties that pertain to how the data is to be
- * displayed, irrespective of the source of that data.
- *
- * Layers are usually added to a map with {@link ol.Map#addLayer}. Components
- * like {@link ol.interaction.Select} use unmanaged layers internally. These
- * unmanaged layers are associated with the map using
- * {@link ol.layer.Layer#setMap} instead.
- *
- * A generic `change` event is fired when the state of the source changes.
- *
- * @constructor
- * @abstract
- * @extends {ol.layer.Base}
- * @fires ol.render.Event
- * @param {olx.layer.LayerOptions} options Layer options.
- * @api
- */var _ol_layer_Layer_=function(options){var baseOptions=_ol_obj_.assign({},options);delete baseOptions.source;_ol_layer_Base_.call(this,/** @type {olx.layer.BaseOptions} */baseOptions);/**
+   */RENDER:'render'};var _ol_layer_Layer_=function(options){var baseOptions=_ol_obj_.assign({},options);delete baseOptions.source;_ol_layer_Base_.call(this,/** @type {olx.layer.BaseOptions} */baseOptions);/**
    * @private
    * @type {?ol.EventsKey}
    */this.mapPrecomposeKey_=null;/**
@@ -6785,15 +6378,7 @@ var a=transform[0];var b=transform[1];var c=transform[2];var d=transform[3];var 
  * Returns the determinant of the given matrix.
  * @param {!ol.Transform} mat Matrix.
  * @return {number} Determinant.
- */_ol_transform_.determinant=function(mat){return mat[0]*mat[3]-mat[1]*mat[2];};/**
- * @constructor
- * @extends {ol.render.VectorContext}
- * @param {number} tolerance Tolerance.
- * @param {ol.Extent} maxExtent Maximum extent.
- * @param {number} resolution Resolution.
- * @param {boolean} overlaps The replay can have overlapping geometries.
- * @struct
- */var _ol_render_canvas_Replay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_VectorContext_.call(this);/**
+ */_ol_transform_.determinant=function(mat){return mat[0]*mat[3]-mat[1]*mat[2];};var _ol_render_canvas_Replay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_VectorContext_.call(this);/**
    * @protected
    * @type {number}
    */this.tolerance=tolerance;/**
@@ -6919,15 +6504,7 @@ var i;var n=hitDetectionInstructions.length;var instruction;var type;var begin=-
  * this extent, we calculate a buffered extent (e.g. based on stroke width).
  * @return {ol.Extent} The buffered rendering extent.
  * @protected
- */_ol_render_canvas_Replay_.prototype.getBufferedMaxExtent=function(){return this.maxExtent;};/**
- * @constructor
- * @extends {ol.render.canvas.Replay}
- * @param {number} tolerance Tolerance.
- * @param {ol.Extent} maxExtent Maximum extent.
- * @param {number} resolution Resolution.
- * @param {boolean} overlaps The replay can have overlapping geometries.
- * @struct
- */var _ol_render_canvas_ImageReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
+ */_ol_render_canvas_Replay_.prototype.getBufferedMaxExtent=function(){return this.maxExtent;};var _ol_render_canvas_ImageReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
    * @private
    * @type {HTMLCanvasElement|HTMLVideoElement|Image}
    */this.hitDetectionImage_=null;/**
@@ -6986,15 +6563,7 @@ this.anchorX_,this.anchorY_,this.height_,this.opacity_,this.originX_,this.origin
  */_ol_render_canvas_ImageReplay_.prototype.finish=function(){this.reverseHitDetectionInstructions();// FIXME this doesn't really protect us against further calls to draw*Geometry
 this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;this.image_=null;this.height_=undefined;this.scale_=undefined;this.opacity_=undefined;this.originX_=undefined;this.originY_=undefined;this.rotateWithView_=undefined;this.rotation_=undefined;this.snapToPixel_=undefined;this.width_=undefined;};/**
  * @inheritDoc
- */_ol_render_canvas_ImageReplay_.prototype.setImageStyle=function(imageStyle){var anchor=imageStyle.getAnchor();var size=imageStyle.getSize();var hitDetectionImage=imageStyle.getHitDetectionImage(1);var image=imageStyle.getImage(1);var origin=imageStyle.getOrigin();this.anchorX_=anchor[0];this.anchorY_=anchor[1];this.hitDetectionImage_=hitDetectionImage;this.image_=image;this.height_=size[1];this.opacity_=imageStyle.getOpacity();this.originX_=origin[0];this.originY_=origin[1];this.rotateWithView_=imageStyle.getRotateWithView();this.rotation_=imageStyle.getRotation();this.scale_=imageStyle.getScale();this.snapToPixel_=imageStyle.getSnapToPixel();this.width_=size[0];};/**
- * @constructor
- * @extends {ol.render.canvas.Replay}
- * @param {number} tolerance Tolerance.
- * @param {ol.Extent} maxExtent Maximum extent.
- * @param {number} resolution Resolution.
- * @param {boolean} overlaps The replay can have overlapping geometries.
- * @struct
- */var _ol_render_canvas_LineStringReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
+ */_ol_render_canvas_ImageReplay_.prototype.setImageStyle=function(imageStyle){var anchor=imageStyle.getAnchor();var size=imageStyle.getSize();var hitDetectionImage=imageStyle.getHitDetectionImage(1);var image=imageStyle.getImage(1);var origin=imageStyle.getOrigin();this.anchorX_=anchor[0];this.anchorY_=anchor[1];this.hitDetectionImage_=hitDetectionImage;this.image_=image;this.height_=size[1];this.opacity_=imageStyle.getOpacity();this.originX_=origin[0];this.originY_=origin[1];this.rotateWithView_=imageStyle.getRotateWithView();this.rotation_=imageStyle.getRotation();this.scale_=imageStyle.getScale();this.snapToPixel_=imageStyle.getSnapToPixel();this.width_=size[0];};var _ol_render_canvas_LineStringReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
    * @private
    * @type {ol.Extent}
    */this.bufferedMaxExtent_=null;/**
@@ -7034,15 +6603,7 @@ this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;thi
  */_ol_render_canvas_LineStringReplay_.prototype.finish=function(){var state=this.state_;if(state.lastStroke!=this.coordinates.length){this.instructions.push([_ol_render_canvas_Instruction_.STROKE]);}this.reverseHitDetectionInstructions();this.state_=null;};/**
  * @inheritDoc
  */_ol_render_canvas_LineStringReplay_.prototype.setFillStrokeStyle=function(fillStyle,strokeStyle){var strokeStyleColor=strokeStyle.getColor();this.state_.strokeStyle=_ol_colorlike_.asColorLike(strokeStyleColor?strokeStyleColor:_ol_render_canvas_.defaultStrokeStyle);var strokeStyleLineCap=strokeStyle.getLineCap();this.state_.lineCap=strokeStyleLineCap!==undefined?strokeStyleLineCap:_ol_render_canvas_.defaultLineCap;var strokeStyleLineDash=strokeStyle.getLineDash();this.state_.lineDash=strokeStyleLineDash?strokeStyleLineDash:_ol_render_canvas_.defaultLineDash;var strokeStyleLineDashOffset=strokeStyle.getLineDashOffset();this.state_.lineDashOffset=strokeStyleLineDashOffset?strokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset;var strokeStyleLineJoin=strokeStyle.getLineJoin();this.state_.lineJoin=strokeStyleLineJoin!==undefined?strokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin;var strokeStyleWidth=strokeStyle.getWidth();this.state_.lineWidth=strokeStyleWidth!==undefined?strokeStyleWidth:_ol_render_canvas_.defaultLineWidth;var strokeStyleMiterLimit=strokeStyle.getMiterLimit();this.state_.miterLimit=strokeStyleMiterLimit!==undefined?strokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit;if(this.state_.lineWidth>this.maxLineWidth){this.maxLineWidth=this.state_.lineWidth;// invalidate the buffered max extent cache
-this.bufferedMaxExtent_=null;}};/**
- * @constructor
- * @extends {ol.render.canvas.Replay}
- * @param {number} tolerance Tolerance.
- * @param {ol.Extent} maxExtent Maximum extent.
- * @param {number} resolution Resolution.
- * @param {boolean} overlaps The replay can have overlapping geometries.
- * @struct
- */var _ol_render_canvas_PolygonReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
+this.bufferedMaxExtent_=null;}};var _ol_render_canvas_PolygonReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
    * @private
    * @type {ol.Extent}
    */this.bufferedMaxExtent_=null;/**
@@ -7095,15 +6656,7 @@ var tolerance=this.tolerance;if(tolerance!==0){var coordinates=this.coordinates;
 this.bufferedMaxExtent_=null;}}else{state.strokeStyle=undefined;state.lineCap=undefined;state.lineDash=null;state.lineDashOffset=undefined;state.lineJoin=undefined;state.lineWidth=undefined;state.miterLimit=undefined;}};/**
  * @private
  * @param {ol.geom.Geometry|ol.render.Feature} geometry Geometry.
- */_ol_render_canvas_PolygonReplay_.prototype.setFillStrokeStyles_=function(geometry){var state=this.state_;var fillStyle=state.fillStyle;var strokeStyle=state.strokeStyle;var lineCap=state.lineCap;var lineDash=state.lineDash;var lineDashOffset=state.lineDashOffset;var lineJoin=state.lineJoin;var lineWidth=state.lineWidth;var miterLimit=state.miterLimit;if(fillStyle!==undefined&&(typeof fillStyle!=='string'||state.currentFillStyle!=fillStyle)){var fillInstruction=[_ol_render_canvas_Instruction_.SET_FILL_STYLE,fillStyle];if(typeof fillStyle!=='string'){var fillExtent=geometry.getExtent();fillInstruction.push([fillExtent[0],fillExtent[3]]);}this.instructions.push(fillInstruction);state.currentFillStyle=state.fillStyle;}if(strokeStyle!==undefined){if(state.currentStrokeStyle!=strokeStyle||state.currentLineCap!=lineCap||!_ol_array_.equals(state.currentLineDash,lineDash)||state.currentLineDashOffset!=lineDashOffset||state.currentLineJoin!=lineJoin||state.currentLineWidth!=lineWidth||state.currentMiterLimit!=miterLimit){this.instructions.push([_ol_render_canvas_Instruction_.SET_STROKE_STYLE,strokeStyle,lineWidth,lineCap,lineJoin,miterLimit,lineDash,lineDashOffset,true,1]);state.currentStrokeStyle=strokeStyle;state.currentLineCap=lineCap;state.currentLineDash=lineDash;state.currentLineDashOffset=lineDashOffset;state.currentLineJoin=lineJoin;state.currentLineWidth=lineWidth;state.currentMiterLimit=miterLimit;}}};/**
- * @constructor
- * @extends {ol.render.canvas.Replay}
- * @param {number} tolerance Tolerance.
- * @param {ol.Extent} maxExtent Maximum extent.
- * @param {number} resolution Resolution.
- * @param {boolean} overlaps The replay can have overlapping geometries.
- * @struct
- */var _ol_render_canvas_TextReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
+ */_ol_render_canvas_PolygonReplay_.prototype.setFillStrokeStyles_=function(geometry){var state=this.state_;var fillStyle=state.fillStyle;var strokeStyle=state.strokeStyle;var lineCap=state.lineCap;var lineDash=state.lineDash;var lineDashOffset=state.lineDashOffset;var lineJoin=state.lineJoin;var lineWidth=state.lineWidth;var miterLimit=state.miterLimit;if(fillStyle!==undefined&&(typeof fillStyle!=='string'||state.currentFillStyle!=fillStyle)){var fillInstruction=[_ol_render_canvas_Instruction_.SET_FILL_STYLE,fillStyle];if(typeof fillStyle!=='string'){var fillExtent=geometry.getExtent();fillInstruction.push([fillExtent[0],fillExtent[3]]);}this.instructions.push(fillInstruction);state.currentFillStyle=state.fillStyle;}if(strokeStyle!==undefined){if(state.currentStrokeStyle!=strokeStyle||state.currentLineCap!=lineCap||!_ol_array_.equals(state.currentLineDash,lineDash)||state.currentLineDashOffset!=lineDashOffset||state.currentLineJoin!=lineJoin||state.currentLineWidth!=lineWidth||state.currentMiterLimit!=miterLimit){this.instructions.push([_ol_render_canvas_Instruction_.SET_STROKE_STYLE,strokeStyle,lineWidth,lineCap,lineJoin,miterLimit,lineDash,lineDashOffset,true,1]);state.currentStrokeStyle=strokeStyle;state.currentLineCap=lineCap;state.currentLineDash=lineDash;state.currentLineDashOffset=lineDashOffset;state.currentLineJoin=lineJoin;state.currentLineWidth=lineWidth;state.currentMiterLimit=miterLimit;}}};var _ol_render_canvas_TextReplay_=function(tolerance,maxExtent,resolution,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,overlaps);/**
    * @private
    * @type {?ol.CanvasFillState}
    */this.replayFillState_=null;/**
@@ -7157,16 +6710,7 @@ this.bufferedMaxExtent_=null;}}else{state.strokeStyle=undefined;state.lineCap=un
  */var _ol_render_ReplayType_={CIRCLE:'Circle',IMAGE:'Image',LINE_STRING:'LineString',POLYGON:'Polygon',TEXT:'Text'};var _ol_render_replay_={};/**
  * @const
  * @type {Array.<ol.render.ReplayType>}
- */_ol_render_replay_.ORDER=[_ol_render_ReplayType_.POLYGON,_ol_render_ReplayType_.CIRCLE,_ol_render_ReplayType_.LINE_STRING,_ol_render_ReplayType_.IMAGE,_ol_render_ReplayType_.TEXT];/**
- * @constructor
- * @extends {ol.render.ReplayGroup}
- * @param {number} tolerance Tolerance.
- * @param {ol.Extent} maxExtent Max extent.
- * @param {number} resolution Resolution.
- * @param {boolean} overlaps The replay group can have overlapping geometries.
- * @param {number=} opt_renderBuffer Optional rendering buffer.
- * @struct
- */var _ol_render_canvas_ReplayGroup_=function(tolerance,maxExtent,resolution,overlaps,opt_renderBuffer){_ol_render_ReplayGroup_.call(this);/**
+ */_ol_render_replay_.ORDER=[_ol_render_ReplayType_.POLYGON,_ol_render_ReplayType_.CIRCLE,_ol_render_ReplayType_.LINE_STRING,_ol_render_ReplayType_.IMAGE,_ol_render_ReplayType_.TEXT];var _ol_render_canvas_ReplayGroup_=function(tolerance,maxExtent,resolution,overlaps,opt_renderBuffer){_ol_render_ReplayGroup_.call(this);/**
    * @private
    * @type {number}
    */this.tolerance_=tolerance;/**
@@ -7266,16 +6810,7 @@ var flatClipCoords=this.getClipCoords(transform);context.save();context.beginPat
  * @type {Object.<ol.render.ReplayType,
  *                function(new: ol.render.canvas.Replay, number, ol.Extent,
  *                number, boolean)>}
- */_ol_render_canvas_ReplayGroup_.BATCH_CONSTRUCTORS_={'Circle':_ol_render_canvas_PolygonReplay_,'Image':_ol_render_canvas_ImageReplay_,'LineString':_ol_render_canvas_LineStringReplay_,'Polygon':_ol_render_canvas_PolygonReplay_,'Text':_ol_render_canvas_TextReplay_};/**
- * @constructor
- * @extends {ol.events.Event}
- * @implements {oli.render.Event}
- * @param {ol.render.EventType} type Type.
- * @param {ol.render.VectorContext=} opt_vectorContext Vector context.
- * @param {olx.FrameState=} opt_frameState Frame state.
- * @param {?CanvasRenderingContext2D=} opt_context Context.
- * @param {?ol.webgl.Context=} opt_glContext WebGL Context.
- */var _ol_render_Event_=function(type,opt_vectorContext,opt_frameState,opt_context,opt_glContext){_ol_events_Event_.call(this,type);/**
+ */_ol_render_canvas_ReplayGroup_.BATCH_CONSTRUCTORS_={'Circle':_ol_render_canvas_PolygonReplay_,'Image':_ol_render_canvas_ImageReplay_,'LineString':_ol_render_canvas_LineStringReplay_,'Polygon':_ol_render_canvas_PolygonReplay_,'Text':_ol_render_canvas_TextReplay_};var _ol_render_Event_=function(type,opt_vectorContext,opt_frameState,opt_context,opt_glContext){_ol_events_Event_.call(this,type);/**
    * For canvas, this is an instance of {@link ol.render.canvas.Immediate}.
    * @type {ol.render.VectorContext|undefined}
    * @api
@@ -7296,24 +6831,7 @@ var flatClipCoords=this.getClipCoords(transform);context.save();context.beginPat
    */this.glContext=opt_glContext;};_ol_.inherits(_ol_render_Event_,_ol_events_Event_);// FIXME test, especially polygons with holes and multipolygons
 // FIXME need to handle large thick features (where pixel size matters)
 // FIXME add offset and end to ol.geom.flat.transform.transform2D?
-/**
- * @classdesc
- * A concrete subclass of {@link ol.render.VectorContext} that implements
- * direct rendering of features and geometries to an HTML5 Canvas context.
- * Instances of this class are created internally by the library and
- * provided to application code as vectorContext member of the
- * {@link ol.render.Event} object associated with postcompose, precompose and
- * render events emitted by layers and maps.
- *
- * @constructor
- * @extends {ol.render.VectorContext}
- * @param {CanvasRenderingContext2D} context Context.
- * @param {number} pixelRatio Pixel ratio.
- * @param {ol.Extent} extent Extent.
- * @param {ol.Transform} transform Transform.
- * @param {number} viewRotation View rotation.
- * @struct
- */var _ol_render_canvas_Immediate_=function(context,pixelRatio,extent,transform,viewRotation){_ol_render_VectorContext_.call(this);/**
+var _ol_render_canvas_Immediate_=function(context,pixelRatio,extent,transform,viewRotation){_ol_render_VectorContext_.call(this);/**
    * @private
    * @type {CanvasRenderingContext2D}
    */this.context_=context;/**
@@ -7543,12 +7061,7 @@ var imageImage=imageStyle.getImage(1);var imageOrigin=imageStyle.getOrigin();var
  * @override
  */_ol_render_canvas_Immediate_.prototype.setTextStyle=function(textStyle){if(!textStyle){this.text_='';}else{var textFillStyle=textStyle.getFill();if(!textFillStyle){this.textFillState_=null;}else{var textFillStyleColor=textFillStyle.getColor();this.textFillState_={fillStyle:_ol_colorlike_.asColorLike(textFillStyleColor?textFillStyleColor:_ol_render_canvas_.defaultFillStyle)};}var textStrokeStyle=textStyle.getStroke();if(!textStrokeStyle){this.textStrokeState_=null;}else{var textStrokeStyleColor=textStrokeStyle.getColor();var textStrokeStyleLineCap=textStrokeStyle.getLineCap();var textStrokeStyleLineDash=textStrokeStyle.getLineDash();var textStrokeStyleLineDashOffset=textStrokeStyle.getLineDashOffset();var textStrokeStyleLineJoin=textStrokeStyle.getLineJoin();var textStrokeStyleWidth=textStrokeStyle.getWidth();var textStrokeStyleMiterLimit=textStrokeStyle.getMiterLimit();this.textStrokeState_={lineCap:textStrokeStyleLineCap!==undefined?textStrokeStyleLineCap:_ol_render_canvas_.defaultLineCap,lineDash:textStrokeStyleLineDash?textStrokeStyleLineDash:_ol_render_canvas_.defaultLineDash,lineDashOffset:textStrokeStyleLineDashOffset?textStrokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset,lineJoin:textStrokeStyleLineJoin!==undefined?textStrokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin,lineWidth:textStrokeStyleWidth!==undefined?textStrokeStyleWidth:_ol_render_canvas_.defaultLineWidth,miterLimit:textStrokeStyleMiterLimit!==undefined?textStrokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit,strokeStyle:_ol_colorlike_.asColorLike(textStrokeStyleColor?textStrokeStyleColor:_ol_render_canvas_.defaultStrokeStyle)};}var textFont=textStyle.getFont();var textOffsetX=textStyle.getOffsetX();var textOffsetY=textStyle.getOffsetY();var textRotateWithView=textStyle.getRotateWithView();var textRotation=textStyle.getRotation();var textScale=textStyle.getScale();var textText=textStyle.getText();var textTextAlign=textStyle.getTextAlign();var textTextBaseline=textStyle.getTextBaseline();this.textState_={font:textFont!==undefined?textFont:_ol_render_canvas_.defaultFont,textAlign:textTextAlign!==undefined?textTextAlign:_ol_render_canvas_.defaultTextAlign,textBaseline:textTextBaseline!==undefined?textTextBaseline:_ol_render_canvas_.defaultTextBaseline};this.text_=textText!==undefined?textText:'';this.textOffsetX_=textOffsetX!==undefined?this.pixelRatio_*textOffsetX:0;this.textOffsetY_=textOffsetY!==undefined?this.pixelRatio_*textOffsetY:0;this.textRotateWithView_=textRotateWithView!==undefined?textRotateWithView:false;this.textRotation_=textRotation!==undefined?textRotation:0;this.textScale_=this.pixelRatio_*(textScale!==undefined?textScale:1);}};/**
  * @enum {number}
- */var _ol_TileState_={IDLE:0,LOADING:1,LOADED:2,ERROR:3,EMPTY:4,ABORT:5};/**
- * @constructor
- * @extends {ol.Observable}
- * @param {ol.layer.Layer} layer Layer.
- * @struct
- */var _ol_renderer_Layer_=function(layer){_ol_Observable_.call(this);/**
+ */var _ol_TileState_={IDLE:0,LOADING:1,LOADED:2,ERROR:3,EMPTY:4,ABORT:5};var _ol_renderer_Layer_=function(layer){_ol_Observable_.call(this);/**
    * @private
    * @type {ol.layer.Layer}
    */this.layer_=layer;};_ol_.inherits(_ol_renderer_Layer_,_ol_Observable_);/**
@@ -7638,12 +7151,7 @@ var tileSourceKey=_ol_.getUid(tileSource).toString();var zKey=z.toString();if(ti
  * @param {T=} opt_this Object to use as `this` in `opt_tileCallback`.
  * @protected
  * @template T
- */_ol_renderer_Layer_.prototype.manageTilePyramid=function(frameState,tileSource,tileGrid,pixelRatio,projection,extent,currentZ,preload,opt_tileCallback,opt_this){var tileSourceKey=_ol_.getUid(tileSource).toString();if(!(tileSourceKey in frameState.wantedTiles)){frameState.wantedTiles[tileSourceKey]={};}var wantedTiles=frameState.wantedTiles[tileSourceKey];var tileQueue=frameState.tileQueue;var minZoom=tileGrid.getMinZoom();var tile,tileRange,tileResolution,x,y,z;for(z=currentZ;z>=minZoom;--z){tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z,tileRange);tileResolution=tileGrid.getResolution(z);for(x=tileRange.minX;x<=tileRange.maxX;++x){for(y=tileRange.minY;y<=tileRange.maxY;++y){if(currentZ-z<=preload){tile=tileSource.getTile(z,x,y,pixelRatio,projection);if(tile.getState()==_ol_TileState_.IDLE){wantedTiles[tile.getKey()]=true;if(!tileQueue.isKeyQueued(tile.getKey())){tileQueue.enqueue([tile,tileSourceKey,tileGrid.getTileCoordCenter(tile.tileCoord),tileResolution]);}}if(opt_tileCallback!==undefined){opt_tileCallback.call(opt_this,tile);}}else{tileSource.useTile(z,x,y,projection);}}}}};/**
- * @constructor
- * @abstract
- * @extends {ol.renderer.Layer}
- * @param {ol.layer.Layer} layer Layer.
- */var _ol_renderer_canvas_Layer_=function(layer){_ol_renderer_Layer_.call(this,layer);/**
+ */_ol_renderer_Layer_.prototype.manageTilePyramid=function(frameState,tileSource,tileGrid,pixelRatio,projection,extent,currentZ,preload,opt_tileCallback,opt_this){var tileSourceKey=_ol_.getUid(tileSource).toString();if(!(tileSourceKey in frameState.wantedTiles)){frameState.wantedTiles[tileSourceKey]={};}var wantedTiles=frameState.wantedTiles[tileSourceKey];var tileQueue=frameState.tileQueue;var minZoom=tileGrid.getMinZoom();var tile,tileRange,tileResolution,x,y,z;for(z=currentZ;z>=minZoom;--z){tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z,tileRange);tileResolution=tileGrid.getResolution(z);for(x=tileRange.minX;x<=tileRange.maxX;++x){for(y=tileRange.minY;y<=tileRange.maxY;++y){if(currentZ-z<=preload){tile=tileSource.getTile(z,x,y,pixelRatio,projection);if(tile.getState()==_ol_TileState_.IDLE){wantedTiles[tile.getKey()]=true;if(!tileQueue.isKeyQueued(tile.getKey())){tileQueue.enqueue([tile,tileSourceKey,tileGrid.getTileCoordCenter(tile.tileCoord),tileResolution]);}}if(opt_tileCallback!==undefined){opt_tileCallback.call(opt_this,tile);}}else{tileSource.useTile(z,x,y,projection);}}}}};var _ol_renderer_canvas_Layer_=function(layer){_ol_renderer_Layer_.call(this,layer);/**
    * @protected
    * @type {number}
    */this.renderedResolution;/**
@@ -7780,11 +7288,7 @@ var tileSourceKey=_ol_.getUid(tileSource).toString();var zKey=z.toString();if(ti
  * @type {Object.<ol.geom.GeometryType,
  *                function(ol.render.ReplayGroup, ol.geom.Geometry,
  *                         ol.style.Style, Object)>}
- */_ol_renderer_vector_.GEOMETRY_RENDERERS_={'Point':_ol_renderer_vector_.renderPointGeometry_,'LineString':_ol_renderer_vector_.renderLineStringGeometry_,'Polygon':_ol_renderer_vector_.renderPolygonGeometry_,'MultiPoint':_ol_renderer_vector_.renderMultiPointGeometry_,'MultiLineString':_ol_renderer_vector_.renderMultiLineStringGeometry_,'MultiPolygon':_ol_renderer_vector_.renderMultiPolygonGeometry_,'GeometryCollection':_ol_renderer_vector_.renderGeometryCollectionGeometry_,'Circle':_ol_renderer_vector_.renderCircleGeometry_};/**
- * @constructor
- * @extends {ol.renderer.canvas.Layer}
- * @param {ol.layer.Vector} vectorLayer Vector layer.
- */var _ol_renderer_canvas_VectorLayer_=function(vectorLayer){_ol_renderer_canvas_Layer_.call(this,vectorLayer);/**
+ */_ol_renderer_vector_.GEOMETRY_RENDERERS_={'Point':_ol_renderer_vector_.renderPointGeometry_,'LineString':_ol_renderer_vector_.renderLineStringGeometry_,'Polygon':_ol_renderer_vector_.renderPolygonGeometry_,'MultiPoint':_ol_renderer_vector_.renderMultiPointGeometry_,'MultiLineString':_ol_renderer_vector_.renderMultiLineStringGeometry_,'MultiPolygon':_ol_renderer_vector_.renderMultiPolygonGeometry_,'GeometryCollection':_ol_renderer_vector_.renderGeometryCollectionGeometry_,'Circle':_ol_renderer_vector_.renderCircleGeometry_};var _ol_renderer_canvas_VectorLayer_=function(vectorLayer){_ol_renderer_canvas_Layer_.call(this,vectorLayer);/**
    * @private
    * @type {boolean}
    */this.dirty_=false;/**
@@ -7918,19 +7422,7 @@ var next=head.next;item.prev=head;item.next=next;head.next=item;if(next){next.pr
  *
  * @return {number} Length.
  */_ol_structs_LinkedList_.prototype.getLength=function(){return this.length_;};// This file is automatically generated, do not edit
-var _ol_renderer_webgl_VectorLayer_;/**
- * @classdesc
- * Vector data that is rendered client-side.
- * Note that any property set in the options is set as a {@link ol.Object}
- * property on the layer object; for example, setting `title: 'My Title'` in the
- * options means that `title` is observable, and has get/set accessors.
- *
- * @constructor
- * @extends {ol.layer.Layer}
- * @fires ol.render.Event
- * @param {olx.layer.VectorOptions=} opt_options Options.
- * @api
- */var _ol_layer_Vector_=function(opt_options){var options=opt_options?opt_options:/** @type {olx.layer.VectorOptions} */{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.style;delete baseOptions.renderBuffer;delete baseOptions.updateWhileAnimating;delete baseOptions.updateWhileInteracting;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);/**
+var _ol_renderer_webgl_VectorLayer_;var _ol_layer_Vector_=function(opt_options){var options=opt_options?opt_options:/** @type {olx.layer.VectorOptions} */{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.style;delete baseOptions.renderBuffer;delete baseOptions.updateWhileAnimating;delete baseOptions.updateWhileInteracting;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);/**
   * @type {number}
   * @private
   */this.renderBuffer_=options.renderBuffer!==undefined?options.renderBuffer:100;/**
@@ -7955,10 +7447,9 @@ var _ol_renderer_webgl_VectorLayer_;/**
  * @return {function(ol.Feature, ol.Feature): number|null|undefined} Render
  *     order.
  */_ol_layer_Vector_.prototype.getRenderOrder=function(){return(/** @type {ol.RenderOrderFunction|null|undefined} */this.get(_ol_layer_Vector_.Property_.RENDER_ORDER));};/**
- * Get the style for features.  This returns whatever was passed to the `style`
- * option at construction or to the `setStyle` method.
- * @return {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction}
- *     Layer style.
+ * Return the associated {@link ol.source.Vector vectorsource} of the layer.
+ * @function
+ * @return {ol.source.Vector} Source.
  * @api
  */_ol_layer_Vector_.prototype.getStyle=function(){return this.style_;};/**
  * Get the style function.
@@ -8024,16 +7515,7 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  * @param {number} end End.
  * @param {number} stride Stride.
  * @return {number} Perimeter.
- */_ol_geom_flat_length_.linearRing=function(flatCoordinates,offset,end,stride){var perimeter=_ol_geom_flat_length_.lineString(flatCoordinates,offset,end,stride);var dx=flatCoordinates[end-stride]-flatCoordinates[offset];var dy=flatCoordinates[end-stride+1]-flatCoordinates[offset+1];perimeter+=Math.sqrt(dx*dx+dy*dy);return perimeter;};/**
- * @classdesc
- * Linestring geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {Array.<ol.Coordinate>} coordinates Coordinates.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_LineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_length_.linearRing=function(flatCoordinates,offset,end,stride){var perimeter=_ol_geom_flat_length_.lineString(flatCoordinates,offset,end,stride);var dx=flatCoordinates[end-stride]-flatCoordinates[offset];var dy=flatCoordinates[end-stride+1]-flatCoordinates[offset+1];perimeter+=Math.sqrt(dx*dx+dy*dy);return perimeter;};var _ol_geom_LineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @private
    * @type {ol.Coordinate}
    */this.flatMidpoint_=null;/**
@@ -8118,17 +7600,7 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  */_ol_geom_LineString_.prototype.setCoordinates=function(coordinates,opt_layout){if(!coordinates){this.setFlatCoordinates(_ol_geom_GeometryLayout_.XY,null);}else{this.setLayout(opt_layout,coordinates,1);if(!this.flatCoordinates){this.flatCoordinates=[];}this.flatCoordinates.length=_ol_geom_flat_deflate_.coordinates(this.flatCoordinates,0,coordinates,this.stride);this.changed();}};/**
  * @param {ol.geom.GeometryLayout} layout Layout.
  * @param {Array.<number>} flatCoordinates Flat coordinates.
- */_ol_geom_LineString_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};/**
- * @classdesc
- * Circle geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {ol.Coordinate} center Center.
- * @param {number=} opt_radius Radius.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_Circle_=function(center,opt_radius,opt_layout){_ol_geom_SimpleGeometry_.call(this);var radius=opt_radius?opt_radius:0;this.setCenterAndRadius(center,radius,opt_layout);};_ol_.inherits(_ol_geom_Circle_,_ol_geom_SimpleGeometry_);/**
+ */_ol_geom_LineString_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};var _ol_geom_Circle_=function(center,opt_radius,opt_layout){_ol_geom_SimpleGeometry_.call(this);var radius=opt_radius?opt_radius:0;this.setCenterAndRadius(center,radius,opt_layout);};_ol_.inherits(_ol_geom_Circle_,_ol_geom_SimpleGeometry_);/**
  * Make a complete copy of the geometry.
  * @return {!ol.geom.Circle} Clone.
  * @override
@@ -8179,8 +7651,26 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  * @param {number} radius Radius.
  * @api
  */_ol_geom_Circle_.prototype.setRadius=function(radius){this.flatCoordinates[this.stride]=this.flatCoordinates[0]+radius;this.changed();};/**
- * Constants for event names.
- * @enum {string}
+ * Transform each coordinate of the circle from one coordinate reference system
+ * to another. The geometry is modified in place.
+ * If you do not want the geometry modified in place, first clone() it and
+ * then use this function on the clone.
+ *
+ * Internally a circle is currently represented by two points: the center of
+ * the circle `[cx, cy]`, and the point to the right of the circle
+ * `[cx + r, cy]`. This `transform` function just transforms these two points.
+ * So the resulting geometry is also a circle, and that circle does not
+ * correspond to the shape that would be obtained by transforming every point
+ * of the original circle.
+ *
+ * @param {ol.ProjectionLike} source The current projection.  Can be a
+ *     string identifier or a {@link ol.proj.Projection} object.
+ * @param {ol.ProjectionLike} destination The desired projection.  Can be a
+ *     string identifier or a {@link ol.proj.Projection} object.
+ * @return {ol.geom.Circle} This geometry.  Note that original geometry is
+ *     modified in place.
+ * @function
+ * @api
  */var _ol_MapBrowserEventType_={/**
    * A true single click with no dragging and no double click. Note that this
    * event is delayed by 250 ms to ensure that it is not a double click.
@@ -8496,16 +7986,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
  * @return {boolean} True if the event originates from a primary pointer.
  * @api
- */_ol_events_condition_.primaryAction=function(mapBrowserEvent){var pointerEvent=mapBrowserEvent.pointerEvent;return pointerEvent.isPrimary&&pointerEvent.button===0;};/**
- * @classdesc
- * Multi-linestring geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {Array.<Array.<ol.Coordinate>>} coordinates Coordinates.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_MultiLineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_events_condition_.primaryAction=function(mapBrowserEvent){var pointerEvent=mapBrowserEvent.pointerEvent;return pointerEvent.isPrimary&&pointerEvent.button===0;};var _ol_geom_MultiLineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @type {Array.<number>}
    * @private
    */this.ends_=[];/**
@@ -8584,16 +8065,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @param {Array.<number>} ends Ends.
  */_ol_geom_MultiLineString_.prototype.setFlatCoordinates=function(layout,flatCoordinates,ends){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.ends_=ends;this.changed();};/**
  * @param {Array.<ol.geom.LineString>} lineStrings LineStrings.
- */_ol_geom_MultiLineString_.prototype.setLineStrings=function(lineStrings){var layout=this.getLayout();var flatCoordinates=[];var ends=[];var i,ii;for(i=0,ii=lineStrings.length;i<ii;++i){var lineString=lineStrings[i];if(i===0){layout=lineString.getLayout();}_ol_array_.extend(flatCoordinates,lineString.getFlatCoordinates());ends.push(flatCoordinates.length);}this.setFlatCoordinates(layout,flatCoordinates,ends);};/**
- * @classdesc
- * Multi-point geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {Array.<ol.Coordinate>} coordinates Coordinates.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_MultiPoint_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_MultiPoint_,_ol_geom_SimpleGeometry_);/**
+ */_ol_geom_MultiLineString_.prototype.setLineStrings=function(lineStrings){var layout=this.getLayout();var flatCoordinates=[];var ends=[];var i,ii;for(i=0,ii=lineStrings.length;i<ii;++i){var lineString=lineStrings[i];if(i===0){layout=lineString.getLayout();}_ol_array_.extend(flatCoordinates,lineString.getFlatCoordinates());ends.push(flatCoordinates.length);}this.setFlatCoordinates(layout,flatCoordinates,ends);};var _ol_geom_MultiPoint_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_MultiPoint_,_ol_geom_SimpleGeometry_);/**
  * Append the passed point to this multipoint.
  * @param {ol.geom.Point} point Point.
  * @api
@@ -8639,16 +8111,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @param {Array.<Array.<number>>} endss Endss.
  * @param {number} stride Stride.
  * @return {Array.<number>} Flat centers.
- */_ol_geom_flat_center_.linearRingss=function(flatCoordinates,offset,endss,stride){var flatCenters=[];var i,ii;var extent=_ol_extent_.createEmpty();for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];extent=_ol_extent_.createOrUpdateFromFlatCoordinates(flatCoordinates,offset,ends[0],stride);flatCenters.push((extent[0]+extent[2])/2,(extent[1]+extent[3])/2);offset=ends[ends.length-1];}return flatCenters;};/**
- * @classdesc
- * Multi-polygon geometry.
- *
- * @constructor
- * @extends {ol.geom.SimpleGeometry}
- * @param {Array.<Array.<Array.<ol.Coordinate>>>} coordinates Coordinates.
- * @param {ol.geom.GeometryLayout=} opt_layout Layout.
- * @api
- */var _ol_geom_MultiPolygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_center_.linearRingss=function(flatCoordinates,offset,endss,stride){var flatCenters=[];var i,ii;var extent=_ol_extent_.createEmpty();for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];extent=_ol_extent_.createOrUpdateFromFlatCoordinates(flatCoordinates,offset,ends[0],stride);flatCenters.push((extent[0]+extent[2])/2,(extent[1]+extent[3])/2);offset=ends[ends.length-1];}return flatCenters;};var _ol_geom_MultiPolygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @type {Array.<Array.<number>>}
    * @private
    */this.endss_=[];/**
@@ -8748,18 +8211,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
    * Triggered upon feature draw end
    * @event ol.interaction.Draw.Event#drawend
    * @api
-   */DRAWEND:'drawend'};/**
- * @classdesc
- * Events emitted as map events are instances of this type.
- * See {@link ol.Map} for which events trigger a map event.
- *
- * @constructor
- * @extends {ol.events.Event}
- * @implements {oli.MapEvent}
- * @param {string} type Event type.
- * @param {ol.Map} map Map.
- * @param {?olx.FrameState=} opt_frameState Frame state.
- */var _ol_MapEvent_=function(type,map,opt_frameState){_ol_events_Event_.call(this,type);/**
+   */DRAWEND:'drawend'};var _ol_MapEvent_=function(type,map,opt_frameState){_ol_events_Event_.call(this,type);/**
    * The map where the event occurred.
    * @type {ol.Map}
    * @api
@@ -8767,20 +8219,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
    * The frame state at the time of the event.
    * @type {?olx.FrameState}
    * @api
-   */this.frameState=opt_frameState!==undefined?opt_frameState:null;};_ol_.inherits(_ol_MapEvent_,_ol_events_Event_);/**
- * @classdesc
- * Events emitted as map browser events are instances of this type.
- * See {@link ol.Map} for which events trigger a map browser event.
- *
- * @constructor
- * @extends {ol.MapEvent}
- * @implements {oli.MapBrowserEvent}
- * @param {string} type Event type.
- * @param {ol.Map} map Map.
- * @param {Event} browserEvent Browser event.
- * @param {boolean=} opt_dragging Is the map currently being dragged?
- * @param {?olx.FrameState=} opt_frameState Frame state.
- */var _ol_MapBrowserEvent_=function(type,map,browserEvent,opt_dragging,opt_frameState){_ol_MapEvent_.call(this,type,map,opt_frameState);/**
+   */this.frameState=opt_frameState!==undefined?opt_frameState:null;};_ol_.inherits(_ol_MapEvent_,_ol_events_Event_);var _ol_MapBrowserEvent_=function(type,map,browserEvent,opt_dragging,opt_frameState){_ol_MapEvent_.call(this,type,map,opt_frameState);/**
    * The original browser event.
    * @const
    * @type {Event}
@@ -8809,15 +8248,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @see https://developer.mozilla.org/en-US/docs/Web/API/event.stopPropagation
  * @override
  * @api
- */_ol_MapBrowserEvent_.prototype.stopPropagation=function(){_ol_MapEvent_.prototype.stopPropagation.call(this);this.originalEvent.stopPropagation();};/**
- * @constructor
- * @extends {ol.MapBrowserEvent}
- * @param {string} type Event type.
- * @param {ol.Map} map Map.
- * @param {ol.pointer.PointerEvent} pointerEvent Pointer event.
- * @param {boolean=} opt_dragging Is the map currently being dragged?
- * @param {?olx.FrameState=} opt_frameState Frame state.
- */var _ol_MapBrowserPointerEvent_=function(type,map,pointerEvent,opt_dragging,opt_frameState){_ol_MapBrowserEvent_.call(this,type,map,pointerEvent.originalEvent,opt_dragging,opt_frameState);/**
+ */_ol_MapBrowserEvent_.prototype.stopPropagation=function(){_ol_MapEvent_.prototype.stopPropagation.call(this);this.originalEvent.stopPropagation();};var _ol_MapBrowserPointerEvent_=function(type,map,pointerEvent,opt_dragging,opt_frameState){_ol_MapBrowserEvent_.call(this,type,map,pointerEvent.originalEvent,opt_dragging,opt_frameState);/**
    * @const
    * @type {ol.pointer.PointerEvent}
    */this.pointerEvent=pointerEvent;};_ol_.inherits(_ol_MapBrowserPointerEvent_,_ol_MapBrowserEvent_);var _ol_easing_={};/**
@@ -8850,23 +8281,7 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  */_ol_easing_.upAndDown=function(t){if(t<0.5){return _ol_easing_.inAndOut(2*t);}else{return 1-_ol_easing_.inAndOut(2*(t-0.5));}};/**
  * @enum {string}
  */var _ol_interaction_Property_={ACTIVE:'active'};// FIXME factor out key precondition (shift et. al)
-/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * User actions that change the state of the map. Some are similar to controls,
- * but are not associated with a DOM element.
- * For example, {@link ol.interaction.KeyboardZoom} is functionally the same as
- * {@link ol.control.Zoom}, but triggered by a keyboard event not a button
- * element event.
- * Although interactions do not have a DOM element, some of them do render
- * vectors and so are visible on the screen.
- *
- * @constructor
- * @param {olx.interaction.InteractionOptions} options Options.
- * @extends {ol.Object}
- * @api
- */var _ol_interaction_Interaction_=function(options){_ol_Object_.call(this);/**
+var _ol_interaction_Interaction_=function(options){_ol_Object_.call(this);/**
    * @private
    * @type {ol.Map}
    */this.map_=null;this.setActive(true);/**
@@ -8930,21 +8345,7 @@ if(opt_anchor&&resolution!==undefined&&resolution!==currentResolution){var curre
  * @param {number|undefined} resolution Resolution to go to.
  * @param {ol.Coordinate=} opt_anchor Anchor coordinate.
  * @param {number=} opt_duration Duration.
- */_ol_interaction_Interaction_.zoomWithoutConstraints=function(view,resolution,opt_anchor,opt_duration){if(resolution){var currentResolution=view.getResolution();var currentCenter=view.getCenter();if(currentResolution!==undefined&&currentCenter&&resolution!==currentResolution&&opt_duration){view.animate({resolution:resolution,anchor:opt_anchor,duration:opt_duration,easing:_ol_easing_.easeOut});}else{if(opt_anchor){var center=view.calculateCenterZoom(resolution,opt_anchor);view.setCenter(center);}view.setResolution(resolution);}}};/**
- * @classdesc
- * Base class that calls user-defined functions on `down`, `move` and `up`
- * events. This class also manages "drag sequences".
- *
- * When the `handleDownEvent` user function returns `true` a drag sequence is
- * started. During a drag sequence the `handleDragEvent` user function is
- * called on `move` events. The drag sequence ends when the `handleUpEvent`
- * user function is called and returns `false`.
- *
- * @constructor
- * @param {olx.interaction.PointerOptions=} opt_options Options.
- * @extends {ol.interaction.Interaction}
- * @api
- */var _ol_interaction_Pointer_=function(opt_options){var options=opt_options?opt_options:{};var handleEvent=options.handleEvent?options.handleEvent:_ol_interaction_Pointer_.handleEvent;_ol_interaction_Interaction_.call(this,{handleEvent:handleEvent});/**
+ */_ol_interaction_Interaction_.zoomWithoutConstraints=function(view,resolution,opt_anchor,opt_duration){if(resolution){var currentResolution=view.getResolution();var currentCenter=view.getCenter();if(currentResolution!==undefined&&currentCenter&&resolution!==currentResolution&&opt_duration){view.animate({resolution:resolution,anchor:opt_anchor,duration:opt_duration,easing:_ol_easing_.easeOut});}else{if(opt_anchor){var center=view.calculateCenterZoom(resolution,opt_anchor);view.setCenter(center);}view.setResolution(resolution);}}};var _ol_interaction_Pointer_=function(opt_options){var options=opt_options?opt_options:{};var handleEvent=options.handleEvent?options.handleEvent:_ol_interaction_Pointer_.handleEvent;_ol_interaction_Interaction_.call(this,{handleEvent:handleEvent});/**
    * @type {function(ol.MapBrowserPointerEvent):boolean}
    * @private
    */this.handleDownEvent_=options.handleDownEvent?options.handleDownEvent:_ol_interaction_Pointer_.handleDownEvent;/**
@@ -9011,16 +8412,7 @@ this.trackedPointers_[event.pointerId]=event;}this.targetPointers=_ol_obj_.getVa
  * @param {boolean} handled Was the event handled by the interaction?
  * @return {boolean} Should the event be stopped?
  * @protected
- */_ol_interaction_Pointer_.prototype.shouldStopEvent=function(handled){return handled;};/**
- * @classdesc
- * Interaction for drawing feature geometries.
- *
- * @constructor
- * @extends {ol.interaction.Pointer}
- * @fires ol.interaction.Draw.Event
- * @param {olx.interaction.DrawOptions} options Options.
- * @api
- */var _ol_interaction_Draw_=function(options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_Draw_.handleDownEvent_,handleEvent:_ol_interaction_Draw_.handleEvent,handleUpEvent:_ol_interaction_Draw_.handleUpEvent_});/**
+ */_ol_interaction_Pointer_.prototype.shouldStopEvent=function(handled){return handled;};var _ol_interaction_Draw_=function(options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_Draw_.handleDownEvent_,handleEvent:_ol_interaction_Draw_.handleEvent,handleUpEvent:_ol_interaction_Draw_.handleUpEvent_});/**
    * @type {boolean}
    * @private
    */this.shouldHandle_=false;/**
@@ -9290,27 +8682,7 @@ if(this.features_){this.features_.push(sketchFeature);}if(this.source_){this.sou
  *
  * @const
  * @type {string}
- */_ol_css_.CLASS_CONTROL='ol-control';/**
- * @classdesc
- * An element to be displayed over the map and attached to a single map
- * location.  Like {@link ol.control.Control}, Overlays are visible widgets.
- * Unlike Controls, they are not in a fixed position on the screen, but are tied
- * to a geographical coordinate, so panning the map will move an Overlay but not
- * a Control.
- *
- * Example:
- *
- *     var popup = new ol.Overlay({
- *       element: document.getElementById('popup')
- *     });
- *     popup.setPosition(coordinate);
- *     map.addOverlay(popup);
- *
- * @constructor
- * @extends {ol.Object}
- * @param {olx.OverlayOptions} options Overlay options.
- * @api
- */var _ol_Overlay_=function(options){_ol_Object_.call(this);/**
+ */_ol_css_.CLASS_CONTROL='ol-control';var _ol_Overlay_=function(options){_ol_Object_.call(this);/**
    * @private
    * @type {number|string|undefined}
    */this.id_=options.id;/**
@@ -9497,35 +8869,7 @@ visionFeature=this.getVisionFeature(feature,coordinate,radius);if(visionFeature)
 var bBuildingHover=false;var feature=self.InteractiveMap.map.forEachFeatureAtPixel(pixel,function(feature){return feature;},{layerFilter:self.InteractiveMap.layerFilters.marker});if(feature){bBuildingHover=self.highlight(feature);if(bBuildingHover){self.showVisibilityInfo();}}else{// if mouse over a ward feature, highlight
 var feature=InteractiveMap.checkAndHighlightWard(pixel);// no highlighted feature so unhighlight current feature
 if(!feature){self.unhighlight();}else{self.showVisibilityInfo();}}// vision cursor
-if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMoveTime=Date.now();if(bBuildingHover){if(!feature.get('visionFeature')){var hoverFeature=self.InteractiveMap.visionControl.getVisionFeature(feature);}else{self.InteractiveMap.cursorControl.source.clear(true);}}else{var hoverFeature=self.InteractiveMap.visionControl.getVisionFeature(null,evt.coordinate,self.InteractiveMap.visionRadius);}if(hoverFeature){self.InteractiveMap.cursorControl.source.clear(true);self.InteractiveMap.cursorControl.source.addFeature(hoverFeature);if(!bBuildingHover){self.showVisibilityInfo();}}else if(!bBuildingHover){self.clearInfo();}};this.pointerMoveListener=null;this.clickHandler=function(evt){self.unhighlight();var feature=self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel,function(feature,layer){return feature;},{layerFilter:self.InteractiveMap.layerFilters.marker});if(feature&&self.InteractiveMap.hasVisionRadius(feature)){self.InteractiveMap.toggle(feature);if(self.InteractiveMap.visionControl.toggleVisionFeature(feature)){self.showVisibilityInfo();}else{self.clearInfo();}self.InteractiveMap.cursorControl.source.clear(true);}else{feature=self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel,function(feature,layer){return feature;},{layerFilter:self.layerFilter});if(feature){self.removeWard(feature);self.clearInfo(true);}else{self.addWard(evt.coordinate,self.InteractiveMap.MODE);self.InteractiveMap.cursorControl.source.clear(true);}}};this.clickListener=null;}WardControl.prototype.toggleAll=function(layer,state){if(state){this.showAll(layer);}else{this.hideAll(layer);}};WardControl.prototype.showAll=function(layer){var self=this;var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){self.InteractiveMap.select(feature);self.highlight(feature);});};WardControl.prototype.hideAll=function(layer){var self=this;var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){self.InteractiveMap.deselect(feature);self.unhighlight(feature);});};WardControl.prototype.showVisibilityInfo=function(visionFeature,bClicked){var info=this.InteractiveMap.infoControl;var vs=this.InteractiveMap.vs;var lightArea=vs.lightArea;var area=vs.area;if(visionFeature){var visionData=visionFeature.get('visionData');if(visionData){lightArea=visionData.lightArea;area=visionData.area;info.setContent("Visibility: "+(lightArea/area*100).toFixed()+'% '+lightArea+"/"+area);info.open(bClicked);}}else{info.setContent("Visibility: "+(lightArea/area*100).toFixed()+'% '+lightArea+"/"+area);info.open(bClicked);}};WardControl.prototype.clearInfo=function(bOverrideActive){this.InteractiveMap.infoControl.setContent("");this.InteractiveMap.infoControl.close(bOverrideActive);};WardControl.prototype.activate=function(){if(!this.pointerMoveListener){this.pointerMoveListener=this.InteractiveMap.map.on('pointermove',this.pointerMoveHandler);}if(!this.clickListener){this.clickListener=this.InteractiveMap.map.on('click',this.clickHandler);}};WardControl.prototype.deactivate=function(){this.InteractiveMap.unhighlightWard();this.InteractiveMap.cursorControl.source.clear(true);_ol_Observable_.unByKey(this.pointerMoveListener);this.pointerMoveListener=null;_ol_Observable_.unByKey(this.clickListener);this.clickListener=null;};WardControl.prototype.parseQueryString=function(){var self=this;['observer','sentry'].forEach(function(wardType){var values=getParameterByName(wardType);if(values){values=values.split(';');values.forEach(function(worldXY){worldXY=worldXY.split(',');if(worldXY.length==2){worldXY=worldXY.map(parseFloat);if(!worldXY.some(isNaN)){var coordinate=worldToLatLon(worldXY);self.addWard(coordinate,wardType,true);}}});}self.updateQueryString(wardType);});};WardControl.prototype.updateQueryString=function(wardType){var values=Object.keys(this.placedWardCoordinates[wardType]).join(';');setQueryString(wardType,values||null);};WardControl.prototype.addWard=function(coordinate,wardType,bSkipQueryStringUpdate){if(coordinate[0]<0||coordinate[0]>mapConstants.map_w||coordinate[1]<0||coordinate[1]>mapConstants.map_h)return;var geom=new _ol_geom_Point_(coordinate);var feature=new _ol_Feature_(geom);feature.set('wardType',wardType,true);feature.setStyle(styles[wardType].normal);this.source.addFeature(feature);if(wardType=='observer'){if(this.InteractiveMap.visionControl.setVisionFeature(feature,coordinate,wardType)){this.showVisibilityInfo();}}var circle=this.InteractiveMap.getRangeCircle(feature,coordinate,wardType);if(circle){circle.setStyle(wardType=='observer'?styles.dayVision:styles.trueSight);feature.set('wardRange',circle,true);this.InteractiveMap.wardRangeSource.addFeature(circle);}var worldXY=latLonToWorld(coordinate).map(Math.round).join(',');this.placedWardCoordinates[wardType][worldXY]=true;if(!bSkipQueryStringUpdate)this.updateQueryString(wardType);};WardControl.prototype.clearWards=function(){var self=this;var features=this.source.getFeatures();features.forEach(function(feature){self.removeWard(feature,true);});};WardControl.prototype.removeWard=function(feature,bSkipQueryStringUpdate){var wardRange=feature.get('wardRange');if(wardRange){this.InteractiveMap.wardRangeSource.removeFeature(wardRange);}this.source.removeFeature(feature);this.InteractiveMap.visionControl.removeVisionFeature(feature);var worldXY=latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');var wardType=feature.get('wardType');delete this.placedWardCoordinates[wardType][worldXY];this.updateQueryString(wardType);};WardControl.prototype.highlight=function(feature){this.InteractiveMap.cursorControl.source.clear(true);this.unhighlight();var visionFeature=this.InteractiveMap.visionControl.setVisionFeature(feature);this.addRangeCircles(feature);this.InteractiveMap.highlight(feature);return visionFeature;};WardControl.prototype.unhighlight=function(feature){var highlightedFeature=feature||this.InteractiveMap.highlightedFeature;if(highlightedFeature&&!highlightedFeature.get("clicked")){this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);this.removeRangeCircles(highlightedFeature);}this.InteractiveMap.unhighlight();};WardControl.prototype.addRangeCircles=function(feature){this.addRangeCircle(feature,'dayVision');this.addRangeCircle(feature,'nightVision');this.addRangeCircle(feature,'trueSight');this.addRangeCircle(feature,'attackRange');};WardControl.prototype.removeRangeCircles=function(feature){this.removeRangeCircle(feature,'dayVision');this.removeRangeCircle(feature,'nightVision');this.removeRangeCircle(feature,'trueSight');this.removeRangeCircle(feature,'attackRange');};WardControl.prototype.addRangeCircle=function(feature,rangeType){if(!feature.get(rangeType)){var circle=this.InteractiveMap.getRangeCircle(feature,null,null,rangeType);if(circle){feature.set(rangeType,circle,true);this.InteractiveMap.rangeSources[rangeType].addFeature(circle);}}};WardControl.prototype.removeRangeCircle=function(feature,rangeType){var circle=feature.get(rangeType);if(circle){feature.set(rangeType,null,true);this.InteractiveMap.rangeSources[rangeType].removeFeature(circle);}};function TreeControl(InteractiveMap){this.InteractiveMap=InteractiveMap;this.allTreesCutState=false;}TreeControl.prototype.updateQueryString=function(){var self=this;var keys=['cut_trees','uncut_trees'];var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var values=features.filter(function(feature){return!!feature.get('isCut')!=self.allTreesCutState;}).map(function(feature){var dotaProps=feature.get('dotaProps');return dotaProps.x+','+dotaProps.y;}).join(';');setQueryString(keys[this.allTreesCutState?1:0],values||null);setQueryString(keys[this.allTreesCutState?0:1],null);document.getElementById('toggle-ent_dota_tree').checked=this.allTreesCutState;};TreeControl.prototype.parseQueryString=function(){var self=this;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var treeMap={};features.forEach(function(feature){var dotaProps=feature.get('dotaProps');var worldXY=dotaProps.x+','+dotaProps.y;treeMap[worldXY]=feature;});['uncut_trees','cut_trees'].forEach(function(treeCutState,index){var values=getParameterByName(treeCutState);if(values){self.toggleAllTrees(!index,true);values=values.split(';');values.forEach(function(worldXY){var feature=treeMap[worldXY];if(feature){if(!!feature.get('isCut')==!index){self.toggleTree(feature,feature.get('dotaProps'),true);}}});}});this.updateQueryString();};TreeControl.prototype.toggleTree=function(feature,dotaProps,bSkipQueryStringUpdate){var gridXY=this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x,dotaProps.y);this.InteractiveMap.vs.toggleTree(gridXY.x,gridXY.y);feature.set('isCut',!feature.get('isCut'));if(!bSkipQueryStringUpdate)this.updateQueryString();};TreeControl.prototype.toggleAllTrees=function(state,bSkipQueryStringUpdate){var self=this;this.allTreesCutState=state;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){if(!!feature.get('isCut')!=state){self.toggleTree(feature,feature.get('dotaProps'),true);}});if(!bSkipQueryStringUpdate)this.updateQueryString();};function CursorControl(InteractiveMap){var self=this;this.InteractiveMap=InteractiveMap;this.source=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.layer=new _ol_layer_Vector_({source:this.source,style:styles.cursor});this.layerFilter=function(layer){return layer===self.layer;};}/**
- * @classdesc
- * A control is a visible widget with a DOM element in a fixed position on the
- * screen. They can involve user input (buttons), or be informational only;
- * the position is determined using CSS. By default these are placed in the
- * container with CSS class name `ol-overlaycontainer-stopevent`, but can use
- * any outside DOM element.
- *
- * This is the base class for controls. You can use it for simple custom
- * controls by creating the element with listeners, creating an instance:
- * ```js
- * var myControl = new ol.control.Control({element: myElement});
- * ```
- * and then adding this to the map.
- *
- * The main advantage of having this as a control rather than a simple separate
- * DOM element is that preventing propagation is handled for you. Controls
- * will also be `ol.Object`s in a `ol.Collection`, so you can use their
- * methods.
- *
- * You can also extend this base for your own control class. See
- * examples/custom-controls for an example of how to do this.
- *
- * @constructor
- * @extends {ol.Object}
- * @implements {oli.control.Control}
- * @param {olx.control.ControlOptions} options Control options.
- * @api
- */var _ol_control_Control_=function(options){_ol_Object_.call(this);/**
+if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMoveTime=Date.now();if(bBuildingHover){if(!feature.get('visionFeature')){var hoverFeature=self.InteractiveMap.visionControl.getVisionFeature(feature);}else{self.InteractiveMap.cursorControl.source.clear(true);}}else{var hoverFeature=self.InteractiveMap.visionControl.getVisionFeature(null,evt.coordinate,self.InteractiveMap.visionRadius);}if(hoverFeature){self.InteractiveMap.cursorControl.source.clear(true);self.InteractiveMap.cursorControl.source.addFeature(hoverFeature);if(!bBuildingHover){self.showVisibilityInfo();}}else if(!bBuildingHover){self.clearInfo();}};this.pointerMoveListener=null;this.clickHandler=function(evt){self.unhighlight();var feature=self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel,function(feature,layer){return feature;},{layerFilter:self.InteractiveMap.layerFilters.marker});if(feature&&self.InteractiveMap.hasVisionRadius(feature)){self.InteractiveMap.toggle(feature);if(self.InteractiveMap.visionControl.toggleVisionFeature(feature)){self.showVisibilityInfo();}else{self.clearInfo();}self.InteractiveMap.cursorControl.source.clear(true);}else{feature=self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel,function(feature,layer){return feature;},{layerFilter:self.layerFilter});if(feature){self.removeWard(feature);self.clearInfo(true);}else{self.addWard(evt.coordinate,self.InteractiveMap.MODE);self.InteractiveMap.cursorControl.source.clear(true);}}};this.clickListener=null;}WardControl.prototype.toggleAll=function(layer,state){if(state){this.showAll(layer);}else{this.hideAll(layer);}};WardControl.prototype.showAll=function(layer){var self=this;var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){self.InteractiveMap.select(feature);self.highlight(feature);});};WardControl.prototype.hideAll=function(layer){var self=this;var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){self.InteractiveMap.deselect(feature);self.unhighlight(feature);});};WardControl.prototype.showVisibilityInfo=function(visionFeature,bClicked){var info=this.InteractiveMap.infoControl;var vs=this.InteractiveMap.vs;var lightArea=vs.lightArea;var area=vs.area;if(visionFeature){var visionData=visionFeature.get('visionData');if(visionData){lightArea=visionData.lightArea;area=visionData.area;info.setContent("Visibility: "+(lightArea/area*100).toFixed()+'% '+lightArea+"/"+area);info.open(bClicked);}}else{info.setContent("Visibility: "+(lightArea/area*100).toFixed()+'% '+lightArea+"/"+area);info.open(bClicked);}};WardControl.prototype.clearInfo=function(bOverrideActive){this.InteractiveMap.infoControl.setContent("");this.InteractiveMap.infoControl.close(bOverrideActive);};WardControl.prototype.activate=function(){if(!this.pointerMoveListener){this.pointerMoveListener=this.InteractiveMap.map.on('pointermove',this.pointerMoveHandler);}if(!this.clickListener){this.clickListener=this.InteractiveMap.map.on('click',this.clickHandler);}};WardControl.prototype.deactivate=function(){this.InteractiveMap.unhighlightWard();this.InteractiveMap.cursorControl.source.clear(true);_ol_Observable_.unByKey(this.pointerMoveListener);this.pointerMoveListener=null;_ol_Observable_.unByKey(this.clickListener);this.clickListener=null;};WardControl.prototype.parseQueryString=function(){var self=this;['observer','sentry'].forEach(function(wardType){var values=getParameterByName(wardType);if(values){values=values.split(';');values.forEach(function(worldXY){worldXY=worldXY.split(',');if(worldXY.length==2){worldXY=worldXY.map(parseFloat);if(!worldXY.some(isNaN)){var coordinate=worldToLatLon(worldXY);self.addWard(coordinate,wardType,true);}}});}self.updateQueryString(wardType);});};WardControl.prototype.updateQueryString=function(wardType){var values=Object.keys(this.placedWardCoordinates[wardType]).join(';');setQueryString(wardType,values||null);};WardControl.prototype.addWard=function(coordinate,wardType,bSkipQueryStringUpdate){if(coordinate[0]<0||coordinate[0]>mapConstants.map_w||coordinate[1]<0||coordinate[1]>mapConstants.map_h)return;var geom=new _ol_geom_Point_(coordinate);var feature=new _ol_Feature_(geom);feature.set('wardType',wardType,true);feature.setStyle(styles[wardType].normal);this.source.addFeature(feature);if(wardType=='observer'){if(this.InteractiveMap.visionControl.setVisionFeature(feature,coordinate,wardType)){this.showVisibilityInfo();}}var circle=this.InteractiveMap.getRangeCircle(feature,coordinate,wardType);if(circle){circle.setStyle(wardType=='observer'?styles.dayVision:styles.trueSight);feature.set('wardRange',circle,true);this.InteractiveMap.wardRangeSource.addFeature(circle);}var worldXY=latLonToWorld(coordinate).map(Math.round).join(',');this.placedWardCoordinates[wardType][worldXY]=true;if(!bSkipQueryStringUpdate)this.updateQueryString(wardType);};WardControl.prototype.clearWards=function(){var self=this;var features=this.source.getFeatures();features.forEach(function(feature){self.removeWard(feature,true);});};WardControl.prototype.removeWard=function(feature,bSkipQueryStringUpdate){var wardRange=feature.get('wardRange');if(wardRange){this.InteractiveMap.wardRangeSource.removeFeature(wardRange);}this.source.removeFeature(feature);this.InteractiveMap.visionControl.removeVisionFeature(feature);var worldXY=latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');var wardType=feature.get('wardType');delete this.placedWardCoordinates[wardType][worldXY];this.updateQueryString(wardType);};WardControl.prototype.highlight=function(feature){this.InteractiveMap.cursorControl.source.clear(true);this.unhighlight();var visionFeature=this.InteractiveMap.visionControl.setVisionFeature(feature);this.addRangeCircles(feature);this.InteractiveMap.highlight(feature);return visionFeature;};WardControl.prototype.unhighlight=function(feature){var highlightedFeature=feature||this.InteractiveMap.highlightedFeature;if(highlightedFeature&&!highlightedFeature.get("clicked")){this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);this.removeRangeCircles(highlightedFeature);}this.InteractiveMap.unhighlight();};WardControl.prototype.addRangeCircles=function(feature){this.addRangeCircle(feature,'dayVision');this.addRangeCircle(feature,'nightVision');this.addRangeCircle(feature,'trueSight');this.addRangeCircle(feature,'attackRange');};WardControl.prototype.removeRangeCircles=function(feature){this.removeRangeCircle(feature,'dayVision');this.removeRangeCircle(feature,'nightVision');this.removeRangeCircle(feature,'trueSight');this.removeRangeCircle(feature,'attackRange');};WardControl.prototype.addRangeCircle=function(feature,rangeType){if(!feature.get(rangeType)){var circle=this.InteractiveMap.getRangeCircle(feature,null,null,rangeType);if(circle){feature.set(rangeType,circle,true);this.InteractiveMap.rangeSources[rangeType].addFeature(circle);}}};WardControl.prototype.removeRangeCircle=function(feature,rangeType){var circle=feature.get(rangeType);if(circle){feature.set(rangeType,null,true);this.InteractiveMap.rangeSources[rangeType].removeFeature(circle);}};function TreeControl(InteractiveMap){this.InteractiveMap=InteractiveMap;this.allTreesCutState=false;}TreeControl.prototype.updateQueryString=function(){var self=this;var keys=['cut_trees','uncut_trees'];var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var values=features.filter(function(feature){return!!feature.get('isCut')!=self.allTreesCutState;}).map(function(feature){var dotaProps=feature.get('dotaProps');return dotaProps.x+','+dotaProps.y;}).join(';');setQueryString(keys[this.allTreesCutState?1:0],values||null);setQueryString(keys[this.allTreesCutState?0:1],null);document.getElementById('toggle-ent_dota_tree').checked=this.allTreesCutState;};TreeControl.prototype.parseQueryString=function(){var self=this;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var treeMap={};features.forEach(function(feature){var dotaProps=feature.get('dotaProps');var worldXY=dotaProps.x+','+dotaProps.y;treeMap[worldXY]=feature;});['uncut_trees','cut_trees'].forEach(function(treeCutState,index){var values=getParameterByName(treeCutState);if(values){self.toggleAllTrees(!index,true);values=values.split(';');values.forEach(function(worldXY){var feature=treeMap[worldXY];if(feature){if(!!feature.get('isCut')==!index){self.toggleTree(feature,feature.get('dotaProps'),true);}}});}});this.updateQueryString();};TreeControl.prototype.toggleTree=function(feature,dotaProps,bSkipQueryStringUpdate){var gridXY=this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x,dotaProps.y);this.InteractiveMap.vs.toggleTree(gridXY.x,gridXY.y);feature.set('isCut',!feature.get('isCut'));if(!bSkipQueryStringUpdate)this.updateQueryString();};TreeControl.prototype.toggleAllTrees=function(state,bSkipQueryStringUpdate){var self=this;this.allTreesCutState=state;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){if(!!feature.get('isCut')!=state){self.toggleTree(feature,feature.get('dotaProps'),true);}});if(!bSkipQueryStringUpdate)this.updateQueryString();};function CursorControl(InteractiveMap){var self=this;this.InteractiveMap=InteractiveMap;this.source=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.layer=new _ol_layer_Vector_({source:this.source,style:styles.cursor});this.layerFilter=function(layer){return layer===self.layer;};}var _ol_control_Control_=function(options){_ol_Object_.call(this);/**
    * @protected
    * @type {Element}
    */this.element=options.element?options.element:null;/**
@@ -9561,19 +8905,7 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
  * @param {Element|string} target Target.
  * @api
  */_ol_control_Control_.prototype.setTarget=function(target){this.target_=typeof target==='string'?document.getElementById(target):target;};// FIXME should listen on appropriate pane, once it is defined
-/**
- * @classdesc
- * A control to show the 2D coordinates of the mouse cursor. By default, these
- * are in the view projection, but can be in any supported projection.
- * By default the control is shown in the top right corner of the map, but this
- * can be changed by using the css selector `.ol-mouse-position`.
- *
- * @constructor
- * @extends {ol.control.Control}
- * @param {olx.control.MousePositionOptions=} opt_options Mouse position
- *     options.
- * @api
- */var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt_options:{};var element=document.createElement('DIV');element.className=options.className!==undefined?options.className:'ol-mouse-position';var render=options.render?options.render:_ol_control_MousePosition_.render;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});_ol_events_.listen(this,_ol_Object_.getChangeEventType(_ol_control_MousePosition_.Property_.PROJECTION),this.handleProjectionChanged_,this);if(options.coordinateFormat){this.setCoordinateFormat(options.coordinateFormat);}if(options.projection){this.setProjection(_ol_proj_.get(options.projection));}/**
+var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt_options:{};var element=document.createElement('DIV');element.className=options.className!==undefined?options.className:'ol-mouse-position';var render=options.render?options.render:_ol_control_MousePosition_.render;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});_ol_events_.listen(this,_ol_Object_.getChangeEventType(_ol_control_MousePosition_.Property_.PROJECTION),this.handleProjectionChanged_,this);if(options.coordinateFormat){this.setCoordinateFormat(options.coordinateFormat);}if(options.projection){this.setProjection(_ol_proj_.get(options.projection));}/**
    * @private
    * @type {string}
    */this.undefinedHTML_=options.undefinedHTML!==undefined?options.undefinedHTML:'';/**
@@ -9699,63 +9031,7 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
        * @return {number|undefined} Rotation.
        */function(rotation,delta){if(rotation!==undefined){if(Math.abs(rotation+delta)<=tolerance){return 0;}else{return rotation+delta;}}else{return undefined;}});};/**
  * @enum {string}
- */var _ol_ViewProperty_={CENTER:'center',RESOLUTION:'resolution',ROTATION:'rotation'};/**
- * @classdesc
- * An ol.View object represents a simple 2D view of the map.
- *
- * This is the object to act upon to change the center, resolution,
- * and rotation of the map.
- *
- * ### The view states
- *
- * An `ol.View` is determined by three states: `center`, `resolution`,
- * and `rotation`. Each state has a corresponding getter and setter, e.g.
- * `getCenter` and `setCenter` for the `center` state.
- *
- * An `ol.View` has a `projection`. The projection determines the
- * coordinate system of the center, and its units determine the units of the
- * resolution (projection units per pixel). The default projection is
- * Spherical Mercator (EPSG:3857).
- *
- * ### The constraints
- *
- * `setCenter`, `setResolution` and `setRotation` can be used to change the
- * states of the view. Any value can be passed to the setters. And the value
- * that is passed to a setter will effectively be the value set in the view,
- * and returned by the corresponding getter.
- *
- * But an `ol.View` object also has a *resolution constraint*, a
- * *rotation constraint* and a *center constraint*.
- *
- * As said above, no constraints are applied when the setters are used to set
- * new states for the view. Applying constraints is done explicitly through
- * the use of the `constrain*` functions (`constrainResolution` and
- * `constrainRotation` and `constrainCenter`).
- *
- * The main users of the constraints are the interactions and the
- * controls. For example, double-clicking on the map changes the view to
- * the "next" resolution. And releasing the fingers after pinch-zooming
- * snaps to the closest resolution (with an animation).
- *
- * The *resolution constraint* snaps to specific resolutions. It is
- * determined by the following options: `resolutions`, `maxResolution`,
- * `maxZoom`, and `zoomFactor`. If `resolutions` is set, the other three
- * options are ignored. See documentation for each option for more
- * information.
- *
- * The *rotation constraint* snaps to specific angles. It is determined
- * by the following options: `enableRotation` and `constrainRotation`.
- * By default the rotation value is snapped to zero when approaching the
- * horizontal.
- *
- * The *center constraint* is determined by the `extent` option. By
- * default the center is not constrained at all.
- *
- * @constructor
- * @extends {ol.Object}
- * @param {olx.ViewOptions=} opt_options View options.
- * @api
- */var _ol_View_=function(opt_options){_ol_Object_.call(this);var options=_ol_obj_.assign({},opt_options);/**
+ */var _ol_ViewProperty_={CENTER:'center',RESOLUTION:'resolution',ROTATION:'rotation'};var _ol_View_=function(opt_options){_ol_Object_.call(this);var options=_ol_obj_.assign({},opt_options);/**
    * @private
    * @type {Array.<number>}
    */this.hints_=[0,0];/**
@@ -10100,11 +9376,7 @@ maxZoom=minZoom+Math.floor(Math.log(maxResolution/minResolution)/Math.log(zoomFa
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher Event handler.
- * @constructor
- * @extends {ol.pointer.EventSource}
- */var _ol_pointer_MouseSource_=function(dispatcher){var mapping={'mousedown':this.mousedown,'mousemove':this.mousemove,'mouseup':this.mouseup,'mouseover':this.mouseover,'mouseout':this.mouseout};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
+var _ol_pointer_MouseSource_=function(dispatcher){var mapping={'mousedown':this.mousedown,'mousemove':this.mousemove,'mouseup':this.mouseup,'mouseover':this.mouseover,'mouseout':this.mouseout};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
    * @const
    * @type {!Object.<string, Event|Object>}
    */this.pointerMap=dispatcher.pointerMap;/**
@@ -10209,11 +9481,7 @@ if(_ol_pointer_MouseSource_.POINTER_ID.toString()in this.pointerMap){this.cancel
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher Event handler.
- * @constructor
- * @extends {ol.pointer.EventSource}
- */var _ol_pointer_MsSource_=function(dispatcher){var mapping={'MSPointerDown':this.msPointerDown,'MSPointerMove':this.msPointerMove,'MSPointerUp':this.msPointerUp,'MSPointerOut':this.msPointerOut,'MSPointerOver':this.msPointerOver,'MSPointerCancel':this.msPointerCancel,'MSGotPointerCapture':this.msGotPointerCapture,'MSLostPointerCapture':this.msLostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
+var _ol_pointer_MsSource_=function(dispatcher){var mapping={'MSPointerDown':this.msPointerDown,'MSPointerMove':this.msPointerMove,'MSPointerUp':this.msPointerUp,'MSPointerOut':this.msPointerOut,'MSPointerOver':this.msPointerOver,'MSPointerCancel':this.msPointerCancel,'MSGotPointerCapture':this.msGotPointerCapture,'MSLostPointerCapture':this.msLostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
    * @const
    * @type {!Object.<string, Event|Object>}
    */this.pointerMap=dispatcher.pointerMap;/**
@@ -10289,11 +9557,7 @@ if(_ol_pointer_MouseSource_.POINTER_ID.toString()in this.pointerMap){this.cancel
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher Event handler.
- * @constructor
- * @extends {ol.pointer.EventSource}
- */var _ol_pointer_NativeSource_=function(dispatcher){var mapping={'pointerdown':this.pointerDown,'pointermove':this.pointerMove,'pointerup':this.pointerUp,'pointerout':this.pointerOut,'pointerover':this.pointerOver,'pointercancel':this.pointerCancel,'gotpointercapture':this.gotPointerCapture,'lostpointercapture':this.lostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);};_ol_.inherits(_ol_pointer_NativeSource_,_ol_pointer_EventSource_);/**
+var _ol_pointer_NativeSource_=function(dispatcher){var mapping={'pointerdown':this.pointerDown,'pointermove':this.pointerMove,'pointerup':this.pointerUp,'pointerout':this.pointerOut,'pointerover':this.pointerOver,'pointercancel':this.pointerCancel,'gotpointercapture':this.gotPointerCapture,'lostpointercapture':this.lostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);};_ol_.inherits(_ol_pointer_NativeSource_,_ol_pointer_EventSource_);/**
  * Handler for `pointerdown`.
  *
  * @param {Event} inEvent The in event.
@@ -10353,19 +9617,7 @@ if(_ol_pointer_MouseSource_.POINTER_ID.toString()in this.pointerMap){this.cancel
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * A class for pointer events.
- *
- * This class is used as an abstraction for mouse events,
- * touch events and even native pointer events.
- *
- * @constructor
- * @extends {ol.events.Event}
- * @param {string} type The type of the event to create.
- * @param {Event} originalEvent The event.
- * @param {Object.<string, ?>=} opt_eventDict An optional dictionary of
- *    initial event properties.
- */var _ol_pointer_PointerEvent_=function(type,originalEvent,opt_eventDict){_ol_events_Event_.call(this,type);/**
+var _ol_pointer_PointerEvent_=function(type,originalEvent,opt_eventDict){_ol_events_Event_.call(this,type);/**
    * @const
    * @type {Event}
    */this.originalEvent=originalEvent;var eventDict=opt_eventDict?opt_eventDict:{};/**
@@ -10486,12 +9738,7 @@ var pressure=0;if(eventDict.pressure){pressure=eventDict.pressure;}else{pressure
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * @constructor
- * @param {ol.pointer.PointerEventHandler} dispatcher The event handler.
- * @param {ol.pointer.MouseSource} mouseSource Mouse source.
- * @extends {ol.pointer.EventSource}
- */var _ol_pointer_TouchSource_=function(dispatcher,mouseSource){var mapping={'touchstart':this.touchstart,'touchmove':this.touchmove,'touchend':this.touchend,'touchcancel':this.touchcancel};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
+var _ol_pointer_TouchSource_=function(dispatcher,mouseSource){var mapping={'touchstart':this.touchstart,'touchmove':this.touchmove,'touchend':this.touchend,'touchcancel':this.touchcancel};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
    * @const
    * @type {!Object.<string, Event|Object>}
    */this.pointerMap=dispatcher.pointerMap;/**
@@ -10648,11 +9895,7 @@ _ol_array_.remove(lts,lt);},_ol_pointer_TouchSource_.DEDUP_TIMEOUT);}};// Based 
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * @constructor
- * @extends {ol.events.EventTarget}
- * @param {Element|HTMLDocument} element Viewport element.
- */var _ol_pointer_PointerEventHandler_=function(element){_ol_events_EventTarget_.call(this);/**
+var _ol_pointer_PointerEventHandler_=function(element){_ol_events_EventTarget_.call(this);/**
    * @const
    * @private
    * @type {Element|HTMLDocument}
@@ -10780,11 +10023,7 @@ this.register_();};/**
 ['bubbles',false],['cancelable',false],['view',null],['detail',null],['screenX',0],['screenY',0],['clientX',0],['clientY',0],['ctrlKey',false],['altKey',false],['shiftKey',false],['metaKey',false],['button',0],['relatedTarget',null],// DOM Level 3
 ['buttons',0],// PointerEvent
 ['pointerId',0],['width',0],['height',0],['pressure',0],['tiltX',0],['tiltY',0],['pointerType',''],['hwTimestamp',0],['isPrimary',false],// event instance
-['type',''],['target',null],['currentTarget',null],['which',0]];/**
- * @param {ol.Map} map The map with the viewport to listen to events on.
- * @constructor
- * @extends {ol.events.EventTarget}
- */var _ol_MapBrowserEventHandler_=function(map){_ol_events_EventTarget_.call(this);/**
+['type',''],['target',null],['currentTarget',null],['which',0]];var _ol_MapBrowserEventHandler_=function(map){_ol_events_EventTarget_.call(this);/**
    * This is the element that we will listen to the real events on.
    * @type {ol.Map}
    * @private
@@ -10890,21 +10129,7 @@ pointerEvent.preventDefault();};/**
  * @inheritDoc
  */_ol_MapBrowserEventHandler_.prototype.disposeInternal=function(){if(this.relayedListenerKey_){_ol_events_.unlistenByKey(this.relayedListenerKey_);this.relayedListenerKey_=null;}if(this.pointerdownListenerKey_){_ol_events_.unlistenByKey(this.pointerdownListenerKey_);this.pointerdownListenerKey_=null;}this.dragListenerKeys_.forEach(_ol_events_.unlistenByKey);this.dragListenerKeys_.length=0;if(this.documentPointerEventHandler_){this.documentPointerEventHandler_.dispose();this.documentPointerEventHandler_=null;}if(this.pointerEventHandler_){this.pointerEventHandler_.dispose();this.pointerEventHandler_=null;}_ol_events_EventTarget_.prototype.disposeInternal.call(this);};/**
  * @enum {string}
- */var _ol_MapProperty_={LAYERGROUP:'layergroup',SIZE:'size',TARGET:'target',VIEW:'view'};/**
- * Priority queue.
- *
- * The implementation is inspired from the Closure Library's Heap class and
- * Python's heapq module.
- *
- * @see http://closure-library.googlecode.com/svn/docs/closure_goog_structs_heap.js.source.html
- * @see http://hg.python.org/cpython/file/2.7/Lib/heapq.py
- *
- * @constructor
- * @param {function(T): number} priorityFunction Priority function.
- * @param {function(T): string} keyFunction Key function.
- * @struct
- * @template T
- */var _ol_structs_PriorityQueue_=function(priorityFunction,keyFunction){/**
+ */var _ol_MapProperty_={LAYERGROUP:'layergroup',SIZE:'size',TARGET:'target',VIEW:'view'};var _ol_structs_PriorityQueue_=function(priorityFunction,keyFunction){/**
    * @type {function(T): number}
    * @private
    */this.priorityFunction_=priorityFunction;/**
@@ -10969,15 +10194,7 @@ var priority=this.priorityFunction_(element);if(priority!=_ol_structs_PriorityQu
  * @private
  */_ol_structs_PriorityQueue_.prototype.siftDown_=function(startIndex,index){var elements=this.elements_;var priorities=this.priorities_;var element=elements[index];var priority=priorities[index];while(index>startIndex){var parentIndex=this.getParentIndex_(index);if(priorities[parentIndex]>priority){elements[index]=elements[parentIndex];priorities[index]=priorities[parentIndex];index=parentIndex;}else{break;}}elements[index]=element;priorities[index]=priority;};/**
  * FIXME empty description for jsdoc
- */_ol_structs_PriorityQueue_.prototype.reprioritize=function(){var priorityFunction=this.priorityFunction_;var elements=this.elements_;var priorities=this.priorities_;var index=0;var n=elements.length;var element,i,priority;for(i=0;i<n;++i){element=elements[i];priority=priorityFunction(element);if(priority==_ol_structs_PriorityQueue_.DROP){delete this.queuedElements_[this.keyFunction_(element)];}else{priorities[index]=priority;elements[index++]=element;}}elements.length=index;priorities.length=index;this.heapify_();};/**
- * @constructor
- * @extends {ol.structs.PriorityQueue.<Array>}
- * @param {ol.TilePriorityFunction} tilePriorityFunction
- *     Tile priority function.
- * @param {function(): ?} tileChangeCallback
- *     Function called on each tile change event.
- * @struct
- */var _ol_TileQueue_=function(tilePriorityFunction,tileChangeCallback){_ol_structs_PriorityQueue_.call(this,/**
+ */_ol_structs_PriorityQueue_.prototype.reprioritize=function(){var priorityFunction=this.priorityFunction_;var elements=this.elements_;var priorities=this.priorities_;var index=0;var n=elements.length;var element,i,priority;for(i=0;i<n;++i){element=elements[i];priority=priorityFunction(element);if(priority==_ol_structs_PriorityQueue_.DROP){delete this.queuedElements_[this.keyFunction_(element)];}else{priorities[index]=priority;elements[index++]=element;}}elements.length=index;priorities.length=index;this.heapify_();};var _ol_TileQueue_=function(tilePriorityFunction,tileChangeCallback){_ol_structs_PriorityQueue_.call(this,/**
        * @param {Array} element Element.
        * @return {number} Priority.
        */function(element){return tilePriorityFunction.apply(null,element);},/**
@@ -11003,18 +10220,7 @@ var priority=this.priorityFunction_(element);if(priority!=_ol_structs_PriorityQu
  * @param {number} maxTotalLoading Maximum number tiles to load simultaneously.
  * @param {number} maxNewLoads Maximum number of new tiles to load.
  */_ol_TileQueue_.prototype.loadMoreTiles=function(maxTotalLoading,maxNewLoads){var newLoads=0;var tile,tileKey;while(this.tilesLoading_<maxTotalLoading&&newLoads<maxNewLoads&&this.getCount()>0){tile=/** @type {ol.Tile} */this.dequeue()[0];tileKey=tile.getKey();if(tile.getState()===_ol_TileState_.IDLE&&!(tileKey in this.tilesLoadingKeys_)){this.tilesLoadingKeys_[tileKey]=true;++this.tilesLoading_;++newLoads;tile.load();}}};// FIXME handle date line wrap
-/**
- * @classdesc
- * Control to show all the attributions associated with the layer sources
- * in the map. This control is one of the default controls included in maps.
- * By default it will show in the bottom right portion of the map, but this can
- * be changed by using a css selector for `.ol-attribution`.
- *
- * @constructor
- * @extends {ol.control.Control}
- * @param {olx.control.AttributionOptions=} opt_options Attribution options.
- * @api
- */var _ol_control_Attribution_=function(opt_options){var options=opt_options?opt_options:{};/**
+var _ol_control_Attribution_=function(opt_options){var options=opt_options?opt_options:{};/**
    * @private
    * @type {Element}
    */this.ulElement_=document.createElement('UL');/**
@@ -11082,17 +10288,7 @@ var priority=this.priorityFunction_(element);if(priority!=_ol_structs_PriorityQu
  * otherwise.
  * @return {boolean} True if the widget is collapsed.
  * @api
- */_ol_control_Attribution_.prototype.getCollapsed=function(){return this.collapsed_;};/**
- * @classdesc
- * A button control to reset rotation to 0.
- * To style this control use css selector `.ol-rotate`. A `.ol-hidden` css
- * selector is added to the button when the rotation is 0.
- *
- * @constructor
- * @extends {ol.control.Control}
- * @param {olx.control.RotateOptions=} opt_options Rotate options.
- * @api
- */var _ol_control_Rotate_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-rotate';var label=options.label!==undefined?options.label:'\u21E7';/**
+ */_ol_control_Attribution_.prototype.getCollapsed=function(){return this.collapsed_;};var _ol_control_Rotate_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-rotate';var label=options.label!==undefined?options.label:'\u21E7';/**
    * @type {Element}
    * @private
    */this.label_=null;if(typeof label==='string'){this.label_=document.createElement('span');this.label_.className='ol-compass';this.label_.textContent=label;}else{this.label_=label;this.label_.classList.add('ol-compass');}var tipLabel=options.tipLabel?options.tipLabel:'Reset rotation';var button=document.createElement('button');button.className=className+'-reset';button.setAttribute('type','button');button.title=tipLabel;button.appendChild(this.label_);_ol_events_.listen(button,_ol_events_EventType_.CLICK,_ol_control_Rotate_.prototype.handleClick_,this);var cssClasses=className+' '+_ol_css_.CLASS_UNSELECTABLE+' '+_ol_css_.CLASS_CONTROL;var element=document.createElement('div');element.className=cssClasses;element.appendChild(button);var render=options.render?options.render:_ol_control_Rotate_.render;this.callResetNorth_=options.resetNorth?options.resetNorth:undefined;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});/**
@@ -11116,17 +10312,7 @@ return;}if(view.getRotation()!==undefined){if(this.duration_>0){view.animate({ro
  * @param {ol.MapEvent} mapEvent Map event.
  * @this {ol.control.Rotate}
  * @api
- */_ol_control_Rotate_.render=function(mapEvent){var frameState=mapEvent.frameState;if(!frameState){return;}var rotation=frameState.viewState.rotation;if(rotation!=this.rotation_){var transform='rotate('+rotation+'rad)';if(this.autoHide_){var contains=this.element.classList.contains(_ol_css_.CLASS_HIDDEN);if(!contains&&rotation===0){this.element.classList.add(_ol_css_.CLASS_HIDDEN);}else if(contains&&rotation!==0){this.element.classList.remove(_ol_css_.CLASS_HIDDEN);}}this.label_.style.msTransform=transform;this.label_.style.webkitTransform=transform;this.label_.style.transform=transform;}this.rotation_=rotation;};/**
- * @classdesc
- * A control with 2 buttons, one for zoom in and one for zoom out.
- * This control is one of the default controls of a map. To style this control
- * use css selectors `.ol-zoom-in` and `.ol-zoom-out`.
- *
- * @constructor
- * @extends {ol.control.Control}
- * @param {olx.control.ZoomOptions=} opt_options Zoom options.
- * @api
- */var _ol_control_Zoom_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-zoom';var delta=options.delta!==undefined?options.delta:1;var zoomInLabel=options.zoomInLabel!==undefined?options.zoomInLabel:'+';var zoomOutLabel=options.zoomOutLabel!==undefined?options.zoomOutLabel:'\u2212';var zoomInTipLabel=options.zoomInTipLabel!==undefined?options.zoomInTipLabel:'Zoom in';var zoomOutTipLabel=options.zoomOutTipLabel!==undefined?options.zoomOutTipLabel:'Zoom out';var inElement=document.createElement('button');inElement.className=className+'-in';inElement.setAttribute('type','button');inElement.title=zoomInTipLabel;inElement.appendChild(typeof zoomInLabel==='string'?document.createTextNode(zoomInLabel):zoomInLabel);_ol_events_.listen(inElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,delta));var outElement=document.createElement('button');outElement.className=className+'-out';outElement.setAttribute('type','button');outElement.title=zoomOutTipLabel;outElement.appendChild(typeof zoomOutLabel==='string'?document.createTextNode(zoomOutLabel):zoomOutLabel);_ol_events_.listen(outElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,-delta));var cssClasses=className+' '+_ol_css_.CLASS_UNSELECTABLE+' '+_ol_css_.CLASS_CONTROL;var element=document.createElement('div');element.className=cssClasses;element.appendChild(inElement);element.appendChild(outElement);_ol_control_Control_.call(this,{element:element,target:options.target});/**
+ */_ol_control_Rotate_.render=function(mapEvent){var frameState=mapEvent.frameState;if(!frameState){return;}var rotation=frameState.viewState.rotation;if(rotation!=this.rotation_){var transform='rotate('+rotation+'rad)';if(this.autoHide_){var contains=this.element.classList.contains(_ol_css_.CLASS_HIDDEN);if(!contains&&rotation===0){this.element.classList.add(_ol_css_.CLASS_HIDDEN);}else if(contains&&rotation!==0){this.element.classList.remove(_ol_css_.CLASS_HIDDEN);}}this.label_.style.msTransform=transform;this.label_.style.webkitTransform=transform;this.label_.style.transform=transform;}this.rotation_=rotation;};var _ol_control_Zoom_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-zoom';var delta=options.delta!==undefined?options.delta:1;var zoomInLabel=options.zoomInLabel!==undefined?options.zoomInLabel:'+';var zoomOutLabel=options.zoomOutLabel!==undefined?options.zoomOutLabel:'\u2212';var zoomInTipLabel=options.zoomInTipLabel!==undefined?options.zoomInTipLabel:'Zoom in';var zoomOutTipLabel=options.zoomOutTipLabel!==undefined?options.zoomOutTipLabel:'Zoom out';var inElement=document.createElement('button');inElement.className=className+'-in';inElement.setAttribute('type','button');inElement.title=zoomInTipLabel;inElement.appendChild(typeof zoomInLabel==='string'?document.createTextNode(zoomInLabel):zoomInLabel);_ol_events_.listen(inElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,delta));var outElement=document.createElement('button');outElement.className=className+'-out';outElement.setAttribute('type','button');outElement.title=zoomOutTipLabel;outElement.appendChild(typeof zoomOutLabel==='string'?document.createTextNode(zoomOutLabel):zoomOutLabel);_ol_events_.listen(outElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,-delta));var cssClasses=className+' '+_ol_css_.CLASS_UNSELECTABLE+' '+_ol_css_.CLASS_CONTROL;var element=document.createElement('div');element.className=cssClasses;element.appendChild(inElement);element.appendChild(outElement);_ol_control_Control_.call(this,{element:element,target:options.target});/**
    * @type {number}
    * @private
    */this.duration_=options.duration!==undefined?options.duration:250;};_ol_.inherits(_ol_control_Zoom_,_ol_control_Control_);/**
@@ -11194,15 +10380,7 @@ var firstIndex=lastIndex-3;while(firstIndex>0&&this.points_[firstIndex+2]>delay)
  * @return {number} Total distance travelled (pixels).
  */_ol_Kinetic_.prototype.getDistance=function(){return(this.minVelocity_-this.initialVelocity_)/this.decay_;};/**
  * @return {number} Angle of the kinetic panning animation (radians).
- */_ol_Kinetic_.prototype.getAngle=function(){return this.angle_;};/**
- * @classdesc
- * Allows the user to zoom by double-clicking on the map.
- *
- * @constructor
- * @extends {ol.interaction.Interaction}
- * @param {olx.interaction.DoubleClickZoomOptions=} opt_options Options.
- * @api
- */var _ol_interaction_DoubleClickZoom_=function(opt_options){var options=opt_options?opt_options:{};/**
+ */_ol_Kinetic_.prototype.getAngle=function(){return this.angle_;};var _ol_interaction_DoubleClickZoom_=function(opt_options){var options=opt_options?opt_options:{};/**
    * @private
    * @type {number}
    */this.delta_=options.delta?options.delta:1;_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_DoubleClickZoom_.handleEvent});/**
@@ -11215,15 +10393,7 @@ var firstIndex=lastIndex-3;while(firstIndex>0&&this.points_[firstIndex+2]>delay)
  * @return {boolean} `false` to stop event propagation.
  * @this {ol.interaction.DoubleClickZoom}
  * @api
- */_ol_interaction_DoubleClickZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;var browserEvent=mapBrowserEvent.originalEvent;if(mapBrowserEvent.type==_ol_MapBrowserEventType_.DBLCLICK){var map=mapBrowserEvent.map;var anchor=mapBrowserEvent.coordinate;var delta=browserEvent.shiftKey?-this.delta_:this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,anchor,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}return!stopEvent;};/**
- * @classdesc
- * Allows the user to pan the map by dragging the map.
- *
- * @constructor
- * @extends {ol.interaction.Pointer}
- * @param {olx.interaction.DragPanOptions=} opt_options Options.
- * @api
- */var _ol_interaction_DragPan_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragPan_.handleDownEvent_,handleDragEvent:_ol_interaction_DragPan_.handleDragEvent_,handleUpEvent:_ol_interaction_DragPan_.handleUpEvent_});var options=opt_options?opt_options:{};/**
+ */_ol_interaction_DoubleClickZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;var browserEvent=mapBrowserEvent.originalEvent;if(mapBrowserEvent.type==_ol_MapBrowserEventType_.DBLCLICK){var map=mapBrowserEvent.map;var anchor=mapBrowserEvent.coordinate;var delta=browserEvent.shiftKey?-this.delta_:this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,anchor,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}return!stopEvent;};var _ol_interaction_DragPan_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragPan_.handleDownEvent_,handleDragEvent:_ol_interaction_DragPan_.handleDragEvent_,handleUpEvent:_ol_interaction_DragPan_.handleUpEvent_});var options=opt_options?opt_options:{};/**
    * @private
    * @type {ol.Kinetic|undefined}
    */this.kinetic_=options.kinetic;/**
@@ -11259,19 +10429,7 @@ if(view.getHints()[_ol_ViewHint_.ANIMATING]){view.setCenter(mapBrowserEvent.fram
 // detected. This is to prevent nasty pans after pinch.
 this.noKinetic_=this.targetPointers.length>1;return true;}else{return false;}};/**
  * @inheritDoc
- */_ol_interaction_DragPan_.prototype.shouldStopEvent=_ol_functions_.FALSE;/**
- * @classdesc
- * Allows the user to rotate the map by clicking and dragging on the map,
- * normally combined with an {@link ol.events.condition} that limits
- * it to when the alt and shift keys are held down.
- *
- * This interaction is only supported for mouse devices.
- *
- * @constructor
- * @extends {ol.interaction.Pointer}
- * @param {olx.interaction.DragRotateOptions=} opt_options Options.
- * @api
- */var _ol_interaction_DragRotate_=function(opt_options){var options=opt_options?opt_options:{};_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_DragRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_DragRotate_.handleUpEvent_});/**
+ */_ol_interaction_DragPan_.prototype.shouldStopEvent=_ol_functions_.FALSE;var _ol_interaction_DragRotate_=function(opt_options){var options=opt_options?opt_options:{};_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_DragRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_DragRotate_.handleUpEvent_});/**
    * @private
    * @type {ol.EventsConditionType}
    */this.condition_=options.condition?options.condition:_ol_events_condition_.altShiftKeysOnly;/**
@@ -11297,11 +10455,7 @@ this.noKinetic_=this.targetPointers.length>1;return true;}else{return false;}};/
  */_ol_interaction_DragRotate_.handleDownEvent_=function(mapBrowserEvent){if(!_ol_events_condition_.mouseOnly(mapBrowserEvent)){return false;}if(_ol_events_condition_.mouseActionButton(mapBrowserEvent)&&this.condition_(mapBrowserEvent)){var map=mapBrowserEvent.map;map.getView().setHint(_ol_ViewHint_.INTERACTING,1);this.lastAngle_=undefined;return true;}else{return false;}};/**
  * @inheritDoc
  */_ol_interaction_DragRotate_.prototype.shouldStopEvent=_ol_functions_.FALSE;// FIXME add rotation
-/**
- * @constructor
- * @extends {ol.Disposable}
- * @param {string} className CSS class name.
- */var _ol_render_Box_=function(className){/**
+var _ol_render_Box_=function(className){/**
    * @type {ol.geom.Polygon}
    * @private
    */this.geometry_=null;/**
@@ -11331,23 +10485,7 @@ this.noKinetic_=this.targetPointers.length>1;return true;}else{return false;}};/
 coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol_geom_Polygon_([coordinates]);}else{this.geometry_.setCoordinates([coordinates]);}};/**
  * @return {ol.geom.Polygon} Geometry.
  */_ol_render_Box_.prototype.getGeometry=function(){return this.geometry_;};// FIXME draw drag box
-/**
- * @classdesc
- * Allows the user to draw a vector box by clicking and dragging on the map,
- * normally combined with an {@link ol.events.condition} that limits
- * it to when the shift or other key is held down. This is used, for example,
- * for zooming to a specific area of the map
- * (see {@link ol.interaction.DragZoom} and
- * {@link ol.interaction.DragRotateAndZoom}).
- *
- * This interaction is only supported for mouse devices.
- *
- * @constructor
- * @extends {ol.interaction.Pointer}
- * @fires ol.interaction.DragBox.Event
- * @param {olx.interaction.DragBoxOptions=} opt_options Options.
- * @api
- */var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragBox_.handleDownEvent_,handleDragEvent:_ol_interaction_DragBox_.handleDragEvent_,handleUpEvent:_ol_interaction_DragBox_.handleUpEvent_});var options=opt_options?opt_options:{};/**
+var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragBox_.handleDownEvent_,handleDragEvent:_ol_interaction_DragBox_.handleDragEvent_,handleUpEvent:_ol_interaction_DragBox_.handleUpEvent_});var options=opt_options?opt_options:{};/**
    * @type {ol.render.Box}
    * @private
    */this.box_=new _ol_render_Box_(options.className||'ol-dragbox');/**
@@ -11429,20 +10567,7 @@ coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol
    * @const
    * @type {ol.MapBrowserEvent}
    * @api
-   */this.mapBrowserEvent=mapBrowserEvent;};_ol_.inherits(_ol_interaction_DragBox_.Event,_ol_events_Event_);/**
- * @classdesc
- * Allows the user to zoom the map by clicking and dragging on the map,
- * normally combined with an {@link ol.events.condition} that limits
- * it to when a key, shift by default, is held down.
- *
- * To change the style of the box, use CSS and the `.ol-dragzoom` selector, or
- * your custom one configured with `className`.
- *
- * @constructor
- * @extends {ol.interaction.DragBox}
- * @param {olx.interaction.DragZoomOptions=} opt_options Options.
- * @api
- */var _ol_interaction_DragZoom_=function(opt_options){var options=opt_options?opt_options:{};var condition=options.condition?options.condition:_ol_events_condition_.shiftKeyOnly;/**
+   */this.mapBrowserEvent=mapBrowserEvent;};_ol_.inherits(_ol_interaction_DragBox_.Event,_ol_events_Event_);var _ol_interaction_DragZoom_=function(opt_options){var options=opt_options?opt_options:{};var condition=options.condition?options.condition:_ol_events_condition_.shiftKeyOnly;/**
    * @private
    * @type {number}
    */this.duration_=options.duration!==undefined?options.duration:200;/**
@@ -11453,23 +10578,7 @@ coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol
  */_ol_interaction_DragZoom_.prototype.onBoxEnd=function(){var map=this.getMap();var view=/** @type {!ol.View} */map.getView();var size=/** @type {!ol.Size} */map.getSize();var extent=this.getGeometry().getExtent();if(this.out_){var mapExtent=view.calculateExtent(size);var boxPixelExtent=_ol_extent_.createOrUpdateFromCoordinates([map.getPixelFromCoordinate(_ol_extent_.getBottomLeft(extent)),map.getPixelFromCoordinate(_ol_extent_.getTopRight(extent))]);var factor=view.getResolutionForExtent(boxPixelExtent,size);_ol_extent_.scaleFromCenter(mapExtent,1/factor);extent=mapExtent;}var resolution=view.constrainResolution(view.getResolutionForExtent(extent,size));var center=_ol_extent_.getCenter(extent);center=view.constrainCenter(center);view.animate({resolution:resolution,center:center,duration:this.duration_,easing:_ol_easing_.easeOut});};/**
  * @enum {number}
  * @const
- */var _ol_events_KeyCode_={LEFT:37,UP:38,RIGHT:39,DOWN:40};/**
- * @classdesc
- * Allows the user to pan the map using keyboard arrows.
- * Note that, although this interaction is by default included in maps,
- * the keys can only be used when browser focus is on the element to which
- * the keyboard events are attached. By default, this is the map div,
- * though you can change this with the `keyboardEventTarget` in
- * {@link ol.Map}. `document` never loses focus but, for any other element,
- * focus will have to be on, and returned to, this element if the keys are to
- * function.
- * See also {@link ol.interaction.KeyboardZoom}.
- *
- * @constructor
- * @extends {ol.interaction.Interaction}
- * @param {olx.interaction.KeyboardPanOptions=} opt_options Options.
- * @api
- */var _ol_interaction_KeyboardPan_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardPan_.handleEvent});var options=opt_options||{};/**
+ */var _ol_events_KeyCode_={LEFT:37,UP:38,RIGHT:39,DOWN:40};var _ol_interaction_KeyboardPan_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardPan_.handleEvent});var options=opt_options||{};/**
    * @private
    * @param {ol.MapBrowserEvent} mapBrowserEvent Browser event.
    * @return {boolean} Combined condition result.
@@ -11490,23 +10599,7 @@ coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol
  * @return {boolean} `false` to stop event propagation.
  * @this {ol.interaction.KeyboardPan}
  * @api
- */_ol_interaction_KeyboardPan_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN){var keyEvent=mapBrowserEvent.originalEvent;var keyCode=keyEvent.keyCode;if(this.condition_(mapBrowserEvent)&&(keyCode==_ol_events_KeyCode_.DOWN||keyCode==_ol_events_KeyCode_.LEFT||keyCode==_ol_events_KeyCode_.RIGHT||keyCode==_ol_events_KeyCode_.UP)){var map=mapBrowserEvent.map;var view=map.getView();var mapUnitsDelta=view.getResolution()*this.pixelDelta_;var deltaX=0,deltaY=0;if(keyCode==_ol_events_KeyCode_.DOWN){deltaY=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.LEFT){deltaX=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.RIGHT){deltaX=mapUnitsDelta;}else{deltaY=mapUnitsDelta;}var delta=[deltaX,deltaY];_ol_coordinate_.rotate(delta,view.getRotation());_ol_interaction_Interaction_.pan(view,delta,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};/**
- * @classdesc
- * Allows the user to zoom the map using keyboard + and -.
- * Note that, although this interaction is by default included in maps,
- * the keys can only be used when browser focus is on the element to which
- * the keyboard events are attached. By default, this is the map div,
- * though you can change this with the `keyboardEventTarget` in
- * {@link ol.Map}. `document` never loses focus but, for any other element,
- * focus will have to be on, and returned to, this element if the keys are to
- * function.
- * See also {@link ol.interaction.KeyboardPan}.
- *
- * @constructor
- * @param {olx.interaction.KeyboardZoomOptions=} opt_options Options.
- * @extends {ol.interaction.Interaction}
- * @api
- */var _ol_interaction_KeyboardZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardZoom_.handleEvent});var options=opt_options?opt_options:{};/**
+ */_ol_interaction_KeyboardPan_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN){var keyEvent=mapBrowserEvent.originalEvent;var keyCode=keyEvent.keyCode;if(this.condition_(mapBrowserEvent)&&(keyCode==_ol_events_KeyCode_.DOWN||keyCode==_ol_events_KeyCode_.LEFT||keyCode==_ol_events_KeyCode_.RIGHT||keyCode==_ol_events_KeyCode_.UP)){var map=mapBrowserEvent.map;var view=map.getView();var mapUnitsDelta=view.getResolution()*this.pixelDelta_;var deltaX=0,deltaY=0;if(keyCode==_ol_events_KeyCode_.DOWN){deltaY=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.LEFT){deltaX=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.RIGHT){deltaX=mapUnitsDelta;}else{deltaY=mapUnitsDelta;}var delta=[deltaX,deltaY];_ol_coordinate_.rotate(delta,view.getRotation());_ol_interaction_Interaction_.pan(view,delta,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};var _ol_interaction_KeyboardZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardZoom_.handleEvent});var options=opt_options?opt_options:{};/**
    * @private
    * @type {ol.EventsConditionType}
    */this.condition_=options.condition?options.condition:_ol_events_condition_.targetNotEditable;/**
@@ -11523,15 +10616,7 @@ coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol
  * @return {boolean} `false` to stop event propagation.
  * @this {ol.interaction.KeyboardZoom}
  * @api
- */_ol_interaction_KeyboardZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN||mapBrowserEvent.type==_ol_events_EventType_.KEYPRESS){var keyEvent=mapBrowserEvent.originalEvent;var charCode=keyEvent.charCode;if(this.condition_(mapBrowserEvent)&&(charCode=='+'.charCodeAt(0)||charCode=='-'.charCodeAt(0))){var map=mapBrowserEvent.map;var delta=charCode=='+'.charCodeAt(0)?this.delta_:-this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,undefined,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};/**
- * @classdesc
- * Allows the user to zoom the map by scrolling the mouse wheel.
- *
- * @constructor
- * @extends {ol.interaction.Interaction}
- * @param {olx.interaction.MouseWheelZoomOptions=} opt_options Options.
- * @api
- */var _ol_interaction_MouseWheelZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_MouseWheelZoom_.handleEvent});var options=opt_options||{};/**
+ */_ol_interaction_KeyboardZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN||mapBrowserEvent.type==_ol_events_EventType_.KEYPRESS){var keyEvent=mapBrowserEvent.originalEvent;var charCode=keyEvent.charCode;if(this.condition_(mapBrowserEvent)&&(charCode=='+'.charCodeAt(0)||charCode=='-'.charCodeAt(0))){var map=mapBrowserEvent.map;var delta=charCode=='+'.charCodeAt(0)?this.delta_:-this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,undefined,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};var _ol_interaction_MouseWheelZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_MouseWheelZoom_.handleEvent});var options=opt_options||{};/**
    * @private
    * @type {number}
    */this.delta_=0;/**
@@ -11594,16 +10679,7 @@ var delta;if(mapBrowserEvent.type==_ol_events_EventType_.WHEEL){delta=wheelEvent
  */_ol_interaction_MouseWheelZoom_.prototype.setMouseAnchor=function(useAnchor){this.useAnchor_=useAnchor;if(!useAnchor){this.lastAnchor_=null;}};/**
  * @enum {string}
  * @private
- */_ol_interaction_MouseWheelZoom_.Mode_={TRACKPAD:'trackpad',WHEEL:'wheel'};/**
- * @classdesc
- * Allows the user to rotate the map by twisting with two fingers
- * on a touch screen.
- *
- * @constructor
- * @extends {ol.interaction.Pointer}
- * @param {olx.interaction.PinchRotateOptions=} opt_options Options.
- * @api
- */var _ol_interaction_PinchRotate_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchRotate_.handleUpEvent_});var options=opt_options||{};/**
+ */_ol_interaction_MouseWheelZoom_.Mode_={TRACKPAD:'trackpad',WHEEL:'wheel'};var _ol_interaction_PinchRotate_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchRotate_.handleUpEvent_});var options=opt_options||{};/**
    * @private
    * @type {ol.Coordinate}
    */this.anchor_=null;/**
@@ -11642,16 +10718,7 @@ if(this.rotating_){var view=map.getView();var rotation=view.getRotation();map.re
  * @private
  */_ol_interaction_PinchRotate_.handleDownEvent_=function(mapBrowserEvent){if(this.targetPointers.length>=2){var map=mapBrowserEvent.map;this.anchor_=null;this.lastAngle_=undefined;this.rotating_=false;this.rotationDelta_=0.0;if(!this.handlingDownUpSequence){map.getView().setHint(_ol_ViewHint_.INTERACTING,1);}return true;}else{return false;}};/**
  * @inheritDoc
- */_ol_interaction_PinchRotate_.prototype.shouldStopEvent=_ol_functions_.FALSE;/**
- * @classdesc
- * Allows the user to zoom the map by pinching with two fingers
- * on a touch screen.
- *
- * @constructor
- * @extends {ol.interaction.Pointer}
- * @param {olx.interaction.PinchZoomOptions=} opt_options Options.
- * @api
- */var _ol_interaction_PinchZoom_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchZoom_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchZoom_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchZoom_.handleUpEvent_});var options=opt_options?opt_options:{};/**
+ */_ol_interaction_PinchRotate_.prototype.shouldStopEvent=_ol_functions_.FALSE;var _ol_interaction_PinchZoom_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchZoom_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchZoom_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchZoom_.handleUpEvent_});var options=opt_options?opt_options:{};/**
    * @private
    * @type {boolean}
    */this.constrainResolution_=options.constrainResolution||false;/**
@@ -11710,17 +10777,7 @@ var direction=this.lastScaleDelta_-1;_ol_interaction_Interaction_.zoom(view,reso
  * @return {ol.Collection.<ol.interaction.Interaction>} A collection of
  * interactions to be used with the ol.Map constructor's interactions option.
  * @api
- */_ol_interaction_.defaults=function(opt_options){var options=opt_options?opt_options:{};var interactions=new _ol_Collection_();var kinetic=new _ol_Kinetic_(-0.005,0.05,100);var altShiftDragRotate=options.altShiftDragRotate!==undefined?options.altShiftDragRotate:true;if(altShiftDragRotate){interactions.push(new _ol_interaction_DragRotate_());}var doubleClickZoom=options.doubleClickZoom!==undefined?options.doubleClickZoom:true;if(doubleClickZoom){interactions.push(new _ol_interaction_DoubleClickZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var dragPan=options.dragPan!==undefined?options.dragPan:true;if(dragPan){interactions.push(new _ol_interaction_DragPan_({kinetic:kinetic}));}var pinchRotate=options.pinchRotate!==undefined?options.pinchRotate:true;if(pinchRotate){interactions.push(new _ol_interaction_PinchRotate_());}var pinchZoom=options.pinchZoom!==undefined?options.pinchZoom:true;if(pinchZoom){interactions.push(new _ol_interaction_PinchZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var keyboard=options.keyboard!==undefined?options.keyboard:true;if(keyboard){interactions.push(new _ol_interaction_KeyboardPan_());interactions.push(new _ol_interaction_KeyboardZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var mouseWheelZoom=options.mouseWheelZoom!==undefined?options.mouseWheelZoom:true;if(mouseWheelZoom){interactions.push(new _ol_interaction_MouseWheelZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var shiftDragZoom=options.shiftDragZoom!==undefined?options.shiftDragZoom:true;if(shiftDragZoom){interactions.push(new _ol_interaction_DragZoom_({duration:options.zoomDuration}));}return interactions;};/**
- * @classdesc
- * A {@link ol.Collection} of layers that are handled together.
- *
- * A generic `change` event is triggered when the group/Collection changes.
- *
- * @constructor
- * @extends {ol.layer.Base}
- * @param {olx.layer.GroupOptions=} opt_options Layer options.
- * @api
- */var _ol_layer_Group_=function(opt_options){var options=opt_options||{};var baseOptions=/** @type {olx.layer.GroupOptions} */_ol_obj_.assign({},options);delete baseOptions.layers;var layers=options.layers;_ol_layer_Base_.call(this,baseOptions);/**
+ */_ol_interaction_.defaults=function(opt_options){var options=opt_options?opt_options:{};var interactions=new _ol_Collection_();var kinetic=new _ol_Kinetic_(-0.005,0.05,100);var altShiftDragRotate=options.altShiftDragRotate!==undefined?options.altShiftDragRotate:true;if(altShiftDragRotate){interactions.push(new _ol_interaction_DragRotate_());}var doubleClickZoom=options.doubleClickZoom!==undefined?options.doubleClickZoom:true;if(doubleClickZoom){interactions.push(new _ol_interaction_DoubleClickZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var dragPan=options.dragPan!==undefined?options.dragPan:true;if(dragPan){interactions.push(new _ol_interaction_DragPan_({kinetic:kinetic}));}var pinchRotate=options.pinchRotate!==undefined?options.pinchRotate:true;if(pinchRotate){interactions.push(new _ol_interaction_PinchRotate_());}var pinchZoom=options.pinchZoom!==undefined?options.pinchZoom:true;if(pinchZoom){interactions.push(new _ol_interaction_PinchZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var keyboard=options.keyboard!==undefined?options.keyboard:true;if(keyboard){interactions.push(new _ol_interaction_KeyboardPan_());interactions.push(new _ol_interaction_KeyboardZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var mouseWheelZoom=options.mouseWheelZoom!==undefined?options.mouseWheelZoom:true;if(mouseWheelZoom){interactions.push(new _ol_interaction_MouseWheelZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var shiftDragZoom=options.shiftDragZoom!==undefined?options.shiftDragZoom:true;if(shiftDragZoom){interactions.push(new _ol_interaction_DragZoom_({duration:options.zoomDuration}));}return interactions;};var _ol_layer_Group_=function(opt_options){var options=opt_options||{};var baseOptions=/** @type {olx.layer.GroupOptions} */_ol_obj_.assign({},options);delete baseOptions.layers;var layers=options.layers;_ol_layer_Base_.call(this,baseOptions);/**
    * @private
    * @type {Array.<ol.EventsKey>}
    */this.layersListenerKeys_=[];/**
@@ -11763,14 +10820,7 @@ layers=layers;}}else{layers=new _ol_Collection_(undefined,{unique:true});}this.s
  */_ol_layer_Group_.prototype.getSourceState=function(){return _ol_source_State_.READY;};/**
  * @enum {string}
  * @private
- */_ol_layer_Group_.Property_={LAYERS:'layers'};/**
- * @constructor
- * @abstract
- * @extends {ol.Disposable}
- * @param {Element} container Container.
- * @param {ol.Map} map Map.
- * @struct
- */var _ol_renderer_Map_=function(container,map){_ol_Disposable_.call(this);/**
+ */_ol_layer_Group_.Property_={LAYERS:'layers'};var _ol_renderer_Map_=function(container,map){_ol_Disposable_.call(this);/**
    * @private
    * @type {ol.Map}
    */this.map_=map;/**
@@ -11872,12 +10922,7 @@ layers=layers;}}else{layers=new _ol_Collection_(undefined,{unique:true});}this.s
  * @param {ol.LayerState} state2 Second layer state.
  * @return {number} The zIndex difference.
  */_ol_renderer_Map_.sortByZIndex=function(state1,state2){return state1.zIndex-state2.zIndex;};// FIXME offset panning
-/**
- * @constructor
- * @extends {ol.renderer.Map}
- * @param {Element} container Container.
- * @param {ol.Map} map Map.
- */var _ol_renderer_canvas_Map_=function(container,map){_ol_renderer_Map_.call(this,container,map);/**
+var _ol_renderer_canvas_Map_=function(container,map){_ol_renderer_Map_.call(this,container,map);/**
    * @private
    * @type {CanvasRenderingContext2D}
    */this.context_=_ol_dom_.createCanvasContext2D();/**
@@ -11903,14 +10948,7 @@ layers=layers;}}else{layers=new _ol_Collection_(undefined,{unique:true});}this.s
  * @inheritDoc
  */_ol_renderer_canvas_Map_.prototype.renderFrame=function(frameState){if(!frameState){if(this.renderedVisible_){this.canvas_.style.display='none';this.renderedVisible_=false;}return;}var context=this.context_;var pixelRatio=frameState.pixelRatio;var width=Math.round(frameState.size[0]*pixelRatio);var height=Math.round(frameState.size[1]*pixelRatio);if(this.canvas_.width!=width||this.canvas_.height!=height){this.canvas_.width=width;this.canvas_.height=height;}else{context.clearRect(0,0,width,height);}var rotation=frameState.viewState.rotation;this.calculateMatrices2D(frameState);this.dispatchComposeEvent_(_ol_render_EventType_.PRECOMPOSE,frameState);var layerStatesArray=frameState.layerStatesArray;_ol_array_.stableSort(layerStatesArray,_ol_renderer_Map_.sortByZIndex);if(rotation){context.save();_ol_render_canvas_.rotateAtOffset(context,rotation,width/2,height/2);}var viewResolution=frameState.viewState.resolution;var i,ii,layer,layerRenderer,layerState;for(i=0,ii=layerStatesArray.length;i<ii;++i){layerState=layerStatesArray[i];layer=layerState.layer;layerRenderer=/** @type {ol.renderer.canvas.Layer} */this.getLayerRenderer(layer);if(!_ol_layer_Layer_.visibleAtResolution(layerState,viewResolution)||layerState.sourceState!=_ol_source_State_.READY){continue;}if(layerRenderer.prepareFrame(frameState,layerState)){layerRenderer.composeFrame(frameState,layerState,context);}}if(rotation){context.restore();}this.dispatchComposeEvent_(_ol_render_EventType_.POSTCOMPOSE,frameState);if(!this.renderedVisible_){this.canvas_.style.display='';this.renderedVisible_=true;}this.scheduleRemoveUnusedLayerRenderers(frameState);this.scheduleExpireIconCache(frameState);};/**
  * @inheritDoc
- */_ol_renderer_canvas_Map_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg,layerFilter,thisArg2){var result;var viewState=frameState.viewState;var viewResolution=viewState.resolution;var layerStates=frameState.layerStatesArray;var numLayers=layerStates.length;var coordinate=_ol_transform_.apply(frameState.pixelToCoordinateTransform,pixel.slice());var i;for(i=numLayers-1;i>=0;--i){var layerState=layerStates[i];var layer=layerState.layer;if(_ol_layer_Layer_.visibleAtResolution(layerState,viewResolution)&&layerFilter.call(thisArg2,layer)){var layerRenderer=/** @type {ol.renderer.canvas.Layer} */this.getLayerRenderer(layer);result=layerRenderer.forEachLayerAtCoordinate(coordinate,frameState,callback,thisArg);if(result){return result;}}}return undefined;};/**
- * Implements a Least-Recently-Used cache where the keys do not conflict with
- * Object's properties (e.g. 'hasOwnProperty' is not allowed as a key). Expiring
- * items from the cache is the responsibility of the user.
- * @constructor
- * @struct
- * @template T
- */var _ol_structs_LRUCache_=function(){/**
+ */_ol_renderer_canvas_Map_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg,layerFilter,thisArg2){var result;var viewState=frameState.viewState;var viewResolution=viewState.resolution;var layerStates=frameState.layerStatesArray;var numLayers=layerStates.length;var coordinate=_ol_transform_.apply(frameState.pixelToCoordinateTransform,pixel.slice());var i;for(i=numLayers-1;i>=0;--i){var layerState=layerStates[i];var layer=layerState.layer;if(_ol_layer_Layer_.visibleAtResolution(layerState,viewResolution)&&layerFilter.call(thisArg2,layer)){var layerRenderer=/** @type {ol.renderer.canvas.Layer} */this.getLayerRenderer(layer);result=layerRenderer.forEachLayerAtCoordinate(coordinate,frameState,callback,thisArg);if(result){return result;}}}return undefined;};var _ol_structs_LRUCache_=function(){/**
    * @private
    * @type {number}
    */this.count_=0;/**
@@ -11962,10 +11000,7 @@ var entry=/** @type {ol.LRUCacheEntry} */{key_:key,newer:null,older:this.newest_
 var _ol_renderer_webgl_Map_;// FIXME recheck layer/map projection compatibility when projection changes
 // FIXME layer renderers should skip when they can't reproject
 // FIXME add tilt and height?
-/**
- * @const
- * @type {string}
- */_ol_.OL_URL='https://openlayers.org/';/**
+_ol_.OL_URL='https://openlayers.org/';/**
  * @const
  * @type {string}
  */_ol_.OL_LOGO_URL='data:image/png;base64,'+'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAA3NCSVQICAjb4U/gAAAACXBI'+'WXMAAAHGAAABxgEXwfpGAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAA'+'AhNQTFRF////AP//AICAgP//AFVVQECA////K1VVSbbbYL/fJ05idsTYJFtbbcjbJllmZszW'+'WMTOIFhoHlNiZszTa9DdUcHNHlNlV8XRIVdiasrUHlZjIVZjaMnVH1RlIFRkH1RkH1ZlasvY'+'asvXVsPQH1VkacnVa8vWIVZjIFRjVMPQa8rXIVVkXsXRsNveIFVkIFZlIVVj3eDeh6GmbMvX'+'H1ZkIFRka8rWbMvXIFVkIFVjIFVkbMvWH1VjbMvWIFVlbcvWIFVla8vVIFVkbMvWbMvVH1Vk'+'bMvWIFVlbcvWIFVkbcvVbMvWjNPbIFVkU8LPwMzNIFVkbczWIFVkbsvWbMvXIFVkRnB8bcvW'+'2+TkW8XRIFVkIlZlJVloJlpoKlxrLl9tMmJwOWd0Omh1RXF8TneCT3iDUHiDU8LPVMLPVcLP'+'VcPQVsPPVsPQV8PQWMTQWsTQW8TQXMXSXsXRX4SNX8bSYMfTYcfTYsfTY8jUZcfSZsnUaIqT'+'acrVasrVa8jTa8rWbI2VbMvWbcvWdJObdcvUdszUd8vVeJaee87Yfc3WgJyjhqGnitDYjaar'+'ldPZnrK2oNbborW5o9bbo9fbpLa6q9ndrL3ArtndscDDutzfu8fJwN7gwt7gxc/QyuHhy+Hi'+'zeHi0NfX0+Pj19zb1+Tj2uXk29/e3uLg3+Lh3+bl4uXj4ufl4+fl5Ofl5ufl5ujm5+jmySDn'+'BAAAAFp0Uk5TAAECAgMEBAYHCA0NDg4UGRogIiMmKSssLzU7PkJJT1JTVFliY2hrdHZ3foSF'+'hYeJjY2QkpugqbG1tre5w8zQ09XY3uXn6+zx8vT09vf4+Pj5+fr6/P39/f3+gz7SsAAAAVVJ'+'REFUOMtjYKA7EBDnwCPLrObS1BRiLoJLnte6CQy8FLHLCzs2QUG4FjZ5GbcmBDDjxJBXDWxC'+'Brb8aM4zbkIDzpLYnAcE9VXlJSWlZRU13koIeW57mGx5XjoMZEUqwxWYQaQbSzLSkYGfKFSe'+'0QMsX5WbjgY0YS4MBplemI4BdGBW+DQ11eZiymfqQuXZIjqwyadPNoSZ4L+0FVM6e+oGI6g8'+'a9iKNT3o8kVzNkzRg5lgl7p4wyRUL9Yt2jAxVh6mQCogae6GmflI8p0r13VFWTHBQ0rWPW7a'+'hgWVcPm+9cuLoyy4kCJDzCm6d8PSFoh0zvQNC5OjDJhQopPPJqph1doJBUD5tnkbZiUEqaCn'+'B3bTqLTFG1bPn71kw4b+GFdpLElKIzRxxgYgWNYc5SCENVHKeUaltHdXx0dZ8uBI1hJ2UUDg'+'q82CM2MwKeibqAvSO7MCABq0wXEPiqWEAAAAAElFTkSuQmCC';/**
@@ -12437,16 +11472,7 @@ logos[logo.src]=logo.href;}}var layerGroup=options.layers instanceof _ol_layer_G
 }if(rendererTypes.indexOf(/** @type {ol.renderer.Type} */'dom')>=0){rendererTypes=rendererTypes.concat(_ol_.DEFAULT_RENDERER_TYPES);}}else{rendererTypes=_ol_.DEFAULT_RENDERER_TYPES;}var i,ii;for(i=0,ii=rendererTypes.length;i<ii;++i){/** @type {ol.renderer.Type} */var rendererType=rendererTypes[i];if(_ol_.ENABLE_CANVAS&&rendererType==_ol_renderer_Type_.CANVAS){if(_ol_has_.CANVAS){rendererConstructor=_ol_renderer_canvas_Map_;break;}}else if(false&&rendererType==_ol_renderer_Type_.WEBGL){if(_ol_has_.WEBGL){rendererConstructor=_ol_renderer_webgl_Map_;break;}}}var controls;if(options.controls!==undefined){if(Array.isArray(options.controls)){controls=new _ol_Collection_(options.controls.slice());}else{_ol_asserts_.assert(options.controls instanceof _ol_Collection_,47);// Expected `controls` to be an array or an `ol.Collection`
 controls=options.controls;}}else{controls=_ol_control_.defaults();}var interactions;if(options.interactions!==undefined){if(Array.isArray(options.interactions)){interactions=new _ol_Collection_(options.interactions.slice());}else{_ol_asserts_.assert(options.interactions instanceof _ol_Collection_,48);// Expected `interactions` to be an array or an `ol.Collection`
 interactions=options.interactions;}}else{interactions=_ol_interaction_.defaults();}var overlays;if(options.overlays!==undefined){if(Array.isArray(options.overlays)){overlays=new _ol_Collection_(options.overlays.slice());}else{_ol_asserts_.assert(options.overlays instanceof _ol_Collection_,49);// Expected `overlays` to be an array or an `ol.Collection`
-overlays=options.overlays;}}else{overlays=new _ol_Collection_();}return{controls:controls,interactions:interactions,keyboardEventTarget:keyboardEventTarget,logos:logos,overlays:overlays,rendererConstructor:rendererConstructor,values:values};};/**
- * @classdesc
- * Base class for tiles.
- *
- * @constructor
- * @abstract
- * @extends {ol.events.EventTarget}
- * @param {ol.TileCoord} tileCoord Tile coordinate.
- * @param {ol.TileState} state State.
- */var _ol_Tile_=function(tileCoord,state){_ol_events_EventTarget_.call(this);/**
+overlays=options.overlays;}}else{overlays=new _ol_Collection_();}return{controls:controls,interactions:interactions,keyboardEventTarget:keyboardEventTarget,logos:logos,overlays:overlays,rendererConstructor:rendererConstructor,values:values};};var _ol_Tile_=function(tileCoord,state){_ol_events_EventTarget_.call(this);/**
    * @type {ol.TileCoord}
    */this.tileCoord=tileCoord;/**
    * @protected
@@ -12502,15 +11528,7 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
  * only needed for preloading or for reloading in case of an error.
  * @abstract
  * @api
- */_ol_Tile_.prototype.load=function(){};/**
- * @constructor
- * @extends {ol.Tile}
- * @param {ol.TileCoord} tileCoord Tile coordinate.
- * @param {ol.TileState} state State.
- * @param {string} src Image source URI.
- * @param {?string} crossOrigin Cross origin.
- * @param {ol.TileLoadFunctionType} tileLoadFunction Tile load function.
- */var _ol_ImageTile_=function(tileCoord,state,src,crossOrigin,tileLoadFunction){_ol_Tile_.call(this,tileCoord,state);/**
+ */_ol_Tile_.prototype.load=function(){};var _ol_ImageTile_=function(tileCoord,state,src,crossOrigin,tileLoadFunction){_ol_Tile_.call(this,tileCoord,state);/**
    * Image URI
    *
    * @private
@@ -12547,12 +11565,7 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
  * Discards event handlers which listen for load completion or errors.
  *
  * @private
- */_ol_ImageTile_.prototype.unlistenImage_=function(){this.imageListenerKeys_.forEach(_ol_events_.unlistenByKey);this.imageListenerKeys_=null;};/**
- * @constructor
- * @extends {ol.structs.LRUCache.<ol.Tile>}
- * @param {number=} opt_highWaterMark High water mark.
- * @struct
- */var _ol_TileCache_=function(opt_highWaterMark){_ol_structs_LRUCache_.call(this);/**
+ */_ol_ImageTile_.prototype.unlistenImage_=function(){this.imageListenerKeys_.forEach(_ol_events_.unlistenByKey);this.imageListenerKeys_=null;};var _ol_TileCache_=function(opt_highWaterMark){_ol_structs_LRUCache_.call(this);/**
    * @type {number}
    */this.highWaterMark=opt_highWaterMark!==undefined?opt_highWaterMark:2048;};_ol_.inherits(_ol_TileCache_,_ol_structs_LRUCache_);/**
  * @return {boolean} Can expire cache.
@@ -12622,18 +11635,7 @@ var compensationFactor=_ol_proj_.getPointResolution(sourceProj,sourceResolution,
      */var source=triangle.source,target=triangle.target;var x0=source[0][0],y0=source[0][1],x1=source[1][0],y1=source[1][1],x2=source[2][0],y2=source[2][1];var u0=(target[0][0]-targetTopLeft[0])/targetResolution,v0=-(target[0][1]-targetTopLeft[1])/targetResolution;var u1=(target[1][0]-targetTopLeft[0])/targetResolution,v1=-(target[1][1]-targetTopLeft[1])/targetResolution;var u2=(target[2][0]-targetTopLeft[0])/targetResolution,v2=-(target[2][1]-targetTopLeft[1])/targetResolution;// Shift all the source points to improve numerical stability
 // of all the subsequent calculations. The [x0, y0] is used here.
 // This is also used to simplify the linear system.
-var sourceNumericalShiftX=x0,sourceNumericalShiftY=y0;x0=0;y0=0;x1-=sourceNumericalShiftX;y1-=sourceNumericalShiftY;x2-=sourceNumericalShiftX;y2-=sourceNumericalShiftY;var augmentedMatrix=[[x1,y1,0,0,u1-u0],[x2,y2,0,0,u2-u0],[0,0,x1,y1,v1-v0],[0,0,x2,y2,v2-v0]];var affineCoefs=_ol_math_.solveLinearSystem(augmentedMatrix);if(!affineCoefs){return;}context.save();context.beginPath();var centroidX=(u0+u1+u2)/3,centroidY=(v0+v1+v2)/3;var p0=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u0,v0);var p1=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u1,v1);var p2=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u2,v2);context.moveTo(p1[0],p1[1]);context.lineTo(p0[0],p0[1]);context.lineTo(p2[0],p2[1]);context.clip();context.transform(affineCoefs[0],affineCoefs[2],affineCoefs[1],affineCoefs[3],u0,v0);context.translate(sourceDataExtent[0]-sourceNumericalShiftX,sourceDataExtent[3]-sourceNumericalShiftY);context.scale(sourceResolution/pixelRatio,-sourceResolution/pixelRatio);context.drawImage(stitchContext.canvas,0,0);context.restore();});if(opt_renderEdges){context.save();context.strokeStyle='black';context.lineWidth=1;triangulation.getTriangles().forEach(function(triangle,i,arr){var target=triangle.target;var u0=(target[0][0]-targetTopLeft[0])/targetResolution,v0=-(target[0][1]-targetTopLeft[1])/targetResolution;var u1=(target[1][0]-targetTopLeft[0])/targetResolution,v1=-(target[1][1]-targetTopLeft[1])/targetResolution;var u2=(target[2][0]-targetTopLeft[0])/targetResolution,v2=-(target[2][1]-targetTopLeft[1])/targetResolution;context.beginPath();context.moveTo(u1,v1);context.lineTo(u0,v0);context.lineTo(u2,v2);context.closePath();context.stroke();});context.restore();}return context.canvas;};/**
- * @classdesc
- * Class containing triangulation of the given target extent.
- * Used for determining source data and the reprojection itself.
- *
- * @param {ol.proj.Projection} sourceProj Source projection.
- * @param {ol.proj.Projection} targetProj Target projection.
- * @param {ol.Extent} targetExtent Target extent to triangulate.
- * @param {ol.Extent} maxSourceExtent Maximal source extent that can be used.
- * @param {number} errorThreshold Acceptable error (in source units).
- * @constructor
- */var _ol_reproj_Triangulation_=function(sourceProj,targetProj,targetExtent,maxSourceExtent,errorThreshold){/**
+var sourceNumericalShiftX=x0,sourceNumericalShiftY=y0;x0=0;y0=0;x1-=sourceNumericalShiftX;y1-=sourceNumericalShiftY;x2-=sourceNumericalShiftX;y2-=sourceNumericalShiftY;var augmentedMatrix=[[x1,y1,0,0,u1-u0],[x2,y2,0,0,u2-u0],[0,0,x1,y1,v1-v0],[0,0,x2,y2,v2-v0]];var affineCoefs=_ol_math_.solveLinearSystem(augmentedMatrix);if(!affineCoefs){return;}context.save();context.beginPath();var centroidX=(u0+u1+u2)/3,centroidY=(v0+v1+v2)/3;var p0=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u0,v0);var p1=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u1,v1);var p2=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u2,v2);context.moveTo(p1[0],p1[1]);context.lineTo(p0[0],p0[1]);context.lineTo(p2[0],p2[1]);context.clip();context.transform(affineCoefs[0],affineCoefs[2],affineCoefs[1],affineCoefs[3],u0,v0);context.translate(sourceDataExtent[0]-sourceNumericalShiftX,sourceDataExtent[3]-sourceNumericalShiftY);context.scale(sourceResolution/pixelRatio,-sourceResolution/pixelRatio);context.drawImage(stitchContext.canvas,0,0);context.restore();});if(opt_renderEdges){context.save();context.strokeStyle='black';context.lineWidth=1;triangulation.getTriangles().forEach(function(triangle,i,arr){var target=triangle.target;var u0=(target[0][0]-targetTopLeft[0])/targetResolution,v0=-(target[0][1]-targetTopLeft[1])/targetResolution;var u1=(target[1][0]-targetTopLeft[0])/targetResolution,v1=-(target[1][1]-targetTopLeft[1])/targetResolution;var u2=(target[2][0]-targetTopLeft[0])/targetResolution,v2=-(target[2][1]-targetTopLeft[1])/targetResolution;context.beginPath();context.moveTo(u1,v1);context.lineTo(u0,v0);context.lineTo(u2,v2);context.closePath();context.stroke();});context.restore();}return context.canvas;};var _ol_reproj_Triangulation_=function(sourceProj,targetProj,targetExtent,maxSourceExtent,errorThreshold){/**
    * @type {ol.proj.Projection}
    * @private
    */this.sourceProj_=sourceProj;/**
@@ -12705,26 +11707,7 @@ var ab=[(a[0]+b[0])/2,(a[1]+b[1])/2];var abSrc=this.transformInv_(ab);var cd=[(c
  * @return {ol.Extent} Calculated extent.
  */_ol_reproj_Triangulation_.prototype.calculateSourceExtent=function(){var extent=_ol_extent_.createEmpty();this.triangles_.forEach(function(triangle,i,arr){var src=triangle.source;_ol_extent_.extendCoordinate(extent,src[0]);_ol_extent_.extendCoordinate(extent,src[1]);_ol_extent_.extendCoordinate(extent,src[2]);});return extent;};/**
  * @return {Array.<ol.ReprojTriangle>} Array of the calculated triangles.
- */_ol_reproj_Triangulation_.prototype.getTriangles=function(){return this.triangles_;};/**
- * @classdesc
- * Class encapsulating single reprojected tile.
- * See {@link ol.source.TileImage}.
- *
- * @constructor
- * @extends {ol.Tile}
- * @param {ol.proj.Projection} sourceProj Source projection.
- * @param {ol.tilegrid.TileGrid} sourceTileGrid Source tile grid.
- * @param {ol.proj.Projection} targetProj Target projection.
- * @param {ol.tilegrid.TileGrid} targetTileGrid Target tile grid.
- * @param {ol.TileCoord} tileCoord Coordinate of the tile.
- * @param {ol.TileCoord} wrappedTileCoord Coordinate of the tile wrapped in X.
- * @param {number} pixelRatio Pixel ratio.
- * @param {number} gutter Gutter of the source tiles.
- * @param {ol.ReprojTileFunctionType} getTileFunction
- *     Function returning source tiles (z, x, y, pixelRatio).
- * @param {number=} opt_errorThreshold Acceptable reprojection error (in px).
- * @param {boolean=} opt_renderEdges Render reprojection edges.
- */var _ol_reproj_Tile_=function(sourceProj,sourceTileGrid,targetProj,targetTileGrid,tileCoord,wrappedTileCoord,pixelRatio,gutter,getTileFunction,opt_errorThreshold,opt_renderEdges){_ol_Tile_.call(this,tileCoord,_ol_TileState_.IDLE);/**
+ */_ol_reproj_Triangulation_.prototype.getTriangles=function(){return this.triangles_;};var _ol_reproj_Tile_=function(sourceProj,sourceTileGrid,targetProj,targetTileGrid,tileCoord,wrappedTileCoord,pixelRatio,gutter,getTileFunction,opt_errorThreshold,opt_renderEdges){_ol_Tile_.call(this,tileCoord,_ol_TileState_.IDLE);/**
    * @private
    * @type {boolean}
    */this.renderEdges_=opt_renderEdges!==undefined?opt_renderEdges:false;/**
@@ -12804,18 +11787,7 @@ var y=range.getHeight()+tileCoord[2];return y.toString();});}});};/**
  * @return {Array.<string>} Array of urls.
  */_ol_TileUrlFunction_.expandUrl=function(url){var urls=[];var match=/\{([a-z])-([a-z])\}/.exec(url);if(match){// char range
 var startCharCode=match[1].charCodeAt(0);var stopCharCode=match[2].charCodeAt(0);var charCode;for(charCode=startCharCode;charCode<=stopCharCode;++charCode){urls.push(url.replace(match[0],String.fromCharCode(charCode)));}return urls;}match=match=/\{(\d+)-(\d+)\}/.exec(url);if(match){// number range
-var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls.push(url.replace(match[0],i.toString()));}return urls;}urls.push(url);return urls;};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Base class for sources providing images divided into a tile grid.
- *
- * @constructor
- * @abstract
- * @extends {ol.source.Source}
- * @param {ol.SourceTileOptions} options Tile source options.
- * @api
- */var _ol_source_Tile_=function(options){_ol_source_Source_.call(this,{attributions:options.attributions,extent:options.extent,logo:options.logo,projection:options.projection,state:options.state,wrapX:options.wrapX});/**
+var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls.push(url.replace(match[0],i.toString()));}return urls;}urls.push(url);return urls;};var _ol_source_Tile_=function(options){_ol_source_Source_.call(this,{attributions:options.attributions,extent:options.extent,logo:options.logo,projection:options.projection,state:options.state,wrapX:options.wrapX});/**
    * @private
    * @type {boolean}
    */this.opaque_=options.opaque!==undefined?options.opaque:false;/**
@@ -12943,16 +11915,7 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
    * Triggered if tile loading results in an error.
    * @event ol.source.Tile.Event#tileloaderror
    * @api
-   */TILELOADERROR:'tileloaderror'};/**
- * @classdesc
- * Base class for sources providing tiles divided into a tile grid over http.
- *
- * @constructor
- * @abstract
- * @fires ol.source.Tile.Event
- * @extends {ol.source.Tile}
- * @param {ol.SourceUrlTileOptions} options Image tile options.
- */var _ol_source_UrlTile_=function(options){_ol_source_Tile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tilePixelRatio:options.tilePixelRatio,wrapX:options.wrapX});/**
+   */TILELOADERROR:'tileloaderror'};var _ol_source_UrlTile_=function(options){_ol_source_Tile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tilePixelRatio:options.tilePixelRatio,wrapX:options.wrapX});/**
    * @protected
    * @type {ol.TileLoadFunctionType}
    */this.tileLoadFunction=options.tileLoadFunction;/**
@@ -12962,9 +11925,8 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
    * @protected
    * @type {!Array.<string>|null}
    */this.urls=null;if(options.urls){this.setUrls(options.urls);}else if(options.url){this.setUrl(options.url);}if(options.tileUrlFunction){this.setTileUrlFunction(options.tileUrlFunction);}};_ol_.inherits(_ol_source_UrlTile_,_ol_source_Tile_);/**
- * Return the tile load function of the source.
- * @return {ol.TileLoadFunctionType} TileLoadFunction
- * @api
+ * @type {ol.TileUrlFunctionType|undefined}
+ * @protected
  */_ol_source_UrlTile_.prototype.getTileLoadFunction=function(){return this.tileLoadFunction;};/**
  * Return the tile URL function of the source.
  * @return {ol.TileUrlFunctionType} TileUrlFunction
@@ -12999,16 +11961,7 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
  * @api
  */_ol_source_UrlTile_.prototype.setUrls=function(urls){this.urls=urls;var key=urls.join('\n');this.setTileUrlFunction(this.fixedTileUrlFunction?this.fixedTileUrlFunction.bind(this):_ol_TileUrlFunction_.createFromTemplates(urls,this.tileGrid),key);};/**
  * @inheritDoc
- */_ol_source_UrlTile_.prototype.useTile=function(z,x,y){var tileCoordKey=this.getKeyZXY(z,x,y);if(this.tileCache.containsKey(tileCoordKey)){this.tileCache.get(tileCoordKey);}};/**
- * @classdesc
- * Base class for sources providing images divided into a tile grid.
- *
- * @constructor
- * @fires ol.source.Tile.Event
- * @extends {ol.source.UrlTile}
- * @param {olx.source.TileImageOptions} options Image tile options.
- * @api
- */var _ol_source_TileImage_=function(options){_ol_source_UrlTile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tileLoadFunction:options.tileLoadFunction?options.tileLoadFunction:_ol_source_TileImage_.defaultTileLoadFunction,tilePixelRatio:options.tilePixelRatio,tileUrlFunction:options.tileUrlFunction,url:options.url,urls:options.urls,wrapX:options.wrapX});/**
+ */_ol_source_UrlTile_.prototype.useTile=function(z,x,y){var tileCoordKey=this.getKeyZXY(z,x,y);if(this.tileCache.containsKey(tileCoordKey)){this.tileCache.get(tileCoordKey);}};var _ol_source_TileImage_=function(options){_ol_source_UrlTile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tileLoadFunction:options.tileLoadFunction?options.tileLoadFunction:_ol_source_TileImage_.defaultTileLoadFunction,tilePixelRatio:options.tilePixelRatio,tileUrlFunction:options.tileUrlFunction,url:options.url,urls:options.urls,wrapX:options.wrapX});/**
    * @protected
    * @type {?string}
    */this.crossOrigin=options.crossOrigin!==undefined?options.crossOrigin:null;/**
@@ -13086,12 +12039,7 @@ tile.interimTile=interimTile.interimTile;}else{tile.interimTile=interimTile;}til
  * @param {string} src Source.
  */_ol_source_TileImage_.defaultTileLoadFunction=function(imageTile,src){imageTile.getImage().src=src;};/**
  * @enum {string}
- */var _ol_layer_TileProperty_={PRELOAD:'preload',USE_INTERIM_TILES_ON_ERROR:'useInterimTilesOnError'};/**
- * @constructor
- * @abstract
- * @extends {ol.renderer.canvas.Layer}
- * @param {ol.layer.Layer} layer Layer.
- */var _ol_renderer_canvas_IntermediateCanvas_=function(layer){_ol_renderer_canvas_Layer_.call(this,layer);/**
+ */var _ol_layer_TileProperty_={PRELOAD:'preload',USE_INTERIM_TILES_ON_ERROR:'useInterimTilesOnError'};var _ol_renderer_canvas_IntermediateCanvas_=function(layer){_ol_renderer_canvas_Layer_.call(this,layer);/**
    * @protected
    * @type {ol.Transform}
    */this.coordinateToCanvasPixelTransform=_ol_transform_.create();/**
@@ -13121,11 +12069,7 @@ var dx=imageTransform[4];var dy=imageTransform[5];var dw=image.width*imageTransf
  */_ol_renderer_canvas_IntermediateCanvas_.prototype.forEachLayerAtCoordinate=function(coordinate,frameState,callback,thisArg){if(!this.getImage()){return undefined;}if(this.getLayer().getSource().forEachFeatureAtCoordinate!==_ol_.nullFunction){// for ImageVector sources use the original hit-detection logic,
 // so that for example also transparent polygons are detected
 return _ol_renderer_canvas_Layer_.prototype.forEachLayerAtCoordinate.apply(this,arguments);}else{var pixel=_ol_transform_.apply(this.coordinateToCanvasPixelTransform,coordinate.slice());_ol_coordinate_.scale(pixel,frameState.viewState.resolution/this.renderedResolution);if(!this.hitCanvasContext_){this.hitCanvasContext_=_ol_dom_.createCanvasContext2D(1,1);}this.hitCanvasContext_.clearRect(0,0,1,1);this.hitCanvasContext_.drawImage(this.getImage(),pixel[0],pixel[1],1,1,0,0,1,1);var imageData=this.hitCanvasContext_.getImageData(0,0,1,1).data;if(imageData[3]>0){return callback.call(thisArg,this.getLayer(),imageData);}else{return undefined;}}};// FIXME find correct globalCompositeOperation
-/**
- * @constructor
- * @extends {ol.renderer.canvas.IntermediateCanvas}
- * @param {ol.layer.Tile|ol.layer.VectorTile} tileLayer Tile layer.
- */var _ol_renderer_canvas_TileLayer_=function(tileLayer){_ol_renderer_canvas_IntermediateCanvas_.call(this,tileLayer);/**
+var _ol_renderer_canvas_TileLayer_=function(tileLayer){_ol_renderer_canvas_IntermediateCanvas_.call(this,tileLayer);/**
    * @protected
    * @type {CanvasRenderingContext2D}
    */this.context=this.context===null?null:_ol_dom_.createCanvasContext2D();/**
@@ -13173,24 +12117,12 @@ return false;}var tileRange=tileGrid.getTileRangeForExtentAndResolution(extent,t
  */_ol_renderer_canvas_TileLayer_.prototype.drawTileImage=function(tile,frameState,layerState,x,y,w,h,gutter){if(!this.getLayer().getSource().getOpaque(frameState.viewState.projection)){this.context.clearRect(x,y,w,h);}var image=tile.getImage();if(image){this.context.drawImage(image,gutter,gutter,image.width-2*gutter,image.height-2*gutter,x,y,w,h);}};/**
  * @inheritDoc
  */_ol_renderer_canvas_TileLayer_.prototype.getImage=function(){var context=this.context;return context?context.canvas:null;};/**
- * @inheritDoc
+ * @function
+ * @return {ol.layer.Tile|ol.layer.VectorTile}
  */_ol_renderer_canvas_TileLayer_.prototype.getImageTransform=function(){return this.imageTransform_;};// This file is automatically generated, do not edit
 // FIXME large resolutions lead to too large framebuffers :-(
 // FIXME animated shaders! check in redraw
-var _ol_renderer_webgl_TileLayer_;/**
- * @classdesc
- * For layer sources that provide pre-rendered, tiled images in grids that are
- * organized by zoom levels for specific resolutions.
- * Note that any property set in the options is set as a {@link ol.Object}
- * property on the layer object; for example, setting `title: 'My Title'` in the
- * options means that `title` is observable, and has get/set accessors.
- *
- * @constructor
- * @extends {ol.layer.Layer}
- * @fires ol.render.Event
- * @param {olx.layer.TileOptions=} opt_options Tile layer options.
- * @api
- */var _ol_layer_Tile_=function(opt_options){var options=opt_options?opt_options:{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.preload;delete baseOptions.useInterimTilesOnError;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);this.setPreload(options.preload!==undefined?options.preload:0);this.setUseInterimTilesOnError(options.useInterimTilesOnError!==undefined?options.useInterimTilesOnError:true);};_ol_.inherits(_ol_layer_Tile_,_ol_layer_Layer_);/**
+var _ol_renderer_webgl_TileLayer_;var _ol_layer_Tile_=function(opt_options){var options=opt_options?opt_options:{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.preload;delete baseOptions.useInterimTilesOnError;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);this.setPreload(options.preload!==undefined?options.preload:0);this.setUseInterimTilesOnError(options.useInterimTilesOnError!==undefined?options.useInterimTilesOnError:true);};_ol_.inherits(_ol_layer_Tile_,_ol_layer_Layer_);/**
  * @inheritDoc
  */_ol_layer_Tile_.prototype.createRenderer=function(mapRenderer){var renderer=null;var type=mapRenderer.getType();if(_ol_.ENABLE_CANVAS&&type===_ol_renderer_Type_.CANVAS){renderer=new _ol_renderer_canvas_TileLayer_(this);}else if(false&&type===_ol_renderer_Type_.WEBGL){renderer=new _ol_renderer_webgl_TileLayer_(mapRenderer,this);}return renderer;};/**
  * Return the level as number to which we will preload tiles up to.
@@ -13198,9 +12130,9 @@ var _ol_renderer_webgl_TileLayer_;/**
  * @observable
  * @api
  */_ol_layer_Tile_.prototype.getPreload=function(){return(/** @type {number} */this.get(_ol_layer_TileProperty_.PRELOAD));};/**
- * Set the level as number to which we will preload tiles up to.
- * @param {number} preload The level to preload tiles up to.
- * @observable
+ * Return the associated {@link ol.source.Tile tilesource} of the layer.
+ * @function
+ * @return {ol.source.Tile} Source.
  * @api
  */_ol_layer_Tile_.prototype.setPreload=function(preload){this.set(_ol_layer_TileProperty_.PRELOAD,preload);};/**
  * Whether we use interim tiles on error.
@@ -13212,19 +12144,7 @@ var _ol_renderer_webgl_TileLayer_;/**
  * @param {boolean} useInterimTilesOnError Use interim tiles on error.
  * @observable
  * @api
- */_ol_layer_Tile_.prototype.setUseInterimTilesOnError=function(useInterimTilesOnError){this.set(_ol_layer_TileProperty_.USE_INTERIM_TILES_ON_ERROR,useInterimTilesOnError);};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Base class for feature formats.
- * {ol.format.Feature} subclasses provide the ability to decode and encode
- * {@link ol.Feature} objects from a variety of commonly used geospatial
- * file formats.  See the documentation for each format for more details.
- *
- * @constructor
- * @abstract
- * @api
- */var _ol_format_Feature_=function(){/**
+ */_ol_layer_Tile_.prototype.setUseInterimTilesOnError=function(useInterimTilesOnError){this.set(_ol_layer_TileProperty_.USE_INTERIM_TILES_ON_ERROR,useInterimTilesOnError);};var _ol_format_Feature_=function(){/**
    * @protected
    * @type {ol.proj.Projection}
    */this.defaultDataProjection=null;/**
@@ -13310,16 +12230,7 @@ transformed=_ol_proj_.transformExtent(write?geometry.slice():geometry,write?feat
 /**
      * @param {Array.<number>} coordinates Coordinates.
      * @return {Array.<number>} Transformed coordinates.
-     */var transform=function(coordinates){for(var i=0,ii=coordinates.length;i<ii;++i){coordinates[i]=Math.round(coordinates[i]*power)/power;}return coordinates;};if(Array.isArray(transformed)){transform(transformed);}else{transformed.applyTransform(transform);}}return transformed;};/**
- * @classdesc
- * Abstract base class; normally only used for creating subclasses and not
- * instantiated in apps.
- * Base class for JSON feature formats.
- *
- * @constructor
- * @abstract
- * @extends {ol.format.Feature}
- */var _ol_format_JSONFeature_=function(){_ol_format_Feature_.call(this);};_ol_.inherits(_ol_format_JSONFeature_,_ol_format_Feature_);/**
+     */var transform=function(coordinates){for(var i=0,ii=coordinates.length;i<ii;++i){coordinates[i]=Math.round(coordinates[i]*power)/power;}return coordinates;};if(Array.isArray(transformed)){transform(transformed);}else{transformed.applyTransform(transform);}}return transformed;};var _ol_format_JSONFeature_=function(){_ol_format_Feature_.call(this);};_ol_.inherits(_ol_format_JSONFeature_,_ol_format_Feature_);/**
  * @param {Document|Node|Object|string} source Source.
  * @private
  * @return {Object} Object.
@@ -13377,15 +12288,7 @@ transformed=_ol_proj_.transformExtent(write?geometry.slice():geometry,write?feat
  * @param {ol.geom.Geometry} geometry Geometry.
  * @param {olx.format.WriteOptions=} opt_options Write options.
  * @return {Object} Object.
- */_ol_format_JSONFeature_.prototype.writeGeometryObject=function(geometry,opt_options){};/**
- * @classdesc
- * An array of {@link ol.geom.Geometry} objects.
- *
- * @constructor
- * @extends {ol.geom.Geometry}
- * @param {Array.<ol.geom.Geometry>=} opt_geometries Geometries.
- * @api
- */var _ol_geom_GeometryCollection_=function(opt_geometries){_ol_geom_Geometry_.call(this);/**
+ */_ol_format_JSONFeature_.prototype.writeGeometryObject=function(geometry,opt_options){};var _ol_geom_GeometryCollection_=function(opt_geometries){_ol_geom_Geometry_.call(this);/**
    * @private
    * @type {Array.<ol.geom.Geometry>}
    */this.geometries_=opt_geometries?opt_geometries:null;this.listenGeometriesChange_();};_ol_.inherits(_ol_geom_GeometryCollection_,_ol_geom_Geometry_);/**
@@ -13448,15 +12351,7 @@ transformed=_ol_proj_.transformExtent(write?geometry.slice():geometry,write?feat
  * @inheritDoc
  */_ol_geom_GeometryCollection_.prototype.disposeInternal=function(){this.unlistenGeometriesChange_();_ol_geom_Geometry_.prototype.disposeInternal.call(this);};// TODO: serialize dataProjection as crs member when writing
 // see https://github.com/openlayers/openlayers/issues/2078
-/**
- * @classdesc
- * Feature format for reading and writing data in the GeoJSON format.
- *
- * @constructor
- * @extends {ol.format.JSONFeature}
- * @param {olx.format.GeoJSONOptions=} opt_options Options.
- * @api
- */var _ol_format_GeoJSON_=function(opt_options){var options=opt_options?opt_options:{};_ol_format_JSONFeature_.call(this);/**
+var _ol_format_GeoJSON_=function(opt_options){var options=opt_options?opt_options:{};_ol_format_JSONFeature_.call(this);/**
    * @inheritDoc
    */this.defaultDataProjection=_ol_proj_.get(options.defaultDataProjection?options.defaultDataProjection:'EPSG:4326');if(options.featureProjection){this.defaultFeatureProjection=_ol_proj_.get(options.featureProjection);}/**
    * Name of the geometry attribute for features.
@@ -13552,45 +12447,65 @@ transformed=_ol_proj_.transformExtent(write?geometry.slice():geometry,write?feat
  * @private
  * @type {Object.<string, function(ol.geom.Geometry, olx.format.WriteOptions=): (GeoJSONGeometry|GeoJSONGeometryCollection)>}
  */_ol_format_GeoJSON_.GEOMETRY_WRITERS_={'Point':_ol_format_GeoJSON_.writePointGeometry_,'LineString':_ol_format_GeoJSON_.writeLineStringGeometry_,'Polygon':_ol_format_GeoJSON_.writePolygonGeometry_,'MultiPoint':_ol_format_GeoJSON_.writeMultiPointGeometry_,'MultiLineString':_ol_format_GeoJSON_.writeMultiLineStringGeometry_,'MultiPolygon':_ol_format_GeoJSON_.writeMultiPolygonGeometry_,'GeometryCollection':_ol_format_GeoJSON_.writeGeometryCollectionGeometry_,'Circle':_ol_format_GeoJSON_.writeEmptyGeometryCollectionGeometry_};/**
- * @inheritDoc
+ * Read a feature from a GeoJSON Feature source.  Only works for Feature or
+ * geometry types.  Use {@link ol.format.GeoJSON#readFeatures} to read
+ * FeatureCollection source.
+ *
+ * @function
+ * @param {Document|Node|Object|string} source Source.
+ * @param {olx.format.ReadOptions=} opt_options Read options.
+ * @return {ol.Feature} Feature.
+ * @api
  */_ol_format_GeoJSON_.prototype.readFeatureFromObject=function(object,opt_options){/**
    * @type {GeoJSONFeature}
    */var geoJSONFeature=null;if(object.type==='Feature'){geoJSONFeature=/** @type {GeoJSONFeature} */object;}else{geoJSONFeature=/** @type {GeoJSONFeature} */{type:'Feature',geometry:/** @type {GeoJSONGeometry|GeoJSONGeometryCollection} */object};}var geometry=_ol_format_GeoJSON_.readGeometry_(geoJSONFeature.geometry,opt_options);var feature=new _ol_Feature_();if(this.geometryName_){feature.setGeometryName(this.geometryName_);}feature.setGeometry(geometry);if(geoJSONFeature.id!==undefined){feature.setId(geoJSONFeature.id);}if(geoJSONFeature.properties){feature.setProperties(geoJSONFeature.properties);}return feature;};/**
  * @inheritDoc
  */_ol_format_GeoJSON_.prototype.readFeaturesFromObject=function(object,opt_options){var geoJSONObject=/** @type {GeoJSONObject} */object;/** @type {Array.<ol.Feature>} */var features=null;if(geoJSONObject.type==='FeatureCollection'){var geoJSONFeatureCollection=/** @type {GeoJSONFeatureCollection} */object;features=[];var geoJSONFeatures=geoJSONFeatureCollection.features;var i,ii;for(i=0,ii=geoJSONFeatures.length;i<ii;++i){features.push(this.readFeatureFromObject(geoJSONFeatures[i],opt_options));}}else{features=[this.readFeatureFromObject(object,opt_options)];}return features;};/**
- * @inheritDoc
+ * Read a geometry from a GeoJSON source.
+ *
+ * @function
+ * @param {Document|Node|Object|string} source Source.
+ * @param {olx.format.ReadOptions=} opt_options Read options.
+ * @return {ol.geom.Geometry} Geometry.
+ * @api
  */_ol_format_GeoJSON_.prototype.readGeometryFromObject=function(object,opt_options){return _ol_format_GeoJSON_.readGeometry_(/** @type {GeoJSONGeometry} */object,opt_options);};/**
- * @inheritDoc
+ * Read the projection from a GeoJSON source.
+ *
+ * @function
+ * @param {Document|Node|Object|string} source Source.
+ * @return {ol.proj.Projection} Projection.
+ * @api
  */_ol_format_GeoJSON_.prototype.readProjectionFromObject=function(object){var geoJSONObject=/** @type {GeoJSONObject} */object;var crs=geoJSONObject.crs;var projection;if(crs){if(crs.type=='name'){projection=_ol_proj_.get(crs.properties.name);}else if(crs.type=='EPSG'){// 'EPSG' is not part of the GeoJSON specification, but is generated by
 // GeoServer.
 // TODO: remove this when http://jira.codehaus.org/browse/GEOS-5996
 // is fixed and widely deployed.
 projection=_ol_proj_.get('EPSG:'+crs.properties.code);}else{_ol_asserts_.assert(false,36);// Unknown SRS type
 }}else{projection=this.defaultDataProjection;}return(/** @type {ol.proj.Projection} */projection);};/**
- * Encode a feature as a GeoJSON Feature object.
+ * Encode a feature as a GeoJSON Feature string.
  *
+ * @function
  * @param {ol.Feature} feature Feature.
  * @param {olx.format.WriteOptions=} opt_options Write options.
- * @return {GeoJSONFeature} Object.
+ * @return {string} GeoJSON.
  * @override
  * @api
  */_ol_format_GeoJSON_.prototype.writeFeatureObject=function(feature,opt_options){opt_options=this.adaptOptions(opt_options);var object=/** @type {GeoJSONFeature} */{'type':'Feature'};var id=feature.getId();if(id!==undefined){object.id=id;}var geometry=feature.getGeometry();if(geometry){object.geometry=_ol_format_GeoJSON_.writeGeometry_(geometry,opt_options);}else{object.geometry=null;}var properties=feature.getProperties();delete properties[feature.getGeometryName()];if(!_ol_obj_.isEmpty(properties)){object.properties=properties;}else{object.properties=null;}return object;};/**
- * Encode an array of features as a GeoJSON object.
+ * Encode an array of features as GeoJSON.
  *
+ * @function
  * @param {Array.<ol.Feature>} features Features.
  * @param {olx.format.WriteOptions=} opt_options Write options.
- * @return {GeoJSONFeatureCollection} GeoJSON Object.
- * @override
+ * @return {string} GeoJSON.
  * @api
  */_ol_format_GeoJSON_.prototype.writeFeaturesObject=function(features,opt_options){opt_options=this.adaptOptions(opt_options);var objects=[];var i,ii;for(i=0,ii=features.length;i<ii;++i){objects.push(this.writeFeatureObject(features[i],opt_options));}return(/** @type {GeoJSONFeatureCollection} */{type:'FeatureCollection',features:objects});};/**
- * Encode a geometry as a GeoJSON object.
+ * Encode a geometry as a GeoJSON string.
  *
+ * @function
  * @param {ol.geom.Geometry} geometry Geometry.
  * @param {olx.format.WriteOptions=} opt_options Write options.
- * @return {GeoJSONGeometry|GeoJSONGeometryCollection} Object.
- * @override
+ * @return {string} GeoJSON.
  * @api
- */_ol_format_GeoJSON_.prototype.writeGeometryObject=function(geometry,opt_options){return _ol_format_GeoJSON_.writeGeometry_(geometry,this.adaptOptions(opt_options));};function loadGeoJSON(map,layerDef,data,version){var source=new _ol_source_Vector_({url:'data/'+version+'/'+layerDef.filename,format:new _ol_format_GeoJSON_({defaultDataProjection:layerDef.projection||pixelProj})});var layer=new _ol_layer_Vector_({title:layerDef.name,projection:layerDef.projection||pixelProj,source:source,visible:!!layerDef.visible,style:layerDef.style});return layer;}function loadPolygon(map,layerDef,data,layer){var features=[];features=data.data[layerDef.id].map(function(obj){var points=obj.points;var ring=points.map(function(point){return _ol_proj_.transform([point.x,point.y],dotaProj,pixelProj);});ring.push(_ol_proj_.transform([points[0].x,points[0].y],dotaProj,pixelProj));var geom=new _ol_geom_Polygon_([ring]);var feature=new _ol_Feature_(geom);obj.id=layerDef.id;feature.set('dotaProps',obj,true);return feature;});var vectorSource=new _ol_source_Vector_({defaultDataProjection:'dota',features:features});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadJSON(map,layerDef,data,layer){var features=[];features=data.data[layerDef.id].map(function(point){var unitClass=point.subType?layerDef.id+'_'+point.subType:layerDef.id;var stats=data.stats[unitClass];var bounds=layerDef.id=="ent_dota_tree"?[64,64]:stats.bounds;if(bounds&&bounds[0]>0&&bounds[1]>0){var geom=new _ol_geom_Polygon_([[_ol_proj_.transform([point.x-bounds[0],point.y-bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x-bounds[0],point.y+bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x+bounds[0],point.y+bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x+bounds[0],point.y-bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x-bounds[0],point.y-bounds[1]],dotaProj,pixelProj)]]);}else{var geom=new _ol_geom_Point_(_ol_proj_.transform([point.x,point.y],dotaProj,pixelProj));}var feature=new _ol_Feature_(geom);point.id=layerDef.id;point.unitClass=unitClass;feature.set('dotaProps',point,true);return feature;});var vectorSource=new _ol_source_Vector_({defaultDataProjection:'dota',features:features});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadNeutralPullRange(InteractiveMap,layerDef,data,layer){/*var features = InteractiveMap.getMapLayerIndex().npc_dota_neutral_spawner.getSource().getFeatures();
+ */_ol_format_GeoJSON_.prototype.writeGeometryObject=function(geometry,opt_options){return _ol_format_GeoJSON_.writeGeometry_(geometry,this.adaptOptions(opt_options));};function loadGeoJSON(map,layerDef,data,version){var layer;try{var source=new _ol_source_Vector_({url:'data/'+version+'/'+layerDef.filename,format:new _ol_format_GeoJSON_({defaultDataProjection:layerDef.projection||pixelProj})});layer=new _ol_layer_Vector_({title:layerDef.name,projection:layerDef.projection||pixelProj,source:source,visible:!!layerDef.visible,style:layerDef.style});}catch(e){}return layer;}function loadPolygon(map,layerDef,data,layer){var features=[];features=data.data[layerDef.id].map(function(obj){var points=obj.points;var ring=points.map(function(point){return _ol_proj_.transform([point.x,point.y],dotaProj,pixelProj);});ring.push(_ol_proj_.transform([points[0].x,points[0].y],dotaProj,pixelProj));var geom=new _ol_geom_Polygon_([ring]);var feature=new _ol_Feature_(geom);obj.id=layerDef.id;feature.set('dotaProps',obj,true);return feature;});var vectorSource=new _ol_source_Vector_({defaultDataProjection:'dota',features:features});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadJSON(map,layerDef,data,layer){var features=[];features=data.data[layerDef.id].map(function(point){var unitClass=point.subType?layerDef.id+'_'+point.subType:layerDef.id;var stats=data.stats[unitClass];var bounds=layerDef.id=="ent_dota_tree"?[64,64]:stats.bounds;if(bounds&&bounds[0]>0&&bounds[1]>0){var geom=new _ol_geom_Polygon_([[_ol_proj_.transform([point.x-bounds[0],point.y-bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x-bounds[0],point.y+bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x+bounds[0],point.y+bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x+bounds[0],point.y-bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x-bounds[0],point.y-bounds[1]],dotaProj,pixelProj)]]);}else{var geom=new _ol_geom_Point_(_ol_proj_.transform([point.x,point.y],dotaProj,pixelProj));}var feature=new _ol_Feature_(geom);point.id=layerDef.id;point.unitClass=unitClass;feature.set('dotaProps',point,true);return feature;});var vectorSource=new _ol_source_Vector_({defaultDataProjection:'dota',features:features});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadNeutralPullRange(InteractiveMap,layerDef,data,layer){/*var features = InteractiveMap.getMapLayerIndex().npc_dota_neutral_spawner.getSource().getFeatures();
     var circles = features.map(function (feature) {
         var circle = InteractiveMap.getRangeCircle(feature, null, null, null, 400);
         feature.set("guard_range", circle, true);
@@ -13607,17 +12522,16 @@ projection=_ol_proj_.get('EPSG:'+crs.properties.code);}else{_ol_asserts_.assert(
         var circle = new Feature({geometry: geom, visible: false});
         circle.visible(false);
         return circle;
-    }));*/var vectorSource=new _ol_source_Vector_({defaultDataProjection:'pixel',features:[]});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadLayerGroupFromData(InteractiveMap,data,version,layersIndex,layerDefs){var layers=[];for(var i=0;i<layerDefs.length;i++){var layerDef=layerDefs[i];if(!data.data[layerDef.id]&&(layerDef.type!=='pullRange'&&layerDef.type!=='GeoJSON'||version=='688'))continue;var layer;switch(layerDef.type){case'GeoJSON':layer=loadGeoJSON(InteractiveMap.map,layerDef,layersIndex[layerDef.id],version);break;case'polygon':layer=loadPolygon(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;case'pullRange':layer=loadNeutralPullRange(InteractiveMap,layerDef,data,layersIndex[layerDef.id]);break;default:layer=loadJSON(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;}layersIndex[layerDef.id]=layer;layers.push(layer);}var layerGroup=new _ol_layer_Group_({title:'Layers',layers:new _ol_Collection_(layers)});return layerGroup;}function getJSON(path,callback){var request=new XMLHttpRequest();request.open('GET',path,true);request.onload=function(){if(request.status>=200&&request.status<400){var data=JSON.parse(request.responseText);callback(data);}else{alert('Error loading page.');}};request.onerror=function(){alert('Error loading page.');};request.send();return request;}var baseLayerDefinitions=[{id:'default',name:'Default',group:'706'},{id:'autumn',name:'Autumn',group:'706'},{id:'desert',name:'Desert',group:'706'},{id:'immortalgardens',name:'Immortal Gardens',group:'706'},{id:'journey',name:'New Journey',group:'706'},{id:'reef',name:'Reef\'s Edge',group:'706'},{id:'spring',name:'Spring',group:'706'},{id:'winter',name:'Winter',group:'706'},{id:'default',name:'Default',group:'700'},{id:'default',name:'Default',group:'688'}];var layerDefinitions=[{id:'path_corner',name:'Lanes',filename:'path_corner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.teamColor},{id:'npc_dota_spawner',name:'Lane Spawns',filename:'npc_dota_spawner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.creepSpawn},{id:'ent_fow_blocker_node',name:'Vision Blocker',filename:'ent_fow_blocker_node.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,0,255,0.3]}),stroke:new _ol_style_Stroke_({color:[0,0,255,0.8]})})},{id:'no_wards',name:'Invalid Wards',filename:'no_wards.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[255,0,0,0.3]}),stroke:new _ol_style_Stroke_({color:[255,0,0,0.8]})})},{id:'trigger_multiple',name:'Spawn Boxes',type:'polygon',group:'overlay',style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,255,125,0.3]}),stroke:new _ol_style_Stroke_({color:[0,255,125,0.8]})})},{id:'npc_dota_neutral_spawner',name:'Neutral Camps',group:'object',style:function(feature,resolution){return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)];}},{id:'ent_dota_tree',name:'Trees',group:'object',style:function(feature,resolution){if(feature.get('isCut')){return styles.tree.dead;}else{return styles.tree.alive;}},toggle:true},{id:'npc_dota_roshan_spawner',name:'Roshan',group:'object',style:styles.roshan},{id:'dota_item_rune_spawner_powerup',name:'Runes',group:'object',style:styles.rune},{id:'dota_item_rune_spawner_bounty',name:'Bounty Runes',group:'object',style:styles.bountyRune},{id:'ent_dota_fountain',name:'Fountain',group:'structure',style:styles.ent_dota_fountain,toggle:true},{id:'npc_dota_barracks',name:'Barracks',group:'structure',style:styles.npc_dota_barracks,toggle:true},{id:'npc_dota_filler',name:'Buildings',group:'structure',style:styles.npc_dota_filler,toggle:true},{id:'npc_dota_tower',name:'Towers',group:'structure',style:styles.npc_dota_tower,toggle:true},{id:'ent_dota_shop',name:'Shops',group:'structure',style:styles.ent_dota_shop},{id:'npc_dota_fort',name:'Ancients',group:'structure',style:styles.npc_dota_fort,toggle:true},{id:'npc_dota_healer',name:'Shrines',group:'structure',style:styles.npc_dota_healer,toggle:true},{id:'pullRange',name:'Pull Range',type:'pullRange',group:'overlay',style:styles.pullRange,visible:true}];//import proj from 'ol/proj';
-function InteractiveMap(map_tile_path){var self=this;this.map_tile_path=map_tile_path;this.MODE='navigation';this.layerDefs=layerDefinitions;this.baseLayerDefs=baseLayerDefinitions;this.view=new _ol_View_({zoom:0,center:mapConstants.imgCenter,projection:pixelProj,resolutions:mapConstants.resolutions,extent:[0,0,mapConstants.map_w,mapConstants.map_h]});this.data={};this.layerIndex={};this.version='706';this.visionRadius=mapConstants.visionRadius.observer;this.movementSpeed=mapConstants.defaultMovementSpeed;this.isNight=false;this.isDarkness=false;this.layerFilters={marker:function(layer){var layerDef=layer.get('layerDef');return layer.getVisible()&&layerDef&&(layerDef.group=='structure'||layerDef.group=='object');}};this.map=new _ol_Map_({controls:_ol_control_.defaults({zoom:false,attribution:false,rotate:false}),interactions:_ol_interaction_.defaults({altShiftDragRotate:false,pinchRotate:false}),target:'map',view:this.view});this.highlightSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.highlightLayer=new _ol_layer_Vector_({source:this.highlightSource,style:styles.highlight});this.selectSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.selectLayer=new _ol_layer_Vector_({source:this.selectSource,style:styles.select});this.wardRangeSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.wardRangeLayer=new _ol_layer_Vector_({source:this.wardRangeSource});this.rangeSources={dayVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),nightVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),trueSight:new _ol_source_Vector_({defaultDataProjection:'pixel'}),attackRange:new _ol_source_Vector_({defaultDataProjection:'pixel'})};this.rangeLayers={dayVision:new _ol_layer_Vector_({source:this.rangeSources.dayVision,style:styles.dayVision}),nightVision:new _ol_layer_Vector_({source:this.rangeSources.nightVision,style:styles.nightVision}),trueSight:new _ol_layer_Vector_({source:this.rangeSources.trueSight,style:styles.trueSight}),attackRange:new _ol_layer_Vector_({source:this.rangeSources.attackRange,style:styles.attackRange})};// setup base layers
+    }));*/var vectorSource=new _ol_source_Vector_({defaultDataProjection:'pixel',features:[]});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadLayerGroupFromData(InteractiveMap,data,version,layersIndex,layerDefs){var layers=[];for(var i=0;i<layerDefs.length;i++){var layerDef=layerDefs[i];if(!data.data[layerDef.id]&&(layerDef.type!=='pullRange'&&layerDef.type!=='GeoJSON'||version=='688'))continue;var layer;switch(layerDef.type){case'GeoJSON':layer=loadGeoJSON(InteractiveMap.map,layerDef,layersIndex[layerDef.id],version);break;case'polygon':layer=loadPolygon(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;case'pullRange':layer=loadNeutralPullRange(InteractiveMap,layerDef,data,layersIndex[layerDef.id]);break;default:layer=loadJSON(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;}if(layer){layersIndex[layerDef.id]=layer;layers.push(layer);}}var layerGroup=new _ol_layer_Group_({title:'Layers',layers:new _ol_Collection_(layers)});return layerGroup;}function getJSON(path,callback){var retries=3;function makeReq(){var request=new XMLHttpRequest();request.open('GET',path,true);var err;request.onload=function(){if(request.status==200){console.log(request);console.log(request.status);try{var data=JSON.parse(request.responseText);}catch(e){err=e;}}else{err=new Error("Error loading json "+request.status);}callback(err,data);};request.onerror=function(){retries--;if(retries>0){setTimeout(function(){makeReq();},1000);}else{err=new Error("Error loading json "+request.status);callback(err);}};request.send();}makeReq();}var baseLayerDefinitions=[{id:'default',name:'Default',group:'706'},{id:'autumn',name:'Autumn',group:'706'},{id:'desert',name:'Desert',group:'706'},{id:'immortalgardens',name:'Immortal Gardens',group:'706'},{id:'journey',name:'New Journey',group:'706'},{id:'reef',name:'Reef\'s Edge',group:'706'},{id:'spring',name:'Spring',group:'706'},{id:'winter',name:'Winter',group:'706'},{id:'default',name:'Default',group:'700'},{id:'default',name:'Default',group:'688'}];var layerDefinitions=[{id:'path_corner',name:'Lanes',filename:'path_corner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.teamColor},{id:'npc_dota_spawner',name:'Lane Spawns',filename:'npc_dota_spawner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.creepSpawn},{id:'ent_fow_blocker_node',name:'Vision Blocker',filename:'ent_fow_blocker_node.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,0,255,0.3]}),stroke:new _ol_style_Stroke_({color:[0,0,255,0.8]})})},{id:'no_wards',name:'Invalid Wards',filename:'no_wards.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[255,0,0,0.3]}),stroke:new _ol_style_Stroke_({color:[255,0,0,0.8]})})},{id:'trigger_multiple',name:'Spawn Boxes',type:'polygon',group:'overlay',style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,255,125,0.3]}),stroke:new _ol_style_Stroke_({color:[0,255,125,0.8]})})},{id:'npc_dota_neutral_spawner',name:'Neutral Camps',group:'object',style:function(feature,resolution){return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)];}},{id:'ent_dota_tree',name:'Trees',group:'object',style:function(feature,resolution){if(feature.get('isCut')){return styles.tree.dead;}else{return styles.tree.alive;}},toggle:true},{id:'npc_dota_roshan_spawner',name:'Roshan',group:'object',style:styles.roshan},{id:'dota_item_rune_spawner_powerup',name:'Runes',group:'object',style:styles.rune},{id:'dota_item_rune_spawner_bounty',name:'Bounty Runes',group:'object',style:styles.bountyRune},{id:'ent_dota_fountain',name:'Fountain',group:'structure',style:styles.ent_dota_fountain,toggle:true},{id:'npc_dota_barracks',name:'Barracks',group:'structure',style:styles.npc_dota_barracks,toggle:true},{id:'npc_dota_filler',name:'Buildings',group:'structure',style:styles.npc_dota_filler,toggle:true},{id:'npc_dota_tower',name:'Towers',group:'structure',style:styles.npc_dota_tower,toggle:true},{id:'ent_dota_shop',name:'Shops',group:'structure',style:styles.ent_dota_shop},{id:'npc_dota_fort',name:'Ancients',group:'structure',style:styles.npc_dota_fort,toggle:true},{id:'npc_dota_healer',name:'Shrines',group:'structure',style:styles.npc_dota_healer,toggle:true},{id:'pullRange',name:'Pull Range',type:'pullRange',group:'overlay',style:styles.pullRange,visible:true}];function InteractiveMap(map_tile_path){var self=this;this.map_tile_path=map_tile_path;this.MODE='navigation';this.layerDefs=layerDefinitions;this.baseLayerDefs=baseLayerDefinitions;this.view=new _ol_View_({zoom:0,center:mapConstants.imgCenter,projection:pixelProj,resolutions:mapConstants.resolutions,extent:[0,0,mapConstants.map_w,mapConstants.map_h]});this.data={};this.layerIndex={};this.version='706';this.visionRadius=mapConstants.visionRadius.observer;this.movementSpeed=mapConstants.defaultMovementSpeed;this.isNight=false;this.isDarkness=false;this.layerFilters={marker:function(layer){var layerDef=layer.get('layerDef');return layer.getVisible()&&layerDef&&(layerDef.group=='structure'||layerDef.group=='object');}};this.map=new _ol_Map_({controls:_ol_control_.defaults({zoom:false,attribution:false,rotate:false}),interactions:_ol_interaction_.defaults({altShiftDragRotate:false,pinchRotate:false}),target:'map',view:this.view});this.highlightSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.highlightLayer=new _ol_layer_Vector_({source:this.highlightSource,style:styles.highlight});this.selectSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.selectLayer=new _ol_layer_Vector_({source:this.selectSource,style:styles.select});this.wardRangeSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.wardRangeLayer=new _ol_layer_Vector_({source:this.wardRangeSource});this.rangeSources={dayVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),nightVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),trueSight:new _ol_source_Vector_({defaultDataProjection:'pixel'}),attackRange:new _ol_source_Vector_({defaultDataProjection:'pixel'})};this.rangeLayers={dayVision:new _ol_layer_Vector_({source:this.rangeSources.dayVision,style:styles.dayVision}),nightVision:new _ol_layer_Vector_({source:this.rangeSources.nightVision,style:styles.nightVision}),trueSight:new _ol_layer_Vector_({source:this.rangeSources.trueSight,style:styles.trueSight}),attackRange:new _ol_layer_Vector_({source:this.rangeSources.attackRange,style:styles.attackRange})};// setup base layers
 this.baseLayers=this.baseLayerDefs.map(function(layerDef){var layer=new _ol_layer_Tile_({title:layerDef.name,type:'base',extent:pixelProj.getExtent(),//proj.pixel.getExtent()
-source:new _ol_source_TileImage_({tileGrid:new _ol_tilegrid_TileGrid_({origin:[0,mapConstants.map_h],resolutions:mapConstants.resolutions}),projection:pixelProj,url:self.map_tile_path+layerDef.group+'/'+layerDef.id+'/{z}/tile_{x}_{y}.jpg'}),visible:!!layerDef.visible});layer.set('layerId',layerDef.group+'-'+layerDef.id,true);layer.set('layerDef',layerDef,true);return layer;});this.baseLayerGroup=new _ol_layer_Group_({title:'Base Layers',layers:new _ol_Collection_(this.baseLayers)});}InteractiveMap.prototype.getMapData=function(version){return this.data[version||this.version];};InteractiveMap.prototype.getData=function(version){return this.data[version||this.version].data;};InteractiveMap.prototype.getOverlayData=function(version){return this.data[version||this.version].data.data;};InteractiveMap.prototype.getStatData=function(version){return this.data[version||this.version].data.stats;};InteractiveMap.prototype.getMapLayerIndex=function(version){version=version||this.version;if(!this.layerIndex[version])this.layerIndex[version]={};return this.layerIndex[version];};InteractiveMap.prototype.getMapDataPath=function(version){version=version||this.version;return'data/'+version+'/mapdata.json';};InteractiveMap.prototype.setMapLayers=function(version,callback){var self=this;this.getDataJSON(version,function(data){var currentLayerGroup=self.map.getLayerGroup();currentLayerGroup.setVisible(false);self.map.setLayerGroup(data.layerGroup);self.map.getLayerGroup().setVisible(true);if(callback)callback();});};InteractiveMap.prototype.getDataJSON=function(version,callback){var self=this;if(this.data[version]){callback(self.data[version]);}else{getJSON(self.getMapDataPath(version),function(data){self.data[version]={data:data,layerGroup:new _ol_layer_Group_({title:version+' Layers',layers:new _ol_Collection_([self.baseLayerGroup,loadLayerGroupFromData(self,data,version,self.getMapLayerIndex(version),self.layerDefs)])})};callback(self.data[version]);});}};InteractiveMap.prototype.panTo=function(coordinate,duration){if(duration==null)duration=1000;this.view.animate({center:coordinate,duration:1000});};InteractiveMap.prototype.checkAndHighlightWard=function(pixel){var self=this;var feature=this.map.forEachFeatureAtPixel(pixel,function(feature,layer){return feature;},{layerFilter:self.wardControl.layerFilter});this.highlightWard(feature);return feature;};InteractiveMap.prototype.highlightWard=function(feature){if(feature!==this.highlightedWard){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}if(feature){feature.setStyle(styles[feature.get('wardType')][this.MODE=='navigate'?'highlight':'remove']);}this.highlightedWard=feature;}};InteractiveMap.prototype.unhighlightWard=function(){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}this.highlightedWard=null;};InteractiveMap.prototype.highlight=function(feature){if(feature!==this.highlightedFeature){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}if(feature){this.highlightSource.addFeature(feature);}this.highlightedFeature=feature;}};InteractiveMap.prototype.unhighlight=function(){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}this.highlightedFeature=null;};InteractiveMap.prototype.toggle=function(feature){if(feature){if(feature.get("clicked")){this.deselect(feature);return false;}else{this.select(feature);return true;}}};InteractiveMap.prototype.select=function(feature){if(feature&&!feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.addFeature(feature);feature.set("clicked",true,true);}};InteractiveMap.prototype.deselectAll=function(){this.selectSource.getFeatures().forEach(function(feature){feature.set("clicked",false,true);});this.selectSource.clear();};InteractiveMap.prototype.deselect=function(feature){if(feature&&feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.removeFeature(feature);feature.set("clicked",false,true);}};InteractiveMap.prototype.hasVisionRadius=function(feature){return this.getFeatureVisionRadius(feature)!=null;};InteractiveMap.prototype.getFeatureVisionRadius=function(feature,dotaProps,unitClass,rangeType){dotaProps=dotaProps||feature.get('dotaProps');unitClass=unitClass||dotaProps.unitClass;var stats=this.getStatData();var radius;if(unitClass=='observer'){radius=this.visionRadius||mapConstants.visionRadius[unitClass];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}}else if(unitClass=='sentry'){radius=mapConstants.visionRadius[unitClass];}else{if(rangeType&&!stats[unitClass].hasOwnProperty(rangeType))return null;switch(rangeType){case'dayVision':case'nightVision':radius=stats[unitClass][rangeType];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}case'trueSight':case'attackRange':radius=stats[unitClass][rangeType];break;default:if(this.isNight){radius=stats[unitClass].nightVision;}else{radius=stats[unitClass].dayVision;}if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}break;}}return radius;};InteractiveMap.prototype.getRangeCircle=function(feature,coordinate,unitClass,rangeType,radius){var dotaProps=feature.get('dotaProps');var radius=radius||this.getFeatureVisionRadius(feature,dotaProps,unitClass,rangeType);if(radius==null)return null;if(!coordinate){coordinate=worldToLatLon([dotaProps.x,dotaProps.y]);}var circle=new _ol_Feature_(new _ol_geom_Circle_(coordinate,getScaledRadius(radius)));return circle;};var forEach=function(array,callback,scope){for(var i=0;i<array.length;i++){callback.call(scope,array[i],i);// passes back stuff we need
-}};var commonjsGlobal=typeof window!=='undefined'?window:typeof global!=='undefined'?global:typeof self!=='undefined'?self:{};function createCommonjsModule(fn,module){return module={exports:{}},fn(module,module.exports),module.exports;}var rollbar_umd_nojson_min=createCommonjsModule(function(module,exports){!function(e,r){module.exports=r();}(commonjsGlobal,function(){return function(e){function r(n){if(t[n])return t[n].exports;var o=t[n]={exports:{},id:n,loaded:!1};return e[n].call(o.exports,o,o.exports,r),o.loaded=!0,o.exports;}var t={};return r.m=e,r.c=t,r.p="",r(0);}([function(e,r,t){e.exports=t(1);},function(e,r,t){"use strict";function n(){var e="undefined"==typeof JSON?{}:JSON;o.setupJSON(e);}var o=t(2),i=t(3);n();var a=window._rollbarConfig,s=a&&a.globalAlias||"Rollbar",u=window[s]&&"undefined"!=typeof window[s].shimId;!u&&a?o.wrapper.init(a):(window.Rollbar=o.wrapper,window.RollbarNotifier=i.Notifier),e.exports=o.wrapper;},function(e,r,t){"use strict";function n(e,r,t){!t[4]&&window._rollbarWrappedError&&(t[4]=window._rollbarWrappedError,window._rollbarWrappedError=null),e.uncaughtError.apply(e,t),r&&r.apply(window,t);}function o(e,r){if(r.hasOwnProperty&&r.hasOwnProperty("addEventListener")){var t=r.addEventListener;r.addEventListener=function(r,n,o){t.call(this,r,e.wrap(n),o);};var n=r.removeEventListener;r.removeEventListener=function(e,r,t){n.call(this,e,r&&r._wrapped||r,t);};}}var i=t(3),a=t(8),s=i.Notifier;window._rollbarWrappedError=null;var u={};u.init=function(e,r){var t=new s(r);if(t.configure(e),e.captureUncaught){var i;r&&a.isType(r._rollbarOldOnError,"function")?i=r._rollbarOldOnError:window.onerror&&!window.onerror.belongsToShim&&(i=window.onerror),window.onerror=function(){var e=Array.prototype.slice.call(arguments,0);n(t,i,e);};var u,c,l=["EventTarget","Window","Node","ApplicationCache","AudioTrackList","ChannelMergerNode","CryptoOperation","EventSource","FileReader","HTMLUnknownElement","IDBDatabase","IDBRequest","IDBTransaction","KeyOperation","MediaController","MessagePort","ModalWindow","Notification","SVGElementInstance","Screen","TextTrack","TextTrackCue","TextTrackList","WebSocket","WebSocketWorker","Worker","XMLHttpRequest","XMLHttpRequestEventTarget","XMLHttpRequestUpload"];for(u=0;u<l.length;++u)c=l[u],window[c]&&window[c].prototype&&o(t,window[c].prototype);}return e.captureUnhandledRejections&&(r&&a.isType(r._unhandledRejectionHandler,"function")&&window.removeEventListener("unhandledrejection",r._unhandledRejectionHandler),t._unhandledRejectionHandler=function(e){var r=e.reason,n=e.promise,o=e.detail;!r&&o&&(r=o.reason,n=o.promise),t.unhandledRejection(r,n);},window.addEventListener("unhandledrejection",t._unhandledRejectionHandler)),window.Rollbar=t,s.processPayloads(),t;},e.exports={wrapper:u,setupJSON:i.setupJSON};},function(e,r,t){"use strict";function n(e){E=e,w.setupJSON(e);}function o(e,r){return function(){var t=r||this;try{return e.apply(t,arguments);}catch(n){console.error("[Rollbar]:",n);}};}function i(){h||(h=setTimeout(f,1e3));}function a(){return _;}function s(e){_=_||this;var r="https://"+s.DEFAULT_ENDPOINT;this.options={enabled:!0,endpoint:r,environment:"production",scrubFields:g([],s.DEFAULT_SCRUB_FIELDS),checkIgnore:null,logLevel:s.DEFAULT_LOG_LEVEL,reportLevel:s.DEFAULT_REPORT_LEVEL,uncaughtErrorLevel:s.DEFAULT_UNCAUGHT_ERROR_LEVEL,payload:{}},this.lastError=null,this.plugins={},this.parentNotifier=e,e&&(e.hasOwnProperty("shimId")?e.notifier=this:this.configure(e.options));}function u(e){window._rollbarPayloadQueue.push(e),i();}function c(e){return o(function(){var r=this._getLogArgs(arguments);return this._log(e||r.level||this.options.logLevel||s.DEFAULT_LOG_LEVEL,r.message,r.err,r.custom,r.callback);});}function l(e,r){e||(e=r?E.stringify(r):"");var t={body:e};return r&&(t.extra=g(!0,{},r)),{message:t};}function p(e,r,t){var n=m.guessErrorClass(r.message),o=r.name||n[0],i=n[1],a={exception:{"class":o,message:i}};if(e&&(a.exception.description=e||"uncaught exception"),r.stack){var s,u,c,p,f,d,h,w;for(a.frames=[],h=0;h<r.stack.length;++h)s=r.stack[h],u={filename:s.url?v.sanitizeUrl(s.url):"(unknown)",lineno:s.line||null,method:s.func&&"?"!==s.func?s.func:"[anonymous]",colno:s.column},c=p=f=null,d=s.context?s.context.length:0,d&&(w=Math.floor(d/2),p=s.context.slice(0,w),c=s.context[w],f=s.context.slice(w)),c&&(u.code=c),(p||f)&&(u.context={},p&&p.length&&(u.context.pre=p),f&&f.length&&(u.context.post=f)),s.args&&(u.args=s.args),a.frames.push(u);return a.frames.reverse(),t&&(a.extra=g(!0,{},t)),{trace:a};}return l(o+": "+i,t);}function f(){var e;try{for(;e=window._rollbarPayloadQueue.shift();)d(e);}finally{h=void 0;}}function d(e){var r=e.endpointUrl,t=e.accessToken,n=e.payload,o=e.callback||function(){},i=new Date().getTime();i-L>=6e4&&(L=i,R=0);var a=window._globalRollbarOptions.maxItems,c=window._globalRollbarOptions.itemsPerMinute,l=function(){return!n.ignoreRateLimit&&a>=1&&T>=a;},p=function(){return!n.ignoreRateLimit&&c>=1&&R>=c;};return l()?void o(new Error(a+" max items reached")):p()?void o(new Error(c+" items per minute reached")):(T++,R++,l()&&_._log(_.options.uncaughtErrorLevel,"maxItems has been hit. Ignoring errors for the remainder of the current page load.",null,{maxItems:a},null,!1,!0),n.ignoreRateLimit&&delete n.ignoreRateLimit,void y.post(r,t,n,function(r,t){return r?(r instanceof b&&(e.callback=function(){},setTimeout(function(){u(e);},s.RETRY_DELAY)),o(r)):o(null,t);}));}var h,g=t(4),m=t(5),v=t(8),w=t(10),y=w.XHR,b=w.ConnectionError,E=null;s.NOTIFIER_VERSION="1.9.2",s.DEFAULT_ENDPOINT="api.rollbar.com/api/1/",s.DEFAULT_SCRUB_FIELDS=["pw","pass","passwd","password","secret","confirm_password","confirmPassword","password_confirmation","passwordConfirmation","access_token","accessToken","secret_key","secretKey","secretToken"],s.DEFAULT_LOG_LEVEL="debug",s.DEFAULT_REPORT_LEVEL="debug",s.DEFAULT_UNCAUGHT_ERROR_LEVEL="error",s.DEFAULT_ITEMS_PER_MIN=60,s.DEFAULT_MAX_ITEMS=0,s.LEVELS={debug:0,info:1,warning:2,error:3,critical:4},s.RETRY_DELAY=1e4,window._rollbarPayloadQueue=window._rollbarPayloadQueue||[],window._globalRollbarOptions={startTime:new Date().getTime(),maxItems:s.DEFAULT_MAX_ITEMS,itemsPerMinute:s.DEFAULT_ITEMS_PER_MIN};var _,x=s.prototype;x._getLogArgs=function(e){for(var r,t,n,i,a,u,c=this.options.logLevel||s.DEFAULT_LOG_LEVEL,l=[],p=0;p<e.length;++p)u=e[p],a=v.typeName(u),"string"===a?r?l.push(u):r=u:"function"===a?i=o(u,this):"date"===a?l.push(u):"error"===a||u instanceof Error||"undefined"!=typeof DOMException&&u instanceof DOMException?t?l.push(u):t=u:"object"!==a&&"array"!==a||(n?l.push(u):n=u);return l.length&&(n=n||{},n.extraArgs=l),{level:c,message:r,err:t,custom:n,callback:i};},x._route=function(e){var r=this.options.endpoint,t=/\/$/.test(r),n=/^\//.test(e);return t&&n?e=e.substring(1):t||n||(e="/"+e),r+e;},x._processShimQueue=function(e){for(var r,t,n,o,i,a,u,c={};t=e.shift();)r=t.shim,n=t.method,o=t.args,i=r.parentShim,u=c[r.shimId],u||(i?(a=c[i.shimId],u=new s(a)):u=this,c[r.shimId]=u),u[n]&&v.isType(u[n],"function")&&u[n].apply(u,o);},x._buildPayload=function(e,r,t,n,o){var i=this.options.accessToken,a=this.options.environment,u=g(!0,{},this.options.payload),c=v.uuid4();if(void 0===s.LEVELS[r])throw new Error("Invalid level");if(!t&&!n&&!o)throw new Error("No message, stack info or custom data");var l={environment:a,endpoint:this.options.endpoint,uuid:c,level:r,platform:"browser",framework:"browser-js",language:"javascript",body:this._buildBody(t,n,o),request:{url:window.location.href,query_string:window.location.search,user_ip:"$remote_ip"},client:{runtime_ms:e.getTime()-window._globalRollbarOptions.startTime,timestamp:Math.round(e.getTime()/1e3),javascript:{browser:window.navigator.userAgent,language:window.navigator.language,cookie_enabled:window.navigator.cookieEnabled,screen:{width:window.screen.width,height:window.screen.height},plugins:this._getBrowserPlugins()}},server:{},notifier:{name:"rollbar-browser-js",version:s.NOTIFIER_VERSION}};u.body&&delete u.body;var p={access_token:i,data:g(!0,l,u)};return this._scrub(p.data),p;},x._buildBody=function(e,r,t){var n;return n=r?p(e,r,t):l(e,t);},x._getBrowserPlugins=function(){if(!this._browserPlugins){var e,r,t=window.navigator.plugins||[],n=t.length,o=[];for(r=0;r<n;++r)e=t[r],o.push({name:e.name,description:e.description});this._browserPlugins=o;}return this._browserPlugins;},x._scrub=function(e){function r(e,r,t,n,o,i){return r+v.redact(i);}function t(e){var t;if(v.isType(e,"string"))for(t=0;t<s.length;++t)e=e.replace(s[t],r);return e;}function n(e,r){var t;for(t=0;t<a.length;++t)if(a[t].test(e)){r=v.redact(r);break;}return r;}function o(e,r){var o=n(e,r);return o===r?t(o):o;}var i=this.options.scrubFields,a=this._getScrubFieldRegexs(i),s=this._getScrubQueryParamRegexs(i);return v.traverse(e,o),e;},x._getScrubFieldRegexs=function(e){for(var r,t=[],n=0;n<e.length;++n)r="\\[?(%5[bB])?"+e[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",t.push(new RegExp(r,"i"));return t;},x._getScrubQueryParamRegexs=function(e){for(var r,t=[],n=0;n<e.length;++n)r="\\[?(%5[bB])?"+e[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",t.push(new RegExp("("+r+"=)([^&\\n]+)","igm"));return t;},x._urlIsWhitelisted=function(e){var r,t,n,o,i,a,s,u,c,l;try{if(r=this.options.hostWhiteList,t=e&&e.data&&e.data.body&&e.data.body.trace,!r||0===r.length)return!0;if(!t)return!0;for(s=r.length,i=t.frames.length,c=0;c<i;c++){if(n=t.frames[c],o=n.filename,!v.isType(o,"string"))return!0;for(l=0;l<s;l++)if(a=r[l],u=new RegExp(a),u.test(o))return!0;}}catch(p){return this.configure({hostWhiteList:null}),console.error("[Rollbar]: Error while reading your configuration's hostWhiteList option. Removing custom hostWhiteList.",p),!0;}return!1;},x._messageIsIgnored=function(e){var r,t,n,o,i,a,s,u,c;try{if(i=!1,n=this.options.ignoredMessages,!n||0===n.length)return!1;if(s=e&&e.data&&e.data.body,u=s&&s.trace&&s.trace.exception&&s.trace.exception.message,c=s&&s.message&&s.message.body,r=u||c,!r)return!1;for(o=n.length,t=0;t<o&&(a=new RegExp(n[t],"gi"),!(i=a.test(r)));t++);}catch(l){this.configure({ignoredMessages:null}),console.error("[Rollbar]: Error while reading your configuration's ignoredMessages option. Removing custom ignoredMessages.");}return i;},x._enqueuePayload=function(e,r,t,n){var o={callback:n,accessToken:this.options.accessToken,endpointUrl:this._route("item/"),payload:e},i=function(){if(n){var e="This item was not sent to Rollbar because it was ignored. This can happen if a custom checkIgnore() function was used or if the item's level was less than the notifier' reportLevel. See https://rollbar.com/docs/notifier/rollbar.js/configuration for more details.";n(null,{err:0,result:{id:null,uuid:null,message:e}});}};if(this._internalCheckIgnore(r,t,e))return void i();try{if(v.isType(this.options.checkIgnore,"function")&&this.options.checkIgnore(r,t,e))return void i();}catch(a){this.configure({checkIgnore:null}),console.error("[Rollbar]: Error while calling custom checkIgnore() function. Removing custom checkIgnore().",a);}if(this._urlIsWhitelisted(e)&&!this._messageIsIgnored(e)){if(this.options.verbose){if(e.data&&e.data.body&&e.data.body.trace){var s=e.data.body.trace,c=s.exception.message;console.error("[Rollbar]: ",c);}console.info("[Rollbar]: ",o);}v.isType(this.options.logFunction,"function")&&this.options.logFunction(o);try{v.isType(this.options.transform,"function")&&this.options.transform(e);}catch(a){this.configure({transform:null}),console.error("[Rollbar]: Error while calling custom transform() function. Removing custom transform().",a);}this.options.enabled&&u(o);}},x._internalCheckIgnore=function(e,r,t){var n=r[0],o=s.LEVELS[n]||0,i=s.LEVELS[this.options.reportLevel]||0;if(o<i)return!0;var a=this.options?this.options.plugins:{};if(a&&a.jquery&&a.jquery.ignoreAjaxErrors)try{return!!t.data.body.message.extra.isAjax;}catch(u){return!1;}return!1;},x._log=function(e,r,t,n,o,i,a){var s=null;if(t)try{if(s=t._savedStackTrace?t._savedStackTrace:m.parse(t),t===this.lastError)return;this.lastError=t;}catch(u){console.error("[Rollbar]: Error while parsing the error object.",u),r=t.message||t.description||r||String(t),t=null;}var c=this._buildPayload(new Date(),e,r,s,n);a&&(c.ignoreRateLimit=!0),this._enqueuePayload(c,!!i,[e,r,t,n],o);},x.log=c(),x.debug=c("debug"),x.info=c("info"),x.warn=c("warning"),x.warning=c("warning"),x.error=c("error"),x.critical=c("critical"),x.uncaughtError=o(function(e,r,t,n,o,i){if(i=i||null,o&&v.isType(o,"error"))return void this._log(this.options.uncaughtErrorLevel,e,o,i,null,!0);if(r&&v.isType(r,"error"))return void this._log(this.options.uncaughtErrorLevel,e,r,i,null,!0);var a={url:r||"",line:t};a.func=m.guessFunctionName(a.url,a.line),a.context=m.gatherContext(a.url,a.line);var s={mode:"onerror",message:o?String(o):e||"uncaught exception",url:document.location.href,stack:[a],useragent:navigator.userAgent},u=this._buildPayload(new Date(),this.options.uncaughtErrorLevel,e,s,i);this._enqueuePayload(u,!0,[this.options.uncaughtErrorLevel,e,r,t,n,o]);}),x.unhandledRejection=o(function(e,r){if(null==e)return void _._log(_.options.uncaughtErrorLevel,"unhandled rejection was null or undefined!",null,{},null,!1,!1);var t=e.message||(e?String(e):"unhandled rejection"),n=e._rollbarContext||r._rollbarContext||null;if(e&&v.isType(e,"error"))return void this._log(this.options.uncaughtErrorLevel,t,e,n,null,!0);var o={url:"",line:0};o.func=m.guessFunctionName(o.url,o.line),o.context=m.gatherContext(o.url,o.line);var i={mode:"unhandledrejection",message:t,url:document.location.href,stack:[o],useragent:navigator.userAgent},a=this._buildPayload(new Date(),this.options.uncaughtErrorLevel,t,i,n);this._enqueuePayload(a,!0,[this.options.uncaughtErrorLevel,t,o.url,o.line,0,e,r]);}),x.global=o(function(e){e=e||{};var r={startTime:e.startTime,maxItems:e.maxItems,itemsPerMinute:e.itemsPerMinute};g(!0,window._globalRollbarOptions,r),void 0!==e.maxItems&&(T=0),void 0!==e.itemsPerMinute&&(R=0);}),x.configure=o(function(e,r){var t=g(!0,{},e);g(!r,this.options,t),this.global(t);}),x.scope=o(function(e){var r=new s(this);return g(!0,r.options.payload,e),r;}),x.wrap=function(e,r){try{var t;if(t=v.isType(r,"function")?r:function(){return r||{};},!v.isType(e,"function"))return e;if(e._isWrap)return e;if(!e._wrapped){e._wrapped=function(){try{return e.apply(this,arguments);}catch(r){throw"string"==typeof r&&(r=new String(r)),r.stack||(r._savedStackTrace=m.parse(r)),r._rollbarContext=t()||{},r._rollbarContext._wrappedSource=e.toString(),window._rollbarWrappedError=r,r;}},e._wrapped._isWrap=!0;for(var n in e)e.hasOwnProperty(n)&&(e._wrapped[n]=e[n]);}return e._wrapped;}catch(o){return e;}},x.loadFull=function(){console.error("[Rollbar]: Unexpected Rollbar.loadFull() called on a Notifier instance");},s.processPayloads=function(e){return e?void f():void i();};var L=new Date().getTime(),T=0,R=0;e.exports={Notifier:s,setupJSON:n,topLevelNotifier:a};},function(e,r){"use strict";var t=Object.prototype.hasOwnProperty,n=Object.prototype.toString,o=function(e){return"function"==typeof Array.isArray?Array.isArray(e):"[object Array]"===n.call(e);},i=function(e){if(!e||"[object Object]"!==n.call(e))return!1;var r=t.call(e,"constructor"),o=e.constructor&&e.constructor.prototype&&t.call(e.constructor.prototype,"isPrototypeOf");if(e.constructor&&!r&&!o)return!1;var i;for(i in e);return"undefined"==typeof i||t.call(e,i);};e.exports=function a(){var e,r,t,n,s,u,c=arguments[0],l=1,p=arguments.length,f=!1;for("boolean"==typeof c?(f=c,c=arguments[1]||{},l=2):("object"!=typeof c&&"function"!=typeof c||null==c)&&(c={});l<p;++l)if(e=arguments[l],null!=e)for(r in e)t=c[r],n=e[r],c!==n&&(f&&n&&(i(n)||(s=o(n)))?(s?(s=!1,u=t&&o(t)?t:[]):u=t&&i(t)?t:{},c[r]=a(f,u,n)):"undefined"!=typeof n&&(c[r]=n));return c;};},function(e,r,t){"use strict";function n(){return l;}function o(){return null;}function i(e){var r={};return r._stackFrame=e,r.url=e.fileName,r.line=e.lineNumber,r.func=e.functionName,r.column=e.columnNumber,r.args=e.args,r.context=o(r.url,r.line),r;}function a(e){function r(){var r=[];try{r=c.parse(e);}catch(t){r=[];}for(var n=[],o=0;o<r.length;o++)n.push(new i(r[o]));return n;}return{stack:r(),message:e.message,name:e.name};}function s(e){return new a(e);}function u(e){if(!e)return["Unknown error. There was no error message to display.",""];var r=e.match(p),t="(unknown)";return r&&(t=r[r.length-1],e=e.replace((r[r.length-2]||"")+t+":",""),e=e.replace(/(^[\s]+|[\s]+$)/g,"")),[t,e];}var c=t(6),l="?",p=new RegExp("^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ");e.exports={guessFunctionName:n,guessErrorClass:u,gatherContext:o,parse:s,Stack:a,Frame:i};},function(e,r,t){var n,o,i;!function(a,s){"use strict";o=[t(7)],n=s,i="function"==typeof n?n.apply(r,o):n,!(void 0!==i&&(e.exports=i));}(this,function(e){"use strict";function r(e,r,t){if("function"==typeof Array.prototype.map)return e.map(r,t);for(var n=new Array(e.length),o=0;o<e.length;o++)n[o]=r.call(t,e[o]);return n;}function t(e,r,t){if("function"==typeof Array.prototype.filter)return e.filter(r,t);for(var n=[],o=0;o<e.length;o++)r.call(t,e[o])&&n.push(e[o]);return n;}var n=/(^|@)\S+\:\d+/,o=/^\s*at .*(\S+\:\d+|\(native\))/m,i=/^(eval@)?(\[native code\])?$/;return{parse:function(e){if("undefined"!=typeof e.stacktrace||"undefined"!=typeof e["opera#sourceloc"])return this.parseOpera(e);if(e.stack&&e.stack.match(o))return this.parseV8OrIE(e);if(e.stack)return this.parseFFOrSafari(e);throw new Error("Cannot parse given Error object");},extractLocation:function(e){if(e.indexOf(":")===-1)return[e];var r=e.replace(/[\(\)\s]/g,"").split(":"),t=r.pop(),n=r[r.length-1];if(!isNaN(parseFloat(n))&&isFinite(n)){var o=r.pop();return[r.join(":"),o,t];}return[r.join(":"),t,void 0];},parseV8OrIE:function(n){var i=t(n.stack.split("\n"),function(e){return!!e.match(o);},this);return r(i,function(r){r.indexOf("(eval ")>-1&&(r=r.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var t=r.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),n=this.extractLocation(t.pop()),o=t.join(" ")||void 0,i="eval"===n[0]?void 0:n[0];return new e(o,void 0,i,n[1],n[2],r);},this);},parseFFOrSafari:function(n){var o=t(n.stack.split("\n"),function(e){return!e.match(i);},this);return r(o,function(r){if(r.indexOf(" > eval")>-1&&(r=r.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),r.indexOf("@")===-1&&r.indexOf(":")===-1)return new e(r);var t=r.split("@"),n=this.extractLocation(t.pop()),o=t.shift()||void 0;return new e(o,void 0,n[0],n[1],n[2],r);},this);},parseOpera:function(e){return!e.stacktrace||e.message.indexOf("\n")>-1&&e.message.split("\n").length>e.stacktrace.split("\n").length?this.parseOpera9(e):e.stack?this.parseOpera11(e):this.parseOpera10(e);},parseOpera9:function(r){for(var t=/Line (\d+).*script (?:in )?(\S+)/i,n=r.message.split("\n"),o=[],i=2,a=n.length;i<a;i+=2){var s=t.exec(n[i]);s&&o.push(new e(void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera10:function(r){for(var t=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,n=r.stacktrace.split("\n"),o=[],i=0,a=n.length;i<a;i+=2){var s=t.exec(n[i]);s&&o.push(new e(s[3]||void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera11:function(o){var i=t(o.stack.split("\n"),function(e){return!!e.match(n)&&!e.match(/^Error created at/);},this);return r(i,function(r){var t,n=r.split("@"),o=this.extractLocation(n.pop()),i=n.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(t=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===t||"[arguments not available]"===t?void 0:t.split(",");return new e(a,s,o[0],o[1],o[2],r);},this);}};});},function(e,r,t){var n,o,i;!function(t,a){"use strict";o=[],n=a,i="function"==typeof n?n.apply(r,o):n,!(void 0!==i&&(e.exports=i));}(this,function(){"use strict";function e(e){return!isNaN(parseFloat(e))&&isFinite(e);}function r(e,r,t,n,o,i){void 0!==e&&this.setFunctionName(e),void 0!==r&&this.setArgs(r),void 0!==t&&this.setFileName(t),void 0!==n&&this.setLineNumber(n),void 0!==o&&this.setColumnNumber(o),void 0!==i&&this.setSource(i);}return r.prototype={getFunctionName:function(){return this.functionName;},setFunctionName:function(e){this.functionName=String(e);},getArgs:function(){return this.args;},setArgs:function(e){if("[object Array]"!==Object.prototype.toString.call(e))throw new TypeError("Args must be an Array");this.args=e;},getFileName:function(){return this.fileName;},setFileName:function(e){this.fileName=String(e);},getLineNumber:function(){return this.lineNumber;},setLineNumber:function(r){if(!e(r))throw new TypeError("Line Number must be a Number");this.lineNumber=Number(r);},getColumnNumber:function(){return this.columnNumber;},setColumnNumber:function(r){if(!e(r))throw new TypeError("Column Number must be a Number");this.columnNumber=Number(r);},getSource:function(){return this.source;},setSource:function(e){this.source=String(e);},toString:function(){var r=this.getFunctionName()||"{anonymous}",t="("+(this.getArgs()||[]).join(",")+")",n=this.getFileName()?"@"+this.getFileName():"",o=e(this.getLineNumber())?":"+this.getLineNumber():"",i=e(this.getColumnNumber())?":"+this.getColumnNumber():"";return r+t+n+o+i;}},r;});},function(e,r,t){"use strict";function n(e){return{}.toString.call(e).match(/\s([a-zA-Z]+)/)[1].toLowerCase();}function o(e,r){return n(e)===r;}function i(e){if(!o(e,"string"))throw new Error("received invalid input");for(var r=l,t=r.parser[r.strictMode?"strict":"loose"].exec(e),n={},i=14;i--;)n[r.key[i]]=t[i]||"";return n[r.q.name]={},n[r.key[12]].replace(r.q.parser,function(e,t,o){t&&(n[r.q.name][t]=o);}),n;}function a(e){var r=i(e);return""===r.anchor&&(r.source=r.source.replace("#","")),e=r.source.replace("?"+r.query,"");}function s(e,r){var t,n,i,a=o(e,"object"),u=o(e,"array"),c=[];if(a)for(t in e)e.hasOwnProperty(t)&&c.push(t);else if(u)for(i=0;i<e.length;++i)c.push(i);for(i=0;i<c.length;++i)t=c[i],n=e[t],a=o(n,"object"),u=o(n,"array"),a||u?e[t]=s(n,r):e[t]=r(t,n);return e;}function u(e){return e=String(e),new Array(e.length+1).join("*");}function c(){var e=new Date().getTime(),r="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(r){var t=(e+16*Math.random())%16|0;return e=Math.floor(e/16),("x"===r?t:7&t|8).toString(16);});return r;}t(9);var l={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}},p={isType:o,parseUri:i,parseUriOptions:l,redact:u,sanitizeUrl:a,traverse:s,typeName:n,uuid4:c};e.exports=p;},function(e,r){!function(e){"use strict";e.console=e.console||{};for(var r,t,n=e.console,o={},i=function(){},a="memory".split(","),s="assert,clear,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn".split(",");r=a.pop();)n[r]||(n[r]=o);for(;t=s.pop();)n[t]||(n[t]=i);}("undefined"==typeof window?this:window);},function(e,r,t){"use strict";function n(e){a=e;}function o(e){this.name="Connection Error",this.message=e,this.stack=new Error().stack;}var i=t(8),a=null;o.prototype=Object.create(Error.prototype),o.prototype.constructor=o;var s={XMLHttpFactories:[function(){return new XMLHttpRequest();},function(){return new ActiveXObject("Msxml2.XMLHTTP");},function(){return new ActiveXObject("Msxml3.XMLHTTP");},function(){return new ActiveXObject("Microsoft.XMLHTTP");}],createXMLHTTPObject:function(){var e,r=!1,t=s.XMLHttpFactories,n=t.length;for(e=0;e<n;e++)try{r=t[e]();break;}catch(o){}return r;},post:function(e,r,t,n){if(!i.isType(t,"object"))throw new Error("Expected an object to POST");t=a.stringify(t),n=n||function(){};var u=s.createXMLHTTPObject();if(u)try{try{var c=function(){try{if(c&&4===u.readyState){c=void 0;var e=a.parse(u.responseText);200===u.status?n(null,e):i.isType(u.status,"number")&&u.status>=400&&u.status<600?(403==u.status&&console.error("[Rollbar]:"+e.message),n(new Error(String(u.status)))):n(new o("XHR response had no status code (likely connection failure)"));}}catch(r){var t;t=r&&r.stack?r:new Error(r),n(t);}};u.open("POST",e,!0),u.setRequestHeader&&(u.setRequestHeader("Content-Type","application/json"),u.setRequestHeader("X-Rollbar-Access-Token",r)),u.onreadystatechange=c,u.send(t);}catch(l){if("undefined"!=typeof XDomainRequest){"http:"===window.location.href.substring(0,5)&&"https"===e.substring(0,5)&&(e="http"+e.substring(5));var p=function(){n(new o("Request timed out"));},f=function(){n(new Error("Error during request"));},d=function(){n(null,a.parse(u.responseText));};u=new XDomainRequest(),u.onprogress=function(){},u.ontimeout=p,u.onerror=f,u.onload=d,u.open("POST",e,!0),u.send(t);}}}catch(h){n(h);}}};e.exports={XHR:s,setupJSON:n,ConnectionError:o};}]);});});var rollbarConfig={accessToken:"fe7cf327f2b24bb8991e252239f6200f",captureUncaught:true,ignoredMessages:["Error:  DOM Exception 18","SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.","SecurityError:  An attempt was made to break through the security policy of the user agent.","Script error."],payload:{environment:"development",client:{javascript:{source_map_enabled:true,code_version:"a205d4893140a769e09b4e4ca07295ceae5f6e6c",// Optionally have Rollbar guess which frames the error was thrown from
+source:new _ol_source_TileImage_({tileGrid:new _ol_tilegrid_TileGrid_({origin:[0,mapConstants.map_h],resolutions:mapConstants.resolutions}),projection:pixelProj,url:self.map_tile_path+layerDef.group+'/'+layerDef.id+'/{z}/tile_{x}_{y}.jpg'}),visible:!!layerDef.visible});layer.set('layerId',layerDef.group+'-'+layerDef.id,true);layer.set('layerDef',layerDef,true);return layer;});this.baseLayerGroup=new _ol_layer_Group_({title:'Base Layers',layers:new _ol_Collection_(this.baseLayers)});}InteractiveMap.prototype.getMapData=function(version){return this.data[version||this.version];};InteractiveMap.prototype.getData=function(version){return this.data[version||this.version].data;};InteractiveMap.prototype.getOverlayData=function(version){return this.data[version||this.version].data.data;};InteractiveMap.prototype.getStatData=function(version){return this.data[version||this.version].data.stats;};InteractiveMap.prototype.getMapLayerIndex=function(version){version=version||this.version;if(!this.layerIndex[version])this.layerIndex[version]={};return this.layerIndex[version];};InteractiveMap.prototype.getMapDataPath=function(version){version=version||this.version;return'data/'+version+'/mapdata.json';};InteractiveMap.prototype.setMapLayers=function(version,callback){var self=this;this.getDataJSON(version,function(err,data){if(!err){var currentLayerGroup=self.map.getLayerGroup();currentLayerGroup.setVisible(false);self.map.setLayerGroup(data.layerGroup);self.map.getLayerGroup().setVisible(true);}if(callback)callback(err);});};InteractiveMap.prototype.getDataJSON=function(version,callback){var self=this;if(this.data[version]){callback(null,self.data[version]);}else{getJSON(self.getMapDataPath(version),function(err,data){if(!err){self.data[version]={data:data,layerGroup:new _ol_layer_Group_({title:version+' Layers',layers:new _ol_Collection_([self.baseLayerGroup,loadLayerGroupFromData(self,data,version,self.getMapLayerIndex(version),self.layerDefs)])})};}callback(err,self.data[version]);});}};InteractiveMap.prototype.panTo=function(coordinate,duration){if(duration==null)duration=1000;this.view.animate({center:coordinate,duration:1000});};InteractiveMap.prototype.checkAndHighlightWard=function(pixel){var self=this;var feature=this.map.forEachFeatureAtPixel(pixel,function(feature,layer){return feature;},{layerFilter:self.wardControl.layerFilter});this.highlightWard(feature);return feature;};InteractiveMap.prototype.highlightWard=function(feature){if(feature!==this.highlightedWard){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}if(feature){feature.setStyle(styles[feature.get('wardType')][this.MODE=='navigate'?'highlight':'remove']);}this.highlightedWard=feature;}};InteractiveMap.prototype.unhighlightWard=function(){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}this.highlightedWard=null;};InteractiveMap.prototype.highlight=function(feature){if(feature!==this.highlightedFeature){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}if(feature){this.highlightSource.addFeature(feature);}this.highlightedFeature=feature;}};InteractiveMap.prototype.unhighlight=function(){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}this.highlightedFeature=null;};InteractiveMap.prototype.toggle=function(feature){if(feature){if(feature.get("clicked")){this.deselect(feature);return false;}else{this.select(feature);return true;}}};InteractiveMap.prototype.select=function(feature){if(feature&&!feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.addFeature(feature);feature.set("clicked",true,true);}};InteractiveMap.prototype.deselectAll=function(){this.selectSource.getFeatures().forEach(function(feature){feature.set("clicked",false,true);});this.selectSource.clear();};InteractiveMap.prototype.deselect=function(feature){if(feature&&feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.removeFeature(feature);feature.set("clicked",false,true);}};InteractiveMap.prototype.hasVisionRadius=function(feature){return this.getFeatureVisionRadius(feature)!=null;};InteractiveMap.prototype.getFeatureVisionRadius=function(feature,dotaProps,unitClass,rangeType){dotaProps=dotaProps||feature.get('dotaProps');unitClass=unitClass||dotaProps.unitClass;var stats=this.getStatData();var radius;if(unitClass=='observer'){radius=this.visionRadius||mapConstants.visionRadius[unitClass];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}}else if(unitClass=='sentry'){radius=mapConstants.visionRadius[unitClass];}else{if(rangeType&&!stats[unitClass].hasOwnProperty(rangeType))return null;switch(rangeType){case'dayVision':case'nightVision':radius=stats[unitClass][rangeType];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}case'trueSight':case'attackRange':radius=stats[unitClass][rangeType];break;default:if(this.isNight){radius=stats[unitClass].nightVision;}else{radius=stats[unitClass].dayVision;}if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}break;}}return radius;};InteractiveMap.prototype.getRangeCircle=function(feature,coordinate,unitClass,rangeType,radius){var dotaProps=feature.get('dotaProps');var radius=radius||this.getFeatureVisionRadius(feature,dotaProps,unitClass,rangeType);if(radius==null)return null;if(!coordinate){coordinate=worldToLatLon([dotaProps.x,dotaProps.y]);}var circle=new _ol_Feature_(new _ol_geom_Circle_(coordinate,getScaledRadius(radius)));return circle;};var forEach=function(array,callback,scope){for(var i=0;i<array.length;i++){callback.call(scope,array[i],i);// passes back stuff we need
+}};var commonjsGlobal=typeof window!=='undefined'?window:typeof global!=='undefined'?global:typeof self!=='undefined'?self:{};function createCommonjsModule(fn,module){return module={exports:{}},fn(module,module.exports),module.exports;}var rollbar_umd_nojson_min=createCommonjsModule(function(module,exports){!function(e,r){module.exports=r();}(commonjsGlobal,function(){return function(e){function r(n){if(t[n])return t[n].exports;var o=t[n]={exports:{},id:n,loaded:!1};return e[n].call(o.exports,o,o.exports,r),o.loaded=!0,o.exports;}var t={};return r.m=e,r.c=t,r.p="",r(0);}([function(e,r,t){e.exports=t(1);},function(e,r,t){"use strict";function n(){var e="undefined"==typeof JSON?{}:JSON;o.setupJSON(e);}var o=t(2),i=t(3);n();var a=window._rollbarConfig,s=a&&a.globalAlias||"Rollbar",u=window[s]&&"undefined"!=typeof window[s].shimId;!u&&a?o.wrapper.init(a):(window.Rollbar=o.wrapper,window.RollbarNotifier=i.Notifier),e.exports=o.wrapper;},function(e,r,t){"use strict";function n(e,r,t){!t[4]&&window._rollbarWrappedError&&(t[4]=window._rollbarWrappedError,window._rollbarWrappedError=null),e.uncaughtError.apply(e,t),r&&r.apply(window,t);}function o(e,r){if(r.hasOwnProperty&&r.hasOwnProperty("addEventListener")){var t=r.addEventListener;r.addEventListener=function(r,n,o){t.call(this,r,e.wrap(n),o);};var n=r.removeEventListener;r.removeEventListener=function(e,r,t){n.call(this,e,r&&r._wrapped||r,t);};}}var i=t(3),a=t(8),s=i.Notifier;window._rollbarWrappedError=null;var u={};u.init=function(e,r){var t=new s(r);if(t.configure(e),e.captureUncaught){var i;r&&a.isType(r._rollbarOldOnError,"function")?i=r._rollbarOldOnError:window.onerror&&!window.onerror.belongsToShim&&(i=window.onerror),window.onerror=function(){var e=Array.prototype.slice.call(arguments,0);n(t,i,e);};var u,c,l=["EventTarget","Window","Node","ApplicationCache","AudioTrackList","ChannelMergerNode","CryptoOperation","EventSource","FileReader","HTMLUnknownElement","IDBDatabase","IDBRequest","IDBTransaction","KeyOperation","MediaController","MessagePort","ModalWindow","Notification","SVGElementInstance","Screen","TextTrack","TextTrackCue","TextTrackList","WebSocket","WebSocketWorker","Worker","XMLHttpRequest","XMLHttpRequestEventTarget","XMLHttpRequestUpload"];for(u=0;u<l.length;++u)c=l[u],window[c]&&window[c].prototype&&o(t,window[c].prototype);}return e.captureUnhandledRejections&&(r&&a.isType(r._unhandledRejectionHandler,"function")&&window.removeEventListener("unhandledrejection",r._unhandledRejectionHandler),t._unhandledRejectionHandler=function(e){var r=e.reason,n=e.promise,o=e.detail;!r&&o&&(r=o.reason,n=o.promise),t.unhandledRejection(r,n);},window.addEventListener("unhandledrejection",t._unhandledRejectionHandler)),window.Rollbar=t,s.processPayloads(),t;},e.exports={wrapper:u,setupJSON:i.setupJSON};},function(e,r,t){"use strict";function n(e){E=e,w.setupJSON(e);}function o(e,r){return function(){var t=r||this;try{return e.apply(t,arguments);}catch(n){console.error("[Rollbar]:",n);}};}function i(){h||(h=setTimeout(f,1e3));}function a(){return _;}function s(e){_=_||this;var r="https://"+s.DEFAULT_ENDPOINT;this.options={enabled:!0,endpoint:r,environment:"production",scrubFields:g([],s.DEFAULT_SCRUB_FIELDS),checkIgnore:null,logLevel:s.DEFAULT_LOG_LEVEL,reportLevel:s.DEFAULT_REPORT_LEVEL,uncaughtErrorLevel:s.DEFAULT_UNCAUGHT_ERROR_LEVEL,payload:{}},this.lastError=null,this.plugins={},this.parentNotifier=e,e&&(e.hasOwnProperty("shimId")?e.notifier=this:this.configure(e.options));}function u(e){window._rollbarPayloadQueue.push(e),i();}function c(e){return o(function(){var r=this._getLogArgs(arguments);return this._log(e||r.level||this.options.logLevel||s.DEFAULT_LOG_LEVEL,r.message,r.err,r.custom,r.callback);});}function l(e,r){e||(e=r?E.stringify(r):"");var t={body:e};return r&&(t.extra=g(!0,{},r)),{message:t};}function p(e,r,t){var n=m.guessErrorClass(r.message),o=r.name||n[0],i=n[1],a={exception:{"class":o,message:i}};if(e&&(a.exception.description=e||"uncaught exception"),r.stack){var s,u,c,p,f,d,h,w;for(a.frames=[],h=0;h<r.stack.length;++h)s=r.stack[h],u={filename:s.url?v.sanitizeUrl(s.url):"(unknown)",lineno:s.line||null,method:s.func&&"?"!==s.func?s.func:"[anonymous]",colno:s.column},c=p=f=null,d=s.context?s.context.length:0,d&&(w=Math.floor(d/2),p=s.context.slice(0,w),c=s.context[w],f=s.context.slice(w)),c&&(u.code=c),(p||f)&&(u.context={},p&&p.length&&(u.context.pre=p),f&&f.length&&(u.context.post=f)),s.args&&(u.args=s.args),a.frames.push(u);return a.frames.reverse(),t&&(a.extra=g(!0,{},t)),{trace:a};}return l(o+": "+i,t);}function f(){var e;try{for(;e=window._rollbarPayloadQueue.shift();)d(e);}finally{h=void 0;}}function d(e){var r=e.endpointUrl,t=e.accessToken,n=e.payload,o=e.callback||function(){},i=new Date().getTime();i-L>=6e4&&(L=i,R=0);var a=window._globalRollbarOptions.maxItems,c=window._globalRollbarOptions.itemsPerMinute,l=function(){return!n.ignoreRateLimit&&a>=1&&T>=a;},p=function(){return!n.ignoreRateLimit&&c>=1&&R>=c;};return l()?void o(new Error(a+" max items reached")):p()?void o(new Error(c+" items per minute reached")):(T++,R++,l()&&_._log(_.options.uncaughtErrorLevel,"maxItems has been hit. Ignoring errors for the remainder of the current page load.",null,{maxItems:a},null,!1,!0),n.ignoreRateLimit&&delete n.ignoreRateLimit,void y.post(r,t,n,function(r,t){return r?(r instanceof b&&(e.callback=function(){},setTimeout(function(){u(e);},s.RETRY_DELAY)),o(r)):o(null,t);}));}var h,g=t(4),m=t(5),v=t(8),w=t(10),y=w.XHR,b=w.ConnectionError,E=null;s.NOTIFIER_VERSION="1.9.2",s.DEFAULT_ENDPOINT="api.rollbar.com/api/1/",s.DEFAULT_SCRUB_FIELDS=["pw","pass","passwd","password","secret","confirm_password","confirmPassword","password_confirmation","passwordConfirmation","access_token","accessToken","secret_key","secretKey","secretToken"],s.DEFAULT_LOG_LEVEL="debug",s.DEFAULT_REPORT_LEVEL="debug",s.DEFAULT_UNCAUGHT_ERROR_LEVEL="error",s.DEFAULT_ITEMS_PER_MIN=60,s.DEFAULT_MAX_ITEMS=0,s.LEVELS={debug:0,info:1,warning:2,error:3,critical:4},s.RETRY_DELAY=1e4,window._rollbarPayloadQueue=window._rollbarPayloadQueue||[],window._globalRollbarOptions={startTime:new Date().getTime(),maxItems:s.DEFAULT_MAX_ITEMS,itemsPerMinute:s.DEFAULT_ITEMS_PER_MIN};var _,x=s.prototype;x._getLogArgs=function(e){for(var r,t,n,i,a,u,c=this.options.logLevel||s.DEFAULT_LOG_LEVEL,l=[],p=0;p<e.length;++p)u=e[p],a=v.typeName(u),"string"===a?r?l.push(u):r=u:"function"===a?i=o(u,this):"date"===a?l.push(u):"error"===a||u instanceof Error||"undefined"!=typeof DOMException&&u instanceof DOMException?t?l.push(u):t=u:"object"!==a&&"array"!==a||(n?l.push(u):n=u);return l.length&&(n=n||{},n.extraArgs=l),{level:c,message:r,err:t,custom:n,callback:i};},x._route=function(e){var r=this.options.endpoint,t=/\/$/.test(r),n=/^\//.test(e);return t&&n?e=e.substring(1):t||n||(e="/"+e),r+e;},x._processShimQueue=function(e){for(var r,t,n,o,i,a,u,c={};t=e.shift();)r=t.shim,n=t.method,o=t.args,i=r.parentShim,u=c[r.shimId],u||(i?(a=c[i.shimId],u=new s(a)):u=this,c[r.shimId]=u),u[n]&&v.isType(u[n],"function")&&u[n].apply(u,o);},x._buildPayload=function(e,r,t,n,o){var i=this.options.accessToken,a=this.options.environment,u=g(!0,{},this.options.payload),c=v.uuid4();if(void 0===s.LEVELS[r])throw new Error("Invalid level");if(!t&&!n&&!o)throw new Error("No message, stack info or custom data");var l={environment:a,endpoint:this.options.endpoint,uuid:c,level:r,platform:"browser",framework:"browser-js",language:"javascript",body:this._buildBody(t,n,o),request:{url:window.location.href,query_string:window.location.search,user_ip:"$remote_ip"},client:{runtime_ms:e.getTime()-window._globalRollbarOptions.startTime,timestamp:Math.round(e.getTime()/1e3),javascript:{browser:window.navigator.userAgent,language:window.navigator.language,cookie_enabled:window.navigator.cookieEnabled,screen:{width:window.screen.width,height:window.screen.height},plugins:this._getBrowserPlugins()}},server:{},notifier:{name:"rollbar-browser-js",version:s.NOTIFIER_VERSION}};u.body&&delete u.body;var p={access_token:i,data:g(!0,l,u)};return this._scrub(p.data),p;},x._buildBody=function(e,r,t){var n;return n=r?p(e,r,t):l(e,t);},x._getBrowserPlugins=function(){if(!this._browserPlugins){var e,r,t=window.navigator.plugins||[],n=t.length,o=[];for(r=0;r<n;++r)e=t[r],o.push({name:e.name,description:e.description});this._browserPlugins=o;}return this._browserPlugins;},x._scrub=function(e){function r(e,r,t,n,o,i){return r+v.redact(i);}function t(e){var t;if(v.isType(e,"string"))for(t=0;t<s.length;++t)e=e.replace(s[t],r);return e;}function n(e,r){var t;for(t=0;t<a.length;++t)if(a[t].test(e)){r=v.redact(r);break;}return r;}function o(e,r){var o=n(e,r);return o===r?t(o):o;}var i=this.options.scrubFields,a=this._getScrubFieldRegexs(i),s=this._getScrubQueryParamRegexs(i);return v.traverse(e,o),e;},x._getScrubFieldRegexs=function(e){for(var r,t=[],n=0;n<e.length;++n)r="\\[?(%5[bB])?"+e[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",t.push(new RegExp(r,"i"));return t;},x._getScrubQueryParamRegexs=function(e){for(var r,t=[],n=0;n<e.length;++n)r="\\[?(%5[bB])?"+e[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",t.push(new RegExp("("+r+"=)([^&\\n]+)","igm"));return t;},x._urlIsWhitelisted=function(e){var r,t,n,o,i,a,s,u,c,l;try{if(r=this.options.hostWhiteList,t=e&&e.data&&e.data.body&&e.data.body.trace,!r||0===r.length)return!0;if(!t)return!0;for(s=r.length,i=t.frames.length,c=0;c<i;c++){if(n=t.frames[c],o=n.filename,!v.isType(o,"string"))return!0;for(l=0;l<s;l++)if(a=r[l],u=new RegExp(a),u.test(o))return!0;}}catch(p){return this.configure({hostWhiteList:null}),console.error("[Rollbar]: Error while reading your configuration's hostWhiteList option. Removing custom hostWhiteList.",p),!0;}return!1;},x._messageIsIgnored=function(e){var r,t,n,o,i,a,s,u,c;try{if(i=!1,n=this.options.ignoredMessages,!n||0===n.length)return!1;if(s=e&&e.data&&e.data.body,u=s&&s.trace&&s.trace.exception&&s.trace.exception.message,c=s&&s.message&&s.message.body,r=u||c,!r)return!1;for(o=n.length,t=0;t<o&&(a=new RegExp(n[t],"gi"),!(i=a.test(r)));t++);}catch(l){this.configure({ignoredMessages:null}),console.error("[Rollbar]: Error while reading your configuration's ignoredMessages option. Removing custom ignoredMessages.");}return i;},x._enqueuePayload=function(e,r,t,n){var o={callback:n,accessToken:this.options.accessToken,endpointUrl:this._route("item/"),payload:e},i=function(){if(n){var e="This item was not sent to Rollbar because it was ignored. This can happen if a custom checkIgnore() function was used or if the item's level was less than the notifier' reportLevel. See https://rollbar.com/docs/notifier/rollbar.js/configuration for more details.";n(null,{err:0,result:{id:null,uuid:null,message:e}});}};if(this._internalCheckIgnore(r,t,e))return void i();try{if(v.isType(this.options.checkIgnore,"function")&&this.options.checkIgnore(r,t,e))return void i();}catch(a){this.configure({checkIgnore:null}),console.error("[Rollbar]: Error while calling custom checkIgnore() function. Removing custom checkIgnore().",a);}if(this._urlIsWhitelisted(e)&&!this._messageIsIgnored(e)){if(this.options.verbose){if(e.data&&e.data.body&&e.data.body.trace){var s=e.data.body.trace,c=s.exception.message;console.error("[Rollbar]: ",c);}console.info("[Rollbar]: ",o);}v.isType(this.options.logFunction,"function")&&this.options.logFunction(o);try{v.isType(this.options.transform,"function")&&this.options.transform(e);}catch(a){this.configure({transform:null}),console.error("[Rollbar]: Error while calling custom transform() function. Removing custom transform().",a);}this.options.enabled&&u(o);}},x._internalCheckIgnore=function(e,r,t){var n=r[0],o=s.LEVELS[n]||0,i=s.LEVELS[this.options.reportLevel]||0;if(o<i)return!0;var a=this.options?this.options.plugins:{};if(a&&a.jquery&&a.jquery.ignoreAjaxErrors)try{return!!t.data.body.message.extra.isAjax;}catch(u){return!1;}return!1;},x._log=function(e,r,t,n,o,i,a){var s=null;if(t)try{if(s=t._savedStackTrace?t._savedStackTrace:m.parse(t),t===this.lastError)return;this.lastError=t;}catch(u){console.error("[Rollbar]: Error while parsing the error object.",u),r=t.message||t.description||r||String(t),t=null;}var c=this._buildPayload(new Date(),e,r,s,n);a&&(c.ignoreRateLimit=!0),this._enqueuePayload(c,!!i,[e,r,t,n],o);},x.log=c(),x.debug=c("debug"),x.info=c("info"),x.warn=c("warning"),x.warning=c("warning"),x.error=c("error"),x.critical=c("critical"),x.uncaughtError=o(function(e,r,t,n,o,i){if(i=i||null,o&&v.isType(o,"error"))return void this._log(this.options.uncaughtErrorLevel,e,o,i,null,!0);if(r&&v.isType(r,"error"))return void this._log(this.options.uncaughtErrorLevel,e,r,i,null,!0);var a={url:r||"",line:t};a.func=m.guessFunctionName(a.url,a.line),a.context=m.gatherContext(a.url,a.line);var s={mode:"onerror",message:o?String(o):e||"uncaught exception",url:document.location.href,stack:[a],useragent:navigator.userAgent},u=this._buildPayload(new Date(),this.options.uncaughtErrorLevel,e,s,i);this._enqueuePayload(u,!0,[this.options.uncaughtErrorLevel,e,r,t,n,o]);}),x.unhandledRejection=o(function(e,r){if(null==e)return void _._log(_.options.uncaughtErrorLevel,"unhandled rejection was null or undefined!",null,{},null,!1,!1);var t=e.message||(e?String(e):"unhandled rejection"),n=e._rollbarContext||r._rollbarContext||null;if(e&&v.isType(e,"error"))return void this._log(this.options.uncaughtErrorLevel,t,e,n,null,!0);var o={url:"",line:0};o.func=m.guessFunctionName(o.url,o.line),o.context=m.gatherContext(o.url,o.line);var i={mode:"unhandledrejection",message:t,url:document.location.href,stack:[o],useragent:navigator.userAgent},a=this._buildPayload(new Date(),this.options.uncaughtErrorLevel,t,i,n);this._enqueuePayload(a,!0,[this.options.uncaughtErrorLevel,t,o.url,o.line,0,e,r]);}),x.global=o(function(e){e=e||{};var r={startTime:e.startTime,maxItems:e.maxItems,itemsPerMinute:e.itemsPerMinute};g(!0,window._globalRollbarOptions,r),void 0!==e.maxItems&&(T=0),void 0!==e.itemsPerMinute&&(R=0);}),x.configure=o(function(e,r){var t=g(!0,{},e);g(!r,this.options,t),this.global(t);}),x.scope=o(function(e){var r=new s(this);return g(!0,r.options.payload,e),r;}),x.wrap=function(e,r){try{var t;if(t=v.isType(r,"function")?r:function(){return r||{};},!v.isType(e,"function"))return e;if(e._isWrap)return e;if(!e._wrapped){e._wrapped=function(){try{return e.apply(this,arguments);}catch(r){throw"string"==typeof r&&(r=new String(r)),r.stack||(r._savedStackTrace=m.parse(r)),r._rollbarContext=t()||{},r._rollbarContext._wrappedSource=e.toString(),window._rollbarWrappedError=r,r;}},e._wrapped._isWrap=!0;for(var n in e)e.hasOwnProperty(n)&&(e._wrapped[n]=e[n]);}return e._wrapped;}catch(o){return e;}},x.loadFull=function(){console.error("[Rollbar]: Unexpected Rollbar.loadFull() called on a Notifier instance");},s.processPayloads=function(e){return e?void f():void i();};var L=new Date().getTime(),T=0,R=0;e.exports={Notifier:s,setupJSON:n,topLevelNotifier:a};},function(e,r){"use strict";var t=Object.prototype.hasOwnProperty,n=Object.prototype.toString,o=function(e){return"function"==typeof Array.isArray?Array.isArray(e):"[object Array]"===n.call(e);},i=function(e){if(!e||"[object Object]"!==n.call(e))return!1;var r=t.call(e,"constructor"),o=e.constructor&&e.constructor.prototype&&t.call(e.constructor.prototype,"isPrototypeOf");if(e.constructor&&!r&&!o)return!1;var i;for(i in e);return"undefined"==typeof i||t.call(e,i);};e.exports=function a(){var e,r,t,n,s,u,c=arguments[0],l=1,p=arguments.length,f=!1;for("boolean"==typeof c?(f=c,c=arguments[1]||{},l=2):("object"!=typeof c&&"function"!=typeof c||null==c)&&(c={});l<p;++l)if(e=arguments[l],null!=e)for(r in e)t=c[r],n=e[r],c!==n&&(f&&n&&(i(n)||(s=o(n)))?(s?(s=!1,u=t&&o(t)?t:[]):u=t&&i(t)?t:{},c[r]=a(f,u,n)):"undefined"!=typeof n&&(c[r]=n));return c;};},function(e,r,t){"use strict";function n(){return l;}function o(){return null;}function i(e){var r={};return r._stackFrame=e,r.url=e.fileName,r.line=e.lineNumber,r.func=e.functionName,r.column=e.columnNumber,r.args=e.args,r.context=o(r.url,r.line),r;}function a(e){function r(){var r=[];try{r=c.parse(e);}catch(t){r=[];}for(var n=[],o=0;o<r.length;o++)n.push(new i(r[o]));return n;}return{stack:r(),message:e.message,name:e.name};}function s(e){return new a(e);}function u(e){if(!e)return["Unknown error. There was no error message to display.",""];var r=e.match(p),t="(unknown)";return r&&(t=r[r.length-1],e=e.replace((r[r.length-2]||"")+t+":",""),e=e.replace(/(^[\s]+|[\s]+$)/g,"")),[t,e];}var c=t(6),l="?",p=new RegExp("^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ");e.exports={guessFunctionName:n,guessErrorClass:u,gatherContext:o,parse:s,Stack:a,Frame:i};},function(e,r,t){var n,o,i;!function(a,s){"use strict";o=[t(7)],n=s,i="function"==typeof n?n.apply(r,o):n,!(void 0!==i&&(e.exports=i));}(this,function(e){"use strict";function r(e,r,t){if("function"==typeof Array.prototype.map)return e.map(r,t);for(var n=new Array(e.length),o=0;o<e.length;o++)n[o]=r.call(t,e[o]);return n;}function t(e,r,t){if("function"==typeof Array.prototype.filter)return e.filter(r,t);for(var n=[],o=0;o<e.length;o++)r.call(t,e[o])&&n.push(e[o]);return n;}var n=/(^|@)\S+\:\d+/,o=/^\s*at .*(\S+\:\d+|\(native\))/m,i=/^(eval@)?(\[native code\])?$/;return{parse:function(e){if("undefined"!=typeof e.stacktrace||"undefined"!=typeof e["opera#sourceloc"])return this.parseOpera(e);if(e.stack&&e.stack.match(o))return this.parseV8OrIE(e);if(e.stack)return this.parseFFOrSafari(e);throw new Error("Cannot parse given Error object");},extractLocation:function(e){if(e.indexOf(":")===-1)return[e];var r=e.replace(/[\(\)\s]/g,"").split(":"),t=r.pop(),n=r[r.length-1];if(!isNaN(parseFloat(n))&&isFinite(n)){var o=r.pop();return[r.join(":"),o,t];}return[r.join(":"),t,void 0];},parseV8OrIE:function(n){var i=t(n.stack.split("\n"),function(e){return!!e.match(o);},this);return r(i,function(r){r.indexOf("(eval ")>-1&&(r=r.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var t=r.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),n=this.extractLocation(t.pop()),o=t.join(" ")||void 0,i="eval"===n[0]?void 0:n[0];return new e(o,void 0,i,n[1],n[2],r);},this);},parseFFOrSafari:function(n){var o=t(n.stack.split("\n"),function(e){return!e.match(i);},this);return r(o,function(r){if(r.indexOf(" > eval")>-1&&(r=r.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),r.indexOf("@")===-1&&r.indexOf(":")===-1)return new e(r);var t=r.split("@"),n=this.extractLocation(t.pop()),o=t.shift()||void 0;return new e(o,void 0,n[0],n[1],n[2],r);},this);},parseOpera:function(e){return!e.stacktrace||e.message.indexOf("\n")>-1&&e.message.split("\n").length>e.stacktrace.split("\n").length?this.parseOpera9(e):e.stack?this.parseOpera11(e):this.parseOpera10(e);},parseOpera9:function(r){for(var t=/Line (\d+).*script (?:in )?(\S+)/i,n=r.message.split("\n"),o=[],i=2,a=n.length;i<a;i+=2){var s=t.exec(n[i]);s&&o.push(new e(void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera10:function(r){for(var t=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,n=r.stacktrace.split("\n"),o=[],i=0,a=n.length;i<a;i+=2){var s=t.exec(n[i]);s&&o.push(new e(s[3]||void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera11:function(o){var i=t(o.stack.split("\n"),function(e){return!!e.match(n)&&!e.match(/^Error created at/);},this);return r(i,function(r){var t,n=r.split("@"),o=this.extractLocation(n.pop()),i=n.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(t=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===t||"[arguments not available]"===t?void 0:t.split(",");return new e(a,s,o[0],o[1],o[2],r);},this);}};});},function(e,r,t){var n,o,i;!function(t,a){"use strict";o=[],n=a,i="function"==typeof n?n.apply(r,o):n,!(void 0!==i&&(e.exports=i));}(this,function(){"use strict";function e(e){return!isNaN(parseFloat(e))&&isFinite(e);}function r(e,r,t,n,o,i){void 0!==e&&this.setFunctionName(e),void 0!==r&&this.setArgs(r),void 0!==t&&this.setFileName(t),void 0!==n&&this.setLineNumber(n),void 0!==o&&this.setColumnNumber(o),void 0!==i&&this.setSource(i);}return r.prototype={getFunctionName:function(){return this.functionName;},setFunctionName:function(e){this.functionName=String(e);},getArgs:function(){return this.args;},setArgs:function(e){if("[object Array]"!==Object.prototype.toString.call(e))throw new TypeError("Args must be an Array");this.args=e;},getFileName:function(){return this.fileName;},setFileName:function(e){this.fileName=String(e);},getLineNumber:function(){return this.lineNumber;},setLineNumber:function(r){if(!e(r))throw new TypeError("Line Number must be a Number");this.lineNumber=Number(r);},getColumnNumber:function(){return this.columnNumber;},setColumnNumber:function(r){if(!e(r))throw new TypeError("Column Number must be a Number");this.columnNumber=Number(r);},getSource:function(){return this.source;},setSource:function(e){this.source=String(e);},toString:function(){var r=this.getFunctionName()||"{anonymous}",t="("+(this.getArgs()||[]).join(",")+")",n=this.getFileName()?"@"+this.getFileName():"",o=e(this.getLineNumber())?":"+this.getLineNumber():"",i=e(this.getColumnNumber())?":"+this.getColumnNumber():"";return r+t+n+o+i;}},r;});},function(e,r,t){"use strict";function n(e){return{}.toString.call(e).match(/\s([a-zA-Z]+)/)[1].toLowerCase();}function o(e,r){return n(e)===r;}function i(e){if(!o(e,"string"))throw new Error("received invalid input");for(var r=l,t=r.parser[r.strictMode?"strict":"loose"].exec(e),n={},i=14;i--;)n[r.key[i]]=t[i]||"";return n[r.q.name]={},n[r.key[12]].replace(r.q.parser,function(e,t,o){t&&(n[r.q.name][t]=o);}),n;}function a(e){var r=i(e);return""===r.anchor&&(r.source=r.source.replace("#","")),e=r.source.replace("?"+r.query,"");}function s(e,r){var t,n,i,a=o(e,"object"),u=o(e,"array"),c=[];if(a)for(t in e)e.hasOwnProperty(t)&&c.push(t);else if(u)for(i=0;i<e.length;++i)c.push(i);for(i=0;i<c.length;++i)t=c[i],n=e[t],a=o(n,"object"),u=o(n,"array"),a||u?e[t]=s(n,r):e[t]=r(t,n);return e;}function u(e){return e=String(e),new Array(e.length+1).join("*");}function c(){var e=new Date().getTime(),r="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(r){var t=(e+16*Math.random())%16|0;return e=Math.floor(e/16),("x"===r?t:7&t|8).toString(16);});return r;}t(9);var l={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}},p={isType:o,parseUri:i,parseUriOptions:l,redact:u,sanitizeUrl:a,traverse:s,typeName:n,uuid4:c};e.exports=p;},function(e,r){!function(e){"use strict";e.console=e.console||{};for(var r,t,n=e.console,o={},i=function(){},a="memory".split(","),s="assert,clear,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn".split(",");r=a.pop();)n[r]||(n[r]=o);for(;t=s.pop();)n[t]||(n[t]=i);}("undefined"==typeof window?this:window);},function(e,r,t){"use strict";function n(e){a=e;}function o(e){this.name="Connection Error",this.message=e,this.stack=new Error().stack;}var i=t(8),a=null;o.prototype=Object.create(Error.prototype),o.prototype.constructor=o;var s={XMLHttpFactories:[function(){return new XMLHttpRequest();},function(){return new ActiveXObject("Msxml2.XMLHTTP");},function(){return new ActiveXObject("Msxml3.XMLHTTP");},function(){return new ActiveXObject("Microsoft.XMLHTTP");}],createXMLHTTPObject:function(){var e,r=!1,t=s.XMLHttpFactories,n=t.length;for(e=0;e<n;e++)try{r=t[e]();break;}catch(o){}return r;},post:function(e,r,t,n){if(!i.isType(t,"object"))throw new Error("Expected an object to POST");t=a.stringify(t),n=n||function(){};var u=s.createXMLHTTPObject();if(u)try{try{var c=function(){try{if(c&&4===u.readyState){c=void 0;var e=a.parse(u.responseText);200===u.status?n(null,e):i.isType(u.status,"number")&&u.status>=400&&u.status<600?(403==u.status&&console.error("[Rollbar]:"+e.message),n(new Error(String(u.status)))):n(new o("XHR response had no status code (likely connection failure)"));}}catch(r){var t;t=r&&r.stack?r:new Error(r),n(t);}};u.open("POST",e,!0),u.setRequestHeader&&(u.setRequestHeader("Content-Type","application/json"),u.setRequestHeader("X-Rollbar-Access-Token",r)),u.onreadystatechange=c,u.send(t);}catch(l){if("undefined"!=typeof XDomainRequest){"http:"===window.location.href.substring(0,5)&&"https"===e.substring(0,5)&&(e="http"+e.substring(5));var p=function(){n(new o("Request timed out"));},f=function(){n(new Error("Error during request"));},d=function(){n(null,a.parse(u.responseText));};u=new XDomainRequest(),u.onprogress=function(){},u.ontimeout=p,u.onerror=f,u.onload=d,u.open("POST",e,!0),u.send(t);}}}catch(h){n(h);}}};e.exports={XHR:s,setupJSON:n,ConnectionError:o};}]);});});var rollbarConfig={accessToken:"fe7cf327f2b24bb8991e252239f6200f",captureUncaught:true,ignoredMessages:["Error:  DOM Exception 18","SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.","SecurityError:  An attempt was made to break through the security policy of the user agent.","Script error."],payload:{environment:"development",client:{javascript:{source_map_enabled:true,code_version:"a5de6cea936fc3e4cbc47d28c4ba1e0873484bd2",// Optionally have Rollbar guess which frames the error was thrown from
 // when the browser does not provide line and column numbers.
-guess_uncaught_frames:true}}}};var rollbar=rollbar_umd_nojson_min.init(rollbarConfig);function ModalControl(id,openBtnId,closeBtnId){this.modal=document.getElementById(id);this.openBtn=document.getElementById(openBtnId);this.closeBtn=document.getElementById(closeBtnId);this.openHandler=this.open.bind(this);this.closeHandler=this.close.bind(this);this.openBtn.addEventListener('click',this.openHandler,false);this.closeBtn.addEventListener('click',this.closeHandler,false);window.addEventListener('click',this.closeHandler,false);}ModalControl.prototype.open=function(){this.modal.classList.add('modal-open');this.modal.classList.remove('modal-close');};ModalControl.prototype.close=function(event){if(event.target==this.modal||event.target==this.closeBtn){this.modal.classList.add('modal-close');this.modal.classList.remove('modal-open');}};var VisionSimulation=require("dota-vision-simulation");var worlddata=require("dota-vision-simulation/src/worlddata.json");var aboutModal=new ModalControl('about','about-open','about-close');var helpModal=new ModalControl('help','help-open','help-close');var buildDate="2017-06-01 12:52:00 UTC";document.getElementById('buildDate').innerHTML=buildDate;var releaseTag="4.1.0";document.getElementById('releaseTag').innerHTML=releaseTag;function App(map_tile_path,vision_data_image_path){var InteractiveMap$$1=new InteractiveMap(map_tile_path);InteractiveMap$$1.toggleLayerMenuOption=function(layerId,state){var element=document.querySelector('input[data-layer-id="'+layerId+'"]');if(state!=null)element.checked=state;updateLayerAndQueryString(element,layerId);};InteractiveMap$$1.vs=new VisionSimulation(worlddata,vision_data_image_path,initialize);InteractiveMap$$1.menuControl=new MenuControl(InteractiveMap$$1);InteractiveMap$$1.menuControl.initialize(layerToggleHandler,baseLayerToggleHandler);InteractiveMap$$1.infoControl=new InfoControl(InteractiveMap$$1);InteractiveMap$$1.infoControl.initialize('info');InteractiveMap$$1.notificationControl=new NotificationControl();InteractiveMap$$1.notificationControl.initialize('notification');InteractiveMap$$1.visionControl=new VisionControl(InteractiveMap$$1,20);InteractiveMap$$1.wardControl=new WardControl(InteractiveMap$$1);InteractiveMap$$1.treeControl=new TreeControl(InteractiveMap$$1);InteractiveMap$$1.cursorControl=new CursorControl(InteractiveMap$$1);InteractiveMap$$1.coordinateControl=new CoordinateControl(InteractiveMap$$1,'coordinates');InteractiveMap$$1.measureControl=new MeasureControl(InteractiveMap$$1);InteractiveMap$$1.creepControl=new CreepControl(InteractiveMap$$1);InteractiveMap$$1.creepControl.initialize('timer');//var DrawCurveControl = require('./drawCurveControl');
+guess_uncaught_frames:true}}}};var rollbar=rollbar_umd_nojson_min.init(rollbarConfig);function ModalControl(id,openBtnId,closeBtnId){this.modal=document.getElementById(id);this.openBtn=document.getElementById(openBtnId);this.closeBtn=document.getElementById(closeBtnId);this.openHandler=this.open.bind(this);this.closeHandler=this.close.bind(this);this.openBtn.addEventListener('click',this.openHandler,false);this.closeBtn.addEventListener('click',this.closeHandler,false);window.addEventListener('click',this.closeHandler,false);}ModalControl.prototype.open=function(){this.modal.classList.add('modal-open');this.modal.classList.remove('modal-close');};ModalControl.prototype.close=function(event){if(event.target==this.modal||event.target==this.closeBtn){this.modal.classList.add('modal-close');this.modal.classList.remove('modal-open');}};var VisionSimulation=require("dota-vision-simulation");var worlddata=require("dota-vision-simulation/src/worlddata.json");var aboutModal=new ModalControl('about','about-open','about-close');var helpModal=new ModalControl('help','help-open','help-close');var buildDate="2017-06-01 19:10:00 UTC";document.getElementById('buildDate').innerHTML=buildDate;var releaseTag="4.1.0";document.getElementById('releaseTag').innerHTML=releaseTag;function App(map_tile_path,vision_data_image_path){var InteractiveMap$$1=new InteractiveMap(map_tile_path);InteractiveMap$$1.toggleLayerMenuOption=function(layerId,state){var element=document.querySelector('input[data-layer-id="'+layerId+'"]');if(state!=null)element.checked=state;updateLayerAndQueryString(element,layerId);};InteractiveMap$$1.vs=new VisionSimulation(worlddata,vision_data_image_path,initialize);InteractiveMap$$1.menuControl=new MenuControl(InteractiveMap$$1);InteractiveMap$$1.menuControl.initialize(layerToggleHandler,baseLayerToggleHandler);InteractiveMap$$1.infoControl=new InfoControl(InteractiveMap$$1);InteractiveMap$$1.infoControl.initialize('info');InteractiveMap$$1.notificationControl=new NotificationControl();InteractiveMap$$1.notificationControl.initialize('notification');InteractiveMap$$1.visionControl=new VisionControl(InteractiveMap$$1,20);InteractiveMap$$1.wardControl=new WardControl(InteractiveMap$$1);InteractiveMap$$1.treeControl=new TreeControl(InteractiveMap$$1);InteractiveMap$$1.cursorControl=new CursorControl(InteractiveMap$$1);InteractiveMap$$1.coordinateControl=new CoordinateControl(InteractiveMap$$1,'coordinates');InteractiveMap$$1.measureControl=new MeasureControl(InteractiveMap$$1);InteractiveMap$$1.creepControl=new CreepControl(InteractiveMap$$1);InteractiveMap$$1.creepControl.initialize('timer');//var DrawCurveControl = require('./drawCurveControl');
 //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
-var modeNotificationText={observer:"Ward Mode: Observer",sentry:"Ward Mode: Sentry",navigate:"Navigation Mode",line:"Measure Mode: Line",circle:"Measure Mode: Circle",treeEnable:"<span>Navigation Mode</span><span>Trees: On</span>",treeDisable:"<span>Navigation Mode</span><span>Trees: Off</span>",nightOn:"Nighttime Vision",nightOff:"Daytime Vision",darknessOn:"Darkness: On",darknessOff:"Darkness: Off"};function changeMode(mode){switch(mode){case'observer':case'sentry':document.querySelector('input[name="ward-type"][value="'+mode+'"]').checked=true;case'ward':document.querySelector('input[name="mode"][value="ward"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="ward-type"]:checked').value;document.getElementById('btn-ward').setAttribute('ward-type',InteractiveMap$$1.MODE);document.getElementById('btn-ward').classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.activate();InteractiveMap$$1.infoControl.deactivate();break;case'line':case'circle':document.querySelector('input[name="measure-type"][value="'+mode+'"]').checked=true;case'measure':document.querySelector('input[name="mode"][value="measure"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="measure-type"]:checked').value;document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.add('active');document.getElementById('btn-measure').setAttribute('measure-type',InteractiveMap$$1.MODE);setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.change(InteractiveMap$$1.MODE);InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.deactivate();break;default:document.querySelector('input[name="mode"][value="navigate"]').checked=true;InteractiveMap$$1.MODE=mode||"navigate";document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.add('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE=='navigate'?null:InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.activate();break;}InteractiveMap$$1.notificationControl.show(modeNotificationText[InteractiveMap$$1.MODE]);}forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'),function(element){element.addEventListener("change",function(){changeMode(this.value);},false);},this);function updateLayerAndQueryString(element,layerId){layerId=layerId||element.getAttribute('data-layer-id');var layer=InteractiveMap$$1.getMapLayerIndex()[layerId];layer.setVisible(element.checked);var param=layer.get("title").replace(/ /g,'');setQueryString(param,element.checked?true:null);if(layerId=='ent_dota_tree'){document.getElementById('btn-tree').setAttribute('trees-enabled',element.checked?"yes":"no");}}function layerToggleHandler(){updateLayerAndQueryString(this);}function baseLayerToggleHandler(){var layerId=this.getAttribute('data-layer-id');InteractiveMap$$1.baseLayers.forEach(function(layer){layer.setVisible(layer.get('layerId')===layerId);});setQueryString('BaseLayer',layerId);}// updates element visibility based on map layer index
+var modeNotificationText={observer:"Ward Mode: Observer",sentry:"Ward Mode: Sentry",navigate:"Navigation Mode",line:"Measure Mode: Line",circle:"Measure Mode: Circle",treeEnable:"<span>Navigation Mode</span><span>Trees: On</span>",treeDisable:"<span>Navigation Mode</span><span>Trees: Off</span>",nightOn:"Nighttime Vision",nightOff:"Daytime Vision",darknessOn:"Darkness: On",darknessOff:"Darkness: Off"};function changeMode(mode){switch(mode){case'observer':case'sentry':document.querySelector('input[name="ward-type"][value="'+mode+'"]').checked=true;case'ward':document.querySelector('input[name="mode"][value="ward"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="ward-type"]:checked').value;document.getElementById('btn-ward').setAttribute('ward-type',InteractiveMap$$1.MODE);document.getElementById('btn-ward').classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.activate();InteractiveMap$$1.infoControl.deactivate();break;case'line':case'circle':document.querySelector('input[name="measure-type"][value="'+mode+'"]').checked=true;case'measure':document.querySelector('input[name="mode"][value="measure"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="measure-type"]:checked').value;document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.add('active');document.getElementById('btn-measure').setAttribute('measure-type',InteractiveMap$$1.MODE);setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.change(InteractiveMap$$1.MODE);InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.deactivate();break;default:document.querySelector('input[name="mode"][value="navigate"]').checked=true;InteractiveMap$$1.MODE=mode||"navigate";document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.add('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE=='navigate'?null:InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.activate();break;}InteractiveMap$$1.notificationControl.show(modeNotificationText[InteractiveMap$$1.MODE]);}forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'),function(element){element.addEventListener("change",function(){changeMode(this.value);},false);},this);function updateLayerAndQueryString(element,layerId){layerId=layerId||element.getAttribute('data-layer-id');var layer=InteractiveMap$$1.getMapLayerIndex()[layerId];if(layer){layer.setVisible(element.checked);var param=layer.get("title").replace(/ /g,'');setQueryString(param,element.checked?true:null);if(layerId=='ent_dota_tree'){document.getElementById('btn-tree').setAttribute('trees-enabled',element.checked?"yes":"no");}}}function layerToggleHandler(){updateLayerAndQueryString(this);}function baseLayerToggleHandler(){var layerId=this.getAttribute('data-layer-id');InteractiveMap$$1.baseLayers.forEach(function(layer){layer.setVisible(layer.get('layerId')===layerId);});setQueryString('BaseLayer',layerId);}// updates element visibility based on map layer index
 // updates layer visibility based on element state
-function updateOverlayMenu(){forEach(document.querySelectorAll('.data-layer > input'),function(element){var label=element.nextSibling;var layerId=element.getAttribute('data-layer-id');var layerIndex=InteractiveMap$$1.getMapLayerIndex();var layer=layerIndex[layerId];if(!layer){label.style.display="none";}else{label.style.display="block";layer.setVisible(element.checked);}},this);}function setDefaults(){var x=getParameterByName('x');var y=getParameterByName('y');var zoom=getParameterByName('zoom');if(zoom){InteractiveMap$$1.view.setZoom(zoom);}if(x&&y){var coordinate=_ol_proj_.transform([x,y],dotaProj,pixelProj);if(_ol_extent_.containsXY([-100,-100,mapConstants.map_w+100,mapConstants.map_h+100],coordinate[0],coordinate[1])){InteractiveMap$$1.panTo(coordinate);}}document.getElementById('btn-ward').setAttribute('ward-type','observer');var mode=getParameterByName('mode');changeMode(mode);var baseLayerName=getParameterByName('BaseLayer');var element;if(baseLayerName){element=document.querySelector('input[name="base-layer"][value="'+baseLayerName+'"]');if(element){element.checked=true;InteractiveMap$$1.baseLayers.filter(function(layer){return layer.get("layerId")==baseLayerName;})[0].setVisible(true);}}if(!element){setQueryString('BaseLayer',null);InteractiveMap$$1.baseLayers[0].setVisible(true);document.querySelector('input[name="base-layer"][value="'+InteractiveMap$$1.baseLayers[0].get("layerId")+'"]').checked=true;}InteractiveMap$$1.layerDefs.forEach(function(layerDef){var param=layerDef.name.replace(/ /g,'');var value=getParameterByName(param);if(value&&value!=="false"){layerDef.visible=true;document.querySelector('input[data-layer-id="'+layerDef.id+'"]').checked=true;setQueryString(param,true);}else{setQueryString(param,null);}if(layerDef.id=='ent_dota_tree'){document.getElementById('btn-tree').setAttribute('trees-enabled',layerDef.visible?"yes":"no");}});}document.getElementById('nightControl').addEventListener('change',function(){InteractiveMap$$1.isNight=this.checked;if(this.checked){InteractiveMap$$1.notificationControl.show(modeNotificationText.nightOn);}else{InteractiveMap$$1.notificationControl.show(modeNotificationText.nightOff);}},false);document.getElementById('darknessControl').addEventListener('change',function(){InteractiveMap$$1.isDarkness=this.checked;if(this.checked){InteractiveMap$$1.notificationControl.show(modeNotificationText.darknessOn);}else{InteractiveMap$$1.notificationControl.show(modeNotificationText.darknessOff);}},false);document.getElementById('creepControl').addEventListener('change',function(){if(this.checked){InteractiveMap$$1.creepControl.activate();}else{InteractiveMap$$1.creepControl.deactivate();}},false);document.getElementById('version-select').addEventListener('change',function(){InteractiveMap$$1.version=this.value;},false);document.getElementById('vision-radius').addEventListener('change',function(){InteractiveMap$$1.visionRadius=this.value;},false);document.getElementById('movementSpeed').addEventListener('change',function(){InteractiveMap$$1.movementSpeed=this.value;},false);function onMoveEnd(evt){var map=evt.map;var ext=map.getView().calculateExtent(map.getSize());var center=_ol_extent_.getCenter(ext);var worldXY=_ol_proj_.transform(center,pixelProj,dotaProj);var coordinate=[Math.round(worldXY[0]),Math.round(worldXY[1])];setQueryString('x',coordinate[0]);setQueryString('y',coordinate[1]);setQueryString('zoom',Math.round(InteractiveMap$$1.view.getZoom()));}function initialize(){InteractiveMap$$1.infoControl.activate();setDefaults();InteractiveMap$$1.setMapLayers(InteractiveMap$$1.version,function(){updateOverlayMenu();InteractiveMap$$1.map.addLayer(InteractiveMap$$1.measureControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.cursorControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.visionControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.wardControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.highlightLayer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.selectLayer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.wardRangeLayer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.dayVision);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.nightVision);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.trueSight);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.attackRange);InteractiveMap$$1.treeControl.parseQueryString();InteractiveMap$$1.wardControl.parseQueryString();});InteractiveMap$$1.map.on('moveend',onMoveEnd);document.getElementById('option-dayVision').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.dayVision.setVisible(this.checked);});document.getElementById('option-nightVision').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.nightVision.setVisible(this.checked);});document.getElementById('option-trueSight').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.trueSight.setVisible(this.checked);});document.getElementById('option-attackRange').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.attackRange.setVisible(this.checked);});document.getElementById('version-select').addEventListener('change',function(){InteractiveMap$$1.setMapLayers(this.value);});document.getElementById('btn-zoom-in').addEventListener('click',function(){InteractiveMap$$1.view.animate({zoom:InteractiveMap$$1.view.getZoom()+1});});document.getElementById('btn-zoom-out').addEventListener('click',function(){InteractiveMap$$1.view.animate({zoom:InteractiveMap$$1.view.getZoom()-1});});document.getElementById('reset').addEventListener('click',function(){if(history&&history.replaceState)history.replaceState(null,"",window.location.href.split("?")[0]);setDefaults();updateOverlayMenu();InteractiveMap$$1.treeControl.toggleAllTrees(false,true);InteractiveMap$$1.treeControl.parseQueryString();InteractiveMap$$1.wardControl.clearWards();InteractiveMap$$1.wardControl.parseQueryString();});document.getElementById('btn-tree').addEventListener('click',function(){if(this.classList.contains('active')){this.setAttribute('trees-enabled',this.getAttribute('trees-enabled')=="yes"?"no":"yes");}this.classList.add('active');document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');InteractiveMap$$1.toggleLayerMenuOption("ent_dota_tree",this.getAttribute('trees-enabled')=="yes");changeMode('navigate');InteractiveMap$$1.notificationControl.show(this.getAttribute('trees-enabled')=="yes"?modeNotificationText.treeEnable:modeNotificationText.treeDisable);});document.getElementById('btn-ward').addEventListener('click',function(){if(this.classList.contains('active')){this.setAttribute('ward-type',this.getAttribute('ward-type')=='observer'?'sentry':'observer');}if(this.getAttribute('ward-type')=='sentry'){document.querySelector('input[name="mode"][value="ward"]').checked=true;document.querySelector('input[name="ward-type"][value="sentry"]').checked=true;}else{document.querySelector('input[name="mode"][value="ward"]').checked=true;document.querySelector('input[name="ward-type"][value="observer"]').checked=true;}this.classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');changeMode('ward');});document.getElementById('btn-measure').addEventListener('click',function(){if(this.classList.contains('active')){this.setAttribute('measure-type',this.getAttribute('measure-type')=='line'?'circle':'line');}if(this.getAttribute('measure-type')=='circle'){document.querySelector('input[name="mode"][value="measure"]').checked=true;document.querySelector('input[name="measure-type"][value="circle"]').checked=true;}else{document.querySelector('input[name="mode"][value="measure"]').checked=true;document.querySelector('input[name="measure-type"][value="line"]').checked=true;}this.classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-ward').classList.remove('active');changeMode('measure');});}}module.exports=App;
+function updateOverlayMenu(){forEach(document.querySelectorAll('.data-layer > input'),function(element){var label=element.nextSibling;var layerId=element.getAttribute('data-layer-id');var layerIndex=InteractiveMap$$1.getMapLayerIndex();var layer=layerIndex[layerId];if(!layer){label.style.display="none";}else{label.style.display="block";layer.setVisible(element.checked);}},this);}function setDefaults(){var x=getParameterByName('x');var y=getParameterByName('y');var zoom=getParameterByName('zoom');if(zoom){InteractiveMap$$1.view.setZoom(zoom);}if(x&&y){var coordinate=_ol_proj_.transform([x,y],dotaProj,pixelProj);if(_ol_extent_.containsXY([-100,-100,mapConstants.map_w+100,mapConstants.map_h+100],coordinate[0],coordinate[1])){InteractiveMap$$1.panTo(coordinate);}}document.getElementById('btn-ward').setAttribute('ward-type','observer');var mode=getParameterByName('mode');changeMode(mode);var baseLayerName=getParameterByName('BaseLayer');var element;if(baseLayerName){element=document.querySelector('input[name="base-layer"][value="'+baseLayerName+'"]');if(element){element.checked=true;InteractiveMap$$1.baseLayers.filter(function(layer){return layer.get("layerId")==baseLayerName;})[0].setVisible(true);}}if(!element){setQueryString('BaseLayer',null);InteractiveMap$$1.baseLayers[0].setVisible(true);document.querySelector('input[name="base-layer"][value="'+InteractiveMap$$1.baseLayers[0].get("layerId")+'"]').checked=true;}InteractiveMap$$1.layerDefs.forEach(function(layerDef){var param=layerDef.name.replace(/ /g,'');var value=getParameterByName(param);if(value&&value!=="false"){layerDef.visible=true;document.querySelector('input[data-layer-id="'+layerDef.id+'"]').checked=true;setQueryString(param,true);}else{setQueryString(param,null);}if(layerDef.id=='ent_dota_tree'){document.getElementById('btn-tree').setAttribute('trees-enabled',layerDef.visible?"yes":"no");}});}document.getElementById('nightControl').addEventListener('change',function(){InteractiveMap$$1.isNight=this.checked;if(this.checked){InteractiveMap$$1.notificationControl.show(modeNotificationText.nightOn);}else{InteractiveMap$$1.notificationControl.show(modeNotificationText.nightOff);}},false);document.getElementById('darknessControl').addEventListener('change',function(){InteractiveMap$$1.isDarkness=this.checked;if(this.checked){InteractiveMap$$1.notificationControl.show(modeNotificationText.darknessOn);}else{InteractiveMap$$1.notificationControl.show(modeNotificationText.darknessOff);}},false);document.getElementById('creepControl').addEventListener('change',function(){if(this.checked){InteractiveMap$$1.creepControl.activate();}else{InteractiveMap$$1.creepControl.deactivate();}},false);document.getElementById('vision-radius').addEventListener('change',function(){InteractiveMap$$1.visionRadius=this.value;},false);document.getElementById('movementSpeed').addEventListener('change',function(){InteractiveMap$$1.movementSpeed=this.value;},false);function onMoveEnd(evt){var map=evt.map;var ext=map.getView().calculateExtent(map.getSize());var center=_ol_extent_.getCenter(ext);var worldXY=_ol_proj_.transform(center,pixelProj,dotaProj);var coordinate=[Math.round(worldXY[0]),Math.round(worldXY[1])];setQueryString('x',coordinate[0]);setQueryString('y',coordinate[1]);setQueryString('zoom',Math.round(InteractiveMap$$1.view.getZoom()));}function initialize(err){InteractiveMap$$1.infoControl.activate();setDefaults();InteractiveMap$$1.setMapLayers(InteractiveMap$$1.version,function(err){if(!err){updateOverlayMenu();InteractiveMap$$1.map.addLayer(InteractiveMap$$1.measureControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.cursorControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.visionControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.wardControl.layer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.highlightLayer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.selectLayer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.wardRangeLayer);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.dayVision);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.nightVision);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.trueSight);InteractiveMap$$1.map.addLayer(InteractiveMap$$1.rangeLayers.attackRange);InteractiveMap$$1.treeControl.parseQueryString();InteractiveMap$$1.wardControl.parseQueryString();}});InteractiveMap$$1.map.on('moveend',onMoveEnd);document.getElementById('option-dayVision').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.dayVision.setVisible(this.checked);});document.getElementById('option-nightVision').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.nightVision.setVisible(this.checked);});document.getElementById('option-trueSight').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.trueSight.setVisible(this.checked);});document.getElementById('option-attackRange').addEventListener('change',function(){InteractiveMap$$1.rangeLayers.attackRange.setVisible(this.checked);});document.getElementById('version-select').addEventListener('change',function(){var self=this;InteractiveMap$$1.setMapLayers(this.value,function(err){if(!err){InteractiveMap$$1.version=self.value;}else{self.value=InteractiveMap$$1.version;alert('Version change failed.');}});});document.getElementById('btn-zoom-in').addEventListener('click',function(){InteractiveMap$$1.view.animate({zoom:InteractiveMap$$1.view.getZoom()+1});});document.getElementById('btn-zoom-out').addEventListener('click',function(){InteractiveMap$$1.view.animate({zoom:InteractiveMap$$1.view.getZoom()-1});});document.getElementById('reset').addEventListener('click',function(){if(history&&history.replaceState)history.replaceState(null,"",window.location.href.split("?")[0]);setDefaults();updateOverlayMenu();InteractiveMap$$1.treeControl.toggleAllTrees(false,true);InteractiveMap$$1.treeControl.parseQueryString();InteractiveMap$$1.wardControl.clearWards();InteractiveMap$$1.wardControl.parseQueryString();});document.getElementById('btn-tree').addEventListener('click',function(){if(this.classList.contains('active')){this.setAttribute('trees-enabled',this.getAttribute('trees-enabled')=="yes"?"no":"yes");}this.classList.add('active');document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');InteractiveMap$$1.toggleLayerMenuOption("ent_dota_tree",this.getAttribute('trees-enabled')=="yes");changeMode('navigate');InteractiveMap$$1.notificationControl.show(this.getAttribute('trees-enabled')=="yes"?modeNotificationText.treeEnable:modeNotificationText.treeDisable);});document.getElementById('btn-ward').addEventListener('click',function(){if(this.classList.contains('active')){this.setAttribute('ward-type',this.getAttribute('ward-type')=='observer'?'sentry':'observer');}if(this.getAttribute('ward-type')=='sentry'){document.querySelector('input[name="mode"][value="ward"]').checked=true;document.querySelector('input[name="ward-type"][value="sentry"]').checked=true;}else{document.querySelector('input[name="mode"][value="ward"]').checked=true;document.querySelector('input[name="ward-type"][value="observer"]').checked=true;}this.classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');changeMode('ward');});document.getElementById('btn-measure').addEventListener('click',function(){if(this.classList.contains('active')){this.setAttribute('measure-type',this.getAttribute('measure-type')=='line'?'circle':'line');}if(this.getAttribute('measure-type')=='circle'){document.querySelector('input[name="mode"][value="measure"]').checked=true;document.querySelector('input[name="measure-type"][value="circle"]').checked=true;}else{document.querySelector('input[name="mode"][value="measure"]').checked=true;document.querySelector('input[name="measure-type"][value="line"]').checked=true;}this.classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-ward').classList.remove('active');changeMode('measure');});}}module.exports=App;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 

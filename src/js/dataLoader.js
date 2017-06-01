@@ -10,18 +10,23 @@ import Collection from 'ol/collection';
 import { dotaProj, pixelProj } from './projections';
 
 function loadGeoJSON(map, layerDef, data, version) {
-    var source = new SourceVector({
-        url: 'data/' + version + '/' + layerDef.filename,
-        format: new GeoJSON({defaultDataProjection: layerDef.projection || pixelProj})
-    });
-    var layer = new LayerVector({
-        title: layerDef.name,
-        projection: layerDef.projection || pixelProj,
-        source: source,
-        visible: !!layerDef.visible,
-        style: layerDef.style
-    });
-
+    var layer;
+    try {
+        var source = new SourceVector({
+            url: 'data/' + version + '/' + layerDef.filename,
+            format: new GeoJSON({defaultDataProjection: layerDef.projection || pixelProj})
+        });
+        layer = new LayerVector({
+            title: layerDef.name,
+            projection: layerDef.projection || pixelProj,
+            source: source,
+            visible: !!layerDef.visible,
+            style: layerDef.style
+        });
+    }
+    catch (e) {
+    
+    }
     return layer;
 }
 
@@ -177,8 +182,10 @@ function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, laye
                 layer = loadJSON(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
             break;
         }
-        layersIndex[layerDef.id] = layer;
-        layers.push(layer);
+        if (layer) {
+            layersIndex[layerDef.id] = layer;
+            layers.push(layer);
+        }
     }
     var layerGroup = new LayerGroup({
         title: 'Layers',

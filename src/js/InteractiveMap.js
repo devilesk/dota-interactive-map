@@ -166,33 +166,37 @@ InteractiveMap.prototype.getMapDataPath = function (version) {
 
 InteractiveMap.prototype.setMapLayers = function (version, callback) {
     var self = this;
-    this.getDataJSON(version, function (data) {
-        var currentLayerGroup = self.map.getLayerGroup();
-        currentLayerGroup.setVisible(false);
-        self.map.setLayerGroup(data.layerGroup);
-        self.map.getLayerGroup().setVisible(true);
-        if (callback) callback();
+    this.getDataJSON(version, function (err, data) {
+        if (!err) {
+            var currentLayerGroup = self.map.getLayerGroup();
+            currentLayerGroup.setVisible(false);
+            self.map.setLayerGroup(data.layerGroup);
+            self.map.getLayerGroup().setVisible(true);
+        }
+        if (callback) callback(err);
     });
 }
 
 InteractiveMap.prototype.getDataJSON = function (version, callback) {
     var self = this;
     if (this.data[version]) {
-        callback(self.data[version]);
+        callback(null, self.data[version]);
     }
     else {
-        getJSON(self.getMapDataPath(version), function (data) {
-            self.data[version] = {
-                data: data,
-                layerGroup: new LayerGroup({
-                    title: version + ' Layers',
-                    layers: new Collection([
-                        self.baseLayerGroup,
-                        loadLayerGroupFromData(self, data, version, self.getMapLayerIndex(version), self.layerDefs)
-                    ])
-                })
-            };                
-            callback(self.data[version]);
+        getJSON(self.getMapDataPath(version), function (err, data) {
+            if (!err) {
+                self.data[version] = {
+                    data: data,
+                    layerGroup: new LayerGroup({
+                        title: version + ' Layers',
+                        layers: new Collection([
+                            self.baseLayerGroup,
+                            loadLayerGroupFromData(self, data, version, self.getMapLayerIndex(version), self.layerDefs)
+                        ])
+                    })
+                };
+            }
+            callback(err, self.data[version]);
         });
     }
 }

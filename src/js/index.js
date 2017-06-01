@@ -129,11 +129,13 @@ function App(map_tile_path, vision_data_image_path) {
     function updateLayerAndQueryString(element, layerId) {
         layerId = layerId || element.getAttribute('data-layer-id');
         var layer = InteractiveMap.getMapLayerIndex()[layerId];
-        layer.setVisible(element.checked);
-        var param = layer.get("title").replace(/ /g, '');
-        setQueryString(param, element.checked ? true : null);
-        if (layerId == 'ent_dota_tree') {
-            document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+        if (layer) {
+            layer.setVisible(element.checked);
+            var param = layer.get("title").replace(/ /g, '');
+            setQueryString(param, element.checked ? true : null);
+            if (layerId == 'ent_dota_tree') {
+                document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+            }
         }
     }
     function layerToggleHandler() {
@@ -244,10 +246,6 @@ function App(map_tile_path, vision_data_image_path) {
         }
     }, false);
 
-    document.getElementById('version-select').addEventListener('change', function () {
-        InteractiveMap.version = this.value;
-    }, false);
-
     document.getElementById('vision-radius').addEventListener('change', function () {
         InteractiveMap.visionRadius = this.value;
     }, false);
@@ -267,27 +265,29 @@ function App(map_tile_path, vision_data_image_path) {
         setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
     }
 
-    function initialize() {
+    function initialize(err) {
         InteractiveMap.infoControl.activate();
         
         setDefaults();
 
-        InteractiveMap.setMapLayers(InteractiveMap.version, function () {
-            updateOverlayMenu();
-            InteractiveMap.map.addLayer(InteractiveMap.measureControl.layer);
-            InteractiveMap.map.addLayer(InteractiveMap.cursorControl.layer);
-            InteractiveMap.map.addLayer(InteractiveMap.visionControl.layer);
-            InteractiveMap.map.addLayer(InteractiveMap.wardControl.layer);
-            InteractiveMap.map.addLayer(InteractiveMap.highlightLayer);
-            InteractiveMap.map.addLayer(InteractiveMap.selectLayer);
-            InteractiveMap.map.addLayer(InteractiveMap.wardRangeLayer);
-            InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.dayVision);
-            InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
-            InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
-            InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
-            
-            InteractiveMap.treeControl.parseQueryString();
-            InteractiveMap.wardControl.parseQueryString();
+        InteractiveMap.setMapLayers(InteractiveMap.version, function (err) {
+            if (!err) {
+                updateOverlayMenu();
+                InteractiveMap.map.addLayer(InteractiveMap.measureControl.layer);
+                InteractiveMap.map.addLayer(InteractiveMap.cursorControl.layer);
+                InteractiveMap.map.addLayer(InteractiveMap.visionControl.layer);
+                InteractiveMap.map.addLayer(InteractiveMap.wardControl.layer);
+                InteractiveMap.map.addLayer(InteractiveMap.highlightLayer);
+                InteractiveMap.map.addLayer(InteractiveMap.selectLayer);
+                InteractiveMap.map.addLayer(InteractiveMap.wardRangeLayer);
+                InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.dayVision);
+                InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.nightVision);
+                InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.trueSight);
+                InteractiveMap.map.addLayer(InteractiveMap.rangeLayers.attackRange);
+                
+                InteractiveMap.treeControl.parseQueryString();
+                InteractiveMap.wardControl.parseQueryString();
+            }
         });
         
         InteractiveMap.map.on('moveend', onMoveEnd);
@@ -309,7 +309,16 @@ function App(map_tile_path, vision_data_image_path) {
         });
             
         document.getElementById('version-select').addEventListener('change', function () {
-            InteractiveMap.setMapLayers(this.value);
+            var self = this;
+            InteractiveMap.setMapLayers(this.value, function (err) {
+                if (!err) {
+                    InteractiveMap.version = self.value;
+                }
+                else {
+                    self.value = InteractiveMap.version;
+                    alert('Version change failed.');
+                }
+            });
         });
             
         document.getElementById('btn-zoom-in').addEventListener('click', function () {
