@@ -13,6 +13,11 @@ hr {
     border-color: $bg-color;
     margin: 0;
 }
+
+select:hover {
+    cursor: pointer;
+}
+
 .btn {
     text-decoration: none;
     background-color: $bg-color;
@@ -32,8 +37,7 @@ hr {
 .button {
     color: $text-color;
     background-color: $bg-color;
-    border: 1px solid $text-color;
-    border-radius: 5px;
+    border: 1px solid darken($text-color, 15%);
     cursor: pointer;
     
     &:hover {
@@ -69,10 +73,7 @@ hr {
 .btn-back {
     font-size: 36px;
     z-index: 30;
-}
-
-#menu-right-back-btn:not(:checked):hover + .btn-back {
-    cursor: pointer;
+    line-height: 45px;
 }
 
 .coordinates-container  {

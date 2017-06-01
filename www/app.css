@@ -13,6 +13,9 @@ hr {
   border-color: #111;
   margin: 0; }
 
+select:hover {
+  cursor: pointer; }
+
 .btn, .btn-close, .btn-open, .btn-back, .btn-tool {
   text-decoration: none;
   background-color: #111;
@@ -30,16 +33,15 @@ hr {
     -webkit-transform: scale(0.9);
     transform: scale(0.9); }
 
-.button, .menu-item input[type=button] {
+.button, .menu-item input.button, .menu-item input.button-half {
   color: #818181;
   background-color: #111;
-  border: 1px solid #818181;
-  border-radius: 5px;
+  border: 1px solid #5b5b5b;
   cursor: pointer; }
-  .button:hover, .menu-item input[type=button]:hover {
+  .button:hover, .menu-item input.button:hover, .menu-item input.button-half:hover {
     border-color: #f1f1f1;
     color: #f1f1f1; }
-  .button:active, .menu-item input[type=button]:active {
+  .button:active, .menu-item input.button:active, .menu-item input.button-half:active {
     background-color: #818181;
     color: #f1f1f1; }
 
@@ -67,10 +69,8 @@ hr {
 
 .btn-back {
   font-size: 36px;
-  z-index: 30; }
-
-#menu-right-back-btn:not(:checked):hover + .btn-back {
-  cursor: pointer; }
+  z-index: 30;
+  line-height: 45px; }
 
 .coordinates-container {
   position: absolute;
@@ -284,12 +284,23 @@ hr {
       .menu-item input[type=radio]:checked + .checkbox.inverse, .menu-item input[type=checkbox]:checked + .checkbox.inverse {
         background-color: #111;
         color: #f1f1f1; }
-  .menu-item input[type=button] {
+    .menu-item input[type=radio][name="base-type"]:checked + .checkbox, .menu-item input[type=checkbox][name="base-type"]:checked + .checkbox {
+      background-color: #111;
+      color: #f1f1f1; }
+  .menu-item input.button, .menu-item input.button-half {
     width: calc(100% - 8px);
     margin: 2px 4px; }
+  .menu-item input.button-half {
+    width: calc(50% - 4px);
+    margin: 2px;
+    display: inline-block;
+    padding: 8px; }
   .menu-item input:checked + .checkbox, .menu-item input:checked + .checkbox + .sub-menu, .menu-item input:checked + .checkbox {
     max-height: 999px;
     display: block; }
+  .menu-item.button-half-container {
+    padding: 2px;
+    padding-top: 0px; }
   .menu-item .text-label,
   .menu-item .select-label,
   .menu-item .text-label + input,
@@ -298,18 +309,36 @@ hr {
     display: inline-block;
     box-sizing: border-box; }
 
-#menu-right-back-btn:checked + .btn-back + .back-group .menu-contents .menu-item label.root {
-  display: block;
-  max-height: 999px; }
-
-#menu-right-back-btn:not(:checked) + .btn-back + .back-group .menu-contents .menu-item input[name="right-menu"]:not(:checked) + label.root {
+#menu-right-back-btn {
   display: none; }
-
-@media only screen and (min-height: 769px) {
+  #menu-right-back-btn:checked + .btn-back + .back-group .menu-contents .menu-item label.root {
+    display: block;
+    max-height: 999px; }
   #menu-right-back-btn:not(:checked) + .btn-back + .back-group .menu-contents .menu-item input[name="right-menu"]:not(:checked) + label.root {
-    display: block; }
+    display: none; }
+  @media only screen and (min-height: 769px) {
+    #menu-right-back-btn:not(:checked) + .btn-back + .back-group .menu-contents .menu-item input[name="right-menu"]:not(:checked) + label.root {
+      display: block; }
+    #menu-right-back-btn + .btn-back {
+      display: none; } }
+  #menu-right-back-btn:hover:not(:checked) + .btn-back {
+    cursor: pointer; }
+  #menu-right-back-btn:hover:active:not(:checked) + .btn-back {
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1); }
+  #menu-right-back-btn:hover:checked + .btn-back {
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1); }
   #menu-right-back-btn + .btn-back {
-    display: none; } }
+    opacity: 1; }
+  #menu-right-back-btn:checked + .btn-back {
+    opacity: 0.5; }
 
 .menu-item-group .menu-item.inline {
   width: 50%;
@@ -369,9 +398,6 @@ hr {
     -ms-transform: scale(1);
     -webkit-transform: scale(1);
     transform: scale(1); }
-
-#menu-right-back-btn {
-  display: none; }
 
 @media only screen and (min-width: 768px) {
   .menu-panel {

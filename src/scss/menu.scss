@@ -109,12 +109,25 @@
                     color: $hover-text-color;
                 }
             }
+            
+            &[name="base-type"]:checked + .checkbox {
+                background-color: $bg-color;
+                color: $hover-text-color;
+            }
         }
         
-        &[type=button] {
+        &.button {
             @extend .button;
             width: calc(100% - 8px);
             margin: 2px 4px;
+        }
+
+        &.button-half {
+            @extend .button;
+            width: calc(50% - 4px);
+            margin: 2px;
+            display: inline-block;
+            padding: 8px;
         }
         
         &:checked {
@@ -123,6 +136,11 @@
                 display: block;
             }
         }
+    }
+    
+    &.button-half-container {
+        padding: 2px;
+        padding-top: 0px;
     }
     
     .text-label,
@@ -136,6 +154,8 @@
 }
         
 #menu-right-back-btn {
+    display: none;
+
     &:checked + .btn-back + .back-group .menu-contents .menu-item label.root {
         display: block;
         max-height: 999px;
@@ -152,6 +172,26 @@
         & + .btn-back {
             display: none;
         }
+    }
+
+    &:hover {
+        &:not(:checked) + .btn-back {
+            cursor: pointer;
+        }
+        &:active:not(:checked) + .btn-back {
+            @include transform(scale(1));
+        }
+        &:checked + .btn-back {
+            @include transform(scale(1));
+        }
+    }
+    
+    & + .btn-back {
+        opacity: 1;
+    }
+    
+    &:checked + .btn-back {
+        opacity: 0.5;
     }
 }
 
@@ -228,10 +268,6 @@
     &:active:hover::before {
         @include transform(scale(1));
     }
-}
-
-#menu-right-back-btn {
-    display: none;
 }
 
 @media #{$not-mobile} {
