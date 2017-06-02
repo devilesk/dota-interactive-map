@@ -4,7 +4,7 @@ import LineString from 'ol/geom/linestring';
 import GeoJSON from 'ol/format/geojson';
 import Draw from 'ol/interaction/draw';
 import Feature from 'ol/feature';
-import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversionFunctions';
+import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversion';
 import getLightUnion from './../getLightUnion';
 import styles from './../styleDefinitions';
 var bezier = require("@turf/bezier");

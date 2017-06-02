@@ -1,6 +1,6 @@
 import SourceVector from 'ol/source/vector';
 import LayerVector from 'ol/layer/vector';
-import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversionFunctions';
+import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversion';
 import getLightUnion from './../getLightUnion';
 import styles from './../styleDefinitions';
 import MultiPolygon from 'ol/geom/multipolygon';

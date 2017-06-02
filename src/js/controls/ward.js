@@ -5,7 +5,7 @@ import Point from 'ol/geom/point';
 import Observable from 'ol/observable';
 import styles from './../styleDefinitions';
 import mapConstants from './../mapConstants';
-import { latLonToWorld, worldToLatLon } from './../conversionFunctions';
+import { latLonToWorld, worldToLatLon } from './../conversion';
 import { setQueryString, getParameterByName } from './../util/queryString';
 
 function WardControl(InteractiveMap, throttleTime) {

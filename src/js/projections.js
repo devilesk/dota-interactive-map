@@ -1,6 +1,6 @@
 import proj from 'ol/proj';
 import Projection from 'ol/proj/projection';
-import {latLonToWorld, worldToLatLon} from './conversionFunctions';
+import {latLonToWorld, worldToLatLon} from './conversion';
 import mapConstants from './mapConstants';
 
 var pixelProj = new Projection({

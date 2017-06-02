@@ -1,7 +1,7 @@
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
 var union = require("@turf/union");
-import { worldToLatLon } from "./conversionFunctions";
+import { worldToLatLon } from "./conversion";
 import fs from 'fs';
 
 var vs = new VisionSimulation(worlddata, "../../www/img/map_data_706.png", onReady);

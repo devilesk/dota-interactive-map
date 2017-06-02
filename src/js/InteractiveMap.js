@@ -17,7 +17,7 @@ import mapConstants from './mapConstants';
 import styles from './styleDefinitions';
 import { loadGeoJSON, loadJSON, loadLayerGroupFromData } from './dataLoader';
 import getJSON from './util/getJSON';
-import {getScaledRadius, worldToLatLon} from './conversionFunctions';
+import {getScaledRadius, worldToLatLon} from './conversion';
 import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
 

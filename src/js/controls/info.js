@@ -5,7 +5,7 @@ import Feature from 'ol/feature';
 import getPopupContent from './../getPopupContent';
 import styles from './../styleDefinitions';
 import mapConstants from './../mapConstants';
-import { worldToLatLon } from './../conversionFunctions';
+import { worldToLatLon } from './../conversion';
 import createCirclePointCoords from './../util/createCirclePointCoords';
 
 function InfoControl(InteractiveMap) {
