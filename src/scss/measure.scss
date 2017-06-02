@@ -22,6 +22,14 @@
     &[measure-type="line"] {
         @include transform(scaleX(-1) scaleY(-1));
         
+        &:hover {
+            @include transform(scale(-0.9));
+        }
+        
+        &:hover:active {
+            @include transform(scale(-1));
+        }
+        
         &.active {
             @include transform(scale(0.9) scaleX(-1) scaleY(-1));
         
@@ -43,6 +51,15 @@
             right: 9px;
             top: 15px;
         }
+        
+        &:hover {
+            @include transform(scale(0.9));
+        }
+        
+        &:hover:active {
+            @include transform(scale(1));
+        }
+        
         &.active {
             .circle-icon {
                 border-style: solid;

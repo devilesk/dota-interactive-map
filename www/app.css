@@ -184,6 +184,18 @@ select:hover {
   -ms-transform: scaleX(-1) scaleY(-1);
   -webkit-transform: scaleX(-1) scaleY(-1);
   transform: scaleX(-1) scaleY(-1); }
+  #btn-measure[measure-type="line"]:hover {
+    -moz-transform: scale(-0.9);
+    -o-transform: scale(-0.9);
+    -ms-transform: scale(-0.9);
+    -webkit-transform: scale(-0.9);
+    transform: scale(-0.9); }
+  #btn-measure[measure-type="line"]:hover:active {
+    -moz-transform: scale(-1);
+    -o-transform: scale(-1);
+    -ms-transform: scale(-1);
+    -webkit-transform: scale(-1);
+    transform: scale(-1); }
   #btn-measure[measure-type="line"].active {
     -moz-transform: scale(0.9) scaleX(-1) scaleY(-1);
     -o-transform: scale(0.9) scaleX(-1) scaleY(-1);
@@ -203,6 +215,20 @@ select:hover {
   width: 20px;
   right: 9px;
   top: 15px; }
+
+#btn-measure[measure-type="circle"]:hover {
+  -moz-transform: scale(0.9);
+  -o-transform: scale(0.9);
+  -ms-transform: scale(0.9);
+  -webkit-transform: scale(0.9);
+  transform: scale(0.9); }
+
+#btn-measure[measure-type="circle"]:hover:active {
+  -moz-transform: scale(1);
+  -o-transform: scale(1);
+  -ms-transform: scale(1);
+  -webkit-transform: scale(1);
+  transform: scale(1); }
 
 #btn-measure[measure-type="circle"].active .circle-icon {
   border-style: solid; }
