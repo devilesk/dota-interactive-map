@@ -85,7 +85,7 @@ VisionControl.prototype.setVisionFeature = function (feature, coordinate, unitCl
     // determine radius according to unit type
     var radius = this.InteractiveMap.getFeatureVisionRadius(feature, feature.get('dotaProps'), unitClass);
     // create and add vision feature
-    visionFeature = this.getVisionFeature(feature, coordinate, radius);
+    var visionFeature = this.getVisionFeature(feature, coordinate, radius);
     if (visionFeature) {
         this.source.addFeature(visionFeature);
     }
