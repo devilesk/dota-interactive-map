@@ -9,7 +9,6 @@ import Feature from 'ol/feature';
 function VisionControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
-    this.vs = InteractiveMap.vs;
     this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
@@ -20,7 +19,7 @@ function VisionControl(InteractiveMap) {
 }
 
 VisionControl.prototype.getVisionFeature = function (feature, coordinate, radius) {
-    var vs = this.vs;
+    var vs = this.InteractiveMap.vs;
 
     // get coordinate from feature if not provided
     var worldCoordinate;

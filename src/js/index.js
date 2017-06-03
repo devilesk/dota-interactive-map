@@ -16,6 +16,7 @@ import TreeControl from './controls/tree';
 import CursorControl from './controls/cursor';
 import CoordinateControl from './controls/coordinate';
 import InteractiveMapConstructor from './InteractiveMap';
+import modeNotificationText from './modeNotificationText';
 
 import forEach from './util/forEach';
 
@@ -47,7 +48,7 @@ function App(map_tile_path, vision_data_image_path) {
     InteractiveMap.infoControl.initialize('info');
     InteractiveMap.notificationControl = new NotificationControl();
     InteractiveMap.notificationControl.initialize('notification');
-    InteractiveMap.visionControl = new VisionControl(InteractiveMap, 20);
+    InteractiveMap.visionControl = new VisionControl(InteractiveMap);
     InteractiveMap.wardControl = new WardControl(InteractiveMap);
     InteractiveMap.treeControl = new TreeControl(InteractiveMap);
     InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
@@ -58,20 +59,7 @@ function App(map_tile_path, vision_data_image_path) {
 
     //var DrawCurveControl = require('./controls/drawCurve');
     //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
-
-    var modeNotificationText = {
-        observer: "Ward Mode: Observer",
-        sentry: "Ward Mode: Sentry",
-        navigate: "Navigation Mode",
-        line: "Measure Mode: Line",
-        circle: "Measure Mode: Circle",
-        treeEnable: "<span>Navigation Mode</span><span>Trees: On</span>",
-        treeDisable: "<span>Navigation Mode</span><span>Trees: Off</span>",
-        nightOn: "Nighttime Vision",
-        nightOff: "Daytime Vision",
-        darknessOn: "Darkness: On",
-        darknessOff: "Darkness: Off"
-    }
+    
     function changeMode(mode) {
         switch (mode) {
             case 'observer':
@@ -120,12 +108,6 @@ function App(map_tile_path, vision_data_image_path) {
         InteractiveMap.notificationControl.show(modeNotificationText[InteractiveMap.MODE]);
     }
 
-    forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), function (element) {
-        element.addEventListener("change", function () {
-            changeMode(this.value);
-        }, false);
-    }, this);
-
     function updateLayerAndQueryString(element, layerId) {
         layerId = layerId || element.getAttribute('data-layer-id');
         var layer = InteractiveMap.getMapLayerIndex()[layerId];
@@ -138,9 +120,11 @@ function App(map_tile_path, vision_data_image_path) {
             }
         }
     }
+    
     function layerToggleHandler() {
         updateLayerAndQueryString(this);
     }
+    
     function baseLayerToggleHandler() {
         var layerId = this.getAttribute('data-layer-id');
         InteractiveMap.baseLayers.forEach(function (layer) {
@@ -216,43 +200,6 @@ function App(map_tile_path, vision_data_image_path) {
             }
         });
     }
-        
-    document.getElementById('nightControl').addEventListener('change', function () {
-        InteractiveMap.isNight = this.checked;
-        if (this.checked) {
-            InteractiveMap.notificationControl.show(modeNotificationText.nightOn);
-        }
-        else {
-            InteractiveMap.notificationControl.show(modeNotificationText.nightOff);
-        }
-    }, false);
-
-    document.getElementById('darknessControl').addEventListener('change', function () {
-        InteractiveMap.isDarkness = this.checked;
-        if (this.checked) {
-            InteractiveMap.notificationControl.show(modeNotificationText.darknessOn);
-        }
-        else {
-            InteractiveMap.notificationControl.show(modeNotificationText.darknessOff);
-        }
-    }, false);
-
-    document.getElementById('creepControl').addEventListener('change', function () {
-        if (this.checked) {
-            InteractiveMap.creepControl.activate();
-        }
-        else {
-            InteractiveMap.creepControl.deactivate();
-        }
-    }, false);
-
-    document.getElementById('vision-radius').addEventListener('change', function () {
-        InteractiveMap.visionRadius = this.value;
-    }, false);
-
-    document.getElementById('movementSpeed').addEventListener('change', function () {
-        InteractiveMap.movementSpeed = this.value;
-    }, false);
 
     function onMoveEnd(evt) {
         var map = evt.map;
@@ -291,6 +238,49 @@ function App(map_tile_path, vision_data_image_path) {
         });
         
         InteractiveMap.map.on('moveend', onMoveEnd);
+        
+        forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), function (element) {
+            element.addEventListener("change", function () {
+                changeMode(this.value);
+            }, false);
+        }, this);
+        
+        document.getElementById('nightControl').addEventListener('change', function () {
+            InteractiveMap.isNight = this.checked;
+            if (this.checked) {
+                InteractiveMap.notificationControl.show(modeNotificationText.nightOn);
+            }
+            else {
+                InteractiveMap.notificationControl.show(modeNotificationText.nightOff);
+            }
+        });
+
+        document.getElementById('darknessControl').addEventListener('change', function () {
+            InteractiveMap.isDarkness = this.checked;
+            if (this.checked) {
+                InteractiveMap.notificationControl.show(modeNotificationText.darknessOn);
+            }
+            else {
+                InteractiveMap.notificationControl.show(modeNotificationText.darknessOff);
+            }
+        });
+
+        document.getElementById('creepControl').addEventListener('change', function () {
+            if (this.checked) {
+                InteractiveMap.creepControl.activate();
+            }
+            else {
+                InteractiveMap.creepControl.deactivate();
+            }
+        });
+
+        document.getElementById('vision-radius').addEventListener('change', function () {
+            InteractiveMap.visionRadius = this.value;
+        });
+
+        document.getElementById('movementSpeed').addEventListener('change', function () {
+            InteractiveMap.movementSpeed = this.value;
+        });
             
         document.getElementById('option-dayVision').addEventListener('change', function () {
             InteractiveMap.rangeLayers.dayVision.setVisible(this.checked);

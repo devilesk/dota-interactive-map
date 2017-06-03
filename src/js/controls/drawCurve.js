@@ -12,8 +12,7 @@ var bezier = require("@turf/bezier");
 function DrawCurveControl(InteractiveMap) {
     var self = this;
     this.InteractiveMap = InteractiveMap;
-    map = InteractiveMap.map;
-    this.vs = InteractiveMap.vs;
+    var map = InteractiveMap.map;
     this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });

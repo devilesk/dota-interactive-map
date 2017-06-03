@@ -51,7 +51,9 @@ var b = browserify(opts);
 b.transform('rollupify', {
     config: {
         plugins: [
-            resolve({}),
+            resolve({
+                browser: true
+            }),
             commonjs()
         ]
     }

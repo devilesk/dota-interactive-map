@@ -1,4 +1,4 @@
-import Rollbar from "rollbar-browser";
+import Rollbar from 'rollbar';
 
 var rollbarConfig = {
     accessToken: "#rollbar_client_token",
@@ -23,6 +23,6 @@ var rollbarConfig = {
     }
 };
 
-var rollbar = Rollbar.init(rollbarConfig);
+var rollbar = new Rollbar(rollbarConfig);
 
 export default rollbar;
