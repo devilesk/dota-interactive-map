@@ -235,6 +235,9 @@ function App(map_tile_path, vision_data_image_path) {
                 InteractiveMap.treeControl.parseQueryString();
                 InteractiveMap.wardControl.parseQueryString();
             }
+            else {
+                rollbar.log("Vision simulation load error.", err);
+            }
         });
         
         InteractiveMap.map.on('moveend', onMoveEnd);
