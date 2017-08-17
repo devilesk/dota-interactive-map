@@ -69,7 +69,7 @@
     "@turf/bezier": "^3.7.0",
     "@turf/union": "^3.7.0",
     "dota-vision-simulation": "^0.16.0",
-    "ol": "^4.1.1",
-    "rollbar": "^2.0.4"
+    "ol": "^4.3.1",
+    "rollbar": "^2.2.1"
   }
 }

@@ -1817,7 +1817,7 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
  * @define {number} Texture cache high water mark.
  */_ol_.WEBGL_TEXTURE_CACHE_HIGH_WATER_MARK=1024;/**
  * @define {string} OpenLayers version.
- */_ol_.VERSION='4.1.1';/**
+ */_ol_.VERSION='v4.3.1';/**
  * Inherit the prototype methods from one constructor into another.
  *
  * Usage:
@@ -1873,7 +1873,182 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
    */this.code=code;this.name='AssertionError';};_ol_.inherits(_ol_AssertionError_,Error);var _ol_asserts_={};/**
  * @param {*} assertion Assertion we expected to be truthy.
  * @param {number} errorCode Error code.
- */_ol_asserts_.assert=function(assertion,errorCode){if(!assertion){throw new _ol_AssertionError_(errorCode);}};/**
+ */_ol_asserts_.assert=function(assertion,errorCode){if(!assertion){throw new _ol_AssertionError_(errorCode);}};var _ol_math_={};/**
+ * Takes a number and clamps it to within the provided bounds.
+ * @param {number} value The input number.
+ * @param {number} min The minimum value to return.
+ * @param {number} max The maximum value to return.
+ * @return {number} The input number if it is within bounds, or the nearest
+ *     number within the bounds.
+ */_ol_math_.clamp=function(value,min,max){return Math.min(Math.max(value,min),max);};/**
+ * Return the hyperbolic cosine of a given number. The method will use the
+ * native `Math.cosh` function if it is available, otherwise the hyperbolic
+ * cosine will be calculated via the reference implementation of the Mozilla
+ * developer network.
+ *
+ * @param {number} x X.
+ * @return {number} Hyperbolic cosine of x.
+ */_ol_math_.cosh=function(){// Wrapped in a iife, to save the overhead of checking for the native
+// implementation on every invocation.
+var cosh;if('cosh'in Math){// The environment supports the native Math.cosh function, use it…
+cosh=Math.cosh;}else{// … else, use the reference implementation of MDN:
+cosh=function(x){var y=Math.exp(x);return(y+1/y)/2;};}return cosh;}();/**
+ * @param {number} x X.
+ * @return {number} The smallest power of two greater than or equal to x.
+ */_ol_math_.roundUpToPowerOfTwo=function(x){_ol_asserts_.assert(0<x,29);// `x` must be greater than `0`
+return Math.pow(2,Math.ceil(Math.log(x)/Math.LN2));};/**
+ * Returns the square of the closest distance between the point (x, y) and the
+ * line segment (x1, y1) to (x2, y2).
+ * @param {number} x X.
+ * @param {number} y Y.
+ * @param {number} x1 X1.
+ * @param {number} y1 Y1.
+ * @param {number} x2 X2.
+ * @param {number} y2 Y2.
+ * @return {number} Squared distance.
+ */_ol_math_.squaredSegmentDistance=function(x,y,x1,y1,x2,y2){var dx=x2-x1;var dy=y2-y1;if(dx!==0||dy!==0){var t=((x-x1)*dx+(y-y1)*dy)/(dx*dx+dy*dy);if(t>1){x1=x2;y1=y2;}else if(t>0){x1+=dx*t;y1+=dy*t;}}return _ol_math_.squaredDistance(x,y,x1,y1);};/**
+ * Returns the square of the distance between the points (x1, y1) and (x2, y2).
+ * @param {number} x1 X1.
+ * @param {number} y1 Y1.
+ * @param {number} x2 X2.
+ * @param {number} y2 Y2.
+ * @return {number} Squared distance.
+ */_ol_math_.squaredDistance=function(x1,y1,x2,y2){var dx=x2-x1;var dy=y2-y1;return dx*dx+dy*dy;};/**
+ * Solves system of linear equations using Gaussian elimination method.
+ *
+ * @param {Array.<Array.<number>>} mat Augmented matrix (n x n + 1 column)
+ *                                     in row-major order.
+ * @return {Array.<number>} The resulting vector.
+ */_ol_math_.solveLinearSystem=function(mat){var n=mat.length;for(var i=0;i<n;i++){// Find max in the i-th column (ignoring i - 1 first rows)
+var maxRow=i;var maxEl=Math.abs(mat[i][i]);for(var r=i+1;r<n;r++){var absValue=Math.abs(mat[r][i]);if(absValue>maxEl){maxEl=absValue;maxRow=r;}}if(maxEl===0){return null;// matrix is singular
+}// Swap max row with i-th (current) row
+var tmp=mat[maxRow];mat[maxRow]=mat[i];mat[i]=tmp;// Subtract the i-th row to make all the remaining rows 0 in the i-th column
+for(var j=i+1;j<n;j++){var coef=-mat[j][i]/mat[i][i];for(var k=i;k<n+1;k++){if(i==k){mat[j][k]=0;}else{mat[j][k]+=coef*mat[i][k];}}}}// Solve Ax=b for upper triangular matrix A (mat)
+var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-1;m>=0;m--){mat[m][n]-=mat[m][l]*x[l];}}return x;};/**
+ * Converts radians to to degrees.
+ *
+ * @param {number} angleInRadians Angle in radians.
+ * @return {number} Angle in degrees.
+ */_ol_math_.toDegrees=function(angleInRadians){return angleInRadians*180/Math.PI;};/**
+ * Converts degrees to radians.
+ *
+ * @param {number} angleInDegrees Angle in degrees.
+ * @return {number} Angle in radians.
+ */_ol_math_.toRadians=function(angleInDegrees){return angleInDegrees*Math.PI/180;};/**
+ * Returns the modulo of a / b, depending on the sign of b.
+ *
+ * @param {number} a Dividend.
+ * @param {number} b Divisor.
+ * @return {number} Modulo.
+ */_ol_math_.modulo=function(a,b){var r=a%b;return r*b<0?r+b:r;};/**
+ * Calculates the linearly interpolated value of x between a and b.
+ *
+ * @param {number} a Number
+ * @param {number} b Number
+ * @param {number} x Value to be interpolated.
+ * @return {number} Interpolated value.
+ */_ol_math_.lerp=function(a,b,x){return a+x*(b-a);};/**
+ * The geometry type. One of `'Point'`, `'LineString'`, `'LinearRing'`,
+ * `'Polygon'`, `'MultiPoint'`, `'MultiLineString'`, `'MultiPolygon'`,
+ * `'GeometryCollection'`, `'Circle'`.
+ * @enum {string}
+ */var _ol_geom_GeometryType_={POINT:'Point',LINE_STRING:'LineString',LINEAR_RING:'LinearRing',POLYGON:'Polygon',MULTI_POINT:'MultiPoint',MULTI_LINE_STRING:'MultiLineString',MULTI_POLYGON:'MultiPolygon',GEOMETRY_COLLECTION:'GeometryCollection',CIRCLE:'Circle'};/**
+ * @license
+ * Latitude/longitude spherical geodesy formulae taken from
+ * http://www.movable-type.co.uk/scripts/latlong.html
+ * Licensed under CC-BY-3.0.
+ *//**
+ * @classdesc
+ * Class to create objects that can be used with {@link
+ * ol.geom.Polygon.circular}.
+ *
+ * For example to create a sphere whose radius is equal to the semi-major
+ * axis of the WGS84 ellipsoid:
+ *
+ * ```js
+ * var wgs84Sphere= new ol.Sphere(6378137);
+ * ```
+ *
+ * @constructor
+ * @param {number} radius Radius.
+ * @api
+ */var _ol_Sphere_=function(radius){/**
+   * @type {number}
+   */this.radius=radius;};/**
+ * Returns the geodesic area for a list of coordinates.
+ *
+ * [Reference](https://trs-new.jpl.nasa.gov/handle/2014/40409)
+ * Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for
+ * Polygons on a Sphere", JPL Publication 07-03, Jet Propulsion
+ * Laboratory, Pasadena, CA, June 2007
+ *
+ * @param {Array.<ol.Coordinate>} coordinates List of coordinates of a linear
+ * ring. If the ring is oriented clockwise, the area will be positive,
+ * otherwise it will be negative.
+ * @return {number} Area.
+ * @api
+ */_ol_Sphere_.prototype.geodesicArea=function(coordinates){return _ol_Sphere_.getArea_(coordinates,this.radius);};/**
+ * Returns the distance from c1 to c2 using the haversine formula.
+ *
+ * @param {ol.Coordinate} c1 Coordinate 1.
+ * @param {ol.Coordinate} c2 Coordinate 2.
+ * @return {number} Haversine distance.
+ * @api
+ */_ol_Sphere_.prototype.haversineDistance=function(c1,c2){return _ol_Sphere_.getDistance_(c1,c2,this.radius);};/**
+ * Returns the coordinate at the given distance and bearing from `c1`.
+ *
+ * @param {ol.Coordinate} c1 The origin point (`[lon, lat]` in degrees).
+ * @param {number} distance The great-circle distance between the origin
+ *     point and the target point.
+ * @param {number} bearing The bearing (in radians).
+ * @return {ol.Coordinate} The target point.
+ */_ol_Sphere_.prototype.offset=function(c1,distance,bearing){var lat1=_ol_math_.toRadians(c1[1]);var lon1=_ol_math_.toRadians(c1[0]);var dByR=distance/this.radius;var lat=Math.asin(Math.sin(lat1)*Math.cos(dByR)+Math.cos(lat1)*Math.sin(dByR)*Math.cos(bearing));var lon=lon1+Math.atan2(Math.sin(bearing)*Math.sin(dByR)*Math.cos(lat1),Math.cos(dByR)-Math.sin(lat1)*Math.sin(lat));return[_ol_math_.toDegrees(lon),_ol_math_.toDegrees(lat)];};/**
+ * The mean Earth radius (1/3 * (2a + b)) for the WGS84 ellipsoid.
+ * https://en.wikipedia.org/wiki/Earth_radius#Mean_radius
+ * @type {number}
+ */_ol_Sphere_.DEFAULT_RADIUS=6371008.8;/**
+ * Get the spherical length of a geometry.  This length is the sum of the
+ * great circle distances between coordinates.  For polygons, the length is
+ * the sum of all rings.  For points, the length is zero.  For multi-part
+ * geometries, the length is the sum of the length of each part.
+ * @param {ol.geom.Geometry} geometry A geometry.
+ * @param {olx.SphereMetricOptions=} opt_options Options for the length
+ *     calculation.  By default, geometries are assumed to be in 'EPSG:3857'.
+ *     You can change this by providing a `projection` option.
+ * @return {number} The spherical length (in meters).
+ */_ol_Sphere_.getLength=function(geometry,opt_options){var options=opt_options||{};var radius=options.radius||_ol_Sphere_.DEFAULT_RADIUS;var projection=options.projection||'EPSG:3857';geometry=geometry.clone().transform(projection,'EPSG:4326');var type=geometry.getType();var length=0;var coordinates,coords,i,ii,j,jj;switch(type){case _ol_geom_GeometryType_.POINT:case _ol_geom_GeometryType_.MULTI_POINT:{break;}case _ol_geom_GeometryType_.LINE_STRING:case _ol_geom_GeometryType_.LINEAR_RING:{coordinates=/** @type {ol.geom.SimpleGeometry} */geometry.getCoordinates();length=_ol_Sphere_.getLength_(coordinates,radius);break;}case _ol_geom_GeometryType_.MULTI_LINE_STRING:case _ol_geom_GeometryType_.POLYGON:{coordinates=/** @type {ol.geom.SimpleGeometry} */geometry.getCoordinates();for(i=0,ii=coordinates.length;i<ii;++i){length+=_ol_Sphere_.getLength_(coordinates[i],radius);}break;}case _ol_geom_GeometryType_.MULTI_POLYGON:{coordinates=/** @type {ol.geom.SimpleGeometry} */geometry.getCoordinates();for(i=0,ii=coordinates.length;i<ii;++i){coords=coordinates[i];for(j=0,jj=coords.length;j<jj;++j){length+=_ol_Sphere_.getLength_(coords[j],radius);}}break;}case _ol_geom_GeometryType_.GEOMETRY_COLLECTION:{var geometries=/** @type {ol.geom.GeometryCollection} */geometry.getGeometries();for(i=0,ii=geometries.length;i<ii;++i){length+=_ol_Sphere_.getLength(geometries[i],opt_options);}break;}default:{throw new Error('Unsupported geometry type: '+type);}}return length;};/**
+ * Get the cumulative great circle length of linestring coordinates (geographic).
+ * @param {Array} coordinates Linestring coordinates.
+ * @param {number} radius The sphere radius to use.
+ * @return {number} The length (in meters).
+ */_ol_Sphere_.getLength_=function(coordinates,radius){var length=0;for(var i=0,ii=coordinates.length;i<ii-1;++i){length+=_ol_Sphere_.getDistance_(coordinates[i],coordinates[i+1],radius);}return length;};/**
+ * Get the great circle distance between two geographic coordinates.
+ * @param {Array} c1 Starting coordinate.
+ * @param {Array} c2 Ending coordinate.
+ * @param {number} radius The sphere radius to use.
+ * @return {number} The great circle distance between the points (in meters).
+ */_ol_Sphere_.getDistance_=function(c1,c2,radius){var lat1=_ol_math_.toRadians(c1[1]);var lat2=_ol_math_.toRadians(c2[1]);var deltaLatBy2=(lat2-lat1)/2;var deltaLonBy2=_ol_math_.toRadians(c2[0]-c1[0])/2;var a=Math.sin(deltaLatBy2)*Math.sin(deltaLatBy2)+Math.sin(deltaLonBy2)*Math.sin(deltaLonBy2)*Math.cos(lat1)*Math.cos(lat2);return 2*radius*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));};/**
+ * Get the spherical area of a geometry.  This is the area (in meters) assuming
+ * that polygon edges are segments of great circles on a sphere.
+ * @param {ol.geom.Geometry} geometry A geometry.
+ * @param {olx.SphereMetricOptions=} opt_options Options for the area
+ *     calculation.  By default, geometries are assumed to be in 'EPSG:3857'.
+ *     You can change this by providing a `projection` option.
+ * @return {number} The spherical area (in square meters).
+ */_ol_Sphere_.getArea=function(geometry,opt_options){var options=opt_options||{};var radius=options.radius||_ol_Sphere_.DEFAULT_RADIUS;var projection=options.projection||'EPSG:3857';geometry=geometry.clone().transform(projection,'EPSG:4326');var type=geometry.getType();var area=0;var coordinates,coords,i,ii,j,jj;switch(type){case _ol_geom_GeometryType_.POINT:case _ol_geom_GeometryType_.MULTI_POINT:case _ol_geom_GeometryType_.LINE_STRING:case _ol_geom_GeometryType_.MULTI_LINE_STRING:case _ol_geom_GeometryType_.LINEAR_RING:{break;}case _ol_geom_GeometryType_.POLYGON:{coordinates=/** @type {ol.geom.Polygon} */geometry.getCoordinates();area=Math.abs(_ol_Sphere_.getArea_(coordinates[0],radius));for(i=1,ii=coordinates.length;i<ii;++i){area-=Math.abs(_ol_Sphere_.getArea_(coordinates[i],radius));}break;}case _ol_geom_GeometryType_.MULTI_POLYGON:{coordinates=/** @type {ol.geom.SimpleGeometry} */geometry.getCoordinates();for(i=0,ii=coordinates.length;i<ii;++i){coords=coordinates[i];area+=Math.abs(_ol_Sphere_.getArea_(coords[0],radius));for(j=1,jj=coords.length;j<jj;++j){area-=Math.abs(_ol_Sphere_.getArea_(coords[j],radius));}}break;}case _ol_geom_GeometryType_.GEOMETRY_COLLECTION:{var geometries=/** @type {ol.geom.GeometryCollection} */geometry.getGeometries();for(i=0,ii=geometries.length;i<ii;++i){area+=_ol_Sphere_.getArea(geometries[i],opt_options);}break;}default:{throw new Error('Unsupported geometry type: '+type);}}return area;};/**
+ * Returns the spherical area for a list of coordinates.
+ *
+ * [Reference](https://trs-new.jpl.nasa.gov/handle/2014/40409)
+ * Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for
+ * Polygons on a Sphere", JPL Publication 07-03, Jet Propulsion
+ * Laboratory, Pasadena, CA, June 2007
+ *
+ * @param {Array.<ol.Coordinate>} coordinates List of coordinates of a linear
+ * ring. If the ring is oriented clockwise, the area will be positive,
+ * otherwise it will be negative.
+ * @param {number} radius The sphere radius.
+ * @return {number} Area (in square meters).
+ */_ol_Sphere_.getArea_=function(coordinates,radius){var area=0,len=coordinates.length;var x1=coordinates[len-1][0];var y1=coordinates[len-1][1];for(var i=0;i<len;i++){var x2=coordinates[i][0],y2=coordinates[i][1];area+=_ol_math_.toRadians(x2-x1)*(2+Math.sin(_ol_math_.toRadians(y1))+Math.sin(_ol_math_.toRadians(y2)));x1=x2;y1=y2;}return area*radius*radius/2.0;};/**
  * Extent corner.
  * @enum {string}
  */var _ol_extent_Corner_={BOTTOM_LEFT:'bottom-left',BOTTOM_RIGHT:'bottom-right',TOP_LEFT:'top-left',TOP_RIGHT:'top-right'};/**
@@ -2020,8 +2195,10 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
  * @return {S|boolean} Value.
  * @template S, T
  */_ol_extent_.forEachCorner=function(extent,callback,opt_this){var val;val=callback.call(opt_this,_ol_extent_.getBottomLeft(extent));if(val){return val;}val=callback.call(opt_this,_ol_extent_.getBottomRight(extent));if(val){return val;}val=callback.call(opt_this,_ol_extent_.getTopRight(extent));if(val){return val;}val=callback.call(opt_this,_ol_extent_.getTopLeft(extent));if(val){return val;}return false;};/**
+ * Get the size of an extent.
  * @param {ol.Extent} extent Extent.
  * @return {number} Area.
+ * @api
  */_ol_extent_.getArea=function(extent){var area=0;if(!_ol_extent_.isEmpty(extent)){area=_ol_extent_.getWidth(extent)*_ol_extent_.getHeight(extent);}return area;};/**
  * Get the bottom left coordinate of an extent.
  * @param {ol.Extent} extent Extent.
@@ -2130,135 +2307,7 @@ y=endY-(endX-minX)*slope;intersects=y>=minY&&y<=maxY;}}return intersects;};/**
  * @param {ol.Extent=} opt_extent Destination extent.
  * @return {ol.Extent} Extent.
  * @api
- */_ol_extent_.applyTransform=function(extent,transformFn,opt_extent){var coordinates=[extent[0],extent[1],extent[0],extent[3],extent[2],extent[1],extent[2],extent[3]];transformFn(coordinates,coordinates,2);var xs=[coordinates[0],coordinates[2],coordinates[4],coordinates[6]];var ys=[coordinates[1],coordinates[3],coordinates[5],coordinates[7]];return _ol_extent_.boundingExtentXYs_(xs,ys,opt_extent);};var _ol_math_={};/**
- * Takes a number and clamps it to within the provided bounds.
- * @param {number} value The input number.
- * @param {number} min The minimum value to return.
- * @param {number} max The maximum value to return.
- * @return {number} The input number if it is within bounds, or the nearest
- *     number within the bounds.
- */_ol_math_.clamp=function(value,min,max){return Math.min(Math.max(value,min),max);};/**
- * Return the hyperbolic cosine of a given number. The method will use the
- * native `Math.cosh` function if it is available, otherwise the hyperbolic
- * cosine will be calculated via the reference implementation of the Mozilla
- * developer network.
- *
- * @param {number} x X.
- * @return {number} Hyperbolic cosine of x.
- */_ol_math_.cosh=function(){// Wrapped in a iife, to save the overhead of checking for the native
-// implementation on every invocation.
-var cosh;if('cosh'in Math){// The environment supports the native Math.cosh function, use it…
-cosh=Math.cosh;}else{// … else, use the reference implementation of MDN:
-cosh=function(x){var y=Math.exp(x);return(y+1/y)/2;};}return cosh;}();/**
- * @param {number} x X.
- * @return {number} The smallest power of two greater than or equal to x.
- */_ol_math_.roundUpToPowerOfTwo=function(x){_ol_asserts_.assert(0<x,29);// `x` must be greater than `0`
-return Math.pow(2,Math.ceil(Math.log(x)/Math.LN2));};/**
- * Returns the square of the closest distance between the point (x, y) and the
- * line segment (x1, y1) to (x2, y2).
- * @param {number} x X.
- * @param {number} y Y.
- * @param {number} x1 X1.
- * @param {number} y1 Y1.
- * @param {number} x2 X2.
- * @param {number} y2 Y2.
- * @return {number} Squared distance.
- */_ol_math_.squaredSegmentDistance=function(x,y,x1,y1,x2,y2){var dx=x2-x1;var dy=y2-y1;if(dx!==0||dy!==0){var t=((x-x1)*dx+(y-y1)*dy)/(dx*dx+dy*dy);if(t>1){x1=x2;y1=y2;}else if(t>0){x1+=dx*t;y1+=dy*t;}}return _ol_math_.squaredDistance(x,y,x1,y1);};/**
- * Returns the square of the distance between the points (x1, y1) and (x2, y2).
- * @param {number} x1 X1.
- * @param {number} y1 Y1.
- * @param {number} x2 X2.
- * @param {number} y2 Y2.
- * @return {number} Squared distance.
- */_ol_math_.squaredDistance=function(x1,y1,x2,y2){var dx=x2-x1;var dy=y2-y1;return dx*dx+dy*dy;};/**
- * Solves system of linear equations using Gaussian elimination method.
- *
- * @param {Array.<Array.<number>>} mat Augmented matrix (n x n + 1 column)
- *                                     in row-major order.
- * @return {Array.<number>} The resulting vector.
- */_ol_math_.solveLinearSystem=function(mat){var n=mat.length;for(var i=0;i<n;i++){// Find max in the i-th column (ignoring i - 1 first rows)
-var maxRow=i;var maxEl=Math.abs(mat[i][i]);for(var r=i+1;r<n;r++){var absValue=Math.abs(mat[r][i]);if(absValue>maxEl){maxEl=absValue;maxRow=r;}}if(maxEl===0){return null;// matrix is singular
-}// Swap max row with i-th (current) row
-var tmp=mat[maxRow];mat[maxRow]=mat[i];mat[i]=tmp;// Subtract the i-th row to make all the remaining rows 0 in the i-th column
-for(var j=i+1;j<n;j++){var coef=-mat[j][i]/mat[i][i];for(var k=i;k<n+1;k++){if(i==k){mat[j][k]=0;}else{mat[j][k]+=coef*mat[i][k];}}}}// Solve Ax=b for upper triangular matrix A (mat)
-var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-1;m>=0;m--){mat[m][n]-=mat[m][l]*x[l];}}return x;};/**
- * Converts radians to to degrees.
- *
- * @param {number} angleInRadians Angle in radians.
- * @return {number} Angle in degrees.
- */_ol_math_.toDegrees=function(angleInRadians){return angleInRadians*180/Math.PI;};/**
- * Converts degrees to radians.
- *
- * @param {number} angleInDegrees Angle in degrees.
- * @return {number} Angle in radians.
- */_ol_math_.toRadians=function(angleInDegrees){return angleInDegrees*Math.PI/180;};/**
- * Returns the modulo of a / b, depending on the sign of b.
- *
- * @param {number} a Dividend.
- * @param {number} b Divisor.
- * @return {number} Modulo.
- */_ol_math_.modulo=function(a,b){var r=a%b;return r*b<0?r+b:r;};/**
- * Calculates the linearly interpolated value of x between a and b.
- *
- * @param {number} a Number
- * @param {number} b Number
- * @param {number} x Value to be interpolated.
- * @return {number} Interpolated value.
- */_ol_math_.lerp=function(a,b,x){return a+x*(b-a);};/**
- * @license
- * Latitude/longitude spherical geodesy formulae taken from
- * http://www.movable-type.co.uk/scripts/latlong.html
- * Licensed under CC-BY-3.0.
- *//**
- * @classdesc
- * Class to create objects that can be used with {@link
- * ol.geom.Polygon.circular}.
- *
- * For example to create a sphere whose radius is equal to the semi-major
- * axis of the WGS84 ellipsoid:
- *
- * ```js
- * var wgs84Sphere= new ol.Sphere(6378137);
- * ```
- *
- * @constructor
- * @param {number} radius Radius.
- * @api
- */var _ol_Sphere_=function(radius){/**
-   * @type {number}
-   */this.radius=radius;};/**
- * Returns the geodesic area for a list of coordinates.
- *
- * [Reference](https://trs-new.jpl.nasa.gov/handle/2014/40409)
- * Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for
- * Polygons on a Sphere", JPL Publication 07-03, Jet Propulsion
- * Laboratory, Pasadena, CA, June 2007
- *
- * @param {Array.<ol.Coordinate>} coordinates List of coordinates of a linear
- * ring. If the ring is oriented clockwise, the area will be positive,
- * otherwise it will be negative.
- * @return {number} Area.
- * @api
- */_ol_Sphere_.prototype.geodesicArea=function(coordinates){var area=0,len=coordinates.length;var x1=coordinates[len-1][0];var y1=coordinates[len-1][1];for(var i=0;i<len;i++){var x2=coordinates[i][0],y2=coordinates[i][1];area+=_ol_math_.toRadians(x2-x1)*(2+Math.sin(_ol_math_.toRadians(y1))+Math.sin(_ol_math_.toRadians(y2)));x1=x2;y1=y2;}return area*this.radius*this.radius/2.0;};/**
- * Returns the distance from c1 to c2 using the haversine formula.
- *
- * @param {ol.Coordinate} c1 Coordinate 1.
- * @param {ol.Coordinate} c2 Coordinate 2.
- * @return {number} Haversine distance.
- * @api
- */_ol_Sphere_.prototype.haversineDistance=function(c1,c2){var lat1=_ol_math_.toRadians(c1[1]);var lat2=_ol_math_.toRadians(c2[1]);var deltaLatBy2=(lat2-lat1)/2;var deltaLonBy2=_ol_math_.toRadians(c2[0]-c1[0])/2;var a=Math.sin(deltaLatBy2)*Math.sin(deltaLatBy2)+Math.sin(deltaLonBy2)*Math.sin(deltaLonBy2)*Math.cos(lat1)*Math.cos(lat2);return 2*this.radius*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));};/**
- * Returns the coordinate at the given distance and bearing from `c1`.
- *
- * @param {ol.Coordinate} c1 The origin point (`[lon, lat]` in degrees).
- * @param {number} distance The great-circle distance between the origin
- *     point and the target point.
- * @param {number} bearing The bearing (in radians).
- * @return {ol.Coordinate} The target point.
- */_ol_Sphere_.prototype.offset=function(c1,distance,bearing){var lat1=_ol_math_.toRadians(c1[1]);var lon1=_ol_math_.toRadians(c1[0]);var dByR=distance/this.radius;var lat=Math.asin(Math.sin(lat1)*Math.cos(dByR)+Math.cos(lat1)*Math.sin(dByR)*Math.cos(bearing));var lon=lon1+Math.atan2(Math.sin(bearing)*Math.sin(dByR)*Math.cos(lat1),Math.cos(dByR)-Math.sin(lat1)*Math.sin(lat));return[_ol_math_.toDegrees(lon),_ol_math_.toDegrees(lat)];};/**
- * The normal sphere.
- * @const
- * @type {ol.Sphere}
- */var _ol_sphere_NORMAL_=new _ol_Sphere_(6370997);/**
+ */_ol_extent_.applyTransform=function(extent,transformFn,opt_extent){var coordinates=[extent[0],extent[1],extent[0],extent[3],extent[2],extent[1],extent[2],extent[3]];transformFn(coordinates,coordinates,2);var xs=[coordinates[0],coordinates[2],coordinates[4],coordinates[6]];var ys=[coordinates[1],coordinates[3],coordinates[5],coordinates[7]];return _ol_extent_.boundingExtentXYs_(xs,ys,opt_extent);};/**
  * Projection units: `'degrees'`, `'ft'`, `'m'`, `'pixels'`, `'tile-pixels'` or
  * `'us-ft'`.
  * @enum {string}
@@ -2267,7 +2316,8 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  * @const
  * @type {Object.<ol.proj.Units, number>}
  * @api
- */_ol_proj_Units_.METERS_PER_UNIT={};_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]=2*Math.PI*_ol_sphere_NORMAL_.radius/360;_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.FEET]=0.3048;_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.METERS]=1;_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.USFEET]=1200/3937;var _ol_proj_proj4_={};/**
+ */_ol_proj_Units_.METERS_PER_UNIT={};// use the radius of the Normal sphere
+_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]=2*Math.PI*6370997/360;_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.FEET]=0.3048;_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.METERS]=1;_ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.USFEET]=1200/3937;var _ol_proj_proj4_={};/**
  * @private
  * @type {Proj4}
  */_ol_proj_proj4_.cache_=null;/**
@@ -2306,36 +2356,36 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  * @struct
  * @api
  */var _ol_proj_Projection_$1=function(options){/**
-  * @private
-  * @type {string}
-  */this.code_=options.code;/**
-  * @private
-  * @type {ol.proj.Units}
-  */this.units_=/** @type {ol.proj.Units} */options.units;/**
-  * @private
-  * @type {ol.Extent}
-  */this.extent_=options.extent!==undefined?options.extent:null;/**
-  * @private
-  * @type {ol.Extent}
-  */this.worldExtent_=options.worldExtent!==undefined?options.worldExtent:null;/**
-  * @private
-  * @type {string}
-  */this.axisOrientation_=options.axisOrientation!==undefined?options.axisOrientation:'enu';/**
-  * @private
-  * @type {boolean}
-  */this.global_=options.global!==undefined?options.global:false;/**
-  * @private
-  * @type {boolean}
-  */this.canWrapX_=!!(this.global_&&this.extent_);/**
- * @private
- * @type {function(number, ol.Coordinate):number|undefined}
- */this.getPointResolutionFunc_=options.getPointResolution;/**
-  * @private
-  * @type {ol.tilegrid.TileGrid}
-  */this.defaultTileGrid_=null;/**
-  * @private
-  * @type {number|undefined}
-  */this.metersPerUnit_=options.metersPerUnit;var code=options.code;if(_ol_.ENABLE_PROJ4JS){var proj4js=_ol_proj_proj4_.get();if(typeof proj4js=='function'){var def=proj4js.defs(code);if(def!==undefined){if(def.axis!==undefined&&options.axisOrientation===undefined){this.axisOrientation_=def.axis;}if(options.metersPerUnit===undefined){this.metersPerUnit_=def.to_meter;}if(options.units===undefined){this.units_=def.units;}}}}};/**
+   * @private
+   * @type {string}
+   */this.code_=options.code;/**
+   * @private
+   * @type {ol.proj.Units}
+   */this.units_=/** @type {ol.proj.Units} */options.units;/**
+   * @private
+   * @type {ol.Extent}
+   */this.extent_=options.extent!==undefined?options.extent:null;/**
+   * @private
+   * @type {ol.Extent}
+   */this.worldExtent_=options.worldExtent!==undefined?options.worldExtent:null;/**
+   * @private
+   * @type {string}
+   */this.axisOrientation_=options.axisOrientation!==undefined?options.axisOrientation:'enu';/**
+   * @private
+   * @type {boolean}
+   */this.global_=options.global!==undefined?options.global:false;/**
+   * @private
+   * @type {boolean}
+   */this.canWrapX_=!!(this.global_&&this.extent_);/**
+   * @private
+   * @type {function(number, ol.Coordinate):number|undefined}
+   */this.getPointResolutionFunc_=options.getPointResolution;/**
+   * @private
+   * @type {ol.tilegrid.TileGrid}
+   */this.defaultTileGrid_=null;/**
+   * @private
+   * @type {number|undefined}
+   */this.metersPerUnit_=options.metersPerUnit;var code=options.code;if(_ol_.ENABLE_PROJ4JS){var proj4js=_ol_proj_proj4_.get();if(typeof proj4js=='function'){var def=proj4js.defs(code);if(def!==undefined){if(def.axis!==undefined&&options.axisOrientation===undefined){this.axisOrientation_=def.axis;}if(options.metersPerUnit===undefined){this.metersPerUnit_=def.to_meter;}if(options.units===undefined){this.units_=def.units;}}}}};/**
  * @return {boolean} The projection is suitable for wrapping the x-axis
  */_ol_proj_Projection_$1.prototype.canWrapX=function(){return this.canWrapX_;};/**
  * Get the code for this projection, e.g. 'EPSG:4326'.
@@ -2390,7 +2440,8 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  *     [minlon, minlat, maxlon, maxlat].
  * @api
  */_ol_proj_Projection_$1.prototype.setWorldExtent=function(worldExtent){this.worldExtent_=worldExtent;};/**
- * Set the getPointResolution function for this projection.
+ * Set the getPointResolution function (see {@link ol.proj#getPointResolution}
+ * for this projection.
  * @param {function(number, ol.Coordinate):number} func Function
  * @api
  */_ol_proj_Projection_$1.prototype.setGetPointResolution=function(func){this.getPointResolutionFunc_=func;};/**
@@ -2406,6 +2457,8 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  * @param {string} code Code.
  * @private
  */_ol_proj_EPSG3857_.Projection_=function(code){_ol_proj_Projection_$1.call(this,{code:code,units:_ol_proj_Units_.METERS,extent:_ol_proj_EPSG3857_.EXTENT,global:true,worldExtent:_ol_proj_EPSG3857_.WORLD_EXTENT,getPointResolution:function(resolution,point){return resolution/_ol_math_.cosh(point[1]/_ol_proj_EPSG3857_.RADIUS);}});};_ol_.inherits(_ol_proj_EPSG3857_.Projection_,_ol_proj_Projection_$1);/**
+ * Radius of WGS84 sphere
+ *
  * @const
  * @type {number}
  */_ol_proj_EPSG3857_.RADIUS=6378137;/**
@@ -2418,15 +2471,11 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  * @const
  * @type {ol.Extent}
  */_ol_proj_EPSG3857_.WORLD_EXTENT=[-180,-85,180,85];/**
- * Lists several projection codes with the same meaning as EPSG:3857.
- *
- * @type {Array.<string>}
- */_ol_proj_EPSG3857_.CODES=['EPSG:3857','EPSG:102100','EPSG:102113','EPSG:900913','urn:ogc:def:crs:EPSG:6.18:3:3857','urn:ogc:def:crs:EPSG::3857','http://www.opengis.net/gml/srs/epsg.xml#3857'];/**
  * Projections equal to EPSG:3857.
  *
  * @const
  * @type {Array.<ol.proj.Projection>}
- */_ol_proj_EPSG3857_.PROJECTIONS=_ol_proj_EPSG3857_.CODES.map(function(code){return new _ol_proj_EPSG3857_.Projection_(code);});/**
+ */_ol_proj_EPSG3857_.PROJECTIONS=[new _ol_proj_EPSG3857_.Projection_('EPSG:3857'),new _ol_proj_EPSG3857_.Projection_('EPSG:102100'),new _ol_proj_EPSG3857_.Projection_('EPSG:102113'),new _ol_proj_EPSG3857_.Projection_('EPSG:900913'),new _ol_proj_EPSG3857_.Projection_('urn:ogc:def:crs:EPSG:6.18:3:3857'),new _ol_proj_EPSG3857_.Projection_('urn:ogc:def:crs:EPSG::3857'),new _ol_proj_EPSG3857_.Projection_('http://www.opengis.net/gml/srs/epsg.xml#3857')];/**
  * Transformation from EPSG:4326 to EPSG:3857.
  *
  * @param {Array.<number>} input Input array of coordinate values.
@@ -2442,11 +2491,7 @@ output=input.slice();}else{output=new Array(length);}}var halfSize=_ol_proj_EPSG
  * @param {number=} opt_dimension Dimension (default is `2`).
  * @return {Array.<number>} Output array of coordinate values.
  */_ol_proj_EPSG3857_.toEPSG4326=function(input,opt_output,opt_dimension){var length=input.length,dimension=opt_dimension>1?opt_dimension:2,output=opt_output;if(output===undefined){if(dimension>2){// preserve values beyond second dimension
-output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=dimension){output[i]=180*input[i]/_ol_proj_EPSG3857_.HALF_SIZE;output[i+1]=360*Math.atan(Math.exp(input[i+1]/_ol_proj_EPSG3857_.RADIUS))/Math.PI-90;}return output;};/**
- * A sphere with radius equal to the semi-major axis of the WGS84 ellipsoid.
- * @const
- * @type {ol.Sphere}
- */var _ol_sphere_WGS84_=new _ol_Sphere_(6378137);var _ol_proj_EPSG4326_={};/**
+output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=dimension){output[i]=180*input[i]/_ol_proj_EPSG3857_.HALF_SIZE;output[i+1]=360*Math.atan(Math.exp(input[i+1]/_ol_proj_EPSG3857_.RADIUS))/Math.PI-90;}return output;};var _ol_proj_EPSG4326_={};/**
  * @classdesc
  * Projection object for WGS84 geographic coordinates (EPSG:4326).
  *
@@ -2460,6 +2505,11 @@ output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=di
  * @param {string=} opt_axisOrientation Axis orientation.
  * @private
  */_ol_proj_EPSG4326_.Projection_=function(code,opt_axisOrientation){_ol_proj_Projection_$1.call(this,{code:code,units:_ol_proj_Units_.DEGREES,extent:_ol_proj_EPSG4326_.EXTENT,axisOrientation:opt_axisOrientation,global:true,metersPerUnit:_ol_proj_EPSG4326_.METERS_PER_UNIT,worldExtent:_ol_proj_EPSG4326_.EXTENT});};_ol_.inherits(_ol_proj_EPSG4326_.Projection_,_ol_proj_Projection_$1);/**
+ * Radius of WGS84 sphere
+ *
+ * @const
+ * @type {number}
+ */_ol_proj_EPSG4326_.RADIUS=6378137;/**
  * Extent of the EPSG:4326 projection which is the whole world.
  *
  * @const
@@ -2467,7 +2517,7 @@ output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=di
  */_ol_proj_EPSG4326_.EXTENT=[-180,-90,180,90];/**
  * @const
  * @type {number}
- */_ol_proj_EPSG4326_.METERS_PER_UNIT=Math.PI*_ol_sphere_WGS84_.radius/180;/**
+ */_ol_proj_EPSG4326_.METERS_PER_UNIT=Math.PI*_ol_proj_EPSG4326_.RADIUS/180;/**
  * Projections equal to EPSG:4326.
  *
  * @const
@@ -2535,7 +2585,11 @@ output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=di
  * @const
  * @type {Object.<ol.proj.Units, number>}
  * @api
- */_ol_proj_.METERS_PER_UNIT=_ol_proj_Units_.METERS_PER_UNIT;if(_ol_.ENABLE_PROJ4JS){/**
+ */_ol_proj_.METERS_PER_UNIT=_ol_proj_Units_.METERS_PER_UNIT;/**
+ * A place to store the mean radius of the Earth.
+ * @private
+ * @type {ol.Sphere}
+ */_ol_proj_.SPHERE_=new _ol_Sphere_(_ol_Sphere_.DEFAULT_RADIUS);if(_ol_.ENABLE_PROJ4JS){/**
    * Register proj4. If not explicitly registered, it will be assumed that
    * proj4js will be loaded in the global namespace. For example in a
    * browserify ES6 environment you could use:
@@ -2550,18 +2604,25 @@ output=input.slice();}else{output=new Array(length);}}for(var i=0;i<length;i+=di
  * Get the resolution of the point in degrees or distance units.
  * For projections with degrees as the unit this will simply return the
  * provided resolution. For other projections the point resolution is
- * estimated by transforming the 'point' pixel to EPSG:4326,
+ * by default estimated by transforming the 'point' pixel to EPSG:4326,
  * measuring its width and height on the normal sphere,
  * and taking the average of the width and height.
- * @param {ol.proj.Projection} projection The projection.
+ * A custom function can be provided for a specific projection, either
+ * by setting the `getPointResolution` option in the
+ * {@link ol.proj.Projection} constructor or by using
+ * {@link ol.proj.Projection#setGetPointResolution} to change an existing
+ * projection object.
+ * @param {ol.ProjectionLike} projection The projection.
  * @param {number} resolution Nominal resolution in projection units.
  * @param {ol.Coordinate} point Point to find adjusted resolution at.
- * @return {number} Point resolution at point in projection units.
+ * @param {ol.proj.Units=} opt_units Units to get the point resolution in.
+ * Default is the projection's units.
+ * @return {number} Point resolution.
  * @api
- */_ol_proj_.getPointResolution=function(projection,resolution,point){var pointResolution;var getter=projection.getPointResolutionFunc();if(getter){pointResolution=getter(resolution,point);}else{var units=projection.getUnits();if(units==_ol_proj_Units_.DEGREES){pointResolution=resolution;}else{// Estimate point resolution by transforming the center pixel to EPSG:4326,
+ */_ol_proj_.getPointResolution=function(projection,resolution,point,opt_units){projection=_ol_proj_.get(projection);var pointResolution;var getter=projection.getPointResolutionFunc();if(getter){pointResolution=getter(resolution,point);}else{var units=projection.getUnits();if(units==_ol_proj_Units_.DEGREES&&!opt_units||opt_units==_ol_proj_Units_.DEGREES){pointResolution=resolution;}else{// Estimate point resolution by transforming the center pixel to EPSG:4326,
 // measuring its width and height on the normal sphere, and taking the
 // average of the width and height.
-var toEPSG4326=_ol_proj_.getTransformFromProjections(projection,_ol_proj_.get('EPSG:4326'));var vertices=[point[0]-resolution/2,point[1],point[0]+resolution/2,point[1],point[0],point[1]-resolution/2,point[0],point[1]+resolution/2];vertices=toEPSG4326(vertices,vertices,2);var width=_ol_sphere_NORMAL_.haversineDistance(vertices.slice(0,2),vertices.slice(2,4));var height=_ol_sphere_NORMAL_.haversineDistance(vertices.slice(4,6),vertices.slice(6,8));pointResolution=(width+height)/2;var metersPerUnit=projection.getMetersPerUnit();if(metersPerUnit!==undefined){pointResolution/=metersPerUnit;}}}return pointResolution;};/**
+var toEPSG4326=_ol_proj_.getTransformFromProjections(projection,_ol_proj_.get('EPSG:4326'));var vertices=[point[0]-resolution/2,point[1],point[0]+resolution/2,point[1],point[0],point[1]-resolution/2,point[0],point[1]+resolution/2];vertices=toEPSG4326(vertices,vertices,2);var width=_ol_proj_.SPHERE_.haversineDistance(vertices.slice(0,2),vertices.slice(2,4));var height=_ol_proj_.SPHERE_.haversineDistance(vertices.slice(4,6),vertices.slice(6,8));pointResolution=(width+height)/2;var metersPerUnit=opt_units?_ol_proj_Units_.METERS_PER_UNIT[opt_units]:projection.getMetersPerUnit();if(metersPerUnit!==undefined){pointResolution/=metersPerUnit;}}}return pointResolution;};/**
  * Registers transformation functions that don't alter coordinates. Those allow
  * to transform between projections with equal meaning.
  *
@@ -2587,7 +2648,7 @@ var toEPSG4326=_ol_proj_.getTransformFromProjections(projection,_ol_proj_.get('E
  * @api
  */_ol_proj_.addProjection=function(projection){_ol_proj_projections_.add(projection.getCode(),projection);_ol_proj_transforms_.add(projection,projection,_ol_proj_.cloneTransform);};/**
  * @param {Array.<ol.proj.Projection>} projections Projections.
- */_ol_proj_.addProjections=function(projections){var addedProjections=[];projections.forEach(function(projection){addedProjections.push(_ol_proj_.addProjection(projection));});};/**
+ */_ol_proj_.addProjections=function(projections){projections.forEach(_ol_proj_.addProjection);};/**
  * Clear all cached projections and transforms.
  */_ol_proj_.clearAllProjections=function(){_ol_proj_projections_.clear();_ol_proj_transforms_.clear();};/**
  * @param {ol.proj.Projection|string|undefined} projection Projection.
@@ -2618,11 +2679,11 @@ var toEPSG4326=_ol_proj_.getTransformFromProjections(projection,_ol_proj_.get('E
  *     transform.
  * @return {ol.TransformFunction} Transform function.
  */_ol_proj_.createTransformFromCoordinateTransform=function(transform){return(/**
-       * @param {Array.<number>} input Input.
-       * @param {Array.<number>=} opt_output Output.
-       * @param {number=} opt_dimension Dimension.
-       * @return {Array.<number>} Output.
-       */function(input,opt_output,opt_dimension){var length=input.length;var dimension=opt_dimension!==undefined?opt_dimension:2;var output=opt_output!==undefined?opt_output:new Array(length);var point,i,j;for(i=0;i<length;i+=dimension){point=transform([input[i],input[i+1]]);output[i]=point[0];output[i+1]=point[1];for(j=dimension-1;j>=2;--j){output[i+j]=input[i+j];}}return output;});};/**
+     * @param {Array.<number>} input Input.
+     * @param {Array.<number>=} opt_output Output.
+     * @param {number=} opt_dimension Dimension.
+     * @return {Array.<number>} Output.
+     */function(input,opt_output,opt_dimension){var length=input.length;var dimension=opt_dimension!==undefined?opt_dimension:2;var output=opt_output!==undefined?opt_output:new Array(length);var point,i,j;for(i=0;i<length;i+=dimension){point=transform([input[i],input[i+1]]);output[i]=point[0];output[i+1]=point[1];for(j=dimension-1;j>=2;--j){output[i+j]=input[i+j];}}return output;});};/**
  * Transforms a coordinate from longitude/latitude to a different projection.
  * @param {ol.Coordinate} coordinate Coordinate as longitude and latitude, i.e.
  *     an array with longitude as 1st and latitude as 2nd element.
@@ -2646,7 +2707,7 @@ var toEPSG4326=_ol_proj_.getTransformFromProjections(projection,_ol_proj_.get('E
  *     existing projection object, or undefined.
  * @return {ol.proj.Projection} Projection object, or null if not in list.
  * @api
- */_ol_proj_.get=function(projectionLike){var projection=null;if(projectionLike instanceof _ol_proj_Projection_$1){projection=projectionLike;}else if(typeof projectionLike==='string'){var code=projectionLike;projection=_ol_proj_projections_.get(code);if(_ol_.ENABLE_PROJ4JS){var proj4js=_ol_proj_proj4_.get();if(!projection&&typeof proj4js=='function'&&proj4js.defs(code)!==undefined){projection=new _ol_proj_Projection_$1({code:code});_ol_proj_.addProjection(projection);}}}return projection;};/**
+ */_ol_proj_.get=function(projectionLike){var projection=null;if(projectionLike instanceof _ol_proj_Projection_$1){projection=projectionLike;}else if(typeof projectionLike==='string'){var code=projectionLike;projection=_ol_proj_projections_.get(code);if(_ol_.ENABLE_PROJ4JS&&!projection){var proj4js=_ol_proj_proj4_.get();if(typeof proj4js=='function'&&proj4js.defs(code)!==undefined){projection=new _ol_proj_Projection_$1({code:code});_ol_proj_.addProjection(projection);}}}return projection;};/**
  * Checks if two projections are the same, that is every coordinate in one
  * projection does represent the same geographic point as the same coordinate in
  * the other projection.
@@ -2852,11 +2913,11 @@ listenerObj.callOnce=false;}}else{listenerObj=/** @type {ol.EventsKey} */{bindTo
  * @override
  * @api
  */_ol_events_Event_.prototype.preventDefault=/**
- * Stop event propagation.
- * @function
- * @override
- * @api
- */_ol_events_Event_.prototype.stopPropagation=function(){this.propagationStopped=true;};/**
+   * Stop event propagation.
+   * @function
+   * @override
+   * @api
+   */_ol_events_Event_.prototype.stopPropagation=function(){this.propagationStopped=true;};/**
  * @param {Event|ol.events.Event} evt Event
  */_ol_events_Event_.stopPropagation=function(evt){evt.stopPropagation();};/**
  * @param {Event|ol.events.Event} evt Event
@@ -3039,12 +3100,7 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
  * or measure ('M') coordinate is available. Supported values are `'XY'`,
  * `'XYZ'`, `'XYM'`, `'XYZM'`.
  * @enum {string}
- */var _ol_geom_GeometryLayout_={XY:'XY',XYZ:'XYZ',XYM:'XYM',XYZM:'XYZM'};/**
- * The geometry type. One of `'Point'`, `'LineString'`, `'LinearRing'`,
- * `'Polygon'`, `'MultiPoint'`, `'MultiLineString'`, `'MultiPolygon'`,
- * `'GeometryCollection'`, `'Circle'`.
- * @enum {string}
- */var _ol_geom_GeometryType_={POINT:'Point',LINE_STRING:'LineString',LINEAR_RING:'LinearRing',POLYGON:'Polygon',MULTI_POINT:'MultiPoint',MULTI_LINE_STRING:'MultiLineString',MULTI_POLYGON:'MultiPolygon',GEOMETRY_COLLECTION:'GeometryCollection',CIRCLE:'Circle'};var _ol_functions_={};/**
+ */var _ol_geom_GeometryLayout_={XY:'XY',XYZ:'XYZ',XYM:'XYM',XYZM:'XYZM'};var _ol_functions_={};/**
  * Always returns true.
  * @returns {boolean} true.
  */_ol_functions_.TRUE=function(){return true;};/**
@@ -4164,16 +4220,16 @@ var edge=0;var x1=flatCoordinates[end-stride];var y1=flatCoordinates[end-stride+
 // semantics, whenever the cache grows too large we simply delete an
 // arbitrary 25% of the entries.
 /**
-       * @const
-       * @type {number}
-       */var MAX_CACHE_SIZE=1024;/**
-       * @type {Object.<string, ol.Color>}
-       */var cache={};/**
-       * @type {number}
-       */var cacheSize=0;return(/**
-           * @param {string} s String.
-           * @return {ol.Color} Color.
-           */function(s){var color;if(cache.hasOwnProperty(s)){color=cache[s];}else{if(cacheSize>=MAX_CACHE_SIZE){var i=0;var key;for(key in cache){if((i++&3)===0){delete cache[key];--cacheSize;}}}color=_ol_color_.fromStringInternal_(s);cache[s]=color;++cacheSize;}return color;});}();/**
+     * @const
+     * @type {number}
+     */var MAX_CACHE_SIZE=1024;/**
+     * @type {Object.<string, ol.Color>}
+     */var cache={};/**
+     * @type {number}
+     */var cacheSize=0;return(/**
+       * @param {string} s String.
+       * @return {ol.Color} Color.
+       */function(s){var color;if(cache.hasOwnProperty(s)){color=cache[s];}else{if(cacheSize>=MAX_CACHE_SIZE){var i=0;var key;for(key in cache){if((i++&3)===0){delete cache[key];--cacheSize;}}}color=_ol_color_.fromStringInternal_(s);cache[s]=color;++cacheSize;}return color;});}();/**
  * @param {string} s String.
  * @private
  * @return {ol.Color} Color.
@@ -4251,8 +4307,8 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * @type {boolean}
  * @api
  */_ol_has_.CANVAS=_ol_.ENABLE_CANVAS&&/**
-     * @return {boolean} Canvas supported.
-     */function(){if(!('HTMLCanvasElement'in window)){return false;}try{var context=document.createElement('CANVAS').getContext('2d');if(!context){return false;}else{if(context.setLineDash!==undefined){_ol_has_.CANVAS_LINE_DASH=true;}return true;}}catch(e){return false;}}();/**
+   * @return {boolean} Canvas supported.
+   */function(){if(!('HTMLCanvasElement'in window)){return false;}try{var context=document.createElement('CANVAS').getContext('2d');if(!context){return false;}else{if(context.setLineDash!==undefined){_ol_has_.CANVAS_LINE_DASH=true;}return true;}}catch(e){return false;}}();/**
  * Indicates if DeviceOrientation is supported in the user's browser.
  * @const
  * @type {boolean}
@@ -4461,8 +4517,8 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
    * @type {number}
    */this.radius_=/** @type {number} */options.radius!==undefined?options.radius:options.radius1;/**
    * @private
-   * @type {number}
-   */this.radius2_=options.radius2!==undefined?options.radius2:this.radius_;/**
+   * @type {number|undefined}
+   */this.radius2_=options.radius2;/**
    * @private
    * @type {number}
    */this.angle_=options.angle!==undefined?options.angle:0;/**
@@ -4491,7 +4547,7 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * Clones the style. If an atlasmanager was provided to the original style it will be used in the cloned style, too.
  * @return {ol.style.RegularShape} The cloned style.
  * @api
- */_ol_style_RegularShape_.prototype.clone=function(){var style=new _ol_style_RegularShape_({fill:this.getFill()?this.getFill().clone():undefined,points:this.getRadius2()!==this.getRadius()?this.getPoints()/2:this.getPoints(),radius:this.getRadius(),radius2:this.getRadius2(),angle:this.getAngle(),snapToPixel:this.getSnapToPixel(),stroke:this.getStroke()?this.getStroke().clone():undefined,rotation:this.getRotation(),rotateWithView:this.getRotateWithView(),atlasManager:this.atlasManager_});style.setOpacity(this.getOpacity());style.setScale(this.getScale());return style;};/**
+ */_ol_style_RegularShape_.prototype.clone=function(){var style=new _ol_style_RegularShape_({fill:this.getFill()?this.getFill().clone():undefined,points:this.getPoints(),radius:this.getRadius(),radius2:this.getRadius2(),angle:this.getAngle(),snapToPixel:this.getSnapToPixel(),stroke:this.getStroke()?this.getStroke().clone():undefined,rotation:this.getRotation(),rotateWithView:this.getRotateWithView(),atlasManager:this.atlasManager_});style.setOpacity(this.getOpacity());style.setScale(this.getScale());return style;};/**
  * @inheritDoc
  * @api
  */_ol_style_RegularShape_.prototype.getAnchor=function(){return this.anchor_;};/**
@@ -4526,7 +4582,7 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * @api
  */_ol_style_RegularShape_.prototype.getRadius=function(){return this.radius_;};/**
  * Get the secondary radius for the shape.
- * @return {number} Radius2.
+ * @return {number|undefined} Radius2.
  * @api
  */_ol_style_RegularShape_.prototype.getRadius2=function(){return this.radius2_;};/**
  * @inheritDoc
@@ -4544,7 +4600,7 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  */_ol_style_RegularShape_.prototype.unlistenImageChange=function(listener,thisArg){};/**
  * @protected
  * @param {ol.style.AtlasManager|undefined} atlasManager An atlas manager.
- */_ol_style_RegularShape_.prototype.render_=function(atlasManager){var imageSize;var lineCap='';var lineJoin='';var miterLimit=0;var lineDash=null;var strokeStyle;var strokeWidth=0;if(this.stroke_){strokeStyle=this.stroke_.getColor();if(strokeStyle===null){strokeStyle=_ol_render_canvas_.defaultStrokeStyle;}strokeStyle=_ol_colorlike_.asColorLike(strokeStyle);strokeWidth=this.stroke_.getWidth();if(strokeWidth===undefined){strokeWidth=_ol_render_canvas_.defaultLineWidth;}lineDash=this.stroke_.getLineDash();if(!_ol_has_.CANVAS_LINE_DASH){lineDash=null;}lineJoin=this.stroke_.getLineJoin();if(lineJoin===undefined){lineJoin=_ol_render_canvas_.defaultLineJoin;}lineCap=this.stroke_.getLineCap();if(lineCap===undefined){lineCap=_ol_render_canvas_.defaultLineCap;}miterLimit=this.stroke_.getMiterLimit();if(miterLimit===undefined){miterLimit=_ol_render_canvas_.defaultMiterLimit;}}var size=2*(this.radius_+strokeWidth)+1;/** @type {ol.RegularShapeRenderOptions} */var renderOptions={strokeStyle:strokeStyle,strokeWidth:strokeWidth,size:size,lineCap:lineCap,lineDash:lineDash,lineJoin:lineJoin,miterLimit:miterLimit};if(atlasManager===undefined){// no atlas manager is used, create a new canvas
+ */_ol_style_RegularShape_.prototype.render_=function(atlasManager){var imageSize;var lineCap='';var lineJoin='';var miterLimit=0;var lineDash=null;var lineDashOffset=0;var strokeStyle;var strokeWidth=0;if(this.stroke_){strokeStyle=this.stroke_.getColor();if(strokeStyle===null){strokeStyle=_ol_render_canvas_.defaultStrokeStyle;}strokeStyle=_ol_colorlike_.asColorLike(strokeStyle);strokeWidth=this.stroke_.getWidth();if(strokeWidth===undefined){strokeWidth=_ol_render_canvas_.defaultLineWidth;}lineDash=this.stroke_.getLineDash();lineDashOffset=this.stroke_.getLineDashOffset();if(!_ol_has_.CANVAS_LINE_DASH){lineDash=null;lineDashOffset=0;}lineJoin=this.stroke_.getLineJoin();if(lineJoin===undefined){lineJoin=_ol_render_canvas_.defaultLineJoin;}lineCap=this.stroke_.getLineCap();if(lineCap===undefined){lineCap=_ol_render_canvas_.defaultLineCap;}miterLimit=this.stroke_.getMiterLimit();if(miterLimit===undefined){miterLimit=_ol_render_canvas_.defaultMiterLimit;}}var size=2*(this.radius_+strokeWidth)+1;/** @type {ol.RegularShapeRenderOptions} */var renderOptions={strokeStyle:strokeStyle,strokeWidth:strokeWidth,size:size,lineCap:lineCap,lineDash:lineDash,lineDashOffset:lineDashOffset,lineJoin:lineJoin,miterLimit:miterLimit};if(atlasManager===undefined){// no atlas manager is used, create a new canvas
 var context=_ol_dom_.createCanvasContext2D(size,size);this.canvas_=context.canvas;// canvas.width and height are rounded to the closest integer
 size=this.canvas_.width;imageSize=size;this.draw_(renderOptions,context,0,0);this.createHitDetectionCanvas_(renderOptions);}else{// an atlas manager is used, add the symbol to an atlas
 size=Math.round(size);var hasCustomHitDetectionImage=!this.fill_;var renderHitDetectionCallback;if(hasCustomHitDetectionImage){// render the hit-detection image into a separate atlas image
@@ -4556,7 +4612,7 @@ renderHitDetectionCallback=this.drawHitDetectionCanvas_.bind(this,renderOptions)
  * @param {number} y The origin for the symbol (y).
  */_ol_style_RegularShape_.prototype.draw_=function(renderOptions,context,x,y){var i,angle0,radiusC;// reset transform
 context.setTransform(1,0,0,1,0,0);// then move to (x, y)
-context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.arc(renderOptions.size/2,renderOptions.size/2,this.radius_,0,2*Math.PI,true);}else{if(this.radius2_!==this.radius_){this.points_=2*this.points_;}for(i=0;i<=this.points_;i++){angle0=i*2*Math.PI/this.points_-Math.PI/2+this.angle_;radiusC=i%2===0?this.radius_:this.radius2_;context.lineTo(renderOptions.size/2+radiusC*Math.cos(angle0),renderOptions.size/2+radiusC*Math.sin(angle0));}}if(this.fill_){var color=this.fill_.getColor();if(color===null){color=_ol_render_canvas_.defaultFillStyle;}context.fillStyle=_ol_colorlike_.asColorLike(color);context.fill();}if(this.stroke_){context.strokeStyle=renderOptions.strokeStyle;context.lineWidth=renderOptions.strokeWidth;if(renderOptions.lineDash){context.setLineDash(renderOptions.lineDash);}context.lineCap=renderOptions.lineCap;context.lineJoin=renderOptions.lineJoin;context.miterLimit=renderOptions.miterLimit;context.stroke();}context.closePath();};/**
+context.translate(x,y);context.beginPath();var points=this.points_;if(points===Infinity){context.arc(renderOptions.size/2,renderOptions.size/2,this.radius_,0,2*Math.PI,true);}else{var radius2=this.radius2_!==undefined?this.radius2_:this.radius_;if(radius2!==this.radius_){points=2*points;}for(i=0;i<=points;i++){angle0=i*2*Math.PI/points-Math.PI/2+this.angle_;radiusC=i%2===0?this.radius_:radius2;context.lineTo(renderOptions.size/2+radiusC*Math.cos(angle0),renderOptions.size/2+radiusC*Math.sin(angle0));}}if(this.fill_){var color=this.fill_.getColor();if(color===null){color=_ol_render_canvas_.defaultFillStyle;}context.fillStyle=_ol_colorlike_.asColorLike(color);context.fill();}if(this.stroke_){context.strokeStyle=renderOptions.strokeStyle;context.lineWidth=renderOptions.strokeWidth;if(renderOptions.lineDash){context.setLineDash(renderOptions.lineDash);context.lineDashOffset=renderOptions.lineDashOffset;}context.lineCap=renderOptions.lineCap;context.lineJoin=renderOptions.lineJoin;context.miterLimit=renderOptions.miterLimit;context.stroke();}context.closePath();};/**
  * @private
  * @param {ol.RegularShapeRenderOptions} renderOptions Render options.
  */_ol_style_RegularShape_.prototype.createHitDetectionCanvas_=function(renderOptions){this.hitDetectionImageSize_=[renderOptions.size,renderOptions.size];if(this.fill_){this.hitDetectionCanvas_=this.canvas_;return;}// if no fill style is set, create an extra hit-detection image with a
@@ -4569,7 +4625,7 @@ var context=_ol_dom_.createCanvasContext2D(renderOptions.size,renderOptions.size
  * @param {number} y The origin for the symbol (y).
  */_ol_style_RegularShape_.prototype.drawHitDetectionCanvas_=function(renderOptions,context,x,y){// reset transform
 context.setTransform(1,0,0,1,0,0);// then move to (x, y)
-context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.arc(renderOptions.size/2,renderOptions.size/2,this.radius_,0,2*Math.PI,true);}else{if(this.radius2_!==this.radius_){this.points_=2*this.points_;}var i,radiusC,angle0;for(i=0;i<=this.points_;i++){angle0=i*2*Math.PI/this.points_-Math.PI/2+this.angle_;radiusC=i%2===0?this.radius_:this.radius2_;context.lineTo(renderOptions.size/2+radiusC*Math.cos(angle0),renderOptions.size/2+radiusC*Math.sin(angle0));}}context.fillStyle=_ol_render_canvas_.defaultFillStyle;context.fill();if(this.stroke_){context.strokeStyle=renderOptions.strokeStyle;context.lineWidth=renderOptions.strokeWidth;if(renderOptions.lineDash){context.setLineDash(renderOptions.lineDash);}context.stroke();}context.closePath();};/**
+context.translate(x,y);context.beginPath();var points=this.points_;if(points===Infinity){context.arc(renderOptions.size/2,renderOptions.size/2,this.radius_,0,2*Math.PI,true);}else{var radius2=this.radius2_!==undefined?this.radius2_:this.radius_;if(radius2!==this.radius_){points=2*points;}var i,radiusC,angle0;for(i=0;i<=points;i++){angle0=i*2*Math.PI/points-Math.PI/2+this.angle_;radiusC=i%2===0?this.radius_:radius2;context.lineTo(renderOptions.size/2+radiusC*Math.cos(angle0),renderOptions.size/2+radiusC*Math.sin(angle0));}}context.fillStyle=_ol_render_canvas_.defaultFillStyle;context.fill();if(this.stroke_){context.strokeStyle=renderOptions.strokeStyle;context.lineWidth=renderOptions.strokeWidth;if(renderOptions.lineDash){context.setLineDash(renderOptions.lineDash);context.lineDashOffset=renderOptions.lineDashOffset;}context.stroke();}context.closePath();};/**
  * @return {string} The checksum.
  */_ol_style_RegularShape_.prototype.getChecksum=function(){var strokeChecksum=this.stroke_?this.stroke_.getChecksum():'-';var fillChecksum=this.fill_?this.fill_.getChecksum():'-';var recalculate=!this.checksums_||strokeChecksum!=this.checksums_[1]||fillChecksum!=this.checksums_[2]||this.radius_!=this.checksums_[3]||this.radius2_!=this.checksums_[4]||this.angle_!=this.checksums_[5]||this.points_!=this.checksums_[6];if(recalculate){var checksum='r'+strokeChecksum+fillChecksum+(this.radius_!==undefined?this.radius_.toString():'-')+(this.radius2_!==undefined?this.radius2_.toString():'-')+(this.angle_!==undefined?this.angle_.toString():'-')+(this.points_!==undefined?this.points_.toString():'-');this.checksums_=[checksum,strokeChecksum,fillChecksum,this.radius_,this.radius2_,this.angle_,this.points_];}return this.checksums_[0];};/**
  * @classdesc
@@ -4750,6 +4806,9 @@ context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.a
    * @type {ol.style.Image}
    */this.image_=options.image!==undefined?options.image:null;/**
    * @private
+   * @type {ol.StyleRenderFunction|null}
+   */this.renderer_=options.renderer!==undefined?options.renderer:null;/**
+   * @private
    * @type {ol.style.Stroke}
    */this.stroke_=options.stroke!==undefined?options.stroke:null;/**
    * @private
@@ -4762,6 +4821,16 @@ context.translate(x,y);context.beginPath();if(this.points_===Infinity){context.a
  * @return {ol.style.Style} The cloned style.
  * @api
  */_ol_style_Style_$1.prototype.clone=function(){var geometry=this.getGeometry();if(geometry&&geometry.clone){geometry=geometry.clone();}return new _ol_style_Style_$1({geometry:geometry,fill:this.getFill()?this.getFill().clone():undefined,image:this.getImage()?this.getImage().clone():undefined,stroke:this.getStroke()?this.getStroke().clone():undefined,text:this.getText()?this.getText().clone():undefined,zIndex:this.getZIndex()});};/**
+ * Get the custom renderer function that was configured with
+ * {@link #setRenderer} or the `renderer` constructor option.
+ * @return {ol.StyleRenderFunction|null} Custom renderer function.
+ * @api
+ */_ol_style_Style_$1.prototype.getRenderer=function(){return this.renderer_;};/**
+ * Sets a custom renderer function for this style. When set, `fill`, `stroke`
+ * and `image` options of the style will be ignored.
+ * @param {ol.StyleRenderFunction|null} renderer Custom renderer function.
+ * @api
+ */_ol_style_Style_$1.prototype.setRenderer=function(renderer){this.renderer_=renderer;};/**
  * Get the geometry to be rendered.
  * @return {string|ol.geom.Geometry|ol.StyleGeometryFunction}
  * Feature property or geometry or function that returns the geometry that will
@@ -5240,7 +5309,7 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @constructor
  * @extends {ol.Object}
  * @fires ol.Collection.Event
- * @param {!Array.<T>=} opt_array Array.
+ * @param {Array.<T>=} opt_array Array.
  * @param {olx.CollectionOptions=} opt_options Collection options.
  * @template T
  * @api
@@ -5267,7 +5336,7 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @param {S=} opt_this The object to use as `this` in `f`.
  * @template S
  * @api
- */_ol_Collection_.prototype.forEach=function(f,opt_this){this.array_.forEach(f,opt_this);};/**
+ */_ol_Collection_.prototype.forEach=function(f,opt_this){var fn=opt_this?f.bind(opt_this):f;var array=this.array_;for(var i=0,ii=array.length;i<ii;++i){fn(array[i],i,array);}};/**
  * Get a reference to the underlying Array object. Warning: if the array
  * is mutated, no events will be dispatched by the collection, and the
  * collection's "length" property won't be in sync with the actual length
@@ -5395,9 +5464,9 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @return {ol.XmlParser} Parser.
  * @template T
  */_ol_xml_.makeArrayExtender=function(valueReader,opt_this){return(/**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */function(node,objectStack){var value=valueReader.call(opt_this,node,objectStack);if(value!==undefined){var array=/** @type {Array.<*>} */objectStack[objectStack.length-1];_ol_array_.extend(array,value);}});};/**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */function(node,objectStack){var value=valueReader.call(opt_this,node,objectStack);if(value!==undefined){var array=/** @type {Array.<*>} */objectStack[objectStack.length-1];_ol_array_.extend(array,value);}});};/**
  * Make an array pusher function for pushing to the array at the top of the
  * object stack.
  * @param {function(this: T, Node, Array.<*>): *} valueReader Value reader.
@@ -5405,9 +5474,9 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @return {ol.XmlParser} Parser.
  * @template T
  */_ol_xml_.makeArrayPusher=function(valueReader,opt_this){return(/**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){var array=objectStack[objectStack.length-1];array.push(value);}});};/**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){var array=objectStack[objectStack.length-1];array.push(value);}});};/**
  * Make an object stack replacer function for replacing the object at the
  * top of the stack.
  * @param {function(this: T, Node, Array.<*>): *} valueReader Value reader.
@@ -5415,9 +5484,9 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @return {ol.XmlParser} Parser.
  * @template T
  */_ol_xml_.makeReplacer=function(valueReader,opt_this){return(/**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){objectStack[objectStack.length-1]=value;}});};/**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){objectStack[objectStack.length-1]=value;}});};/**
  * Make an object property pusher function for adding a property to the
  * object at the top of the stack.
  * @param {function(this: T, Node, Array.<*>): *} valueReader Value reader.
@@ -5426,9 +5495,9 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @return {ol.XmlParser} Parser.
  * @template T
  */_ol_xml_.makeObjectPropertyPusher=function(valueReader,opt_property,opt_this){return(/**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){var object=/** @type {Object} */objectStack[objectStack.length-1];var property=opt_property!==undefined?opt_property:node.localName;var array;if(property in object){array=object[property];}else{array=object[property]=[];}array.push(value);}});};/**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){var object=/** @type {Object} */objectStack[objectStack.length-1];var property=opt_property!==undefined?opt_property:node.localName;var array;if(property in object){array=object[property];}else{array=object[property]=[];}array.push(value);}});};/**
  * Make an object property setter function.
  * @param {function(this: T, Node, Array.<*>): *} valueReader Value reader.
  * @param {string=} opt_property Property.
@@ -5436,9 +5505,9 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  * @return {ol.XmlParser} Parser.
  * @template T
  */_ol_xml_.makeObjectPropertySetter=function(valueReader,opt_property,opt_this){return(/**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){var object=/** @type {Object} */objectStack[objectStack.length-1];var property=opt_property!==undefined?opt_property:node.localName;object[property]=value;}});};/**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */function(node,objectStack){var value=valueReader.call(opt_this!==undefined?opt_this:this,node,objectStack);if(value!==undefined){var object=/** @type {Object} */objectStack[objectStack.length-1];var property=opt_property!==undefined?opt_property:node.localName;object[property]=value;}});};/**
  * Create a serializer that appends nodes written by its `nodeWriter` to its
  * designated parent. The parent is the `node` of the
  * {@link ol.XmlNodeStackItem} at the top of the `objectStack`.
@@ -5472,11 +5541,11 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  *     be used.
  * @return {function(*, Array.<*>, string=): (Node|undefined)} Node factory.
  */_ol_xml_.makeSimpleNodeFactory=function(opt_nodeName,opt_namespaceURI){var fixedNodeName=opt_nodeName;return(/**
-       * @param {*} value Value.
-       * @param {Array.<*>} objectStack Object stack.
-       * @param {string=} opt_nodeName Node name.
-       * @return {Node} Node.
-       */function(value,objectStack,opt_nodeName){var context=objectStack[objectStack.length-1];var node=context.node;var nodeName=fixedNodeName;if(nodeName===undefined){nodeName=opt_nodeName;}var namespaceURI=opt_namespaceURI;if(opt_namespaceURI===undefined){namespaceURI=node.namespaceURI;}return _ol_xml_.createElementNS(namespaceURI,/** @type {string} */nodeName);});};/**
+     * @param {*} value Value.
+     * @param {Array.<*>} objectStack Object stack.
+     * @param {string=} opt_nodeName Node name.
+     * @return {Node} Node.
+     */function(value,objectStack,opt_nodeName){var context=objectStack[objectStack.length-1];var node=context.node;var nodeName=fixedNodeName;if(nodeName===undefined){nodeName=opt_nodeName;}var namespaceURI=opt_namespaceURI;if(opt_namespaceURI===undefined){namespaceURI=node.namespaceURI;}return _ol_xml_.createElementNS(namespaceURI,/** @type {string} */nodeName);});};/**
  * A node factory that creates a node using the parent's `namespaceURI` and the
  * `nodeName` passed by {@link ol.xml.serialize} or
  * {@link ol.xml.pushSerializeAndPop} to the node factory.
@@ -5567,7 +5636,7 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  */_ol_xml_.pushSerializeAndPop=function(object,serializersNS,nodeFactory,values,objectStack,opt_keys,opt_this){objectStack.push(object);_ol_xml_.serialize(serializersNS,nodeFactory,values,objectStack,opt_keys,opt_this);return objectStack.pop();};var _ol_featureloader_={};/**
  * @param {string|ol.FeatureUrlFunction} url Feature URL service.
  * @param {ol.format.Feature} format Feature format.
- * @param {function(this:ol.VectorTile, Array.<ol.Feature>, ol.proj.Projection)|function(this:ol.source.Vector, Array.<ol.Feature>)} success
+ * @param {function(this:ol.VectorTile, Array.<ol.Feature>, ol.proj.Projection, ol.Extent)|function(this:ol.source.Vector, Array.<ol.Feature>)} success
  *     Function called with the loaded features and optionally with the data
  *     projection. Called with the vector tile or source as `this`.
  * @param {function(this:ol.VectorTile)|function(this:ol.source.Vector)} failure
@@ -5575,17 +5644,17 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
  *     source as `this`.
  * @return {ol.FeatureLoader} The feature loader.
  */_ol_featureloader_.loadFeaturesXhr=function(url,format,success,failure){return(/**
-       * @param {ol.Extent} extent Extent.
-       * @param {number} resolution Resolution.
-       * @param {ol.proj.Projection} projection Projection.
-       * @this {ol.source.Vector|ol.VectorTile}
-       */function(extent,resolution,projection){var xhr=new XMLHttpRequest();xhr.open('GET',typeof url==='function'?url(extent,resolution,projection):url,true);if(format.getType()==_ol_format_FormatType_.ARRAY_BUFFER){xhr.responseType='arraybuffer';}/**
-         * @param {Event} event Event.
-         * @private
-         */xhr.onload=function(event){// status will be 0 for file:// urls
-if(!xhr.status||xhr.status>=200&&xhr.status<300){var type=format.getType();/** @type {Document|Node|Object|string|undefined} */var source;if(type==_ol_format_FormatType_.JSON||type==_ol_format_FormatType_.TEXT){source=xhr.responseText;}else if(type==_ol_format_FormatType_.XML){source=xhr.responseXML;if(!source){source=_ol_xml_.parse(xhr.responseText);}}else if(type==_ol_format_FormatType_.ARRAY_BUFFER){source=/** @type {ArrayBuffer} */xhr.response;}if(source){success.call(this,format.readFeatures(source,{featureProjection:projection}),format.readProjection(source));}else{failure.call(this);}}else{failure.call(this);}}.bind(this);/**
-         * @private
-         */xhr.onerror=function(){failure.call(this);}.bind(this);xhr.send();});};/**
+     * @param {ol.Extent} extent Extent.
+     * @param {number} resolution Resolution.
+     * @param {ol.proj.Projection} projection Projection.
+     * @this {ol.source.Vector|ol.VectorTile}
+     */function(extent,resolution,projection){var xhr=new XMLHttpRequest();xhr.open('GET',typeof url==='function'?url(extent,resolution,projection):url,true);if(format.getType()==_ol_format_FormatType_.ARRAY_BUFFER){xhr.responseType='arraybuffer';}/**
+       * @param {Event} event Event.
+       * @private
+       */xhr.onload=function(event){// status will be 0 for file:// urls
+if(!xhr.status||xhr.status>=200&&xhr.status<300){var type=format.getType();/** @type {Document|Node|Object|string|undefined} */var source;if(type==_ol_format_FormatType_.JSON||type==_ol_format_FormatType_.TEXT){source=xhr.responseText;}else if(type==_ol_format_FormatType_.XML){source=xhr.responseXML;if(!source){source=_ol_xml_.parse(xhr.responseText);}}else if(type==_ol_format_FormatType_.ARRAY_BUFFER){source=/** @type {ArrayBuffer} */xhr.response;}if(source){success.call(this,format.readFeatures(source,{featureProjection:projection}),format.readProjection(source),format.getLastExtent());}else{failure.call(this);}}else{failure.call(this);}}.bind(this);/**
+       * @private
+       */xhr.onerror=function(){failure.call(this);}.bind(this);xhr.send();});};/**
  * Create an XHR feature loader for a `url` and `format`. The feature loader
  * loads features (with XHR), parses the features, and adds them to the
  * vector source.
@@ -5901,7 +5970,7 @@ charCode=48;if(tileCoord[1]&mask){charCode+=1;}if(tileCoord[2]&mask){charCode+=2
  */_ol_tilegrid_.createForExtent=function(extent,opt_maxZoom,opt_tileSize,opt_corner){var corner=opt_corner!==undefined?opt_corner:_ol_extent_Corner_.TOP_LEFT;var resolutions=_ol_tilegrid_.resolutionsFromExtent(extent,opt_maxZoom,opt_tileSize);return new _ol_tilegrid_TileGrid_({extent:extent,origin:_ol_extent_.getCorner(extent,corner),resolutions:resolutions,tileSize:opt_tileSize});};/**
  * Creates a tile grid with a standard XYZ tiling scheme.
  * @param {olx.tilegrid.XYZOptions=} opt_options Tile grid options.
- * @return {ol.tilegrid.TileGrid} Tile grid instance.
+ * @return {!ol.tilegrid.TileGrid} Tile grid instance.
  * @api
  */_ol_tilegrid_.createXYZ=function(opt_options){var options=/** @type {olx.tilegrid.TileGridOptions} */{};_ol_obj_.assign(options,opt_options!==undefined?opt_options:/** @type {olx.tilegrid.XYZOptions} */{});if(options.extent===undefined){options.extent=_ol_proj_.get('EPSG:3857').getExtent();}options.resolutions=_ol_tilegrid_.resolutionsFromExtent(options.extent,options.maxZoom,options.tileSize);delete options.maxZoom;return new _ol_tilegrid_TileGrid_(options);};/**
  * Create a resolutions array from an extent.  A zoom factor of 2 is assumed.
@@ -5915,7 +5984,8 @@ charCode=48;if(tileCoord[1]&mask){charCode+=1;}if(tileCoord[2]&mask){charCode+=2
  * @param {ol.ProjectionLike} projection Projection.
  * @param {number=} opt_maxZoom Maximum zoom level (default is
  *     ol.DEFAULT_MAX_ZOOM).
- * @param {ol.Size=} opt_tileSize Tile size (default uses ol.DEFAULT_TILE_SIZE).
+ * @param {number|ol.Size=} opt_tileSize Tile size (default uses
+ *     ol.DEFAULT_TILE_SIZE).
  * @param {ol.extent.Corner=} opt_corner Extent corner (default is
  *     ol.extent.Corner.BOTTOM_LEFT).
  * @return {!ol.tilegrid.TileGrid} TileGrid instance.
@@ -6177,9 +6247,11 @@ var item=this.items_[uid];delete this.items_[uid];return this.rbush_.remove(item
  * Remove all values from the RBush.
  */_ol_structs_RBush_.prototype.clear=function(){this.rbush_.clear();this.items_={};};/**
  * @param {ol.Extent=} opt_extent Extent.
- * @return {!ol.Extent} Extent.
+ * @return {ol.Extent} Extent.
  */_ol_structs_RBush_.prototype.getExtent=function(opt_extent){// FIXME add getExtent() to rbush
-var data=this.rbush_.data;return _ol_extent_.createOrUpdate(data.minX,data.minY,data.maxX,data.maxY,opt_extent);};// FIXME bulk feature upload - suppress events
+var data=this.rbush_.data;return _ol_extent_.createOrUpdate(data.minX,data.minY,data.maxX,data.maxY,opt_extent);};/**
+ * @param {ol.structs.RBush} rbush R-Tree.
+ */_ol_structs_RBush_.prototype.concat=function(rbush){this.rbush_.load(rbush.rbush_.all());for(var i in rbush.items_){this.items_[i|0]=rbush.items_[i|0];}};// FIXME bulk feature upload - suppress events
 // FIXME make change-detection more refined (notably, geometry hint)
 /**
  * @classdesc
@@ -6235,7 +6307,9 @@ this.loader_=_ol_featureloader_.xhr(this.url_,/** @type {ol.format.Feature} */th
    */this.featuresCollection_=null;var collection,features;if(options.features instanceof _ol_Collection_){collection=options.features;features=collection.getArray();}else if(Array.isArray(options.features)){features=options.features;}if(!useSpatialIndex&&collection===undefined){collection=new _ol_Collection_(features);}if(features!==undefined){this.addFeaturesInternal(features);}if(collection!==undefined){this.bindFeaturesCollection_(collection);}};_ol_.inherits(_ol_source_Vector_,_ol_source_Source_);/**
  * Add a single feature to the source.  If you want to add a batch of features
  * at once, call {@link ol.source.Vector#addFeatures source.addFeatures()}
- * instead.
+ * instead. A feature will not be added to the source if feature with
+ * the same id is already there. The reason for this behavior is to avoid
+ * feature duplication when using bbox or tile loading strategies.
  * @param {ol.Feature} feature Feature to add.
  * @api
  */_ol_source_Vector_.prototype.addFeature=function(feature){this.addFeatureInternal(feature);this.changed();};/**
@@ -6387,7 +6461,7 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * `useSpatialIndex` set to `false`.
  * @param {ol.Extent=} opt_extent Destination extent. If provided, no new extent
  *     will be created. Instead, that extent's coordinates will be overwritten.
- * @return {!ol.Extent} Extent.
+ * @return {ol.Extent} Extent.
  * @api
  */_ol_source_Vector_.prototype.getExtent=function(opt_extent){return this.featuresRtree_.getExtent(opt_extent);};/**
  * Get a feature by its identifier (the value returned by feature.getId()).
@@ -6654,8 +6728,6 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * @abstract
  * @return {boolean} Is empty.
  */_ol_render_ReplayGroup_.prototype.isEmpty=function(){};/**
- * @enum {number}
- */var _ol_render_canvas_Instruction_={BEGIN_GEOMETRY:0,BEGIN_PATH:1,CIRCLE:2,CLOSE_PATH:3,DRAW_IMAGE:4,DRAW_TEXT:5,END_GEOMETRY:6,FILL:7,MOVE_TO_LINE_TO:8,SET_FILL_STYLE:9,SET_STROKE_STYLE:10,SET_TEXT_STYLE:11,STROKE:12};/**
  * Context for drawing geometries.  A vector context is available on render
  * events and does not need to be constructed directly.
  * @constructor
@@ -6663,6 +6735,12 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * @struct
  * @api
  */var _ol_render_VectorContext_=function(){};/**
+ * Render a geometry with a custom renderer.
+ *
+ * @param {ol.geom.SimpleGeometry} geometry Geometry.
+ * @param {ol.Feature|ol.render.Feature} feature Feature.
+ * @param {Function} renderer Renderer.
+ */_ol_render_VectorContext_.prototype.drawCustom=function(geometry,feature,renderer){};/**
  * Render a geometry.
  *
  * @param {ol.geom.Geometry} geometry The geometry to render.
@@ -6716,7 +6794,9 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * @param {ol.style.Image} imageStyle Image style.
  */_ol_render_VectorContext_.prototype.setImageStyle=function(imageStyle){};/**
  * @param {ol.style.Text} textStyle Text style.
- */_ol_render_VectorContext_.prototype.setTextStyle=function(textStyle){};var _ol_transform_={};/**
+ */_ol_render_VectorContext_.prototype.setTextStyle=function(textStyle){};/**
+ * @enum {number}
+ */var _ol_render_canvas_Instruction_={BEGIN_GEOMETRY:0,BEGIN_PATH:1,CIRCLE:2,CLOSE_PATH:3,CUSTOM:4,DRAW_IMAGE:5,DRAW_TEXT:6,END_GEOMETRY:7,FILL:8,MOVE_TO_LINE_TO:9,SET_FILL_STYLE:10,SET_STROKE_STYLE:11,SET_TEXT_STYLE:12,STROKE:13};var _ol_transform_={};/**
  * Collection of affine 2d transformation functions. The functions work on an
  * array of 6 elements. The element order is compatible with the [SVGMatrix
  * interface](https://developer.mozilla.org/en-US/docs/Web/API/SVGMatrix) and is
@@ -6845,6 +6925,9 @@ var a=transform[0];var b=transform[1];var c=transform[2];var d=transform[3];var 
    * @type {Array.<number>}
    */this.coordinates=[];/**
    * @private
+   * @type {Object.<number,ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>>}
+   */this.coordinateCache_={};/**
+   * @private
    * @type {!ol.Transform}
    */this.renderedTransform_=_ol_transform_.create();/**
    * @protected
@@ -6869,6 +6952,15 @@ var a=transform[0];var b=transform[1];var c=transform[2];var d=transform[3];var 
  * @return {number} My end.
  */_ol_render_canvas_Replay_.prototype.appendFlatCoordinates=function(flatCoordinates,offset,end,stride,closed,skipFirst){var myEnd=this.coordinates.length;var extent=this.getBufferedMaxExtent();if(skipFirst){offset+=stride;}var lastCoord=[flatCoordinates[offset],flatCoordinates[offset+1]];var nextCoord=[NaN,NaN];var skipped=true;var i,lastRel,nextRel;for(i=offset+stride;i<end;i+=stride){nextCoord[0]=flatCoordinates[i];nextCoord[1]=flatCoordinates[i+1];nextRel=_ol_extent_.coordinateRelationship(extent,nextCoord);if(nextRel!==lastRel){if(skipped){this.coordinates[myEnd++]=lastCoord[0];this.coordinates[myEnd++]=lastCoord[1];}this.coordinates[myEnd++]=nextCoord[0];this.coordinates[myEnd++]=nextCoord[1];skipped=false;}else if(nextRel===_ol_extent_Relationship_.INTERSECTING){this.coordinates[myEnd++]=nextCoord[0];this.coordinates[myEnd++]=nextCoord[1];skipped=false;}else{skipped=true;}lastCoord[0]=nextCoord[0];lastCoord[1]=nextCoord[1];lastRel=nextRel;}// Last coordinate equals first or only one point to append:
 if(closed&&skipped||i===offset+stride){this.coordinates[myEnd++]=lastCoord[0];this.coordinates[myEnd++]=lastCoord[1];}return myEnd;};/**
+ * @param {Array.<number>} flatCoordinates Flat coordinates.
+ * @param {number} offset Offset.
+ * @param {Array.<number>} ends Ends.
+ * @param {number} stride Stride.
+ * @param {Array.<number>} replayEnds Replay ends.
+ * @return {number} Offset.
+ */_ol_render_canvas_Replay_.prototype.drawCustomCoordinates_=function(flatCoordinates,offset,ends,stride,replayEnds){for(var i=0,ii=ends.length;i<ii;++i){var end=ends[i];var replayEnd=this.appendFlatCoordinates(flatCoordinates,offset,end,stride,false,false);replayEnds.push(replayEnd);offset=end;}return offset;};/**
+ * @inheritDoc.
+ */_ol_render_canvas_Replay_.prototype.drawCustom=function(geometry,feature,renderer){this.beginGeometry(geometry,feature);var type=geometry.getType();var stride=geometry.getStride();var replayBegin=this.coordinates.length;var flatCoordinates,replayEnd,replayEnds,replayEndss;var offset;if(type==_ol_geom_GeometryType_.MULTI_POLYGON){geometry=/** @type {ol.geom.MultiPolygon} */geometry;flatCoordinates=geometry.getOrientedFlatCoordinates();replayEndss=[];var endss=geometry.getEndss();offset=0;for(var i=0,ii=endss.length;i<ii;++i){var myEnds=[];offset=this.drawCustomCoordinates_(flatCoordinates,offset,endss[i],stride,myEnds);replayEndss.push(myEnds);}this.instructions.push([_ol_render_canvas_Instruction_.CUSTOM,replayBegin,replayEndss,geometry,renderer,_ol_geom_flat_inflate_.coordinatesss]);}else if(type==_ol_geom_GeometryType_.POLYGON||type==_ol_geom_GeometryType_.MULTI_LINE_STRING){replayEnds=[];flatCoordinates=type==_ol_geom_GeometryType_.POLYGON?/** @type {ol.geom.Polygon} */geometry.getOrientedFlatCoordinates():geometry.getFlatCoordinates();offset=this.drawCustomCoordinates_(flatCoordinates,0,/** @type {ol.geom.Polygon|ol.geom.MultiLineString} */geometry.getEnds(),stride,replayEnds);this.instructions.push([_ol_render_canvas_Instruction_.CUSTOM,replayBegin,replayEnds,geometry,renderer,_ol_geom_flat_inflate_.coordinatess]);}else if(type==_ol_geom_GeometryType_.LINE_STRING||type==_ol_geom_GeometryType_.MULTI_POINT){flatCoordinates=geometry.getFlatCoordinates();replayEnd=this.appendFlatCoordinates(flatCoordinates,0,flatCoordinates.length,stride,false,false);this.instructions.push([_ol_render_canvas_Instruction_.CUSTOM,replayBegin,replayEnd,geometry,renderer,_ol_geom_flat_inflate_.coordinates]);}else if(type==_ol_geom_GeometryType_.POINT){flatCoordinates=geometry.getFlatCoordinates();this.coordinates.push(flatCoordinates[0],flatCoordinates[1]);replayEnd=this.coordinates.length;this.instructions.push([_ol_render_canvas_Instruction_.CUSTOM,replayBegin,replayEnd,geometry,renderer]);}this.endGeometry(geometry,feature);};/**
  * @protected
  * @param {ol.geom.Geometry|ol.render.Feature} geometry Geometry.
  * @param {ol.Feature|ol.render.Feature} feature Feature.
@@ -6895,9 +6987,9 @@ if(closed&&skipped||i===offset+stride){this.coordinates[myEnd++]=lastCoord[0];th
 var ii=instructions.length;// end of instructions
 var d=0;// data index
 var dd;// end of per-instruction data
-var localTransform=this.tmpLocalTransform_;var resetTransform=this.resetTransform_;var prevX,prevY,roundX,roundY;var pendingFill=0;var pendingStroke=0;// When the batch size gets too big, performance decreases. 200 is a good
+var localTransform=this.tmpLocalTransform_;var resetTransform=this.resetTransform_;var prevX,prevY,roundX,roundY;var pendingFill=0;var pendingStroke=0;var coordinateCache=this.coordinateCache_;var state=/** @type {olx.render.State} */{context:context,pixelRatio:pixelRatio,resolution:this.resolution,rotation:viewRotation};// When the batch size gets too big, performance decreases. 200 is a good
 // balance between batch size and number of fill/stroke instructions.
-var batchSize=this.instructions!=instructions||this.overlaps?0:200;while(i<ii){var instruction=instructions[i];var type=/** @type {ol.render.canvas.Instruction} */instruction[0];var feature,fill,stroke,text,x,y;switch(type){case _ol_render_canvas_Instruction_.BEGIN_GEOMETRY:feature=/** @type {ol.Feature|ol.render.Feature} */instruction[1];if(skipFeatures&&skippedFeaturesHash[_ol_.getUid(feature).toString()]||!feature.getGeometry()){i=/** @type {number} */instruction[2];}else if(opt_hitExtent!==undefined&&!_ol_extent_.intersects(opt_hitExtent,feature.getGeometry().getExtent())){i=/** @type {number} */instruction[2]+1;}else{++i;}break;case _ol_render_canvas_Instruction_.BEGIN_PATH:if(pendingFill>batchSize){this.fill_(context,viewRotation);pendingFill=0;}if(pendingStroke>batchSize){context.stroke();pendingStroke=0;}if(!pendingFill&&!pendingStroke){context.beginPath();prevX=prevY=NaN;}++i;break;case _ol_render_canvas_Instruction_.CIRCLE:d=/** @type {number} */instruction[1];var x1=pixelCoordinates[d];var y1=pixelCoordinates[d+1];var x2=pixelCoordinates[d+2];var y2=pixelCoordinates[d+3];var dx=x2-x1;var dy=y2-y1;var r=Math.sqrt(dx*dx+dy*dy);context.moveTo(x1+r,y1);context.arc(x1,y1,r,0,2*Math.PI,true);++i;break;case _ol_render_canvas_Instruction_.CLOSE_PATH:context.closePath();++i;break;case _ol_render_canvas_Instruction_.DRAW_IMAGE:d=/** @type {number} */instruction[1];dd=/** @type {number} */instruction[2];var image=/** @type {HTMLCanvasElement|HTMLVideoElement|Image} */instruction[3];// Remaining arguments in DRAW_IMAGE are in alphabetical order
+var batchSize=this.instructions!=instructions||this.overlaps?0:200;while(i<ii){var instruction=instructions[i];var type=/** @type {ol.render.canvas.Instruction} */instruction[0];var/** @type {ol.Feature|ol.render.Feature} */feature,fill,stroke,text,x,y;switch(type){case _ol_render_canvas_Instruction_.BEGIN_GEOMETRY:feature=/** @type {ol.Feature|ol.render.Feature} */instruction[1];if(skipFeatures&&skippedFeaturesHash[_ol_.getUid(feature).toString()]||!feature.getGeometry()){i=/** @type {number} */instruction[2];}else if(opt_hitExtent!==undefined&&!_ol_extent_.intersects(opt_hitExtent,feature.getGeometry().getExtent())){i=/** @type {number} */instruction[2]+1;}else{++i;}break;case _ol_render_canvas_Instruction_.BEGIN_PATH:if(pendingFill>batchSize){this.fill_(context,viewRotation);pendingFill=0;}if(pendingStroke>batchSize){context.stroke();pendingStroke=0;}if(!pendingFill&&!pendingStroke){context.beginPath();prevX=prevY=NaN;}++i;break;case _ol_render_canvas_Instruction_.CIRCLE:d=/** @type {number} */instruction[1];var x1=pixelCoordinates[d];var y1=pixelCoordinates[d+1];var x2=pixelCoordinates[d+2];var y2=pixelCoordinates[d+3];var dx=x2-x1;var dy=y2-y1;var r=Math.sqrt(dx*dx+dy*dy);context.moveTo(x1+r,y1);context.arc(x1,y1,r,0,2*Math.PI,true);++i;break;case _ol_render_canvas_Instruction_.CLOSE_PATH:context.closePath();++i;break;case _ol_render_canvas_Instruction_.CUSTOM:d=/** @type {number} */instruction[1];dd=instruction[2];var geometry=/** @type {ol.geom.SimpleGeometry} */instruction[3];var renderer=instruction[4];var fn=instruction.length==6?instruction[5]:undefined;state.geometry=geometry;state.feature=feature;if(!(i in coordinateCache)){coordinateCache[i]=[];}var coords=coordinateCache[i];if(fn){fn(pixelCoordinates,d,dd,2,coords);}else{coords[0]=pixelCoordinates[d];coords[1]=pixelCoordinates[d+1];coords.length=2;}renderer(coords,state);++i;break;case _ol_render_canvas_Instruction_.DRAW_IMAGE:d=/** @type {number} */instruction[1];dd=/** @type {number} */instruction[2];var image=/** @type {HTMLCanvasElement|HTMLVideoElement|Image} */instruction[3];// Remaining arguments in DRAW_IMAGE are in alphabetical order
 var anchorX=/** @type {number} */instruction[4]*pixelRatio;var anchorY=/** @type {number} */instruction[5]*pixelRatio;var height=/** @type {number} */instruction[6];var opacity=/** @type {number} */instruction[7];var originX=/** @type {number} */instruction[8];var originY=/** @type {number} */instruction[9];var rotateWithView=/** @type {boolean} */instruction[10];var rotation=/** @type {number} */instruction[11];var scale=/** @type {number} */instruction[12];var snapToPixel=/** @type {boolean} */instruction[13];var width=/** @type {number} */instruction[14];if(rotateWithView){rotation+=viewRotation;}for(;d<dd;d+=2){x=pixelCoordinates[d]-anchorX;y=pixelCoordinates[d+1]-anchorY;if(snapToPixel){x=Math.round(x);y=Math.round(y);}if(scale!=1||rotation!==0){var centerX=x+anchorX;var centerY=y+anchorY;_ol_transform_.compose(localTransform,centerX,centerY,scale,scale,rotation,-centerX,-centerY);context.setTransform.apply(context,localTransform);}var alpha=context.globalAlpha;if(opacity!=1){context.globalAlpha=alpha*opacity;}var w=width+originX>image.width?image.width-originX:width;var h=height+originY>image.height?image.height-originY:height;context.drawImage(image,originX,originY,w,h,x,y,w*pixelRatio,h*pixelRatio);if(opacity!=1){context.globalAlpha=alpha;}if(scale!=1||rotation!==0){context.setTransform.apply(context,resetTransform);}}++i;break;case _ol_render_canvas_Instruction_.DRAW_TEXT:d=/** @type {number} */instruction[1];dd=/** @type {number} */instruction[2];text=/** @type {string} */instruction[3];var offsetX=/** @type {number} */instruction[4]*pixelRatio;var offsetY=/** @type {number} */instruction[5]*pixelRatio;rotation=/** @type {number} */instruction[6];scale=/** @type {number} */instruction[7]*pixelRatio;fill=/** @type {boolean} */instruction[8];stroke=/** @type {boolean} */instruction[9];rotateWithView=/** @type {boolean} */instruction[10];if(rotateWithView){rotation+=viewRotation;}for(;d<dd;d+=2){x=pixelCoordinates[d]+offsetX;y=pixelCoordinates[d+1]+offsetY;if(scale!=1||rotation!==0){_ol_transform_.compose(localTransform,x,y,scale,scale,rotation,-x,-y);context.setTransform.apply(context,localTransform);}// Support multiple lines separated by \n
 var lines=text.split('\n');var numLines=lines.length;var fontSize,lineY;if(numLines>1){// Estimate line height using width of capital M, and add padding
 fontSize=Math.round(context.measureText('M').width*1.5);lineY=y-(numLines-1)/2*fontSize;}else{// No need to calculate line height/offset for a single line
@@ -7024,7 +7116,7 @@ this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;thi
    *         currentLineJoin: (string|undefined),
    *         currentLineWidth: (number|undefined),
    *         currentMiterLimit: (number|undefined),
-   *         lastStroke: number,
+   *         lastStroke: (number|undefined),
    *         strokeStyle: (ol.ColorLike|undefined),
    *         lineCap: (string|undefined),
    *         lineDash: Array.<number>,
@@ -7032,7 +7124,7 @@ this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;thi
    *         lineJoin: (string|undefined),
    *         lineWidth: (number|undefined),
    *         miterLimit: (number|undefined)}|null}
-   */this.state_={currentStrokeStyle:undefined,currentLineCap:undefined,currentLineDash:null,currentLineDashOffset:undefined,currentLineJoin:undefined,currentLineWidth:undefined,currentMiterLimit:undefined,lastStroke:0,strokeStyle:undefined,lineCap:undefined,lineDash:null,lineDashOffset:undefined,lineJoin:undefined,lineWidth:undefined,miterLimit:undefined};};_ol_.inherits(_ol_render_canvas_LineStringReplay_,_ol_render_canvas_Replay_);/**
+   */this.state_={currentStrokeStyle:undefined,currentLineCap:undefined,currentLineDash:null,currentLineDashOffset:undefined,currentLineJoin:undefined,currentLineWidth:undefined,currentMiterLimit:undefined,lastStroke:undefined,strokeStyle:undefined,lineCap:undefined,lineDash:null,lineDashOffset:undefined,lineJoin:undefined,lineWidth:undefined,miterLimit:undefined};};_ol_.inherits(_ol_render_canvas_LineStringReplay_,_ol_render_canvas_Replay_);/**
  * @param {Array.<number>} flatCoordinates Flat coordinates.
  * @param {number} offset Offset.
  * @param {number} end End.
@@ -7043,13 +7135,13 @@ this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;thi
  * @inheritDoc
  */_ol_render_canvas_LineStringReplay_.prototype.getBufferedMaxExtent=function(){if(!this.bufferedMaxExtent_){this.bufferedMaxExtent_=_ol_extent_.clone(this.maxExtent);if(this.maxLineWidth>0){var width=this.resolution*(this.maxLineWidth+1)/2;_ol_extent_.buffer(this.bufferedMaxExtent_,width,this.bufferedMaxExtent_);}}return this.bufferedMaxExtent_;};/**
  * @private
- */_ol_render_canvas_LineStringReplay_.prototype.setStrokeStyle_=function(){var state=this.state_;var strokeStyle=state.strokeStyle;var lineCap=state.lineCap;var lineDash=state.lineDash;var lineDashOffset=state.lineDashOffset;var lineJoin=state.lineJoin;var lineWidth=state.lineWidth;var miterLimit=state.miterLimit;if(state.currentStrokeStyle!=strokeStyle||state.currentLineCap!=lineCap||!_ol_array_.equals(state.currentLineDash,lineDash)||state.currentLineDashOffset!=lineDashOffset||state.currentLineJoin!=lineJoin||state.currentLineWidth!=lineWidth||state.currentMiterLimit!=miterLimit){if(state.lastStroke!=this.coordinates.length){this.instructions.push([_ol_render_canvas_Instruction_.STROKE]);state.lastStroke=this.coordinates.length;}this.instructions.push([_ol_render_canvas_Instruction_.SET_STROKE_STYLE,strokeStyle,lineWidth,lineCap,lineJoin,miterLimit,lineDash,lineDashOffset,true,1],[_ol_render_canvas_Instruction_.BEGIN_PATH]);state.currentStrokeStyle=strokeStyle;state.currentLineCap=lineCap;state.currentLineDash=lineDash;state.currentLineDashOffset=lineDashOffset;state.currentLineJoin=lineJoin;state.currentLineWidth=lineWidth;state.currentMiterLimit=miterLimit;}};/**
+ */_ol_render_canvas_LineStringReplay_.prototype.setStrokeStyle_=function(){var state=this.state_;var strokeStyle=state.strokeStyle;var lineCap=state.lineCap;var lineDash=state.lineDash;var lineDashOffset=state.lineDashOffset;var lineJoin=state.lineJoin;var lineWidth=state.lineWidth;var miterLimit=state.miterLimit;if(state.currentStrokeStyle!=strokeStyle||state.currentLineCap!=lineCap||!_ol_array_.equals(state.currentLineDash,lineDash)||state.currentLineDashOffset!=lineDashOffset||state.currentLineJoin!=lineJoin||state.currentLineWidth!=lineWidth||state.currentMiterLimit!=miterLimit){if(state.lastStroke!=undefined&&state.lastStroke!=this.coordinates.length){this.instructions.push([_ol_render_canvas_Instruction_.STROKE]);state.lastStroke=this.coordinates.length;}state.lastStroke=0;this.instructions.push([_ol_render_canvas_Instruction_.SET_STROKE_STYLE,strokeStyle,lineWidth,lineCap,lineJoin,miterLimit,lineDash,lineDashOffset,true,1],[_ol_render_canvas_Instruction_.BEGIN_PATH]);state.currentStrokeStyle=strokeStyle;state.currentLineCap=lineCap;state.currentLineDash=lineDash;state.currentLineDashOffset=lineDashOffset;state.currentLineJoin=lineJoin;state.currentLineWidth=lineWidth;state.currentMiterLimit=miterLimit;}};/**
  * @inheritDoc
  */_ol_render_canvas_LineStringReplay_.prototype.drawLineString=function(lineStringGeometry,feature){var state=this.state_;var strokeStyle=state.strokeStyle;var lineWidth=state.lineWidth;if(strokeStyle===undefined||lineWidth===undefined){return;}this.setStrokeStyle_();this.beginGeometry(lineStringGeometry,feature);this.hitDetectionInstructions.push([_ol_render_canvas_Instruction_.SET_STROKE_STYLE,state.strokeStyle,state.lineWidth,state.lineCap,state.lineJoin,state.miterLimit,state.lineDash,state.lineDashOffset,true,1],[_ol_render_canvas_Instruction_.BEGIN_PATH]);var flatCoordinates=lineStringGeometry.getFlatCoordinates();var stride=lineStringGeometry.getStride();this.drawFlatCoordinates_(flatCoordinates,0,flatCoordinates.length,stride);this.hitDetectionInstructions.push([_ol_render_canvas_Instruction_.STROKE]);this.endGeometry(lineStringGeometry,feature);};/**
  * @inheritDoc
  */_ol_render_canvas_LineStringReplay_.prototype.drawMultiLineString=function(multiLineStringGeometry,feature){var state=this.state_;var strokeStyle=state.strokeStyle;var lineWidth=state.lineWidth;if(strokeStyle===undefined||lineWidth===undefined){return;}this.setStrokeStyle_();this.beginGeometry(multiLineStringGeometry,feature);this.hitDetectionInstructions.push([_ol_render_canvas_Instruction_.SET_STROKE_STYLE,state.strokeStyle,state.lineWidth,state.lineCap,state.lineJoin,state.miterLimit,state.lineDash,state.lineDashOffset,true,1],[_ol_render_canvas_Instruction_.BEGIN_PATH]);var ends=multiLineStringGeometry.getEnds();var flatCoordinates=multiLineStringGeometry.getFlatCoordinates();var stride=multiLineStringGeometry.getStride();var offset=0;var i,ii;for(i=0,ii=ends.length;i<ii;++i){offset=this.drawFlatCoordinates_(flatCoordinates,offset,ends[i],stride);}this.hitDetectionInstructions.push([_ol_render_canvas_Instruction_.STROKE]);this.endGeometry(multiLineStringGeometry,feature);};/**
  * @inheritDoc
- */_ol_render_canvas_LineStringReplay_.prototype.finish=function(){var state=this.state_;if(state.lastStroke!=this.coordinates.length){this.instructions.push([_ol_render_canvas_Instruction_.STROKE]);}this.reverseHitDetectionInstructions();this.state_=null;};/**
+ */_ol_render_canvas_LineStringReplay_.prototype.finish=function(){var state=this.state_;if(state.lastStroke!=undefined&&state.lastStroke!=this.coordinates.length){this.instructions.push([_ol_render_canvas_Instruction_.STROKE]);}this.reverseHitDetectionInstructions();this.state_=null;};/**
  * @inheritDoc
  */_ol_render_canvas_LineStringReplay_.prototype.setFillStrokeStyle=function(fillStyle,strokeStyle){var strokeStyleColor=strokeStyle.getColor();this.state_.strokeStyle=_ol_colorlike_.asColorLike(strokeStyleColor?strokeStyleColor:_ol_render_canvas_.defaultStrokeStyle);var strokeStyleLineCap=strokeStyle.getLineCap();this.state_.lineCap=strokeStyleLineCap!==undefined?strokeStyleLineCap:_ol_render_canvas_.defaultLineCap;var strokeStyleLineDash=strokeStyle.getLineDash();this.state_.lineDash=strokeStyleLineDash?strokeStyleLineDash:_ol_render_canvas_.defaultLineDash;var strokeStyleLineDashOffset=strokeStyle.getLineDashOffset();this.state_.lineDashOffset=strokeStyleLineDashOffset?strokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset;var strokeStyleLineJoin=strokeStyle.getLineJoin();this.state_.lineJoin=strokeStyleLineJoin!==undefined?strokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin;var strokeStyleWidth=strokeStyle.getWidth();this.state_.lineWidth=strokeStyleWidth!==undefined?strokeStyleWidth:_ol_render_canvas_.defaultLineWidth;var strokeStyleMiterLimit=strokeStyle.getMiterLimit();this.state_.miterLimit=strokeStyleMiterLimit!==undefined?strokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit;if(this.state_.lineWidth>this.maxLineWidth){this.maxLineWidth=this.state_.lineWidth;// invalidate the buffered max extent cache
 this.bufferedMaxExtent_=null;}};/**
@@ -7172,10 +7264,10 @@ this.bufferedMaxExtent_=null;}}else{state.strokeStyle=undefined;state.lineCap=un
  * @inheritDoc
  */_ol_render_canvas_TextReplay_.prototype.setTextStyle=function(textStyle){if(!textStyle){this.text_='';}else{var textFillStyle=textStyle.getFill();if(!textFillStyle){this.textFillState_=null;}else{var textFillStyleColor=textFillStyle.getColor();var fillStyle=_ol_colorlike_.asColorLike(textFillStyleColor?textFillStyleColor:_ol_render_canvas_.defaultFillStyle);if(!this.textFillState_){this.textFillState_={fillStyle:fillStyle};}else{var textFillState=this.textFillState_;textFillState.fillStyle=fillStyle;}}var textStrokeStyle=textStyle.getStroke();if(!textStrokeStyle){this.textStrokeState_=null;}else{var textStrokeStyleColor=textStrokeStyle.getColor();var textStrokeStyleLineCap=textStrokeStyle.getLineCap();var textStrokeStyleLineDash=textStrokeStyle.getLineDash();var textStrokeStyleLineDashOffset=textStrokeStyle.getLineDashOffset();var textStrokeStyleLineJoin=textStrokeStyle.getLineJoin();var textStrokeStyleWidth=textStrokeStyle.getWidth();var textStrokeStyleMiterLimit=textStrokeStyle.getMiterLimit();var lineCap=textStrokeStyleLineCap!==undefined?textStrokeStyleLineCap:_ol_render_canvas_.defaultLineCap;var lineDash=textStrokeStyleLineDash?textStrokeStyleLineDash.slice():_ol_render_canvas_.defaultLineDash;var lineDashOffset=textStrokeStyleLineDashOffset!==undefined?textStrokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset;var lineJoin=textStrokeStyleLineJoin!==undefined?textStrokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin;var lineWidth=textStrokeStyleWidth!==undefined?textStrokeStyleWidth:_ol_render_canvas_.defaultLineWidth;var miterLimit=textStrokeStyleMiterLimit!==undefined?textStrokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit;var strokeStyle=_ol_colorlike_.asColorLike(textStrokeStyleColor?textStrokeStyleColor:_ol_render_canvas_.defaultStrokeStyle);if(!this.textStrokeState_){this.textStrokeState_={lineCap:lineCap,lineDash:lineDash,lineDashOffset:lineDashOffset,lineJoin:lineJoin,lineWidth:lineWidth,miterLimit:miterLimit,strokeStyle:strokeStyle};}else{var textStrokeState=this.textStrokeState_;textStrokeState.lineCap=lineCap;textStrokeState.lineDash=lineDash;textStrokeState.lineDashOffset=lineDashOffset;textStrokeState.lineJoin=lineJoin;textStrokeState.lineWidth=lineWidth;textStrokeState.miterLimit=miterLimit;textStrokeState.strokeStyle=strokeStyle;}}var textFont=textStyle.getFont();var textOffsetX=textStyle.getOffsetX();var textOffsetY=textStyle.getOffsetY();var textRotateWithView=textStyle.getRotateWithView();var textRotation=textStyle.getRotation();var textScale=textStyle.getScale();var textText=textStyle.getText();var textTextAlign=textStyle.getTextAlign();var textTextBaseline=textStyle.getTextBaseline();var font=textFont!==undefined?textFont:_ol_render_canvas_.defaultFont;var textAlign=textTextAlign!==undefined?textTextAlign:_ol_render_canvas_.defaultTextAlign;var textBaseline=textTextBaseline!==undefined?textTextBaseline:_ol_render_canvas_.defaultTextBaseline;if(!this.textState_){this.textState_={font:font,textAlign:textAlign,textBaseline:textBaseline};}else{var textState=this.textState_;textState.font=font;textState.textAlign=textAlign;textState.textBaseline=textBaseline;}this.text_=textText!==undefined?textText:'';this.textOffsetX_=textOffsetX!==undefined?textOffsetX:0;this.textOffsetY_=textOffsetY!==undefined?textOffsetY:0;this.textRotateWithView_=textRotateWithView!==undefined?textRotateWithView:false;this.textRotation_=textRotation!==undefined?textRotation:0;this.textScale_=textScale!==undefined?textScale:1;}};/**
  * @enum {string}
- */var _ol_render_ReplayType_={CIRCLE:'Circle',IMAGE:'Image',LINE_STRING:'LineString',POLYGON:'Polygon',TEXT:'Text'};var _ol_render_replay_={};/**
+ */var _ol_render_ReplayType_={CIRCLE:'Circle',DEFAULT:'Default',IMAGE:'Image',LINE_STRING:'LineString',POLYGON:'Polygon',TEXT:'Text'};var _ol_render_replay_={};/**
  * @const
  * @type {Array.<ol.render.ReplayType>}
- */_ol_render_replay_.ORDER=[_ol_render_ReplayType_.POLYGON,_ol_render_ReplayType_.CIRCLE,_ol_render_ReplayType_.LINE_STRING,_ol_render_ReplayType_.IMAGE,_ol_render_ReplayType_.TEXT];/**
+ */_ol_render_replay_.ORDER=[_ol_render_ReplayType_.POLYGON,_ol_render_ReplayType_.CIRCLE,_ol_render_ReplayType_.LINE_STRING,_ol_render_ReplayType_.IMAGE,_ol_render_ReplayType_.TEXT,_ol_render_ReplayType_.DEFAULT];/**
  * @constructor
  * @extends {ol.render.ReplayGroup}
  * @param {number} tolerance Tolerance.
@@ -7230,6 +7322,9 @@ this.bufferedMaxExtent_=null;}}else{state.strokeStyle=undefined;state.lineCap=un
  * @returns {Array.<Array.<(boolean|undefined)>>} An array with marked circle points.
  * @private
  */_ol_render_canvas_ReplayGroup_.getCircleArray_=function(radius){if(_ol_render_canvas_ReplayGroup_.circleArrayCache_[radius]!==undefined){return _ol_render_canvas_ReplayGroup_.circleArrayCache_[radius];}var arraySize=radius*2+1;var arr=new Array(arraySize);for(var i=0;i<arraySize;i++){arr[i]=new Array(arraySize);}var x=radius;var y=0;var error=0;while(x>=y){_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius+x,radius+y);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius+y,radius+x);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius-y,radius+x);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius-x,radius+y);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius-x,radius-y);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius-y,radius-x);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius+y,radius-x);_ol_render_canvas_ReplayGroup_.fillCircleArrayRowToMiddle_(arr,radius+x,radius-y);y++;error+=1+2*y;if(2*(error-x)+1>0){x-=1;error+=1-2*x;}}_ol_render_canvas_ReplayGroup_.circleArrayCache_[radius]=arr;return arr;};/**
+ * @param {Array.<ol.render.ReplayType>} replays Replays.
+ * @return {boolean} Has replays of the provided types.
+ */_ol_render_canvas_ReplayGroup_.prototype.hasReplays=function(replays){for(var zIndex in this.replaysByZIndex_){var candidates=this.replaysByZIndex_[zIndex];for(var i=0,ii=replays.length;i<ii;++i){if(replays[i]in candidates){return true;}}}return false;};/**
  * FIXME empty description for jsdoc
  */_ol_render_canvas_ReplayGroup_.prototype.finish=function(){var zKey;for(zKey in this.replaysByZIndex_){var replays=this.replaysByZIndex_[zKey];var replayKey;for(replayKey in replays){replays[replayKey].finish();}}};/**
  * @param {ol.Coordinate} coordinate Coordinate.
@@ -7284,7 +7379,7 @@ var flatClipCoords=this.getClipCoords(transform);context.save();context.beginPat
  * @type {Object.<ol.render.ReplayType,
  *                function(new: ol.render.canvas.Replay, number, ol.Extent,
  *                number, boolean)>}
- */_ol_render_canvas_ReplayGroup_.BATCH_CONSTRUCTORS_={'Circle':_ol_render_canvas_PolygonReplay_,'Image':_ol_render_canvas_ImageReplay_,'LineString':_ol_render_canvas_LineStringReplay_,'Polygon':_ol_render_canvas_PolygonReplay_,'Text':_ol_render_canvas_TextReplay_};/**
+ */_ol_render_canvas_ReplayGroup_.BATCH_CONSTRUCTORS_={'Circle':_ol_render_canvas_PolygonReplay_,'Default':_ol_render_canvas_Replay_,'Image':_ol_render_canvas_ImageReplay_,'LineString':_ol_render_canvas_LineStringReplay_,'Polygon':_ol_render_canvas_PolygonReplay_,'Text':_ol_render_canvas_TextReplay_};/**
  * @constructor
  * @extends {ol.events.Event}
  * @implements {oli.render.Event}
@@ -7536,7 +7631,7 @@ var flatClipCoords=this.getClipCoords(transform);context.save();context.beginPat
  */_ol_render_canvas_Immediate_.prototype.setContextFillState_=function(fillState){var context=this.context_;var contextFillState=this.contextFillState_;if(!contextFillState){context.fillStyle=fillState.fillStyle;this.contextFillState_={fillStyle:fillState.fillStyle};}else{if(contextFillState.fillStyle!=fillState.fillStyle){contextFillState.fillStyle=context.fillStyle=fillState.fillStyle;}}};/**
  * @param {ol.CanvasStrokeState} strokeState Stroke state.
  * @private
- */_ol_render_canvas_Immediate_.prototype.setContextStrokeState_=function(strokeState){var context=this.context_;var contextStrokeState=this.contextStrokeState_;if(!contextStrokeState){context.lineCap=strokeState.lineCap;if(_ol_has_.CANVAS_LINE_DASH){context.setLineDash(strokeState.lineDash);}context.lineJoin=strokeState.lineJoin;context.lineWidth=strokeState.lineWidth;context.miterLimit=strokeState.miterLimit;context.strokeStyle=strokeState.strokeStyle;this.contextStrokeState_={lineCap:strokeState.lineCap,lineDash:strokeState.lineDash,lineJoin:strokeState.lineJoin,lineWidth:strokeState.lineWidth,miterLimit:strokeState.miterLimit,strokeStyle:strokeState.strokeStyle};}else{if(contextStrokeState.lineCap!=strokeState.lineCap){contextStrokeState.lineCap=context.lineCap=strokeState.lineCap;}if(_ol_has_.CANVAS_LINE_DASH){if(!_ol_array_.equals(contextStrokeState.lineDash,strokeState.lineDash)){context.setLineDash(contextStrokeState.lineDash=strokeState.lineDash);}}if(contextStrokeState.lineJoin!=strokeState.lineJoin){contextStrokeState.lineJoin=context.lineJoin=strokeState.lineJoin;}if(contextStrokeState.lineWidth!=strokeState.lineWidth){contextStrokeState.lineWidth=context.lineWidth=strokeState.lineWidth;}if(contextStrokeState.miterLimit!=strokeState.miterLimit){contextStrokeState.miterLimit=context.miterLimit=strokeState.miterLimit;}if(contextStrokeState.strokeStyle!=strokeState.strokeStyle){contextStrokeState.strokeStyle=context.strokeStyle=strokeState.strokeStyle;}}};/**
+ */_ol_render_canvas_Immediate_.prototype.setContextStrokeState_=function(strokeState){var context=this.context_;var contextStrokeState=this.contextStrokeState_;if(!contextStrokeState){context.lineCap=strokeState.lineCap;if(_ol_has_.CANVAS_LINE_DASH){context.setLineDash(strokeState.lineDash);context.lineDashOffset=strokeState.lineDashOffset;}context.lineJoin=strokeState.lineJoin;context.lineWidth=strokeState.lineWidth;context.miterLimit=strokeState.miterLimit;context.strokeStyle=strokeState.strokeStyle;this.contextStrokeState_={lineCap:strokeState.lineCap,lineDash:strokeState.lineDash,lineDashOffset:strokeState.lineDashOffset,lineJoin:strokeState.lineJoin,lineWidth:strokeState.lineWidth,miterLimit:strokeState.miterLimit,strokeStyle:strokeState.strokeStyle};}else{if(contextStrokeState.lineCap!=strokeState.lineCap){contextStrokeState.lineCap=context.lineCap=strokeState.lineCap;}if(_ol_has_.CANVAS_LINE_DASH){if(!_ol_array_.equals(contextStrokeState.lineDash,strokeState.lineDash)){context.setLineDash(contextStrokeState.lineDash=strokeState.lineDash);}if(contextStrokeState.lineDashOffset!=strokeState.lineDashOffset){contextStrokeState.lineDashOffset=context.lineDashOffset=strokeState.lineDashOffset;}}if(contextStrokeState.lineJoin!=strokeState.lineJoin){contextStrokeState.lineJoin=context.lineJoin=strokeState.lineJoin;}if(contextStrokeState.lineWidth!=strokeState.lineWidth){contextStrokeState.lineWidth=context.lineWidth=strokeState.lineWidth;}if(contextStrokeState.miterLimit!=strokeState.miterLimit){contextStrokeState.miterLimit=context.miterLimit=strokeState.miterLimit;}if(contextStrokeState.strokeStyle!=strokeState.strokeStyle){contextStrokeState.strokeStyle=context.strokeStyle=strokeState.strokeStyle;}}};/**
  * @param {ol.CanvasTextState} textState Text state.
  * @private
  */_ol_render_canvas_Immediate_.prototype.setContextTextState_=function(textState){var context=this.context_;var contextTextState=this.contextTextState_;if(!contextTextState){context.font=textState.font;context.textAlign=textState.textAlign;context.textBaseline=textState.textBaseline;this.contextTextState_={font:textState.font,textAlign:textState.textAlign,textBaseline:textState.textBaseline};}else{if(contextTextState.font!=textState.font){contextTextState.font=context.font=textState.font;}if(contextTextState.textAlign!=textState.textAlign){contextTextState.textAlign=context.textAlign=textState.textAlign;}if(contextTextState.textBaseline!=textState.textBaseline){contextTextState.textBaseline=context.textBaseline=textState.textBaseline;}}};/**
@@ -7553,7 +7648,7 @@ var flatClipCoords=this.getClipCoords(transform);context.save();context.beginPat
  * @param {ol.style.Image} imageStyle Image style.
  * @override
  */_ol_render_canvas_Immediate_.prototype.setImageStyle=function(imageStyle){if(!imageStyle){this.image_=null;}else{var imageAnchor=imageStyle.getAnchor();// FIXME pixel ratio
-var imageImage=imageStyle.getImage(1);var imageOrigin=imageStyle.getOrigin();var imageSize=imageStyle.getSize();this.imageAnchorX_=imageAnchor[0];this.imageAnchorY_=imageAnchor[1];this.imageHeight_=imageSize[1];this.image_=imageImage;this.imageOpacity_=imageStyle.getOpacity();this.imageOriginX_=imageOrigin[0];this.imageOriginY_=imageOrigin[1];this.imageRotateWithView_=imageStyle.getRotateWithView();this.imageRotation_=imageStyle.getRotation();this.imageScale_=imageStyle.getScale();this.imageSnapToPixel_=imageStyle.getSnapToPixel();this.imageWidth_=imageSize[0];}};/**
+var imageImage=imageStyle.getImage(1);var imageOrigin=imageStyle.getOrigin();var imageSize=imageStyle.getSize();this.imageAnchorX_=imageAnchor[0];this.imageAnchorY_=imageAnchor[1];this.imageHeight_=imageSize[1];this.image_=imageImage;this.imageOpacity_=imageStyle.getOpacity();this.imageOriginX_=imageOrigin[0];this.imageOriginY_=imageOrigin[1];this.imageRotateWithView_=imageStyle.getRotateWithView();this.imageRotation_=imageStyle.getRotation();this.imageScale_=imageStyle.getScale()*this.pixelRatio_;this.imageSnapToPixel_=imageStyle.getSnapToPixel();this.imageWidth_=imageSize[0];}};/**
  * Set the text style for subsequent draw operations.  Pass null to
  * remove the text style.
  *
@@ -7593,10 +7688,10 @@ var imageImage=imageStyle.getImage(1);var imageOrigin=imageStyle.getOrigin();var
  *     lookup.
  * @protected
  */_ol_renderer_Layer_.prototype.createLoadedTileFinder=function(source,projection,tiles){return(/**
-       * @param {number} zoom Zoom level.
-       * @param {ol.TileRange} tileRange Tile range.
-       * @return {boolean} The tile range is fully loaded.
-       */function(zoom,tileRange){function callback(tile){if(!tiles[zoom]){tiles[zoom]={};}tiles[zoom][tile.tileCoord.toString()]=tile;}return source.forEachLoadedTile(projection,zoom,tileRange,callback);});};/**
+     * @param {number} zoom Zoom level.
+     * @param {ol.TileRange} tileRange Tile range.
+     * @return {boolean} The tile range is fully loaded.
+     */function(zoom,tileRange){function callback(tile){if(!tiles[zoom]){tiles[zoom]={};}tiles[zoom][tile.tileCoord.toString()]=tile;}return source.forEachLoadedTile(projection,zoom,tileRange,callback);});};/**
  * @return {ol.layer.Layer} Layer.
  */_ol_renderer_Layer_.prototype.getLayer=function(){return this.layer_;};/**
  * Handle changes in image state.
@@ -7619,7 +7714,7 @@ var imageImage=imageStyle.getImage(1);var imageOrigin=imageStyle.getOrigin();var
      * @param {ol.source.Tile} tileSource Tile source.
      * @param {ol.Map} map Map.
      * @param {olx.FrameState} frameState Frame state.
-     */var postRenderFunction=function(tileSource,map,frameState){var tileSourceKey=_ol_.getUid(tileSource).toString();tileSource.expireCache(frameState.viewState.projection,frameState.usedTiles[tileSourceKey]);}.bind(null,tileSource);frameState.postRenderFunctions.push(/** @type {ol.PostRenderFunction} */postRenderFunction);}};/**
+     */var postRenderFunction=function(tileSource,map,frameState){var tileSourceKey=_ol_.getUid(tileSource).toString();if(tileSourceKey in frameState.usedTiles){tileSource.expireCache(frameState.viewState.projection,frameState.usedTiles[tileSourceKey]);}}.bind(null,tileSource);frameState.postRenderFunctions.push(/** @type {ol.PostRenderFunction} */postRenderFunction);}};/**
  * @param {Object.<string, ol.Attribution>} attributionsSet Attributions
  *     set (target).
  * @param {Array.<ol.Attribution>} attributions Attributions (source).
@@ -7750,7 +7845,13 @@ var tileSourceKey=_ol_.getUid(tileSource).toString();var zKey=z.toString();if(ti
  * @param {ol.style.Style} style Style.
  * @param {number} squaredTolerance Squared tolerance.
  * @private
- */_ol_renderer_vector_.renderFeature_=function(replayGroup,feature,style,squaredTolerance){var geometry=style.getGeometryFunction()(feature);if(!geometry){return;}var simplifiedGeometry=geometry.getSimplifiedGeometry(squaredTolerance);var geometryRenderer=_ol_renderer_vector_.GEOMETRY_RENDERERS_[simplifiedGeometry.getType()];geometryRenderer(replayGroup,simplifiedGeometry,style,feature);};/**
+ */_ol_renderer_vector_.renderFeature_=function(replayGroup,feature,style,squaredTolerance){var geometry=style.getGeometryFunction()(feature);if(!geometry){return;}var simplifiedGeometry=geometry.getSimplifiedGeometry(squaredTolerance);var renderer=style.getRenderer();if(renderer){_ol_renderer_vector_.renderGeometry_(replayGroup,simplifiedGeometry,style,feature);}else{var geometryRenderer=_ol_renderer_vector_.GEOMETRY_RENDERERS_[simplifiedGeometry.getType()];geometryRenderer(replayGroup,simplifiedGeometry,style,feature);}};/**
+ * @param {ol.render.ReplayGroup} replayGroup Replay group.
+ * @param {ol.geom.Geometry} geometry Geometry.
+ * @param {ol.style.Style} style Style.
+ * @param {ol.Feature|ol.render.Feature} feature Feature.
+ * @private
+ */_ol_renderer_vector_.renderGeometry_=function(replayGroup,geometry,style,feature){if(geometry.getType()==_ol_geom_GeometryType_.GEOMETRY_COLLECTION){var geometries=/** @type {ol.geom.GeometryCollection} */geometry.getGeometries();for(var i=0,ii=geometries.length;i<ii;++i){_ol_renderer_vector_.renderGeometry_(replayGroup,geometries[i],style,feature);}return;}var replay=replayGroup.getReplay(style.getZIndex(),_ol_render_ReplayType_.DEFAULT);replay.drawCustom(/** @type {ol.geom.SimpleGeometry} */geometry,feature,style.getRenderer());};/**
  * @param {ol.render.ReplayGroup} replayGroup Replay group.
  * @param {ol.geom.GeometryCollection} geometry Geometry.
  * @param {ol.style.Style} style Style.
@@ -7826,12 +7927,12 @@ var tileSourceKey=_ol_.getUid(tileSource).toString();var zKey=z.toString();if(ti
    */this.context_=_ol_dom_.createCanvasContext2D();};_ol_.inherits(_ol_renderer_canvas_VectorLayer_,_ol_renderer_canvas_Layer_);/**
  * @inheritDoc
  */_ol_renderer_canvas_VectorLayer_.prototype.composeFrame=function(frameState,layerState,context){var extent=frameState.extent;var pixelRatio=frameState.pixelRatio;var skippedFeatureUids=layerState.managed?frameState.skippedFeatureUids:{};var viewState=frameState.viewState;var projection=viewState.projection;var rotation=viewState.rotation;var projectionExtent=projection.getExtent();var vectorSource=/** @type {ol.source.Vector} */this.getLayer().getSource();var transform=this.getTransform(frameState,0);this.preCompose(context,frameState,transform);// clipped rendering if layer extent is set
-var clipExtent=layerState.extent;var clipped=clipExtent!==undefined;if(clipped){this.clip(context,frameState,/** @type {ol.Extent} */clipExtent);}var replayGroup=this.replayGroup_;if(replayGroup&&!replayGroup.isEmpty()){var layer=this.getLayer();var drawOffsetX=0;var drawOffsetY=0;var replayContext;if(layer.hasListener(_ol_render_EventType_.RENDER)){var drawWidth=context.canvas.width;var drawHeight=context.canvas.height;if(rotation){var drawSize=Math.round(Math.sqrt(drawWidth*drawWidth+drawHeight*drawHeight));drawOffsetX=(drawSize-drawWidth)/2;drawOffsetY=(drawSize-drawHeight)/2;drawWidth=drawHeight=drawSize;}// resize and clear
-this.context_.canvas.width=drawWidth;this.context_.canvas.height=drawHeight;replayContext=this.context_;}else{replayContext=context;}// for performance reasons, context.save / context.restore is not used
+var clipExtent=layerState.extent;var clipped=clipExtent!==undefined;if(clipped){this.clip(context,frameState,/** @type {ol.Extent} */clipExtent);}var replayGroup=this.replayGroup_;if(replayGroup&&!replayGroup.isEmpty()){var layer=this.getLayer();var drawOffsetX=0;var drawOffsetY=0;var replayContext;var transparentLayer=layerState.opacity!==1;var hasRenderListeners=layer.hasListener(_ol_render_EventType_.RENDER);if(transparentLayer||hasRenderListeners){var drawWidth=context.canvas.width;var drawHeight=context.canvas.height;if(rotation){var drawSize=Math.round(Math.sqrt(drawWidth*drawWidth+drawHeight*drawHeight));drawOffsetX=(drawSize-drawWidth)/2;drawOffsetY=(drawSize-drawHeight)/2;drawWidth=drawHeight=drawSize;}// resize and clear
+this.context_.canvas.width=drawWidth;this.context_.canvas.height=drawHeight;replayContext=this.context_;}else{replayContext=context;}var alpha=replayContext.globalAlpha;if(!transparentLayer){// for performance reasons, context.save / context.restore is not used
 // to save and restore the transformation matrix and the opacity.
 // see http://jsperf.com/context-save-restore-versus-variable
-var alpha=replayContext.globalAlpha;replayContext.globalAlpha=layerState.opacity;if(replayContext!=context){replayContext.translate(drawOffsetX,drawOffsetY);}var width=frameState.size[0]*pixelRatio;var height=frameState.size[1]*pixelRatio;_ol_render_canvas_.rotateAtOffset(replayContext,-rotation,width/2,height/2);replayGroup.replay(replayContext,pixelRatio,transform,rotation,skippedFeatureUids);if(vectorSource.getWrapX()&&projection.canWrapX()&&!_ol_extent_.containsExtent(projectionExtent,extent)){var startX=extent[0];var worldWidth=_ol_extent_.getWidth(projectionExtent);var world=0;var offsetX;while(startX<projectionExtent[0]){--world;offsetX=worldWidth*world;transform=this.getTransform(frameState,offsetX);replayGroup.replay(replayContext,pixelRatio,transform,rotation,skippedFeatureUids);startX+=worldWidth;}world=0;startX=extent[2];while(startX>projectionExtent[2]){++world;offsetX=worldWidth*world;transform=this.getTransform(frameState,offsetX);replayGroup.replay(replayContext,pixelRatio,transform,rotation,skippedFeatureUids);startX-=worldWidth;}// restore original transform for render and compose events
-transform=this.getTransform(frameState,0);}_ol_render_canvas_.rotateAtOffset(replayContext,rotation,width/2,height/2);if(replayContext!=context){this.dispatchRenderEvent(replayContext,frameState,transform);context.drawImage(replayContext.canvas,-drawOffsetX,-drawOffsetY);replayContext.translate(-drawOffsetX,-drawOffsetY);}replayContext.globalAlpha=alpha;}if(clipped){context.restore();}this.postCompose(context,frameState,layerState,transform);};/**
+replayContext.globalAlpha=layerState.opacity;}if(replayContext!=context){replayContext.translate(drawOffsetX,drawOffsetY);}var width=frameState.size[0]*pixelRatio;var height=frameState.size[1]*pixelRatio;_ol_render_canvas_.rotateAtOffset(replayContext,-rotation,width/2,height/2);replayGroup.replay(replayContext,pixelRatio,transform,rotation,skippedFeatureUids);if(vectorSource.getWrapX()&&projection.canWrapX()&&!_ol_extent_.containsExtent(projectionExtent,extent)){var startX=extent[0];var worldWidth=_ol_extent_.getWidth(projectionExtent);var world=0;var offsetX;while(startX<projectionExtent[0]){--world;offsetX=worldWidth*world;transform=this.getTransform(frameState,offsetX);replayGroup.replay(replayContext,pixelRatio,transform,rotation,skippedFeatureUids);startX+=worldWidth;}world=0;startX=extent[2];while(startX>projectionExtent[2]){++world;offsetX=worldWidth*world;transform=this.getTransform(frameState,offsetX);replayGroup.replay(replayContext,pixelRatio,transform,rotation,skippedFeatureUids);startX-=worldWidth;}// restore original transform for render and compose events
+transform=this.getTransform(frameState,0);}_ol_render_canvas_.rotateAtOffset(replayContext,rotation,width/2,height/2);if(replayContext!=context){if(hasRenderListeners){this.dispatchRenderEvent(replayContext,frameState,transform);}if(transparentLayer){var mainContextAlpha=context.globalAlpha;context.globalAlpha=layerState.opacity;context.drawImage(replayContext.canvas,-drawOffsetX,-drawOffsetY);context.globalAlpha=mainContextAlpha;}else{context.drawImage(replayContext.canvas,-drawOffsetX,-drawOffsetY);}replayContext.translate(-drawOffsetX,-drawOffsetY);}if(!transparentLayer){replayContext.globalAlpha=alpha;}}if(clipped){context.restore();}this.postCompose(context,frameState,layerState,transform);};/**
  * @inheritDoc
  */_ol_renderer_canvas_VectorLayer_.prototype.forEachFeatureAtCoordinate=function(coordinate,frameState,hitTolerance,callback,thisArg){if(!this.replayGroup_){return undefined;}else{var resolution=frameState.viewState.resolution;var rotation=frameState.viewState.rotation;var layer=this.getLayer();/** @type {Object.<string, boolean>} */var features={};return this.replayGroup_.forEachFeatureAtCoordinate(coordinate,resolution,rotation,hitTolerance,{},/**
          * @param {ol.Feature|ol.render.Feature} feature Feature.
@@ -7850,9 +7951,9 @@ transform=this.getTransform(frameState,0);}_ol_render_canvas_.rotateAtOffset(rep
 var worldWidth=_ol_extent_.getWidth(projectionExtent);var buffer=Math.max(_ol_extent_.getWidth(extent)/2,worldWidth);extent[0]=projectionExtent[0]-buffer;extent[2]=projectionExtent[2]+buffer;}if(!this.dirty_&&this.renderedResolution_==resolution&&this.renderedRevision_==vectorLayerRevision&&this.renderedRenderOrder_==vectorLayerRenderOrder&&_ol_extent_.containsExtent(this.renderedExtent_,extent)){return true;}this.replayGroup_=null;this.dirty_=false;var replayGroup=new _ol_render_canvas_ReplayGroup_(_ol_renderer_vector_.getTolerance(resolution,pixelRatio),extent,resolution,vectorSource.getOverlaps(),vectorLayer.getRenderBuffer());vectorSource.loadFeatures(extent,resolution,projection);/**
    * @param {ol.Feature} feature Feature.
    * @this {ol.renderer.canvas.VectorLayer}
-   */var renderFeature=function(feature){var styles;var styleFunction=feature.getStyleFunction();if(styleFunction){styles=styleFunction.call(feature,resolution);}else{styleFunction=vectorLayer.getStyleFunction();if(styleFunction){styles=styleFunction(feature,resolution);}}if(styles){var dirty=this.renderFeature(feature,resolution,pixelRatio,styles,replayGroup);this.dirty_=this.dirty_||dirty;}};if(vectorLayerRenderOrder){/** @type {Array.<ol.Feature>} */var features=[];vectorSource.forEachFeatureInExtent(extent,/**
+   */var renderFeature=function(feature){var styles;var styleFunction=feature.getStyleFunction();if(styleFunction){styles=styleFunction.call(feature,resolution);}else{styleFunction=vectorLayer.getStyleFunction();if(styleFunction){styles=styleFunction(feature,resolution);}}if(styles){var dirty=this.renderFeature(feature,resolution,pixelRatio,styles,replayGroup);this.dirty_=this.dirty_||dirty;}}.bind(this);if(vectorLayerRenderOrder){/** @type {Array.<ol.Feature>} */var features=[];vectorSource.forEachFeatureInExtent(extent,/**
          * @param {ol.Feature} feature Feature.
-         */function(feature){features.push(feature);},this);features.sort(vectorLayerRenderOrder);features.forEach(renderFeature,this);}else{vectorSource.forEachFeatureInExtent(extent,renderFeature,this);}replayGroup.finish();this.renderedResolution_=resolution;this.renderedRevision_=vectorLayerRevision;this.renderedRenderOrder_=vectorLayerRenderOrder;this.renderedExtent_=extent;this.replayGroup_=replayGroup;return true;};/**
+         */function(feature){features.push(feature);},this);features.sort(vectorLayerRenderOrder);for(var i=0,ii=features.length;i<ii;++i){renderFeature(features[i]);}}else{vectorSource.forEachFeatureInExtent(extent,renderFeature,this);}replayGroup.finish();this.renderedResolution_=resolution;this.renderedRevision_=vectorLayerRevision;this.renderedRenderOrder_=vectorLayerRenderOrder;this.renderedExtent_=extent;this.replayGroup_=replayGroup;return true;};/**
  * @param {ol.Feature} feature Feature.
  * @param {number} resolution Resolution.
  * @param {number} pixelRatio Pixel ratio.
@@ -7861,12 +7962,12 @@ var worldWidth=_ol_extent_.getWidth(projectionExtent);var buffer=Math.max(_ol_ex
  * @param {ol.render.canvas.ReplayGroup} replayGroup Replay group.
  * @return {boolean} `true` if an image is loading.
  */_ol_renderer_canvas_VectorLayer_.prototype.renderFeature=function(feature,resolution,pixelRatio,styles,replayGroup){if(!styles){return false;}var loading=false;if(Array.isArray(styles)){for(var i=0,ii=styles.length;i<ii;++i){loading=_ol_renderer_vector_.renderFeature(replayGroup,feature,styles[i],_ol_renderer_vector_.getSquaredTolerance(resolution,pixelRatio),this.handleStyleImageChange_,this)||loading;}}else{loading=_ol_renderer_vector_.renderFeature(replayGroup,feature,styles,_ol_renderer_vector_.getSquaredTolerance(resolution,pixelRatio),this.handleStyleImageChange_,this)||loading;}return loading;};// This file is automatically generated, do not edit
-// This file is automatically generated, do not edit
-/**
+/* eslint openlayers-internal/no-missing-requires: 0 */// This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 *//**
  * @enum {string}
  */// This file is automatically generated, do not edit
-// This file is automatically generated, do not edit
-/**
+/* eslint openlayers-internal/no-missing-requires: 0 */// This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 *//**
  * Creates an empty linked list structure.
  *
  * @constructor
@@ -7935,8 +8036,169 @@ var next=head.next;item.prev=head;item.next=next;head.next=item;if(next){next.pr
  * Returns the current length of the list.
  *
  * @return {number} Length.
- */_ol_structs_LinkedList_.prototype.getLength=function(){return this.length_;};// This file is automatically generated, do not edit
-var _ol_renderer_webgl_VectorLayer_;/**
+ */_ol_structs_LinkedList_.prototype.getLength=function(){return this.length_;};/**
+ * This class facilitates the creation of image atlases.
+ *
+ * Images added to an atlas will be rendered onto a single
+ * atlas canvas. The distribution of images on the canvas is
+ * managed with the bin packing algorithm described in:
+ * http://www.blackpawn.com/texts/lightmaps/
+ *
+ * @constructor
+ * @struct
+ * @param {number} size The size in pixels of the sprite image.
+ * @param {number} space The space in pixels between images.
+ *    Because texture coordinates are float values, the edges of
+ *    images might not be completely correct (in a way that the
+ *    edges overlap when being rendered). To avoid this we add a
+ *    padding around each image.
+ */var _ol_style_Atlas_=function(size,space){/**
+   * @private
+   * @type {number}
+   */this.space_=space;/**
+   * @private
+   * @type {Array.<ol.AtlasBlock>}
+   */this.emptyBlocks_=[{x:0,y:0,width:size,height:size}];/**
+   * @private
+   * @type {Object.<string, ol.AtlasInfo>}
+   */this.entries_={};/**
+   * @private
+   * @type {CanvasRenderingContext2D}
+   */this.context_=_ol_dom_.createCanvasContext2D(size,size);/**
+   * @private
+   * @type {HTMLCanvasElement}
+   */this.canvas_=this.context_.canvas;};/**
+ * @param {string} id The identifier of the entry to check.
+ * @return {?ol.AtlasInfo} The atlas info.
+ */_ol_style_Atlas_.prototype.get=function(id){return this.entries_[id]||null;};/**
+ * @param {string} id The identifier of the entry to add.
+ * @param {number} width The width.
+ * @param {number} height The height.
+ * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
+ *    Called to render the new image onto an atlas image.
+ * @param {Object=} opt_this Value to use as `this` when executing
+ *    `renderCallback`.
+ * @return {?ol.AtlasInfo} The position and atlas image for the entry.
+ */_ol_style_Atlas_.prototype.add=function(id,width,height,renderCallback,opt_this){var block,i,ii;for(i=0,ii=this.emptyBlocks_.length;i<ii;++i){block=this.emptyBlocks_[i];if(block.width>=width+this.space_&&block.height>=height+this.space_){// we found a block that is big enough for our entry
+var entry={offsetX:block.x+this.space_,offsetY:block.y+this.space_,image:this.canvas_};this.entries_[id]=entry;// render the image on the atlas image
+renderCallback.call(opt_this,this.context_,block.x+this.space_,block.y+this.space_);// split the block after the insertion, either horizontally or vertically
+this.split_(i,block,width+this.space_,height+this.space_);return entry;}}// there is no space for the new entry in this atlas
+return null;};/**
+ * @private
+ * @param {number} index The index of the block.
+ * @param {ol.AtlasBlock} block The block to split.
+ * @param {number} width The width of the entry to insert.
+ * @param {number} height The height of the entry to insert.
+ */_ol_style_Atlas_.prototype.split_=function(index,block,width,height){var deltaWidth=block.width-width;var deltaHeight=block.height-height;/** @type {ol.AtlasBlock} */var newBlock1;/** @type {ol.AtlasBlock} */var newBlock2;if(deltaWidth>deltaHeight){// split vertically
+// block right of the inserted entry
+newBlock1={x:block.x+width,y:block.y,width:block.width-width,height:block.height};// block below the inserted entry
+newBlock2={x:block.x,y:block.y+height,width:width,height:block.height-height};this.updateBlocks_(index,newBlock1,newBlock2);}else{// split horizontally
+// block right of the inserted entry
+newBlock1={x:block.x+width,y:block.y,width:block.width-width,height:height};// block below the inserted entry
+newBlock2={x:block.x,y:block.y+height,width:block.width,height:block.height-height};this.updateBlocks_(index,newBlock1,newBlock2);}};/**
+ * Remove the old block and insert new blocks at the same array position.
+ * The new blocks are inserted at the same position, so that splitted
+ * blocks (that are potentially smaller) are filled first.
+ * @private
+ * @param {number} index The index of the block to remove.
+ * @param {ol.AtlasBlock} newBlock1 The 1st block to add.
+ * @param {ol.AtlasBlock} newBlock2 The 2nd block to add.
+ */_ol_style_Atlas_.prototype.updateBlocks_=function(index,newBlock1,newBlock2){var args=[index,1];if(newBlock1.width>0&&newBlock1.height>0){args.push(newBlock1);}if(newBlock2.width>0&&newBlock2.height>0){args.push(newBlock2);}this.emptyBlocks_.splice.apply(this.emptyBlocks_,args);};/**
+ * Manages the creation of image atlases.
+ *
+ * Images added to this manager will be inserted into an atlas, which
+ * will be used for rendering.
+ * The `size` given in the constructor is the size for the first
+ * atlas. After that, when new atlases are created, they will have
+ * twice the size as the latest atlas (until `maxSize` is reached).
+ *
+ * If an application uses many images or very large images, it is recommended
+ * to set a higher `size` value to avoid the creation of too many atlases.
+ *
+ * @constructor
+ * @struct
+ * @api
+ * @param {olx.style.AtlasManagerOptions=} opt_options Options.
+ */var _ol_style_AtlasManager_=function(opt_options){var options=opt_options||{};/**
+   * The size in pixels of the latest atlas image.
+   * @private
+   * @type {number}
+   */this.currentSize_=options.initialSize!==undefined?options.initialSize:_ol_.INITIAL_ATLAS_SIZE;/**
+   * The maximum size in pixels of atlas images.
+   * @private
+   * @type {number}
+   */this.maxSize_=options.maxSize!==undefined?options.maxSize:_ol_.MAX_ATLAS_SIZE!=-1?_ol_.MAX_ATLAS_SIZE:_ol_.WEBGL_MAX_TEXTURE_SIZE!==undefined?_ol_.WEBGL_MAX_TEXTURE_SIZE:2048;/**
+   * The size in pixels between images.
+   * @private
+   * @type {number}
+   */this.space_=options.space!==undefined?options.space:1;/**
+   * @private
+   * @type {Array.<ol.style.Atlas>}
+   */this.atlases_=[new _ol_style_Atlas_(this.currentSize_,this.space_)];/**
+   * The size in pixels of the latest atlas image for hit-detection images.
+   * @private
+   * @type {number}
+   */this.currentHitSize_=this.currentSize_;/**
+   * @private
+   * @type {Array.<ol.style.Atlas>}
+   */this.hitAtlases_=[new _ol_style_Atlas_(this.currentHitSize_,this.space_)];};/**
+ * @param {string} id The identifier of the entry to check.
+ * @return {?ol.AtlasManagerInfo} The position and atlas image for the
+ *    entry, or `null` if the entry is not part of the atlas manager.
+ */_ol_style_AtlasManager_.prototype.getInfo=function(id){/** @type {?ol.AtlasInfo} */var info=this.getInfo_(this.atlases_,id);if(!info){return null;}var hitInfo=/** @type {ol.AtlasInfo} */this.getInfo_(this.hitAtlases_,id);return this.mergeInfos_(info,hitInfo);};/**
+ * @private
+ * @param {Array.<ol.style.Atlas>} atlases The atlases to search.
+ * @param {string} id The identifier of the entry to check.
+ * @return {?ol.AtlasInfo} The position and atlas image for the entry,
+ *    or `null` if the entry is not part of the atlases.
+ */_ol_style_AtlasManager_.prototype.getInfo_=function(atlases,id){var atlas,info,i,ii;for(i=0,ii=atlases.length;i<ii;++i){atlas=atlases[i];info=atlas.get(id);if(info){return info;}}return null;};/**
+ * @private
+ * @param {ol.AtlasInfo} info The info for the real image.
+ * @param {ol.AtlasInfo} hitInfo The info for the hit-detection
+ *    image.
+ * @return {?ol.AtlasManagerInfo} The position and atlas image for the
+ *    entry, or `null` if the entry is not part of the atlases.
+ */_ol_style_AtlasManager_.prototype.mergeInfos_=function(info,hitInfo){return(/** @type {ol.AtlasManagerInfo} */{offsetX:info.offsetX,offsetY:info.offsetY,image:info.image,hitImage:hitInfo.image});};/**
+ * Add an image to the atlas manager.
+ *
+ * If an entry for the given id already exists, the entry will
+ * be overridden (but the space on the atlas graphic will not be freed).
+ *
+ * If `renderHitCallback` is provided, the image (or the hit-detection version
+ * of the image) will be rendered into a separate hit-detection atlas image.
+ *
+ * @param {string} id The identifier of the entry to add.
+ * @param {number} width The width.
+ * @param {number} height The height.
+ * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
+ *    Called to render the new image onto an atlas image.
+ * @param {function(CanvasRenderingContext2D, number, number)=}
+ *    opt_renderHitCallback Called to render a hit-detection image onto a hit
+ *    detection atlas image.
+ * @param {Object=} opt_this Value to use as `this` when executing
+ *    `renderCallback` and `renderHitCallback`.
+ * @return {?ol.AtlasManagerInfo}  The position and atlas image for the
+ *    entry, or `null` if the image is too big.
+ */_ol_style_AtlasManager_.prototype.add=function(id,width,height,renderCallback,opt_renderHitCallback,opt_this){if(width+this.space_>this.maxSize_||height+this.space_>this.maxSize_){return null;}/** @type {?ol.AtlasInfo} */var info=this.add_(false,id,width,height,renderCallback,opt_this);if(!info){return null;}// even if no hit-detection entry is requested, we insert a fake entry into
+// the hit-detection atlas, to make sure that the offset is the same for
+// the original image and the hit-detection image.
+var renderHitCallback=opt_renderHitCallback!==undefined?opt_renderHitCallback:_ol_.nullFunction;var hitInfo=/** @type {ol.AtlasInfo} */this.add_(true,id,width,height,renderHitCallback,opt_this);return this.mergeInfos_(info,hitInfo);};/**
+ * @private
+ * @param {boolean} isHitAtlas If the hit-detection atlases are used.
+ * @param {string} id The identifier of the entry to add.
+ * @param {number} width The width.
+ * @param {number} height The height.
+ * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
+ *    Called to render the new image onto an atlas image.
+ * @param {Object=} opt_this Value to use as `this` when executing
+ *    `renderCallback` and `renderHitCallback`.
+ * @return {?ol.AtlasInfo}  The position and atlas image for the entry,
+ *    or `null` if the image is too big.
+ */_ol_style_AtlasManager_.prototype.add_=function(isHitAtlas,id,width,height,renderCallback,opt_this){var atlases=isHitAtlas?this.hitAtlases_:this.atlases_;var atlas,info,i,ii;for(i=0,ii=atlases.length;i<ii;++i){atlas=atlases[i];info=atlas.add(id,width,height,renderCallback,opt_this);if(info){return info;}else if(!info&&i===ii-1){// the entry could not be added to one of the existing atlases,
+// create a new atlas that is twice as big and try to add to this one.
+var size;if(isHitAtlas){size=Math.min(this.currentHitSize_*2,this.maxSize_);this.currentHitSize_=size;}else{size=Math.min(this.currentSize_*2,this.maxSize_);this.currentSize_=size;}atlas=new _ol_style_Atlas_(size,this.space_);atlases.push(atlas);// run the loop another time
+++ii;}}return null;};// This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 */var _ol_renderer_webgl_VectorLayer_;/**
  * @classdesc
  * Vector data that is rendered client-side.
  * Note that any property set in the options is set as a {@link ol.Object}
@@ -7949,23 +8211,23 @@ var _ol_renderer_webgl_VectorLayer_;/**
  * @param {olx.layer.VectorOptions=} opt_options Options.
  * @api
  */var _ol_layer_Vector_=function(opt_options){var options=opt_options?opt_options:/** @type {olx.layer.VectorOptions} */{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.style;delete baseOptions.renderBuffer;delete baseOptions.updateWhileAnimating;delete baseOptions.updateWhileInteracting;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);/**
-  * @type {number}
-  * @private
-  */this.renderBuffer_=options.renderBuffer!==undefined?options.renderBuffer:100;/**
-  * User provided style.
-  * @type {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction}
-  * @private
-  */this.style_=null;/**
-  * Style function for use within the library.
-  * @type {ol.StyleFunction|undefined}
-  * @private
-  */this.styleFunction_=undefined;this.setStyle(options.style);/**
-  * @type {boolean}
-  * @private
-  */this.updateWhileAnimating_=options.updateWhileAnimating!==undefined?options.updateWhileAnimating:false;/**
-  * @type {boolean}
-  * @private
-  */this.updateWhileInteracting_=options.updateWhileInteracting!==undefined?options.updateWhileInteracting:false;};_ol_.inherits(_ol_layer_Vector_,_ol_layer_Layer_);/**
+   * @type {number}
+   * @private
+   */this.renderBuffer_=options.renderBuffer!==undefined?options.renderBuffer:100;/**
+   * User provided style.
+   * @type {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction}
+   * @private
+   */this.style_=null;/**
+   * Style function for use within the library.
+   * @type {ol.StyleFunction|undefined}
+   * @private
+   */this.styleFunction_=undefined;this.setStyle(options.style);/**
+   * @type {boolean}
+   * @private
+   */this.updateWhileAnimating_=options.updateWhileAnimating!==undefined?options.updateWhileAnimating:false;/**
+   * @type {boolean}
+   * @private
+   */this.updateWhileInteracting_=options.updateWhileInteracting!==undefined?options.updateWhileInteracting:false;};_ol_.inherits(_ol_layer_Vector_,_ol_layer_Layer_);/**
  * @inheritDoc
  */_ol_layer_Vector_.prototype.createRenderer=function(mapRenderer){var renderer=null;var type=mapRenderer.getType();if(_ol_.ENABLE_CANVAS&&type===_ol_renderer_Type_.CANVAS){renderer=new _ol_renderer_canvas_VectorLayer_(this);}else if(false&&type===_ol_renderer_Type_.WEBGL){renderer=new _ol_renderer_webgl_VectorLayer_(mapRenderer,this);}return renderer;};/**
  * @return {number|undefined} Render buffer.
@@ -8246,6 +8508,12 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  * @return {ol.Coordinate} The input coordinate adjusted by the given delta.
  * @api
  */_ol_coordinate_.add=function(coordinate,delta){coordinate[0]+=delta[0];coordinate[1]+=delta[1];return coordinate;};/**
+ * Calculates the point closest to the passed coordinate on the passed circle.
+ *
+ * @param {ol.Coordinate} coordinate The coordinate.
+ * @param {ol.geom.Circle} circle The circle.
+ * @return {ol.Coordinate} Closest point on the circumference
+ */_ol_coordinate_.closestOnCircle=function(coordinate,circle){var r=circle.getRadius();var center=circle.getCenter();var x0=center[0];var y0=center[1];var x1=coordinate[0];var y1=coordinate[1];var dx=x1-x0;var dy=y1-y0;if(dx===0&&dy===0){dx=1;}var d=Math.sqrt(dx*dx+dy*dy);var x,y;x=x0+r*dx/d;y=y0+r*dy/d;return[x,y];};/**
  * Calculates the point closest to the passed coordinate on the passed segment.
  * This is the foot of the perpendicular of the coordinate to the segment when
  * the foot is on the segment, or the closest segment coordinate when the foot
@@ -8278,16 +8546,15 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  * @return {ol.CoordinateFormatType} Coordinate format.
  * @api
  */_ol_coordinate_.createStringXY=function(opt_fractionDigits){return(/**
-       * @param {ol.Coordinate|undefined} coordinate Coordinate.
-       * @return {string} String XY.
-       */function(coordinate){return _ol_coordinate_.toStringXY(coordinate,opt_fractionDigits);});};/**
- * @private
- * @param {number} degrees Degrees.
+     * @param {ol.Coordinate|undefined} coordinate Coordinate.
+     * @return {string} String XY.
+     */function(coordinate){return _ol_coordinate_.toStringXY(coordinate,opt_fractionDigits);});};/**
  * @param {string} hemispheres Hemispheres.
+ * @param {number} degrees Degrees.
  * @param {number=} opt_fractionDigits The number of digits to include
  *    after the decimal point. Default is `0`.
  * @return {string} String.
- */_ol_coordinate_.degreesToStringHDMS_=function(degrees,hemispheres,opt_fractionDigits){var normalizedDegrees=_ol_math_.modulo(degrees+180,360)-180;var x=Math.abs(3600*normalizedDegrees);var dflPrecision=opt_fractionDigits||0;var precision=Math.pow(10,dflPrecision);var deg=Math.floor(x/3600);var min=Math.floor((x-deg*3600)/60);var sec=x-deg*3600-min*60;sec=Math.ceil(sec*precision)/precision;if(sec>=60){sec=0;min+=1;}if(min>=60){min=0;deg+=1;}return deg+'\u00b0 '+_ol_string_.padNumber(min,2)+'\u2032 '+_ol_string_.padNumber(sec,2,dflPrecision)+'\u2033 '+hemispheres.charAt(normalizedDegrees<0?1:0);};/**
+ */_ol_coordinate_.degreesToStringHDMS=function(hemispheres,degrees,opt_fractionDigits){var normalizedDegrees=_ol_math_.modulo(degrees+180,360)-180;var x=Math.abs(3600*normalizedDegrees);var dflPrecision=opt_fractionDigits||0;var precision=Math.pow(10,dflPrecision);var deg=Math.floor(x/3600);var min=Math.floor((x-deg*3600)/60);var sec=x-deg*3600-min*60;sec=Math.ceil(sec*precision)/precision;if(sec>=60){sec=0;min+=1;}if(min>=60){min=0;deg+=1;}return deg+'\u00b0 '+_ol_string_.padNumber(min,2)+'\u2032 '+_ol_string_.padNumber(sec,2,dflPrecision)+'\u2033'+(normalizedDegrees==0?'':' '+hemispheres.charAt(normalizedDegrees<0?1:0));};/**
  * Transforms the given {@link ol.Coordinate} to a string using the given string
  * template. The strings `{x}` and `{y}` in the template will be replaced with
  * the first and second coordinate values respectively.
@@ -8388,7 +8655,7 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  *    after the decimal point. Default is `0`.
  * @return {string} Hemisphere, degrees, minutes and seconds.
  * @api
- */_ol_coordinate_.toStringHDMS=function(coordinate,opt_fractionDigits){if(coordinate){return _ol_coordinate_.degreesToStringHDMS_(coordinate[1],'NS',opt_fractionDigits)+' '+_ol_coordinate_.degreesToStringHDMS_(coordinate[0],'EW',opt_fractionDigits);}else{return'';}};/**
+ */_ol_coordinate_.toStringHDMS=function(coordinate,opt_fractionDigits){if(coordinate){return _ol_coordinate_.degreesToStringHDMS('NS',coordinate[1],opt_fractionDigits)+' '+_ol_coordinate_.degreesToStringHDMS('EW',coordinate[0],opt_fractionDigits);}else{return'';}};/**
  * Format a coordinate as a comma delimited string.
  *
  * Example without specifying fractional digits:
@@ -9079,16 +9346,16 @@ this.trackedPointers_[event.pointerId]=event;}this.targetPointers=_ol_obj_.getVa
    * @type {number}
    * @private
    */this.maxPoints_=options.maxPoints?options.maxPoints:Infinity;/**
-   * A function to decide if a potential finish coordinate is permissable
+   * A function to decide if a potential finish coordinate is permissible
    * @private
    * @type {ol.EventsConditionType}
    */this.finishCondition_=options.finishCondition?options.finishCondition:_ol_functions_.TRUE;var geometryFunction=options.geometryFunction;if(!geometryFunction){if(this.type_===_ol_geom_GeometryType_.CIRCLE){/**
-       * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+       * @param {!Array.<ol.Coordinate>} coordinates
        *     The coordinates.
        * @param {ol.geom.SimpleGeometry=} opt_geometry Optional geometry.
        * @return {ol.geom.SimpleGeometry} A geometry.
        */geometryFunction=function(coordinates,opt_geometry){var circle=opt_geometry?/** @type {ol.geom.Circle} */opt_geometry:new _ol_geom_Circle_([NaN,NaN]);var squaredLength=_ol_coordinate_.squaredDistance(coordinates[0],coordinates[1]);circle.setCenterAndRadius(coordinates[0],Math.sqrt(squaredLength));return circle;};}else{var Constructor;var mode=this.mode_;if(mode===_ol_interaction_Draw_.Mode_.POINT){Constructor=_ol_geom_Point_;}else if(mode===_ol_interaction_Draw_.Mode_.LINE_STRING){Constructor=_ol_geom_LineString_;}else if(mode===_ol_interaction_Draw_.Mode_.POLYGON){Constructor=_ol_geom_Polygon_;}/**
-       * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+       * @param {!Array.<ol.Coordinate>} coordinates
        *     The coordinates.
        * @param {ol.geom.SimpleGeometry=} opt_geometry Optional geometry.
        * @return {ol.geom.SimpleGeometry} A geometry.
@@ -9183,7 +9450,7 @@ this.trackedPointers_[event.pointerId]=event;}this.targetPointers=_ol_obj_.getVa
  * @param {ol.MapBrowserEvent} event Event.
  * @private
  */_ol_interaction_Draw_.prototype.modifyDrawing_=function(event){var coordinate=event.coordinate;var geometry=/** @type {ol.geom.SimpleGeometry} */this.sketchFeature_.getGeometry();var coordinates,last;if(this.mode_===_ol_interaction_Draw_.Mode_.POINT){last=this.sketchCoords_;}else if(this.mode_===_ol_interaction_Draw_.Mode_.POLYGON){coordinates=this.sketchCoords_[0];last=coordinates[coordinates.length-1];if(this.atFinish_(event)){// snap to finish
-coordinate=this.finishCoordinate_.slice();}}else{coordinates=this.sketchCoords_;last=coordinates[coordinates.length-1];}last[0]=coordinate[0];last[1]=coordinate[1];this.geometryFunction_(/** @type {!ol.Coordinate|!Array.<ol.Coordinate>|!Array.<Array.<ol.Coordinate>>} */this.sketchCoords_,geometry);if(this.sketchPoint_){var sketchPointGeom=/** @type {ol.geom.Point} */this.sketchPoint_.getGeometry();sketchPointGeom.setCoordinates(coordinate);}var sketchLineGeom;if(geometry instanceof _ol_geom_Polygon_&&this.mode_!==_ol_interaction_Draw_.Mode_.POLYGON){if(!this.sketchLine_){this.sketchLine_=new _ol_Feature_(new _ol_geom_LineString_(null));}var ring=geometry.getLinearRing(0);sketchLineGeom=/** @type {ol.geom.LineString} */this.sketchLine_.getGeometry();sketchLineGeom.setFlatCoordinates(ring.getLayout(),ring.getFlatCoordinates());}else if(this.sketchLineCoords_){sketchLineGeom=/** @type {ol.geom.LineString} */this.sketchLine_.getGeometry();sketchLineGeom.setCoordinates(this.sketchLineCoords_);}this.updateSketchFeatures_();};/**
+coordinate=this.finishCoordinate_.slice();}}else{coordinates=this.sketchCoords_;last=coordinates[coordinates.length-1];}last[0]=coordinate[0];last[1]=coordinate[1];this.geometryFunction_(/** @type {!Array.<ol.Coordinate>} */this.sketchCoords_,geometry);if(this.sketchPoint_){var sketchPointGeom=/** @type {ol.geom.Point} */this.sketchPoint_.getGeometry();sketchPointGeom.setCoordinates(coordinate);}var sketchLineGeom;if(geometry instanceof _ol_geom_Polygon_&&this.mode_!==_ol_interaction_Draw_.Mode_.POLYGON){if(!this.sketchLine_){this.sketchLine_=new _ol_Feature_(new _ol_geom_LineString_(null));}var ring=geometry.getLinearRing(0);sketchLineGeom=/** @type {ol.geom.LineString} */this.sketchLine_.getGeometry();sketchLineGeom.setFlatCoordinates(ring.getLayout(),ring.getFlatCoordinates());}else if(this.sketchLineCoords_){sketchLineGeom=/** @type {ol.geom.LineString} */this.sketchLine_.getGeometry();sketchLineGeom.setCoordinates(this.sketchLineCoords_);}this.updateSketchFeatures_();};/**
  * Add a new coordinate to the drawing.
  * @param {ol.MapBrowserEvent} event Event.
  * @private
@@ -9230,17 +9497,17 @@ if(this.features_){this.features_.push(sketchFeature);}if(this.source_){this.sou
  *     polygon.
  * @api
  */_ol_interaction_Draw_.createRegularPolygon=function(opt_sides,opt_angle){return(/**
-       * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
-       * @param {ol.geom.SimpleGeometry=} opt_geometry
-       * @return {ol.geom.SimpleGeometry}
-       */function(coordinates,opt_geometry){var center=coordinates[0];var end=coordinates[1];var radius=Math.sqrt(_ol_coordinate_.squaredDistance(center,end));var geometry=opt_geometry?/** @type {ol.geom.Polygon} */opt_geometry:_ol_geom_Polygon_.fromCircle(new _ol_geom_Circle_(center),opt_sides);var angle=opt_angle?opt_angle:Math.atan((end[1]-center[1])/(end[0]-center[0]));_ol_geom_Polygon_.makeRegular(geometry,center,radius,angle);return geometry;});};/**
+         * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+         * @param {ol.geom.SimpleGeometry=} opt_geometry
+         * @return {ol.geom.SimpleGeometry}
+         */function(coordinates,opt_geometry){var center=coordinates[0];var end=coordinates[1];var radius=Math.sqrt(_ol_coordinate_.squaredDistance(center,end));var geometry=opt_geometry?/** @type {ol.geom.Polygon} */opt_geometry:_ol_geom_Polygon_.fromCircle(new _ol_geom_Circle_(center),opt_sides);var angle=opt_angle?opt_angle:Math.atan((end[1]-center[1])/(end[0]-center[0]));_ol_geom_Polygon_.makeRegular(geometry,center,radius,angle);return geometry;});};/**
  * Create a `geometryFunction` that will create a box-shaped polygon (aligned
  * with the coordinate system axes).  Use this with the draw interaction and
  * `type: 'Circle'` to return a box instead of a circle geometry.
  * @return {ol.DrawGeometryFunctionType} Function that draws a box-shaped polygon.
  * @api
  */_ol_interaction_Draw_.createBox=function(){return(/**
-     * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+     * @param {Array.<ol.Coordinate>} coordinates
      * @param {ol.geom.SimpleGeometry=} opt_geometry
      * @return {ol.geom.SimpleGeometry}
      */function(coordinates,opt_geometry){var extent=_ol_extent_.boundingExtent(coordinates);var geometry=opt_geometry||new _ol_geom_Polygon_(null);geometry.setCoordinates([[_ol_extent_.getBottomLeft(extent),_ol_extent_.getBottomRight(extent),_ol_extent_.getTopRight(extent),_ol_extent_.getTopLeft(extent),_ol_extent_.getBottomLeft(extent)]]);return geometry;});};/**
@@ -9275,6 +9542,10 @@ if(this.features_){this.features_.push(sketchFeature);}if(this.source_){this.sou
    * @event ol.MapEvent#postrender
    * @api
    */POSTRENDER:'postrender',/**
+   * Triggered when the map starts moving.
+   * @event ol.MapEvent#movestart
+   * @api
+   */MOVESTART:'movestart',/**
    * Triggered after the map is moved.
    * @event ol.MapEvent#moveend
    * @api
@@ -9456,7 +9727,7 @@ delta[1]=Math.abs(offsetBottom)+margin;}if(delta[0]!==0||delta[1]!==0){var cente
  * @param {ol.Pixel} pixel The pixel location.
  * @param {ol.Size|undefined} mapSize The map size.
  * @protected
- */_ol_Overlay_.prototype.updateRenderedPosition=function(pixel,mapSize){var style=this.element_.style;var offset=this.getOffset();var positioning=this.getPositioning();this.setVisible(true);var offsetX=offset[0];var offsetY=offset[1];if(positioning==_ol_OverlayPositioning_.BOTTOM_RIGHT||positioning==_ol_OverlayPositioning_.CENTER_RIGHT||positioning==_ol_OverlayPositioning_.TOP_RIGHT){if(this.rendered_.left_!==''){this.rendered_.left_=style.left='';}var right=Math.round(mapSize[0]-pixel[0]-offsetX)+'px';if(this.rendered_.right_!=right){this.rendered_.right_=style.right=right;}}else{if(this.rendered_.right_!==''){this.rendered_.right_=style.right='';}if(positioning==_ol_OverlayPositioning_.BOTTOM_CENTER||positioning==_ol_OverlayPositioning_.CENTER_CENTER||positioning==_ol_OverlayPositioning_.TOP_CENTER){offsetX-=this.element_.offsetWidth/2;}var left=Math.round(pixel[0]+offsetX)+'px';if(this.rendered_.left_!=left){this.rendered_.left_=style.left=left;}}if(positioning==_ol_OverlayPositioning_.BOTTOM_LEFT||positioning==_ol_OverlayPositioning_.BOTTOM_CENTER||positioning==_ol_OverlayPositioning_.BOTTOM_RIGHT){if(this.rendered_.top_!==''){this.rendered_.top_=style.top='';}var bottom=Math.round(mapSize[1]-pixel[1]-offsetY)+'px';if(this.rendered_.bottom_!=bottom){this.rendered_.bottom_=style.bottom=bottom;}}else{if(this.rendered_.bottom_!==''){this.rendered_.bottom_=style.bottom='';}if(positioning==_ol_OverlayPositioning_.CENTER_LEFT||positioning==_ol_OverlayPositioning_.CENTER_CENTER||positioning==_ol_OverlayPositioning_.CENTER_RIGHT){offsetY-=this.element_.offsetHeight/2;}var top=Math.round(pixel[1]+offsetY)+'px';if(this.rendered_.top_!=top){this.rendered_.top_=style.top=top;}}};/**
+ */_ol_Overlay_.prototype.updateRenderedPosition=function(pixel,mapSize){var style=this.element_.style;var offset=this.getOffset();var positioning=this.getPositioning();this.setVisible(true);var offsetX=offset[0];var offsetY=offset[1];if(positioning==_ol_OverlayPositioning_.BOTTOM_RIGHT||positioning==_ol_OverlayPositioning_.CENTER_RIGHT||positioning==_ol_OverlayPositioning_.TOP_RIGHT){if(this.rendered_.left_!==''){this.rendered_.left_=style.left='';}var right=mapSize[0]-pixel[0]-offsetX+'px';if(this.rendered_.right_!=right){this.rendered_.right_=style.right=right;}}else{if(this.rendered_.right_!==''){this.rendered_.right_=style.right='';}if(positioning==_ol_OverlayPositioning_.BOTTOM_CENTER||positioning==_ol_OverlayPositioning_.CENTER_CENTER||positioning==_ol_OverlayPositioning_.TOP_CENTER){offsetX-=this.element_.offsetWidth/2;}var left=pixel[0]+offsetX+'px';if(this.rendered_.left_!=left){this.rendered_.left_=style.left=left;}}if(positioning==_ol_OverlayPositioning_.BOTTOM_LEFT||positioning==_ol_OverlayPositioning_.BOTTOM_CENTER||positioning==_ol_OverlayPositioning_.BOTTOM_RIGHT){if(this.rendered_.top_!==''){this.rendered_.top_=style.top='';}var bottom=mapSize[1]-pixel[1]-offsetY+'px';if(this.rendered_.bottom_!=bottom){this.rendered_.bottom_=style.bottom=bottom;}}else{if(this.rendered_.bottom_!==''){this.rendered_.bottom_=style.bottom='';}if(positioning==_ol_OverlayPositioning_.CENTER_LEFT||positioning==_ol_OverlayPositioning_.CENTER_CENTER||positioning==_ol_OverlayPositioning_.CENTER_RIGHT){offsetY-=this.element_.offsetHeight/2;}var top=pixel[1]+offsetY+'px';if(this.rendered_.top_!=top){this.rendered_.top_=style.top=top;}}};/**
  * @enum {string}
  * @private
  */_ol_Overlay_.Property_={ELEMENT:'element',MAP:'map',OFFSET:'offset',POSITION:'position',POSITIONING:'positioning'};function MeasureControl(InteractiveMap){var self=this;this.InteractiveMap=InteractiveMap;this.map=InteractiveMap.map;this.info=InteractiveMap.infoControl;this.source=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.layer=new _ol_layer_Vector_({source:this.source});/**
@@ -9591,7 +9862,7 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
  * @param {olx.control.MousePositionOptions=} opt_options Mouse position
  *     options.
  * @api
- */var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt_options:{};var element=document.createElement('DIV');element.className=options.className!==undefined?options.className:'ol-mouse-position';var render=options.render?options.render:_ol_control_MousePosition_.render;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});_ol_events_.listen(this,_ol_Object_.getChangeEventType(_ol_control_MousePosition_.Property_.PROJECTION),this.handleProjectionChanged_,this);if(options.coordinateFormat){this.setCoordinateFormat(options.coordinateFormat);}if(options.projection){this.setProjection(_ol_proj_.get(options.projection));}/**
+ */var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt_options:{};var element=document.createElement('DIV');element.className=options.className!==undefined?options.className:'ol-mouse-position';var render=options.render?options.render:_ol_control_MousePosition_.render;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});_ol_events_.listen(this,_ol_Object_.getChangeEventType(_ol_control_MousePosition_.Property_.PROJECTION),this.handleProjectionChanged_,this);if(options.coordinateFormat){this.setCoordinateFormat(options.coordinateFormat);}if(options.projection){this.setProjection(options.projection);}/**
    * @private
    * @type {string}
    */this.undefinedHTML_=options.undefinedHTML!==undefined?options.undefinedHTML:'';/**
@@ -9643,11 +9914,11 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
  * @api
  */_ol_control_MousePosition_.prototype.setCoordinateFormat=function(format){this.set(_ol_control_MousePosition_.Property_.COORDINATE_FORMAT,format);};/**
  * Set the projection that is used to report the mouse position.
- * @param {ol.proj.Projection} projection The projection to report mouse
+ * @param {ol.ProjectionLike} projection The projection to report mouse
  *     position in.
  * @observable
  * @api
- */_ol_control_MousePosition_.prototype.setProjection=function(projection){this.set(_ol_control_MousePosition_.Property_.PROJECTION,projection);};/**
+ */_ol_control_MousePosition_.prototype.setProjection=function(projection){this.set(_ol_control_MousePosition_.Property_.PROJECTION,_ol_proj_.get(projection));};/**
  * @param {?ol.Pixel} pixel Pixel.
  * @private
  */_ol_control_MousePosition_.prototype.updateHTML_=function(pixel){var html=this.undefinedHTML_;if(pixel&&this.mapProjection_){if(!this.transform_){var projection=this.getProjection();if(projection){this.transform_=_ol_proj_.getTransformFromProjections(this.mapProjection_,projection);}else{this.transform_=_ol_proj_.identityTransform;}}var map=this.getMap();var coordinate=map.getCoordinateFromPixel(pixel);if(coordinate){this.transform_(coordinate,coordinate);var coordinateFormat=this.getCoordinateFormat();if(coordinateFormat){html=coordinateFormat(coordinate);}else{html=coordinate.toString();}}}if(!this.renderedHTML_||html!=this.renderedHTML_){this.element.innerHTML=html;this.renderedHTML_=html;}};/**
@@ -9657,43 +9928,30 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
  * @param {ol.Extent} extent Extent.
  * @return {ol.CenterConstraintType} The constraint.
  */_ol_CenterConstraint_.createExtent=function(extent){return(/**
-       * @param {ol.Coordinate|undefined} center Center.
-       * @return {ol.Coordinate|undefined} Center.
-       */function(center){if(center){return[_ol_math_.clamp(center[0],extent[0],extent[2]),_ol_math_.clamp(center[1],extent[1],extent[3])];}else{return undefined;}});};/**
+     * @param {ol.Coordinate|undefined} center Center.
+     * @return {ol.Coordinate|undefined} Center.
+     */function(center){if(center){return[_ol_math_.clamp(center[0],extent[0],extent[2]),_ol_math_.clamp(center[1],extent[1],extent[3])];}else{return undefined;}});};/**
  * @param {ol.Coordinate|undefined} center Center.
  * @return {ol.Coordinate|undefined} Center.
- */_ol_CenterConstraint_.none=function(center){return center;};/**
- * @constructor
- * @param {ol.CenterConstraintType} centerConstraint Center constraint.
- * @param {ol.ResolutionConstraintType} resolutionConstraint
- *     Resolution constraint.
- * @param {ol.RotationConstraintType} rotationConstraint
- *     Rotation constraint.
- */var _ol_Constraints_=function(centerConstraint,resolutionConstraint,rotationConstraint){/**
-   * @type {ol.CenterConstraintType}
-   */this.center=centerConstraint;/**
-   * @type {ol.ResolutionConstraintType}
-   */this.resolution=resolutionConstraint;/**
-   * @type {ol.RotationConstraintType}
-   */this.rotation=rotationConstraint;};var _ol_ResolutionConstraint_={};/**
+ */_ol_CenterConstraint_.none=function(center){return center;};var _ol_ResolutionConstraint_={};/**
  * @param {Array.<number>} resolutions Resolutions.
  * @return {ol.ResolutionConstraintType} Zoom function.
  */_ol_ResolutionConstraint_.createSnapToResolutions=function(resolutions){return(/**
-       * @param {number|undefined} resolution Resolution.
-       * @param {number} delta Delta.
-       * @param {number} direction Direction.
-       * @return {number|undefined} Resolution.
-       */function(resolution,delta,direction){if(resolution!==undefined){var z=_ol_array_.linearFindNearest(resolutions,resolution,direction);z=_ol_math_.clamp(z+delta,0,resolutions.length-1);var index=Math.floor(z);if(z!=index&&index<resolutions.length-1){var power=resolutions[index]/resolutions[index+1];return resolutions[index]/Math.pow(power,z-index);}else{return resolutions[index];}}else{return undefined;}});};/**
+     * @param {number|undefined} resolution Resolution.
+     * @param {number} delta Delta.
+     * @param {number} direction Direction.
+     * @return {number|undefined} Resolution.
+     */function(resolution,delta,direction){if(resolution!==undefined){var z=_ol_array_.linearFindNearest(resolutions,resolution,direction);z=_ol_math_.clamp(z+delta,0,resolutions.length-1);var index=Math.floor(z);if(z!=index&&index<resolutions.length-1){var power=resolutions[index]/resolutions[index+1];return resolutions[index]/Math.pow(power,z-index);}else{return resolutions[index];}}else{return undefined;}});};/**
  * @param {number} power Power.
  * @param {number} maxResolution Maximum resolution.
  * @param {number=} opt_maxLevel Maximum level.
  * @return {ol.ResolutionConstraintType} Zoom function.
  */_ol_ResolutionConstraint_.createSnapToPower=function(power,maxResolution,opt_maxLevel){return(/**
-       * @param {number|undefined} resolution Resolution.
-       * @param {number} delta Delta.
-       * @param {number} direction Direction.
-       * @return {number|undefined} Resolution.
-       */function(resolution,delta,direction){if(resolution!==undefined){var offset=-direction/2+0.5;var oldLevel=Math.floor(Math.log(maxResolution/resolution)/Math.log(power)+offset);var newLevel=Math.max(oldLevel+delta,0);if(opt_maxLevel!==undefined){newLevel=Math.min(newLevel,opt_maxLevel);}return maxResolution/Math.pow(power,newLevel);}else{return undefined;}});};var _ol_RotationConstraint_={};/**
+     * @param {number|undefined} resolution Resolution.
+     * @param {number} delta Delta.
+     * @param {number} direction Direction.
+     * @return {number|undefined} Resolution.
+     */function(resolution,delta,direction){if(resolution!==undefined){var offset=-direction/2+0.5;var oldLevel=Math.floor(Math.log(maxResolution/resolution)/Math.log(power)+offset);var newLevel=Math.max(oldLevel+delta,0);if(opt_maxLevel!==undefined){newLevel=Math.min(newLevel,opt_maxLevel);}return maxResolution/Math.pow(power,newLevel);}else{return undefined;}});};var _ol_RotationConstraint_={};/**
  * @param {number|undefined} rotation Rotation.
  * @param {number} delta Delta.
  * @return {number|undefined} Rotation.
@@ -9705,17 +9963,17 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
  * @param {number} n N.
  * @return {ol.RotationConstraintType} Rotation constraint.
  */_ol_RotationConstraint_.createSnapToN=function(n){var theta=2*Math.PI/n;return(/**
-       * @param {number|undefined} rotation Rotation.
-       * @param {number} delta Delta.
-       * @return {number|undefined} Rotation.
-       */function(rotation,delta){if(rotation!==undefined){rotation=Math.floor((rotation+delta)/theta+0.5)*theta;return rotation;}else{return undefined;}});};/**
+     * @param {number|undefined} rotation Rotation.
+     * @param {number} delta Delta.
+     * @return {number|undefined} Rotation.
+     */function(rotation,delta){if(rotation!==undefined){rotation=Math.floor((rotation+delta)/theta+0.5)*theta;return rotation;}else{return undefined;}});};/**
  * @param {number=} opt_tolerance Tolerance.
  * @return {ol.RotationConstraintType} Rotation constraint.
  */_ol_RotationConstraint_.createSnapToZero=function(opt_tolerance){var tolerance=opt_tolerance||_ol_math_.toRadians(5);return(/**
-       * @param {number|undefined} rotation Rotation.
-       * @param {number} delta Delta.
-       * @return {number|undefined} Rotation.
-       */function(rotation,delta){if(rotation!==undefined){if(Math.abs(rotation+delta)<=tolerance){return 0;}else{return rotation+delta;}}else{return undefined;}});};/**
+     * @param {number|undefined} rotation Rotation.
+     * @param {number} delta Delta.
+     * @return {number|undefined} Rotation.
+     */function(rotation,delta){if(rotation!==undefined){if(Math.abs(rotation+delta)<=tolerance){return 0;}else{return rotation+delta;}}else{return undefined;}});};/**
  * @enum {string}
  */var _ol_ViewProperty_={CENTER:'center',RESOLUTION:'resolution',ROTATION:'rotation'};/**
  * @classdesc
@@ -9809,7 +10067,7 @@ if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMov
    */this.minZoom_=resolutionConstraintInfo.minZoom;var centerConstraint=_ol_View_.createCenterConstraint_(options);var resolutionConstraint=resolutionConstraintInfo.constraint;var rotationConstraint=_ol_View_.createRotationConstraint_(options);/**
    * @private
    * @type {ol.Constraints}
-   */this.constraints_=new _ol_Constraints_(centerConstraint,resolutionConstraint,rotationConstraint);if(options.resolution!==undefined){properties[_ol_ViewProperty_.RESOLUTION]=options.resolution;}else if(options.zoom!==undefined){properties[_ol_ViewProperty_.RESOLUTION]=this.constrainResolution(this.maxResolution_,options.zoom-this.minZoom_);}properties[_ol_ViewProperty_.ROTATION]=options.rotation!==undefined?options.rotation:0;this.setProperties(properties);/**
+   */this.constraints_={center:centerConstraint,resolution:resolutionConstraint,rotation:rotationConstraint};if(options.resolution!==undefined){properties[_ol_ViewProperty_.RESOLUTION]=options.resolution;}else if(options.zoom!==undefined){properties[_ol_ViewProperty_.RESOLUTION]=this.constrainResolution(this.maxResolution_,options.zoom-this.minZoom_);}properties[_ol_ViewProperty_.ROTATION]=options.rotation!==undefined?options.rotation:0;this.setProperties(properties);/**
    * @private
    * @type {olx.ViewOptions}
    */this.options_=options;};/**
@@ -9854,16 +10112,22 @@ options.rotation=this.getRotation();return _ol_obj_.assign({},options,newOptions
  *     argument.  The callback will be called with a boolean indicating whether
  *     the animation completed without being cancelled.
  * @api
- */_ol_View_.prototype.animate=function(var_args){var start=Date.now();var center=this.getCenter().slice();var resolution=this.getResolution();var rotation=this.getRotation();var animationCount=arguments.length;var callback;if(animationCount>1&&typeof arguments[animationCount-1]==='function'){callback=arguments[animationCount-1];--animationCount;}var series=[];for(var i=0;i<animationCount;++i){var options=/** @type {olx.AnimationOptions} */arguments[i];var animation=/** @type {ol.ViewAnimation} */{start:start,complete:false,anchor:options.anchor,duration:options.duration!==undefined?options.duration:1000,easing:options.easing||_ol_easing_.inAndOut};if(options.center){animation.sourceCenter=center;animation.targetCenter=options.center;center=animation.targetCenter;}if(options.zoom!==undefined){animation.sourceResolution=resolution;animation.targetResolution=this.constrainResolution(this.maxResolution_,options.zoom-this.minZoom_,0);resolution=animation.targetResolution;}else if(options.resolution){animation.sourceResolution=resolution;animation.targetResolution=options.resolution;resolution=animation.targetResolution;}if(options.rotation!==undefined){animation.sourceRotation=rotation;animation.targetRotation=options.rotation;rotation=animation.targetRotation;}animation.callback=callback;start+=animation.duration;series.push(animation);}this.animations_.push(series);this.setHint(_ol_ViewHint_.ANIMATING,1);this.updateAnimations_();};/**
+ */_ol_View_.prototype.animate=function(var_args){var start=Date.now();var center=this.getCenter().slice();var resolution=this.getResolution();var rotation=this.getRotation();var animationCount=arguments.length;var callback;if(animationCount>1&&typeof arguments[animationCount-1]==='function'){callback=arguments[animationCount-1];--animationCount;}var series=[];for(var i=0;i<animationCount;++i){var options=/** @type {olx.AnimationOptions} */arguments[i];var animation=/** @type {ol.ViewAnimation} */{start:start,complete:false,anchor:options.anchor,duration:options.duration!==undefined?options.duration:1000,easing:options.easing||_ol_easing_.inAndOut};if(options.center){animation.sourceCenter=center;animation.targetCenter=options.center;center=animation.targetCenter;}if(options.zoom!==undefined){animation.sourceResolution=resolution;animation.targetResolution=this.constrainResolution(this.maxResolution_,options.zoom-this.minZoom_,0);resolution=animation.targetResolution;}else if(options.resolution){animation.sourceResolution=resolution;animation.targetResolution=options.resolution;resolution=animation.targetResolution;}if(options.rotation!==undefined){animation.sourceRotation=rotation;var delta=_ol_math_.modulo(options.rotation-rotation+Math.PI,2*Math.PI)-Math.PI;animation.targetRotation=rotation+delta;rotation=animation.targetRotation;}animation.callback=callback;// check if animation is a no-op
+if(_ol_View_.isNoopAnimation(animation)){animation.complete=true;// we still push it onto the series for callback handling
+}else{start+=animation.duration;}series.push(animation);}this.animations_.push(series);this.setHint(_ol_ViewHint_.ANIMATING,1);this.updateAnimations_();};/**
  * Determine if the view is being animated.
  * @return {boolean} The view is being animated.
  * @api
  */_ol_View_.prototype.getAnimating=function(){return this.getHints()[_ol_ViewHint_.ANIMATING]>0;};/**
+ * Determine if the user is interacting with the view, such as panning or zooming.
+ * @return {boolean} The view is being interacted with.
+ * @api
+ */_ol_View_.prototype.getInteracting=function(){return this.getHints()[_ol_ViewHint_.INTERACTING]>0;};/**
  * Cancel any ongoing animations.
  * @api
  */_ol_View_.prototype.cancelAnimations=function(){this.setHint(_ol_ViewHint_.ANIMATING,-this.getHints()[_ol_ViewHint_.ANIMATING]);for(var i=0,ii=this.animations_.length;i<ii;++i){var series=this.animations_[i];if(series[0].callback){series[0].callback(false);}}this.animations_.length=0;};/**
  * Update all animations.
- */_ol_View_.prototype.updateAnimations_=function(){if(this.updateAnimationKey_!==undefined){cancelAnimationFrame(this.updateAnimationKey_);this.updateAnimationKey_=undefined;}if(!this.getAnimating()){return;}var now=Date.now();var more=false;for(var i=this.animations_.length-1;i>=0;--i){var series=this.animations_[i];var seriesComplete=true;for(var j=0,jj=series.length;j<jj;++j){var animation=series[j];if(animation.complete){continue;}var elapsed=now-animation.start;var fraction=animation.duration>0?elapsed/animation.duration:1;if(fraction>=1){animation.complete=true;fraction=1;}else{seriesComplete=false;}var progress=animation.easing(fraction);if(animation.sourceCenter){var x0=animation.sourceCenter[0];var y0=animation.sourceCenter[1];var x1=animation.targetCenter[0];var y1=animation.targetCenter[1];var x=x0+progress*(x1-x0);var y=y0+progress*(y1-y0);this.set(_ol_ViewProperty_.CENTER,[x,y]);}if(animation.sourceResolution&&animation.targetResolution){var resolution=progress===1?animation.targetResolution:animation.sourceResolution+progress*(animation.targetResolution-animation.sourceResolution);if(animation.anchor){this.set(_ol_ViewProperty_.CENTER,this.calculateCenterZoom(resolution,animation.anchor));}this.set(_ol_ViewProperty_.RESOLUTION,resolution);}if(animation.sourceRotation!==undefined&&animation.targetRotation!==undefined){var rotation=progress===1?animation.targetRotation:animation.sourceRotation+progress*(animation.targetRotation-animation.sourceRotation);if(animation.anchor){this.set(_ol_ViewProperty_.CENTER,this.calculateCenterRotate(rotation,animation.anchor));}this.set(_ol_ViewProperty_.ROTATION,rotation);}more=true;if(!animation.complete){break;}}if(seriesComplete){this.animations_[i]=null;this.setHint(_ol_ViewHint_.ANIMATING,-1);var callback=series[0].callback;if(callback){callback(true);}}}// prune completed series
+ */_ol_View_.prototype.updateAnimations_=function(){if(this.updateAnimationKey_!==undefined){cancelAnimationFrame(this.updateAnimationKey_);this.updateAnimationKey_=undefined;}if(!this.getAnimating()){return;}var now=Date.now();var more=false;for(var i=this.animations_.length-1;i>=0;--i){var series=this.animations_[i];var seriesComplete=true;for(var j=0,jj=series.length;j<jj;++j){var animation=series[j];if(animation.complete){continue;}var elapsed=now-animation.start;var fraction=animation.duration>0?elapsed/animation.duration:1;if(fraction>=1){animation.complete=true;fraction=1;}else{seriesComplete=false;}var progress=animation.easing(fraction);if(animation.sourceCenter){var x0=animation.sourceCenter[0];var y0=animation.sourceCenter[1];var x1=animation.targetCenter[0];var y1=animation.targetCenter[1];var x=x0+progress*(x1-x0);var y=y0+progress*(y1-y0);this.set(_ol_ViewProperty_.CENTER,[x,y]);}if(animation.sourceResolution&&animation.targetResolution){var resolution=progress===1?animation.targetResolution:animation.sourceResolution+progress*(animation.targetResolution-animation.sourceResolution);if(animation.anchor){this.set(_ol_ViewProperty_.CENTER,this.calculateCenterZoom(resolution,animation.anchor));}this.set(_ol_ViewProperty_.RESOLUTION,resolution);}if(animation.sourceRotation!==undefined&&animation.targetRotation!==undefined){var rotation=progress===1?_ol_math_.modulo(animation.targetRotation+Math.PI,2*Math.PI)-Math.PI:animation.sourceRotation+progress*(animation.targetRotation-animation.sourceRotation);if(animation.anchor){this.set(_ol_ViewProperty_.CENTER,this.calculateCenterRotate(rotation,animation.anchor));}this.set(_ol_ViewProperty_.ROTATION,rotation);}more=true;if(!animation.complete){break;}}if(seriesComplete){this.animations_[i]=null;this.setHint(_ol_ViewHint_.ANIMATING,-1);var callback=series[0].callback;if(callback){callback(true);}}}// prune completed series
 this.animations_=this.animations_.filter(Boolean);if(more&&this.updateAnimationKey_===undefined){this.updateAnimationKey_=requestAnimationFrame(this.updateAnimations_);}};/**
  * @param {number} rotation Target rotation.
  * @param {ol.Coordinate} anchor Rotation anchor.
@@ -9899,6 +10163,8 @@ this.animations_=this.animations_.filter(Boolean);if(more&&this.updateAnimationK
  * @observable
  * @api
  */_ol_View_.prototype.getCenter=function(){return(/** @type {ol.Coordinate|undefined} */this.get(_ol_ViewProperty_.CENTER));};/**
+ * @return {ol.Constraints} Constraints.
+ */_ol_View_.prototype.getConstraints=function(){return this.constraints_;};/**
  * @param {Array.<number>=} opt_hints Destination array.
  * @return {Array.<number>} Hint.
  */_ol_View_.prototype.getHints=function(opt_hints){if(opt_hints!==undefined){opt_hints[0]=this.hints_[0];opt_hints[1]=this.hints_[1];return opt_hints;}else{return this.hints_.slice();}};/**
@@ -9954,18 +10220,19 @@ return _ol_extent_.getForViewAndSize(center,resolution,rotation,size);};/**
  */_ol_View_.prototype.getResolutions=function(){return this.resolutions_;};/**
  * Get the resolution for a provided extent (in map units) and size (in pixels).
  * @param {ol.Extent} extent Extent.
- * @param {ol.Size} size Box pixel size.
+ * @param {ol.Size=} opt_size Box pixel size.
  * @return {number} The resolution at which the provided extent will render at
  *     the given size.
- */_ol_View_.prototype.getResolutionForExtent=function(extent,size){var xResolution=_ol_extent_.getWidth(extent)/size[0];var yResolution=_ol_extent_.getHeight(extent)/size[1];return Math.max(xResolution,yResolution);};/**
+ * @api
+ */_ol_View_.prototype.getResolutionForExtent=function(extent,opt_size){var size=opt_size||this.getSizeFromViewport_();var xResolution=_ol_extent_.getWidth(extent)/size[0];var yResolution=_ol_extent_.getHeight(extent)/size[1];return Math.max(xResolution,yResolution);};/**
  * Return a function that returns a value between 0 and 1 for a
  * resolution. Exponential scaling is assumed.
  * @param {number=} opt_power Power.
  * @return {function(number): number} Resolution for value function.
  */_ol_View_.prototype.getResolutionForValueFunction=function(opt_power){var power=opt_power||2;var maxResolution=this.maxResolution_;var minResolution=this.minResolution_;var max=Math.log(maxResolution/minResolution)/Math.log(power);return(/**
-       * @param {number} value Value.
-       * @return {number} Resolution.
-       */function(value){var resolution=maxResolution/Math.pow(power,value*max);return resolution;});};/**
+     * @param {number} value Value.
+     * @return {number} Resolution.
+     */function(value){var resolution=maxResolution/Math.pow(power,value*max);return resolution;});};/**
  * Get the view rotation.
  * @return {number} The rotation of the view in radians.
  * @observable
@@ -9976,9 +10243,9 @@ return _ol_extent_.getForViewAndSize(center,resolution,rotation,size);};/**
  * @param {number=} opt_power Power.
  * @return {function(number): number} Value for resolution function.
  */_ol_View_.prototype.getValueForResolutionFunction=function(opt_power){var power=opt_power||2;var maxResolution=this.maxResolution_;var minResolution=this.minResolution_;var max=Math.log(maxResolution/minResolution)/Math.log(power);return(/**
-       * @param {number} resolution Resolution.
-       * @return {number} Value.
-       */function(resolution){var value=Math.log(maxResolution/resolution)/Math.log(power)/max;return value;});};/**
+     * @param {number} resolution Resolution.
+     * @return {number} Value.
+     */function(resolution){var value=Math.log(maxResolution/resolution)/Math.log(power)/max;return value;});};/**
  * @return {olx.ViewState} View state.
  */_ol_View_.prototype.getState=function(){var center=/** @type {ol.Coordinate} */this.getCenter();var projection=this.getProjection();var resolution=/** @type {number} */this.getResolution();var rotation=this.getRotation();return(/** @type {olx.ViewState} */{center:center.slice(),projection:projection!==undefined?projection:null,resolution:resolution,rotation:rotation});};/**
  * Get the current zoom level. Return undefined if the current
@@ -9991,6 +10258,11 @@ return _ol_extent_.getForViewAndSize(center,resolution,rotation,size);};/**
  * @return {number|undefined} The zoom level for the provided resolution.
  * @api
  */_ol_View_.prototype.getZoomForResolution=function(resolution){var zoom;if(resolution>=this.minResolution_&&resolution<=this.maxResolution_){var offset=this.minZoom_||0;var max,zoomFactor;if(this.resolutions_){var nearest=_ol_array_.linearFindNearest(this.resolutions_,resolution,1);offset+=nearest;if(nearest==this.resolutions_.length-1){return offset;}max=this.resolutions_[nearest];zoomFactor=max/this.resolutions_[nearest+1];}else{max=this.maxResolution_;zoomFactor=this.zoomFactor_;}zoom=offset+Math.log(max/resolution)/Math.log(zoomFactor);}return zoom;};/**
+ * Get the resolution for a zoom level.
+ * @param {number} zoom Zoom level.
+ * @return {number} The view resolution for the provided zoom level.
+ * @api
+ */_ol_View_.prototype.getResolutionForZoom=function(zoom){return(/** @type {number} */this.constrainResolution(this.maxResolution_,zoom-this.minZoom_,0));};/**
  * Fit the given geometry or extent based on the given map size and border.
  * The size is pixel dimensions of the box to fit the extent into.
  * In most cases you will want to use the map size, that is `map.getSize()`.
@@ -10005,7 +10277,7 @@ geometry=_ol_geom_Polygon_.fromExtent(geometryOrExtent);}else if(geometryOrExten
 var rotation=this.getRotation();var cosAngle=Math.cos(-rotation);var sinAngle=Math.sin(-rotation);var minRotX=+Infinity;var minRotY=+Infinity;var maxRotX=-Infinity;var maxRotY=-Infinity;var stride=geometry.getStride();for(var i=0,ii=coords.length;i<ii;i+=stride){var rotX=coords[i]*cosAngle-coords[i+1]*sinAngle;var rotY=coords[i]*sinAngle+coords[i+1]*cosAngle;minRotX=Math.min(minRotX,rotX);minRotY=Math.min(minRotY,rotY);maxRotX=Math.max(maxRotX,rotX);maxRotY=Math.max(maxRotY,rotY);}// calculate resolution
 var resolution=this.getResolutionForExtent([minRotX,minRotY,maxRotX,maxRotY],[size[0]-padding[1]-padding[3],size[1]-padding[0]-padding[2]]);resolution=isNaN(resolution)?minResolution:Math.max(resolution,minResolution);if(constrainResolution){var constrainedResolution=this.constrainResolution(resolution,0,0);if(!nearest&&constrainedResolution<resolution){constrainedResolution=this.constrainResolution(constrainedResolution,-1,0);}resolution=constrainedResolution;}// calculate center
 sinAngle=-sinAngle;// go back to original rotation
-var centerRotX=(minRotX+maxRotX)/2;var centerRotY=(minRotY+maxRotY)/2;centerRotX+=(padding[1]-padding[3])/2*resolution;centerRotY+=(padding[0]-padding[2])/2*resolution;var centerX=centerRotX*cosAngle-centerRotY*sinAngle;var centerY=centerRotY*cosAngle+centerRotX*sinAngle;var center=[centerX,centerY];if(options.duration!==undefined){this.animate({resolution:resolution,center:center,duration:options.duration,easing:options.easing});}else{this.setResolution(resolution);this.setCenter(center);}};/**
+var centerRotX=(minRotX+maxRotX)/2;var centerRotY=(minRotY+maxRotY)/2;centerRotX+=(padding[1]-padding[3])/2*resolution;centerRotY+=(padding[0]-padding[2])/2*resolution;var centerX=centerRotX*cosAngle-centerRotY*sinAngle;var centerY=centerRotY*cosAngle+centerRotX*sinAngle;var center=[centerX,centerY];var callback=options.callback?options.callback:_ol_.nullFunction;if(options.duration!==undefined){this.animate({resolution:resolution,center:center,duration:options.duration,easing:options.easing},callback);}else{this.setResolution(resolution);this.setCenter(center);setTimeout(callback.bind(undefined,true),0);}};/**
  * Center on coordinate and view position.
  * @param {ol.Coordinate} coordinate Coordinate.
  * @param {ol.Size} size Box pixel size.
@@ -10044,7 +10316,7 @@ var centerX=rotX*cosAngle-rotY*sinAngle;var centerY=rotY*cosAngle+rotX*sinAngle;
  * Zoom to a specific zoom level.
  * @param {number} zoom Zoom level.
  * @api
- */_ol_View_.prototype.setZoom=function(zoom){var resolution=this.constrainResolution(this.maxResolution_,zoom-this.minZoom_,0);this.setResolution(resolution);};/**
+ */_ol_View_.prototype.setZoom=function(zoom){this.setResolution(this.getResolutionForZoom(zoom));};/**
  * @param {olx.ViewOptions} options View options.
  * @private
  * @return {ol.CenterConstraintType} The constraint.
@@ -10065,6 +10337,10 @@ maxZoom=minZoom+Math.floor(Math.log(maxResolution/minResolution)/Math.log(zoomFa
  * @param {olx.ViewOptions} options View options.
  * @return {ol.RotationConstraintType} Rotation constraint.
  */_ol_View_.createRotationConstraint_=function(options){var enableRotation=options.enableRotation!==undefined?options.enableRotation:true;if(enableRotation){var constrainRotation=options.constrainRotation;if(constrainRotation===undefined||constrainRotation===true){return _ol_RotationConstraint_.createSnapToZero();}else if(constrainRotation===false){return _ol_RotationConstraint_.none;}else if(typeof constrainRotation==='number'){return _ol_RotationConstraint_.createSnapToN(constrainRotation);}else{return _ol_RotationConstraint_.none;}}else{return _ol_RotationConstraint_.disable;}};/**
+ * Determine if an animation involves no view change.
+ * @param {ol.ViewAnimation} animation The animation.
+ * @return {boolean} The animation involves no view change.
+ */_ol_View_.isNoopAnimation=function(animation){if(animation.sourceCenter&&animation.targetCenter){if(!_ol_coordinate_.equals(animation.sourceCenter,animation.targetCenter)){return false;}}if(animation.sourceResolution!==animation.targetResolution){return false;}if(animation.sourceRotation!==animation.targetRotation){return false;}return true;};/**
  * Constants for event names.
  * @enum {string}
  */var _ol_pointer_EventType_={POINTERMOVE:'pointermove',POINTERDOWN:'pointerdown',POINTERUP:'pointerup',POINTEROVER:'pointerover',POINTEROUT:'pointerout',POINTERENTER:'pointerenter',POINTERLEAVE:'pointerleave',POINTERCANCEL:'pointercancel'};/**
@@ -10082,11 +10358,6 @@ maxZoom=minZoom+Math.floor(Math.log(maxResolution/minResolution)/Math.log(zoomFa
  * List of events supported by this source.
  * @return {Array.<string>} Event names
  */_ol_pointer_EventSource_.prototype.getEvents=function(){return Object.keys(this.mapping_);};/**
- * Returns a mapping between the supported event types and
- * the handlers that should handle an event.
- * @return {Object.<string, function(Event)>}
- *         Event/Handler mapping
- */_ol_pointer_EventSource_.prototype.getMapping=function(){return this.mapping_;};/**
  * Returns the handler that should handle a given event type.
  * @param {string} eventType The event type.
  * @return {function(Event)} Handler
@@ -10800,9 +11071,10 @@ this.register_();};/**
 ['pointerId',0],['width',0],['height',0],['pressure',0],['tiltX',0],['tiltY',0],['pointerType',''],['hwTimestamp',0],['isPrimary',false],// event instance
 ['type',''],['target',null],['currentTarget',null],['which',0]];/**
  * @param {ol.Map} map The map with the viewport to listen to events on.
+ * @param {number|undefined} moveTolerance The minimal distance the pointer must travel to trigger a move.
  * @constructor
  * @extends {ol.events.EventTarget}
- */var _ol_MapBrowserEventHandler_=function(map){_ol_events_EventTarget_.call(this);/**
+ */var _ol_MapBrowserEventHandler_=function(map,moveTolerance){_ol_events_EventTarget_.call(this);/**
    * This is the element that we will listen to the real events on.
    * @type {ol.Map}
    * @private
@@ -10816,6 +11088,9 @@ this.register_();};/**
    * @type {!Array.<ol.EventsKey>}
    * @private
    */this.dragListenerKeys_=[];/**
+   * @type {number}
+   * @private
+   */this.moveTolerance_=moveTolerance?moveTolerance*_ol_has_.DEVICE_PIXEL_RATIO:_ol_has_.DEVICE_PIXEL_RATIO;/**
    * The most recent "down" type event (or null if none have occurred).
    * Set on pointerdown.
    * @type {ol.pointer.PointerEvent}
@@ -10886,11 +11161,9 @@ if(!this.dragging_&&this.isMouseActionButton_(pointerEvent)){this.emulateClick_(
        */_ol_events_.listen(this.pointerEventHandler_,_ol_MapBrowserEventType_.POINTERCANCEL,this.handlePointerUp_,this));}};/**
  * @param {ol.pointer.PointerEvent} pointerEvent Pointer event.
  * @private
- */_ol_MapBrowserEventHandler_.prototype.handlePointerMove_=function(pointerEvent){// Fix IE10 on windows Surface : When you tap the tablet, it triggers
-// multiple pointermove events between pointerdown and pointerup with
-// the exact same coordinates of the pointerdown event. To avoid a
-// 'false' touchmove event to be dispatched , we test if the pointer
-// effectively moved.
+ */_ol_MapBrowserEventHandler_.prototype.handlePointerMove_=function(pointerEvent){// Between pointerdown and pointerup, pointermove events are triggered.
+// To avoid a 'false' touchmove event to be dispatched, we test if the pointer
+// moved a significant distance.
 if(this.isMoving_(pointerEvent)){this.dragging_=true;var newEvent=new _ol_MapBrowserPointerEvent_(_ol_MapBrowserEventType_.POINTERDRAG,this.map_,pointerEvent,this.dragging_);this.dispatchEvent(newEvent);}// Some native android browser triggers mousemove events during small period
 // of time. See: https://code.google.com/p/android/issues/detail?id=5491 or
 // https://code.google.com/p/android/issues/detail?id=19827
@@ -10904,7 +11177,7 @@ pointerEvent.preventDefault();};/**
  * @param {ol.pointer.PointerEvent} pointerEvent Pointer event.
  * @return {boolean} Is moving.
  * @private
- */_ol_MapBrowserEventHandler_.prototype.isMoving_=function(pointerEvent){return pointerEvent.clientX!=this.down_.clientX||pointerEvent.clientY!=this.down_.clientY;};/**
+ */_ol_MapBrowserEventHandler_.prototype.isMoving_=function(pointerEvent){return Math.abs(pointerEvent.clientX-this.down_.clientX)>this.moveTolerance_||Math.abs(pointerEvent.clientY-this.down_.clientY)>this.moveTolerance_;};/**
  * @inheritDoc
  */_ol_MapBrowserEventHandler_.prototype.disposeInternal=function(){if(this.relayedListenerKey_){_ol_events_.unlistenByKey(this.relayedListenerKey_);this.relayedListenerKey_=null;}if(this.pointerdownListenerKey_){_ol_events_.unlistenByKey(this.pointerdownListenerKey_);this.pointerdownListenerKey_=null;}this.dragListenerKeys_.forEach(_ol_events_.unlistenByKey);this.dragListenerKeys_.length=0;if(this.documentPointerEventHandler_){this.documentPointerEventHandler_.dispose();this.documentPointerEventHandler_=null;}if(this.pointerEventHandler_){this.pointerEventHandler_.dispose();this.pointerEventHandler_=null;}_ol_events_EventTarget_.prototype.disposeInternal.call(this);};/**
  * @enum {string}
@@ -11020,7 +11293,9 @@ var priority=this.priorityFunction_(element);if(priority!=_ol_structs_PriorityQu
  */_ol_TileQueue_.prototype.handleTileChange=function(event){var tile=/** @type {ol.Tile} */event.target;var state=tile.getState();if(state===_ol_TileState_.LOADED||state===_ol_TileState_.ERROR||state===_ol_TileState_.EMPTY||state===_ol_TileState_.ABORT){_ol_events_.unlisten(tile,_ol_events_EventType_.CHANGE,this.handleTileChange,this);var tileKey=tile.getKey();if(tileKey in this.tilesLoadingKeys_){delete this.tilesLoadingKeys_[tileKey];--this.tilesLoading_;}this.tileChangeCallback_();}};/**
  * @param {number} maxTotalLoading Maximum number tiles to load simultaneously.
  * @param {number} maxNewLoads Maximum number of new tiles to load.
- */_ol_TileQueue_.prototype.loadMoreTiles=function(maxTotalLoading,maxNewLoads){var newLoads=0;var tile,tileKey;while(this.tilesLoading_<maxTotalLoading&&newLoads<maxNewLoads&&this.getCount()>0){tile=/** @type {ol.Tile} */this.dequeue()[0];tileKey=tile.getKey();if(tile.getState()===_ol_TileState_.IDLE&&!(tileKey in this.tilesLoadingKeys_)){this.tilesLoadingKeys_[tileKey]=true;++this.tilesLoading_;++newLoads;tile.load();}}};// FIXME handle date line wrap
+ */_ol_TileQueue_.prototype.loadMoreTiles=function(maxTotalLoading,maxNewLoads){var newLoads=0;var abortedTiles=false;var state,tile,tileKey;while(this.tilesLoading_<maxTotalLoading&&newLoads<maxNewLoads&&this.getCount()>0){tile=/** @type {ol.Tile} */this.dequeue()[0];tileKey=tile.getKey();state=tile.getState();if(state===_ol_TileState_.ABORT){abortedTiles=true;}else if(state===_ol_TileState_.IDLE&&!(tileKey in this.tilesLoadingKeys_)){this.tilesLoadingKeys_[tileKey]=true;++this.tilesLoading_;++newLoads;tile.load();}}if(newLoads===0&&abortedTiles){// Do not stop the render loop when all wanted tiles were aborted due to
+// a small, saturated tile cache.
+this.tileChangeCallback_();}};// FIXME handle date line wrap
 /**
  * @classdesc
  * Control to show all the attributions associated with the layer sources
@@ -11208,7 +11483,10 @@ return;}var currentResolution=view.getResolution();if(currentResolution){var new
 return false;}var delay=Date.now()-this.delay_;var lastIndex=this.points_.length-3;if(this.points_[lastIndex+2]<delay){// the last tracked point is too old, which means that the user stopped
 // panning before releasing the map
 return false;}// get the first point which still falls into the delay time
-var firstIndex=lastIndex-3;while(firstIndex>0&&this.points_[firstIndex+2]>delay){firstIndex-=3;}var duration=this.points_[lastIndex+2]-this.points_[firstIndex+2];var dx=this.points_[lastIndex]-this.points_[firstIndex];var dy=this.points_[lastIndex+1]-this.points_[firstIndex+1];this.angle_=Math.atan2(dy,dx);this.initialVelocity_=Math.sqrt(dx*dx+dy*dy)/duration;return this.initialVelocity_>this.minVelocity_;};/**
+var firstIndex=lastIndex-3;while(firstIndex>0&&this.points_[firstIndex+2]>delay){firstIndex-=3;}var duration=this.points_[lastIndex+2]-this.points_[firstIndex+2];// we don't want a duration of 0 (divide by zero)
+// we also make sure the user panned for a duration of at least one frame
+// (1/60s) to compute sane displacement values
+if(duration<1000/60){return false;}var dx=this.points_[lastIndex]-this.points_[firstIndex];var dy=this.points_[lastIndex+1]-this.points_[firstIndex+1];this.angle_=Math.atan2(dy,dx);this.initialVelocity_=Math.sqrt(dx*dx+dy*dy)/duration;return this.initialVelocity_>this.minVelocity_;};/**
  * @return {number} Total distance travelled (pixels).
  */_ol_Kinetic_.prototype.getDistance=function(){return(this.minVelocity_-this.initialVelocity_)/this.decay_;};/**
  * @return {number} Angle of the kinetic panning animation (radians).
@@ -11302,7 +11580,7 @@ this.noKinetic_=this.targetPointers.length>1;return true;}else{return false;}};/
  * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
  * @this {ol.interaction.DragRotate}
  * @private
- */_ol_interaction_DragRotate_.handleDragEvent_=function(mapBrowserEvent){if(!_ol_events_condition_.mouseOnly(mapBrowserEvent)){return;}var map=mapBrowserEvent.map;var size=map.getSize();var offset=mapBrowserEvent.pixel;var theta=Math.atan2(size[1]/2-offset[1],offset[0]-size[0]/2);if(this.lastAngle_!==undefined){var delta=theta-this.lastAngle_;var view=map.getView();var rotation=view.getRotation();_ol_interaction_Interaction_.rotateWithoutConstraints(view,rotation-delta);}this.lastAngle_=theta;};/**
+ */_ol_interaction_DragRotate_.handleDragEvent_=function(mapBrowserEvent){if(!_ol_events_condition_.mouseOnly(mapBrowserEvent)){return;}var map=mapBrowserEvent.map;var view=map.getView();if(view.getConstraints().rotation===_ol_RotationConstraint_.disable){return;}var size=map.getSize();var offset=mapBrowserEvent.pixel;var theta=Math.atan2(size[1]/2-offset[1],offset[0]-size[0]/2);if(this.lastAngle_!==undefined){var delta=theta-this.lastAngle_;var rotation=view.getRotation();_ol_interaction_Interaction_.rotateWithoutConstraints(view,rotation-delta);}this.lastAngle_=theta;};/**
  * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
  * @return {boolean} Stop drag sequence?
  * @this {ol.interaction.DragRotate}
@@ -11398,8 +11676,8 @@ coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol
  * @return {ol.geom.Polygon} Geometry.
  * @api
  */_ol_interaction_DragBox_.prototype.getGeometry=function(){return this.box_.getGeometry();};/**
- * To be overriden by child classes.
- * FIXME: use constructor option instead of relying on overridding.
+ * To be overridden by child classes.
+ * FIXME: use constructor option instead of relying on overriding.
  * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
  * @protected
  */_ol_interaction_DragBox_.prototype.onBoxEnd=_ol_.nullFunction;/**
@@ -11644,11 +11922,11 @@ var delta;if(mapBrowserEvent.type==_ol_events_EventType_.WHEEL){delta=wheelEvent
  * @this {ol.interaction.PinchRotate}
  * @private
  */_ol_interaction_PinchRotate_.handleDragEvent_=function(mapBrowserEvent){var rotationDelta=0.0;var touch0=this.targetPointers[0];var touch1=this.targetPointers[1];// angle between touches
-var angle=Math.atan2(touch1.clientY-touch0.clientY,touch1.clientX-touch0.clientX);if(this.lastAngle_!==undefined){var delta=angle-this.lastAngle_;this.rotationDelta_+=delta;if(!this.rotating_&&Math.abs(this.rotationDelta_)>this.threshold_){this.rotating_=true;}rotationDelta=delta;}this.lastAngle_=angle;var map=mapBrowserEvent.map;// rotate anchor point.
+var angle=Math.atan2(touch1.clientY-touch0.clientY,touch1.clientX-touch0.clientX);if(this.lastAngle_!==undefined){var delta=angle-this.lastAngle_;this.rotationDelta_+=delta;if(!this.rotating_&&Math.abs(this.rotationDelta_)>this.threshold_){this.rotating_=true;}rotationDelta=delta;}this.lastAngle_=angle;var map=mapBrowserEvent.map;var view=map.getView();if(view.getConstraints().rotation===_ol_RotationConstraint_.disable){return;}// rotate anchor point.
 // FIXME: should be the intersection point between the lines:
 //     touch0,touch1 and previousTouch0,previousTouch1
 var viewportPosition=map.getViewport().getBoundingClientRect();var centroid=_ol_interaction_Pointer_.centroid(this.targetPointers);centroid[0]-=viewportPosition.left;centroid[1]-=viewportPosition.top;this.anchor_=map.getCoordinateFromPixel(centroid);// rotate
-if(this.rotating_){var view=map.getView();var rotation=view.getRotation();map.render();_ol_interaction_Interaction_.rotateWithoutConstraints(view,rotation+rotationDelta,this.anchor_);}};/**
+if(this.rotating_){var rotation=view.getRotation();map.render();_ol_interaction_Interaction_.rotateWithoutConstraints(view,rotation+rotationDelta,this.anchor_);}};/**
  * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
  * @return {boolean} Stop drag sequence?
  * @this {ol.interaction.PinchRotate}
@@ -11749,7 +12027,7 @@ layers=layers;}}else{layers=new _ol_Collection_(undefined,{unique:true});}this.s
  * @inheritDoc
  */_ol_layer_Group_.prototype.createRenderer=function(mapRenderer){};/**
  * @private
- */_ol_layer_Group_.prototype.handleLayerChange_=function(){if(this.getVisible()){this.changed();}};/**
+ */_ol_layer_Group_.prototype.handleLayerChange_=function(){this.changed();};/**
  * @param {ol.events.Event} event Event.
  * @private
  */_ol_layer_Group_.prototype.handleLayersChanged_=function(event){this.layersListenerKeys_.forEach(_ol_events_.unlistenByKey);this.layersListenerKeys_.length=0;var layers=this.getLayers();this.layersListenerKeys_.push(_ol_events_.listen(layers,_ol_CollectionEventType_.ADD,this.handleLayersAdd_,this),_ol_events_.listen(layers,_ol_CollectionEventType_.REMOVE,this.handleLayersRemove_,this));for(var id in this.listenerKeys_){this.listenerKeys_[id].forEach(_ol_events_.unlistenByKey);}_ol_obj_.clear(this.listenerKeys_);var layersArray=layers.getArray();var i,ii,layer;for(i=0,ii=layersArray.length;i<ii;i++){layer=layersArray[i];this.listenerKeys_[_ol_.getUid(layer).toString()]=[_ol_events_.listen(layer,_ol_ObjectEventType_.PROPERTYCHANGE,this.handleLayerChange_,this),_ol_events_.listen(layer,_ol_events_EventType_.CHANGE,this.handleLayerChange_,this)];}this.changed();};/**
@@ -12069,7 +12347,7 @@ var _ol_renderer_webgl_Map_;// FIXME recheck layer/map projection compatibility 
    * The extent at the previous 'moveend' event.
    * @private
    * @type {ol.Extent}
-   */this.previousExtent_=_ol_extent_.createEmpty();/**
+   */this.previousExtent_=null;/**
    * @private
    * @type {?ol.EventsKey}
    */this.viewPropertyListenerKey_=null;/**
@@ -12091,7 +12369,7 @@ this.viewport_.style.msTouchAction='none';this.viewport_.style.touchAction='none
    */this.overlayContainerStopEvent_=document.createElement('DIV');this.overlayContainerStopEvent_.className='ol-overlaycontainer-stopevent';var overlayEvents=[_ol_events_EventType_.CLICK,_ol_events_EventType_.DBLCLICK,_ol_events_EventType_.MOUSEDOWN,_ol_events_EventType_.TOUCHSTART,_ol_events_EventType_.MSPOINTERDOWN,_ol_MapBrowserEventType_.POINTERDOWN,_ol_events_EventType_.MOUSEWHEEL,_ol_events_EventType_.WHEEL];for(var i=0,ii=overlayEvents.length;i<ii;++i){_ol_events_.listen(this.overlayContainerStopEvent_,overlayEvents[i],_ol_events_Event_.stopPropagation);}this.viewport_.appendChild(this.overlayContainerStopEvent_);/**
    * @private
    * @type {ol.MapBrowserEventHandler}
-   */this.mapBrowserEventHandler_=new _ol_MapBrowserEventHandler_(this);for(var key in _ol_MapBrowserEventType_){_ol_events_.listen(this.mapBrowserEventHandler_,_ol_MapBrowserEventType_[key],this.handleMapBrowserEvent,this);}/**
+   */this.mapBrowserEventHandler_=new _ol_MapBrowserEventHandler_(this,options.moveTolerance);for(var key in _ol_MapBrowserEventType_){_ol_events_.listen(this.mapBrowserEventHandler_,_ol_MapBrowserEventType_[key],this.handleMapBrowserEvent,this);}/**
    * @private
    * @type {Element|Document}
    */this.keyboardEventTarget_=optionsInternal.keyboardEventTarget;/**
@@ -12177,7 +12455,7 @@ this.setProperties(optionsInternal.values);this.controls_.forEach(/**
  */_ol_Map_.prototype.disposeInternal=function(){this.mapBrowserEventHandler_.dispose();this.renderer_.dispose();_ol_events_.unlisten(this.viewport_,_ol_events_EventType_.WHEEL,this.handleBrowserEvent,this);_ol_events_.unlisten(this.viewport_,_ol_events_EventType_.MOUSEWHEEL,this.handleBrowserEvent,this);if(this.handleResize_!==undefined){window.removeEventListener(_ol_events_EventType_.RESIZE,this.handleResize_,false);this.handleResize_=undefined;}if(this.animationDelayKey_){cancelAnimationFrame(this.animationDelayKey_);this.animationDelayKey_=undefined;}this.setTarget(null);_ol_Object_.prototype.disposeInternal.call(this);};/**
  * Detect features that intersect a pixel on the viewport, and execute a
  * callback with each intersecting feature. Layers included in the detection can
- * be configured through `opt_layerFilter`.
+ * be configured through the `layerFilter` option in `opt_options`.
  * @param {ol.Pixel} pixel Pixel.
  * @param {function(this: S, (ol.Feature|ol.render.Feature),
  *     ol.layer.Layer): T} callback Feature callback. The callback will be
@@ -12193,12 +12471,19 @@ this.setProperties(optionsInternal.values);this.controls_.forEach(/**
  * @template S,T
  * @api
  */_ol_Map_.prototype.forEachFeatureAtPixel=function(pixel,callback,opt_options){if(!this.frameState_){return;}var coordinate=this.getCoordinateFromPixel(pixel);opt_options=opt_options!==undefined?opt_options:{};var hitTolerance=opt_options.hitTolerance!==undefined?opt_options.hitTolerance*this.frameState_.pixelRatio:0;var layerFilter=opt_options.layerFilter!==undefined?opt_options.layerFilter:_ol_functions_.TRUE;return this.renderer_.forEachFeatureAtCoordinate(coordinate,this.frameState_,hitTolerance,callback,null,layerFilter,null);};/**
+ * Get all features that intersect a pixel on the viewport.
+ * @param {ol.Pixel} pixel Pixel.
+ * @param {olx.AtPixelOptions=} opt_options Optional options.
+ * @return {Array.<ol.Feature|ol.render.Feature>} The detected features or
+ * `null` if none were found.
+ * @api
+ */_ol_Map_.prototype.getFeaturesAtPixel=function(pixel,opt_options){var features=null;this.forEachFeatureAtPixel(pixel,function(feature){if(!features){features=[];}features.push(feature);},opt_options);return features;};/**
  * Detect layers that have a color value at a pixel on the viewport, and
  * execute a callback with each matching layer. Layers included in the
  * detection can be configured through `opt_layerFilter`.
  * @param {ol.Pixel} pixel Pixel.
  * @param {function(this: S, ol.layer.Layer, (Uint8ClampedArray|Uint8Array)): T} callback
- *     Layer callback. This callback will recieve two arguments: first is the
+ *     Layer callback. This callback will receive two arguments: first is the
  *     {@link ol.layer.Layer layer}, second argument is an array representing
  *     [R, G, B, A] pixel values (0 - 255) and will be `null` for layer types
  *     that do not currently support this argument. To stop detection, callback
@@ -12408,7 +12693,7 @@ var targetElement;if(this.getTarget()){targetElement=this.getTargetElement();}if
  */_ol_Map_.prototype.removeOverlay=function(overlay){return this.getOverlays().remove(overlay);};/**
  * @param {number} time Time.
  * @private
- */_ol_Map_.prototype.renderFrame_=function(time){var i,ii,viewState;var size=this.getSize();var view=this.getView();var extent=_ol_extent_.createEmpty();/** @type {?olx.FrameState} */var frameState=null;if(size!==undefined&&_ol_size_.hasArea(size)&&view&&view.isDef()){var viewHints=view.getHints(this.frameState_?this.frameState_.viewHints:undefined);var layerStatesArray=this.getLayerGroup().getLayerStatesArray();var layerStates={};for(i=0,ii=layerStatesArray.length;i<ii;++i){layerStates[_ol_.getUid(layerStatesArray[i].layer)]=layerStatesArray[i];}viewState=view.getState();frameState=/** @type {olx.FrameState} */{animate:false,attributions:{},coordinateToPixelTransform:this.coordinateToPixelTransform_,extent:extent,focus:!this.focus_?viewState.center:this.focus_,index:this.frameIndex_++,layerStates:layerStates,layerStatesArray:layerStatesArray,logos:_ol_obj_.assign({},this.logos_),pixelRatio:this.pixelRatio_,pixelToCoordinateTransform:this.pixelToCoordinateTransform_,postRenderFunctions:[],size:size,skippedFeatureUids:this.skippedFeatureUids_,tileQueue:this.tileQueue_,time:time,usedTiles:{},viewState:viewState,viewHints:viewHints,wantedTiles:{}};}if(frameState){frameState.extent=_ol_extent_.getForViewAndSize(viewState.center,viewState.resolution,viewState.rotation,frameState.size,extent);}this.frameState_=frameState;this.renderer_.renderFrame(frameState);if(frameState){if(frameState.animate){this.render();}Array.prototype.push.apply(this.postRenderFunctions_,frameState.postRenderFunctions);var idle=!frameState.viewHints[_ol_ViewHint_.ANIMATING]&&!frameState.viewHints[_ol_ViewHint_.INTERACTING]&&!_ol_extent_.equals(frameState.extent,this.previousExtent_);if(idle){this.dispatchEvent(new _ol_MapEvent_(_ol_MapEventType_.MOVEEND,this,frameState));_ol_extent_.clone(frameState.extent,this.previousExtent_);}}this.dispatchEvent(new _ol_MapEvent_(_ol_MapEventType_.POSTRENDER,this,frameState));setTimeout(this.handlePostRender.bind(this),0);};/**
+ */_ol_Map_.prototype.renderFrame_=function(time){var i,ii,viewState;var size=this.getSize();var view=this.getView();var extent=_ol_extent_.createEmpty();var previousFrameState=this.frameState_;/** @type {?olx.FrameState} */var frameState=null;if(size!==undefined&&_ol_size_.hasArea(size)&&view&&view.isDef()){var viewHints=view.getHints(this.frameState_?this.frameState_.viewHints:undefined);var layerStatesArray=this.getLayerGroup().getLayerStatesArray();var layerStates={};for(i=0,ii=layerStatesArray.length;i<ii;++i){layerStates[_ol_.getUid(layerStatesArray[i].layer)]=layerStatesArray[i];}viewState=view.getState();frameState=/** @type {olx.FrameState} */{animate:false,attributions:{},coordinateToPixelTransform:this.coordinateToPixelTransform_,extent:extent,focus:!this.focus_?viewState.center:this.focus_,index:this.frameIndex_++,layerStates:layerStates,layerStatesArray:layerStatesArray,logos:_ol_obj_.assign({},this.logos_),pixelRatio:this.pixelRatio_,pixelToCoordinateTransform:this.pixelToCoordinateTransform_,postRenderFunctions:[],size:size,skippedFeatureUids:this.skippedFeatureUids_,tileQueue:this.tileQueue_,time:time,usedTiles:{},viewState:viewState,viewHints:viewHints,wantedTiles:{}};}if(frameState){frameState.extent=_ol_extent_.getForViewAndSize(viewState.center,viewState.resolution,viewState.rotation,frameState.size,extent);}this.frameState_=frameState;this.renderer_.renderFrame(frameState);if(frameState){if(frameState.animate){this.render();}Array.prototype.push.apply(this.postRenderFunctions_,frameState.postRenderFunctions);if(previousFrameState){var moveStart=!this.previousExtent_||!_ol_extent_.isEmpty(this.previousExtent_)&&!_ol_extent_.equals(frameState.extent,this.previousExtent_);if(moveStart){this.dispatchEvent(new _ol_MapEvent_(_ol_MapEventType_.MOVESTART,this,previousFrameState));this.previousExtent_=_ol_extent_.createOrUpdateEmpty(this.previousExtent_);}}var idle=this.previousExtent_&&!frameState.viewHints[_ol_ViewHint_.ANIMATING]&&!frameState.viewHints[_ol_ViewHint_.INTERACTING]&&!_ol_extent_.equals(frameState.extent,this.previousExtent_);if(idle){this.dispatchEvent(new _ol_MapEvent_(_ol_MapEventType_.MOVEEND,this,frameState));_ol_extent_.clone(frameState.extent,this.previousExtent_);}}this.dispatchEvent(new _ol_MapEvent_(_ol_MapEventType_.POSTRENDER,this,frameState));setTimeout(this.handlePostRender.bind(this),0);};/**
  * Sets the layergroup of this map.
  * @param {ol.layer.Group} layerGroup A layer group containing the layers in
  *     this map.
@@ -12482,10 +12767,6 @@ overlays=options.overlays;}}else{overlays=new _ol_Collection_();}return{controls
    */this.key='';};_ol_.inherits(_ol_Tile_,_ol_events_EventTarget_);/**
  * @protected
  */_ol_Tile_.prototype.changed=function(){this.dispatchEvent(_ol_events_EventType_.CHANGE);};/**
- * Get the HTML image element for this tile (may be a Canvas, Image, or Video).
- * @abstract
- * @return {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement} Image.
- */_ol_Tile_.prototype.getImage=function(){};/**
  * @return {string} Key.
  */_ol_Tile_.prototype.getKey=function(){return this.key+'/'+this.tileCoord;};/**
  * Get the interim tile most suitable for rendering using the chain of interim
@@ -12515,6 +12796,8 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
  */_ol_Tile_.prototype.getTileCoord=function(){return this.tileCoord;};/**
  * @return {ol.TileState} State.
  */_ol_Tile_.prototype.getState=function(){return this.state;};/**
+ * @param {ol.TileState} state State.
+ */_ol_Tile_.prototype.setState=function(state){this.state=state;this.changed();};/**
  * Load the image or retry if loading previously failed.
  * Loading is taken care of by the tile queue, and calling this method is
  * only needed for preloading or for reloading in case of an error.
@@ -12535,7 +12818,7 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
    * @type {string}
    */this.src_=src;/**
    * @private
-   * @type {Image}
+   * @type {Image|HTMLCanvasElement}
    */this.image_=new Image();if(crossOrigin!==null){this.image_.crossOrigin=crossOrigin;}/**
    * @private
    * @type {Array.<ol.EventsKey>}
@@ -12544,9 +12827,9 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
    * @type {ol.TileLoadFunctionType}
    */this.tileLoadFunction_=tileLoadFunction;};_ol_.inherits(_ol_ImageTile_,_ol_Tile_);/**
  * @inheritDoc
- */_ol_ImageTile_.prototype.disposeInternal=function(){if(this.state==_ol_TileState_.LOADING){this.unlistenImage_();}if(this.interimTile){this.interimTile.dispose();}this.state=_ol_TileState_.ABORT;this.changed();_ol_Tile_.prototype.disposeInternal.call(this);};/**
- * Get the image element for this tile.
- * @inheritDoc
+ */_ol_ImageTile_.prototype.disposeInternal=function(){if(this.state==_ol_TileState_.LOADING){this.unlistenImage_();this.image_.src=_ol_ImageTile_.blankImage.toDataURL('image/png');}if(this.interimTile){this.interimTile.dispose();}this.state=_ol_TileState_.ABORT;this.changed();_ol_Tile_.prototype.disposeInternal.call(this);};/**
+ * Get the HTML image element for this tile (may be a Canvas, Image, or Video).
+ * @return {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement} Image.
  * @api
  */_ol_ImageTile_.prototype.getImage=function(){return this.image_;};/**
  * @inheritDoc
@@ -12554,7 +12837,7 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
  * Tracks loading or read errors.
  *
  * @private
- */_ol_ImageTile_.prototype.handleImageError_=function(){this.state=_ol_TileState_.ERROR;this.unlistenImage_();this.changed();};/**
+ */_ol_ImageTile_.prototype.handleImageError_=function(){this.state=_ol_TileState_.ERROR;this.unlistenImage_();this.image_=_ol_ImageTile_.blankImage;this.changed();};/**
  * Tracks successful image load.
  *
  * @private
@@ -12566,6 +12849,9 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
  *
  * @private
  */_ol_ImageTile_.prototype.unlistenImage_=function(){this.imageListenerKeys_.forEach(_ol_events_.unlistenByKey);this.imageListenerKeys_=null;};/**
+ * A blank image.
+ * @type {HTMLCanvasElement}
+ */_ol_ImageTile_.blankImage=function(){var ctx=_ol_dom_.createCanvasContext2D(1,1);ctx.fillStyle='rgba(0,0,0,0)';ctx.fillRect(0,0,1,1);return ctx.canvas;}();/**
  * @constructor
  * @extends {ol.structs.LRUCache.<ol.Tile>}
  * @param {number=} opt_highWaterMark High water mark.
@@ -12591,7 +12877,7 @@ prev.interimTile=tile.interimTile;}else{prev=tile;}tile=prev.interimTile;}while(
 var sourceResolution=_ol_proj_.getPointResolution(targetProj,targetResolution,targetCenter);var targetMetersPerUnit=targetProj.getMetersPerUnit();if(targetMetersPerUnit!==undefined){sourceResolution*=targetMetersPerUnit;}var sourceMetersPerUnit=sourceProj.getMetersPerUnit();if(sourceMetersPerUnit!==undefined){sourceResolution/=sourceMetersPerUnit;}// Based on the projection properties, the point resolution at the specified
 // coordinates may be slightly different. We need to reverse-compensate this
 // in order to achieve optimal results.
-var compensationFactor=_ol_proj_.getPointResolution(sourceProj,sourceResolution,sourceCenter)/sourceResolution;if(isFinite(compensationFactor)&&compensationFactor>0){sourceResolution/=compensationFactor;}return sourceResolution;};/**
+var sourceExtent=sourceProj.getExtent();if(!sourceExtent||_ol_extent_.containsCoordinate(sourceExtent,sourceCenter)){var compensationFactor=_ol_proj_.getPointResolution(sourceProj,sourceResolution,sourceCenter)/sourceResolution;if(isFinite(compensationFactor)&&compensationFactor>0){sourceResolution/=compensationFactor;}}return sourceResolution;};/**
  * Enlarge the clipping triangle point by 1 pixel to ensure the edges overlap
  * in order to mask gaps caused by antialiasing.
  *
@@ -12783,7 +13069,8 @@ this.state=_ol_TileState_.EMPTY;return;}var errorThresholdInPixels=opt_errorThre
 this.state=_ol_TileState_.EMPTY;return;}this.sourceZ_=sourceTileGrid.getZForResolution(sourceResolution);var sourceExtent=this.triangulation_.calculateSourceExtent();if(maxSourceExtent){if(sourceProj.canWrapX()){sourceExtent[1]=_ol_math_.clamp(sourceExtent[1],maxSourceExtent[1],maxSourceExtent[3]);sourceExtent[3]=_ol_math_.clamp(sourceExtent[3],maxSourceExtent[1],maxSourceExtent[3]);}else{sourceExtent=_ol_extent_.getIntersection(sourceExtent,maxSourceExtent);}}if(!_ol_extent_.getArea(sourceExtent)){this.state=_ol_TileState_.EMPTY;}else{var sourceRange=sourceTileGrid.getTileRangeForExtentAndZ(sourceExtent,this.sourceZ_);for(var srcX=sourceRange.minX;srcX<=sourceRange.maxX;srcX++){for(var srcY=sourceRange.minY;srcY<=sourceRange.maxY;srcY++){var tile=getTileFunction(this.sourceZ_,srcX,srcY,pixelRatio);if(tile){this.sourceTiles_.push(tile);}}}if(this.sourceTiles_.length===0){this.state=_ol_TileState_.EMPTY;}}};_ol_.inherits(_ol_reproj_Tile_,_ol_Tile_);/**
  * @inheritDoc
  */_ol_reproj_Tile_.prototype.disposeInternal=function(){if(this.state==_ol_TileState_.LOADING){this.unlistenSources_();}_ol_Tile_.prototype.disposeInternal.call(this);};/**
- * @inheritDoc
+ * Get the HTML Canvas element for this tile.
+ * @return {HTMLCanvasElement} Canvas.
  */_ol_reproj_Tile_.prototype.getImage=function(){return this.canvas_;};/**
  * @private
  */_ol_reproj_Tile_.prototype.reproject_=function(){var sources=[];this.sourceTiles_.forEach(function(tile,i,arr){if(tile&&tile.getState()==_ol_TileState_.LOADED){sources.push({extent:this.sourceTileGrid_.getTileCoordExtent(tile.tileCoord),image:tile.getImage()});}},this);this.sourceTiles_.length=0;if(sources.length===0){this.state=_ol_TileState_.ERROR;}else{var z=this.wrappedTileCoord_[0];var size=this.targetTileGrid_.getTileSize(z);var width=typeof size==='number'?size:size[0];var height=typeof size==='number'?size:size[1];var targetResolution=this.targetTileGrid_.getResolution(z);var sourceResolution=this.sourceTileGrid_.getResolution(this.sourceZ_);var targetExtent=this.targetTileGrid_.getTileCoordExtent(this.wrappedTileCoord_);this.canvas_=_ol_reproj_.render(width,height,this.pixelRatio_,sourceResolution,this.sourceTileGrid_.getExtent(),targetResolution,targetExtent,this.triangulation_,sources,this.gutter_,this.renderEdges_);this.state=_ol_TileState_.LOADED;}this.changed();};/**
@@ -12795,11 +13082,11 @@ this.state=_ol_TileState_.EMPTY;return;}this.sourceZ_=sourceTileGrid.getZForReso
  * @param {ol.tilegrid.TileGrid} tileGrid Tile grid.
  * @return {ol.TileUrlFunctionType} Tile URL function.
  */_ol_TileUrlFunction_.createFromTemplate=function(template,tileGrid){var zRegEx=/\{z\}/g;var xRegEx=/\{x\}/g;var yRegEx=/\{y\}/g;var dashYRegEx=/\{-y\}/g;return(/**
-       * @param {ol.TileCoord} tileCoord Tile Coordinate.
-       * @param {number} pixelRatio Pixel ratio.
-       * @param {ol.proj.Projection} projection Projection.
-       * @return {string|undefined} Tile URL.
-       */function(tileCoord,pixelRatio,projection){if(!tileCoord){return undefined;}else{return template.replace(zRegEx,tileCoord[0].toString()).replace(xRegEx,tileCoord[1].toString()).replace(yRegEx,function(){var y=-tileCoord[2]-1;return y.toString();}).replace(dashYRegEx,function(){var z=tileCoord[0];var range=tileGrid.getFullTileRange(z);_ol_asserts_.assert(range,55);// The {-y} placeholder requires a tile grid with extent
+     * @param {ol.TileCoord} tileCoord Tile Coordinate.
+     * @param {number} pixelRatio Pixel ratio.
+     * @param {ol.proj.Projection} projection Projection.
+     * @return {string|undefined} Tile URL.
+     */function(tileCoord,pixelRatio,projection){if(!tileCoord){return undefined;}else{return template.replace(zRegEx,tileCoord[0].toString()).replace(xRegEx,tileCoord[1].toString()).replace(yRegEx,function(){var y=-tileCoord[2]-1;return y.toString();}).replace(dashYRegEx,function(){var z=tileCoord[0];var range=tileGrid.getFullTileRange(z);_ol_asserts_.assert(range,55);// The {-y} placeholder requires a tile grid with extent
 var y=range.getHeight()+tileCoord[2];return y.toString();});}});};/**
  * @param {Array.<string>} templates Templates.
  * @param {ol.tilegrid.TileGrid} tileGrid Tile grid.
@@ -12808,11 +13095,11 @@ var y=range.getHeight()+tileCoord[2];return y.toString();});}});};/**
  * @param {Array.<ol.TileUrlFunctionType>} tileUrlFunctions Tile URL Functions.
  * @return {ol.TileUrlFunctionType} Tile URL function.
  */_ol_TileUrlFunction_.createFromTileUrlFunctions=function(tileUrlFunctions){if(tileUrlFunctions.length===1){return tileUrlFunctions[0];}return(/**
-       * @param {ol.TileCoord} tileCoord Tile Coordinate.
-       * @param {number} pixelRatio Pixel ratio.
-       * @param {ol.proj.Projection} projection Projection.
-       * @return {string|undefined} Tile URL.
-       */function(tileCoord,pixelRatio,projection){if(!tileCoord){return undefined;}else{var h=_ol_tilecoord_.hash(tileCoord);var index=_ol_math_.modulo(h,tileUrlFunctions.length);return tileUrlFunctions[index](tileCoord,pixelRatio,projection);}});};/**
+     * @param {ol.TileCoord} tileCoord Tile Coordinate.
+     * @param {number} pixelRatio Pixel ratio.
+     * @param {ol.proj.Projection} projection Projection.
+     * @return {string|undefined} Tile URL.
+     */function(tileCoord,pixelRatio,projection){if(!tileCoord){return undefined;}else{var h=_ol_tilecoord_.hash(tileCoord);var index=_ol_math_.modulo(h,tileUrlFunctions.length);return tileUrlFunctions[index](tileCoord,pixelRatio,projection);}});};/**
  * @param {ol.TileCoord} tileCoord Tile coordinate.
  * @param {number} pixelRatio Pixel ratio.
  * @param {ol.proj.Projection} projection Projection.
@@ -12908,11 +13195,10 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
  */_ol_source_Tile_.prototype.getTileCacheForProjection=function(projection){var thisProj=this.getProjection();if(thisProj&&!_ol_proj_.equivalent(thisProj,projection)){return null;}else{return this.tileCache;}};/**
  * Get the tile pixel ratio for this source. Subclasses may override this
  * method, which is meant to return a supported pixel ratio that matches the
- * provided `opt_pixelRatio` as close as possible. When no `opt_pixelRatio` is
- * provided, it is meant to return `this.tilePixelRatio_`.
- * @param {number=} opt_pixelRatio Pixel ratio.
+ * provided `pixelRatio` as close as possible.
+ * @param {number} pixelRatio Pixel ratio.
  * @return {number} Tile pixel ratio.
- */_ol_source_Tile_.prototype.getTilePixelRatio=function(opt_pixelRatio){return this.tilePixelRatio_;};/**
+ */_ol_source_Tile_.prototype.getTilePixelRatio=function(pixelRatio){return this.tilePixelRatio_;};/**
  * @param {number} z Z.
  * @param {number} pixelRatio Pixel ratio.
  * @param {ol.proj.Projection} projection Projection.
@@ -13071,7 +13357,7 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
  * @private
  */_ol_source_TileImage_.prototype.createTile_=function(z,x,y,pixelRatio,projection,key){var tileCoord=[z,x,y];var urlTileCoord=this.getTileCoordForTileUrlFunction(tileCoord,projection);var tileUrl=urlTileCoord?this.tileUrlFunction(urlTileCoord,pixelRatio,projection):undefined;var tile=new this.tileClass(tileCoord,tileUrl!==undefined?_ol_TileState_.IDLE:_ol_TileState_.EMPTY,tileUrl!==undefined?tileUrl:'',this.crossOrigin,this.tileLoadFunction);tile.key=key;_ol_events_.listen(tile,_ol_events_EventType_.CHANGE,this.handleTileChange,this);return tile;};/**
  * @inheritDoc
- */_ol_source_TileImage_.prototype.getTile=function(z,x,y,pixelRatio,projection){if(!_ol_.ENABLE_RASTER_REPROJECTION||!this.getProjection()||!projection||_ol_proj_.equivalent(this.getProjection(),projection)){return this.getTileInternal(z,x,y,pixelRatio,/** @type {!ol.proj.Projection} */projection);}else{var cache=this.getTileCacheForProjection(projection);var tileCoord=[z,x,y];var tile;var tileCoordKey=this.getKeyZXY.apply(this,tileCoord);if(cache.containsKey(tileCoordKey)){tile=/** @type {!ol.Tile} */cache.get(tileCoordKey);}var key=this.getKey();if(tile&&tile.key==key){return tile;}else{var sourceProjection=/** @type {!ol.proj.Projection} */this.getProjection();var sourceTileGrid=this.getTileGridForProjection(sourceProjection);var targetTileGrid=this.getTileGridForProjection(projection);var wrappedTileCoord=this.getTileCoordForTileUrlFunction(tileCoord,projection);var newTile=new _ol_reproj_Tile_(sourceProjection,sourceTileGrid,projection,targetTileGrid,tileCoord,wrappedTileCoord,this.getTilePixelRatio(pixelRatio),this.getGutterInternal(),function(z,x,y,pixelRatio){return this.getTileInternal(z,x,y,pixelRatio,sourceProjection);}.bind(this),this.reprojectionErrorThreshold_,this.renderReprojectionEdges_);newTile.key=key;if(tile){newTile.interimTile=tile;cache.replace(tileCoordKey,newTile);}else{cache.set(tileCoordKey,newTile);}return newTile;}}};/**
+ */_ol_source_TileImage_.prototype.getTile=function(z,x,y,pixelRatio,projection){if(!_ol_.ENABLE_RASTER_REPROJECTION||!this.getProjection()||!projection||_ol_proj_.equivalent(this.getProjection(),projection)){return this.getTileInternal(z,x,y,pixelRatio,/** @type {!ol.proj.Projection} */projection);}else{var cache=this.getTileCacheForProjection(projection);var tileCoord=[z,x,y];var tile;var tileCoordKey=this.getKeyZXY.apply(this,tileCoord);if(cache.containsKey(tileCoordKey)){tile=/** @type {!ol.Tile} */cache.get(tileCoordKey);}var key=this.getKey();if(tile&&tile.key==key){return tile;}else{var sourceProjection=/** @type {!ol.proj.Projection} */this.getProjection();var sourceTileGrid=this.getTileGridForProjection(sourceProjection);var targetTileGrid=this.getTileGridForProjection(projection);var wrappedTileCoord=this.getTileCoordForTileUrlFunction(tileCoord,projection);var newTile=new _ol_reproj_Tile_(sourceProjection,sourceTileGrid,projection,targetTileGrid,tileCoord,wrappedTileCoord,this.getTilePixelRatio(pixelRatio),this.getGutterInternal(),function(z,x,y,pixelRatio){return this.getTileInternal(z,x,y,pixelRatio,sourceProjection);}.bind(this),this.reprojectionErrorThreshold_,this.renderReprojectionEdges_);newTile.key=key;if(tile){newTile.interimTile=tile;newTile.refreshInterimChain();cache.replace(tileCoordKey,newTile);}else{cache.set(tileCoordKey,newTile);}return newTile;}}};/**
  * @param {number} z Tile coordinate z.
  * @param {number} x Tile coordinate x.
  * @param {number} y Tile coordinate y.
@@ -13179,7 +13465,9 @@ return _ol_renderer_canvas_Layer_.prototype.forEachLayerAtCoordinate.apply(this,
  */_ol_renderer_canvas_TileLayer_.prototype.prepareFrame=function(frameState,layerState){var pixelRatio=frameState.pixelRatio;var size=frameState.size;var viewState=frameState.viewState;var projection=viewState.projection;var viewResolution=viewState.resolution;var viewCenter=viewState.center;var tileLayer=this.getLayer();var tileSource=/** @type {ol.source.Tile} */tileLayer.getSource();var sourceRevision=tileSource.getRevision();var tileGrid=tileSource.getTileGridForProjection(projection);var z=tileGrid.getZForResolution(viewResolution,this.zDirection);var tileResolution=tileGrid.getResolution(z);var oversampling=Math.round(viewResolution/tileResolution)||1;var extent=frameState.extent;if(layerState.extent!==undefined){extent=_ol_extent_.getIntersection(extent,layerState.extent);}if(_ol_extent_.isEmpty(extent)){// Return false to prevent the rendering of the layer.
 return false;}var tileRange=tileGrid.getTileRangeForExtentAndResolution(extent,tileResolution);var imageExtent=tileGrid.getTileRangeExtent(z,tileRange);var tilePixelRatio=tileSource.getTilePixelRatio(pixelRatio);/**
    * @type {Object.<number, Object.<string, ol.Tile>>}
-   */var tilesToDrawByZ={};tilesToDrawByZ[z]={};var findLoadedTiles=this.createLoadedTileFinder(tileSource,projection,tilesToDrawByZ);var tmpExtent=this.tmpExtent;var tmpTileRange=this.tmpTileRange_;var newTiles=false;var tile,x,y;for(x=tileRange.minX;x<=tileRange.maxX;++x){for(y=tileRange.minY;y<=tileRange.maxY;++y){tile=tileSource.getTile(z,x,y,pixelRatio,projection);if(!this.isDrawableTile_(tile)){tile=tile.getInterimTile();}if(this.isDrawableTile_(tile)){if(tile.getState()==_ol_TileState_.LOADED){tilesToDrawByZ[z][tile.tileCoord.toString()]=tile;if(!newTiles&&this.renderedTiles.indexOf(tile)==-1){newTiles=true;}}continue;}var fullyLoaded=tileGrid.forEachTileCoordParentTileRange(tile.tileCoord,findLoadedTiles,null,tmpTileRange,tmpExtent);if(!fullyLoaded){var childTileRange=tileGrid.getTileCoordChildTileRange(tile.tileCoord,tmpTileRange,tmpExtent);if(childTileRange){findLoadedTiles(z+1,childTileRange);}}}}var hints=frameState.viewHints;if(!(this.renderedResolution&&Date.now()-frameState.time>16&&(hints[_ol_ViewHint_.ANIMATING]||hints[_ol_ViewHint_.INTERACTING]))&&(newTiles||!(this.renderedExtent_&&_ol_extent_.containsExtent(this.renderedExtent_,extent))||this.renderedRevision!=sourceRevision)||oversampling!=this.oversampling_){var context=this.context;if(context){var tilePixelSize=tileSource.getTilePixelSize(z,pixelRatio,projection);var width=Math.round(tileRange.getWidth()*tilePixelSize[0]/oversampling);var height=Math.round(tileRange.getHeight()*tilePixelSize[1]/oversampling);var canvas=context.canvas;if(canvas.width!=width||canvas.height!=height){this.oversampling_=oversampling;canvas.width=width;canvas.height=height;}else{context.clearRect(0,0,width,height);oversampling=this.oversampling_;}}this.renderedTiles.length=0;/** @type {Array.<number>} */var zs=Object.keys(tilesToDrawByZ).map(Number);zs.sort(_ol_array_.numberSafeCompareFunction);var currentResolution,currentScale,currentTilePixelSize,currentZ,i,ii;var tileExtent,tileGutter,tilesToDraw,w,h;for(i=0,ii=zs.length;i<ii;++i){currentZ=zs[i];currentTilePixelSize=tileSource.getTilePixelSize(currentZ,pixelRatio,projection);currentResolution=tileGrid.getResolution(currentZ);currentScale=currentResolution/tileResolution;tileGutter=tilePixelRatio*tileSource.getGutter(projection);tilesToDraw=tilesToDrawByZ[currentZ];for(var tileCoordKey in tilesToDraw){tile=tilesToDraw[tileCoordKey];tileExtent=tileGrid.getTileCoordExtent(tile.getTileCoord(),tmpExtent);x=(tileExtent[0]-imageExtent[0])/tileResolution*tilePixelRatio/oversampling;y=(imageExtent[3]-tileExtent[3])/tileResolution*tilePixelRatio/oversampling;w=currentTilePixelSize[0]*currentScale/oversampling;h=currentTilePixelSize[1]*currentScale/oversampling;this.drawTileImage(tile,frameState,layerState,x,y,w,h,tileGutter);this.renderedTiles.push(tile);}}this.renderedRevision=sourceRevision;this.renderedResolution=tileResolution*pixelRatio/tilePixelRatio*oversampling;this.renderedExtent_=imageExtent;}var scale=this.renderedResolution/viewResolution;var transform=_ol_transform_.compose(this.imageTransform_,pixelRatio*size[0]/2,pixelRatio*size[1]/2,scale,scale,0,(this.renderedExtent_[0]-viewCenter[0])/this.renderedResolution*pixelRatio,(viewCenter[1]-this.renderedExtent_[3])/this.renderedResolution*pixelRatio);_ol_transform_.compose(this.coordinateToCanvasPixelTransform,pixelRatio*size[0]/2-transform[4],pixelRatio*size[1]/2-transform[5],pixelRatio/viewResolution,-pixelRatio/viewResolution,0,-viewCenter[0],-viewCenter[1]);this.updateUsedTiles(frameState.usedTiles,tileSource,z,tileRange);this.manageTilePyramid(frameState,tileSource,tileGrid,pixelRatio,projection,extent,z,tileLayer.getPreload());this.scheduleExpireCache(frameState,tileSource);this.updateLogos(frameState,tileSource);return this.renderedTiles.length>0;};/**
+   */var tilesToDrawByZ={};tilesToDrawByZ[z]={};var findLoadedTiles=this.createLoadedTileFinder(tileSource,projection,tilesToDrawByZ);var tmpExtent=this.tmpExtent;var tmpTileRange=this.tmpTileRange_;var newTiles=false;var tile,x,y;for(x=tileRange.minX;x<=tileRange.maxX;++x){for(y=tileRange.minY;y<=tileRange.maxY;++y){tile=tileSource.getTile(z,x,y,pixelRatio,projection);if(tile.getState()==_ol_TileState_.ERROR){if(!tileLayer.getUseInterimTilesOnError()){// When useInterimTilesOnError is false, we consider the error tile as loaded.
+tile.setState(_ol_TileState_.LOADED);}else if(tileLayer.getPreload()>0){// Preloaded tiles for lower resolutions might have finished loading.
+newTiles=true;}}if(!this.isDrawableTile_(tile)){tile=tile.getInterimTile();}if(this.isDrawableTile_(tile)){if(tile.getState()==_ol_TileState_.LOADED){tilesToDrawByZ[z][tile.tileCoord.toString()]=tile;if(!newTiles&&this.renderedTiles.indexOf(tile)==-1){newTiles=true;}}continue;}var fullyLoaded=tileGrid.forEachTileCoordParentTileRange(tile.tileCoord,findLoadedTiles,null,tmpTileRange,tmpExtent);if(!fullyLoaded){var childTileRange=tileGrid.getTileCoordChildTileRange(tile.tileCoord,tmpTileRange,tmpExtent);if(childTileRange){findLoadedTiles(z+1,childTileRange);}}}}var renderedResolution=tileResolution*pixelRatio/tilePixelRatio*oversampling;var hints=frameState.viewHints;var animatingOrInteracting=hints[_ol_ViewHint_.ANIMATING]||hints[_ol_ViewHint_.INTERACTING];if(!(this.renderedResolution&&Date.now()-frameState.time>16&&animatingOrInteracting)&&(newTiles||!(this.renderedExtent_&&_ol_extent_.containsExtent(this.renderedExtent_,extent))||this.renderedRevision!=sourceRevision||oversampling!=this.oversampling_||!animatingOrInteracting&&renderedResolution!=this.renderedResolution)){var context=this.context;if(context){var tilePixelSize=tileSource.getTilePixelSize(z,pixelRatio,projection);var width=Math.round(tileRange.getWidth()*tilePixelSize[0]/oversampling);var height=Math.round(tileRange.getHeight()*tilePixelSize[1]/oversampling);var canvas=context.canvas;if(canvas.width!=width||canvas.height!=height){this.oversampling_=oversampling;canvas.width=width;canvas.height=height;}else{context.clearRect(0,0,width,height);oversampling=this.oversampling_;}}this.renderedTiles.length=0;/** @type {Array.<number>} */var zs=Object.keys(tilesToDrawByZ).map(Number);zs.sort(_ol_array_.numberSafeCompareFunction);var currentResolution,currentScale,currentTilePixelSize,currentZ,i,ii;var tileExtent,tileGutter,tilesToDraw,w,h;for(i=0,ii=zs.length;i<ii;++i){currentZ=zs[i];currentTilePixelSize=tileSource.getTilePixelSize(currentZ,pixelRatio,projection);currentResolution=tileGrid.getResolution(currentZ);currentScale=currentResolution/tileResolution;tileGutter=tilePixelRatio*tileSource.getGutter(projection);tilesToDraw=tilesToDrawByZ[currentZ];for(var tileCoordKey in tilesToDraw){tile=tilesToDraw[tileCoordKey];tileExtent=tileGrid.getTileCoordExtent(tile.getTileCoord(),tmpExtent);x=(tileExtent[0]-imageExtent[0])/tileResolution*tilePixelRatio/oversampling;y=(imageExtent[3]-tileExtent[3])/tileResolution*tilePixelRatio/oversampling;w=currentTilePixelSize[0]*currentScale/oversampling;h=currentTilePixelSize[1]*currentScale/oversampling;this.drawTileImage(tile,frameState,layerState,x,y,w,h,tileGutter);this.renderedTiles.push(tile);}}this.renderedRevision=sourceRevision;this.renderedResolution=tileResolution*pixelRatio/tilePixelRatio*oversampling;this.renderedExtent_=imageExtent;}var scale=this.renderedResolution/viewResolution;var transform=_ol_transform_.compose(this.imageTransform_,pixelRatio*size[0]/2,pixelRatio*size[1]/2,scale,scale,0,(this.renderedExtent_[0]-viewCenter[0])/this.renderedResolution*pixelRatio,(viewCenter[1]-this.renderedExtent_[3])/this.renderedResolution*pixelRatio);_ol_transform_.compose(this.coordinateToCanvasPixelTransform,pixelRatio*size[0]/2-transform[4],pixelRatio*size[1]/2-transform[5],pixelRatio/viewResolution,-pixelRatio/viewResolution,0,-viewCenter[0],-viewCenter[1]);this.updateUsedTiles(frameState.usedTiles,tileSource,z,tileRange);this.manageTilePyramid(frameState,tileSource,tileGrid,pixelRatio,projection,extent,z,tileLayer.getPreload());this.scheduleExpireCache(frameState,tileSource);this.updateLogos(frameState,tileSource);return this.renderedTiles.length>0;};/**
  * @param {ol.Tile} tile Tile.
  * @param {olx.FrameState} frameState Frame state.
  * @param {ol.LayerState} layerState Layer state.
@@ -13188,12 +13476,12 @@ return false;}var tileRange=tileGrid.getTileRangeForExtentAndResolution(extent,t
  * @param {number} w Width of the tile.
  * @param {number} h Height of the tile.
  * @param {number} gutter Tile gutter.
- */_ol_renderer_canvas_TileLayer_.prototype.drawTileImage=function(tile,frameState,layerState,x,y,w,h,gutter){if(!this.getLayer().getSource().getOpaque(frameState.viewState.projection)){this.context.clearRect(x,y,w,h);}var image=tile.getImage();if(image){this.context.drawImage(image,gutter,gutter,image.width-2*gutter,image.height-2*gutter,x,y,w,h);}};/**
+ */_ol_renderer_canvas_TileLayer_.prototype.drawTileImage=function(tile,frameState,layerState,x,y,w,h,gutter){if(!this.getLayer().getSource().getOpaque(frameState.viewState.projection)){this.context.clearRect(x,y,w,h);}var image=tile.getImage(this.getLayer());if(image){this.context.drawImage(image,gutter,gutter,image.width-2*gutter,image.height-2*gutter,x,y,w,h);}};/**
  * @inheritDoc
  */_ol_renderer_canvas_TileLayer_.prototype.getImage=function(){var context=this.context;return context?context.canvas:null;};/**
  * @inheritDoc
  */_ol_renderer_canvas_TileLayer_.prototype.getImageTransform=function(){return this.imageTransform_;};// This file is automatically generated, do not edit
-// FIXME large resolutions lead to too large framebuffers :-(
+/* eslint openlayers-internal/no-missing-requires: 0 */// FIXME large resolutions lead to too large framebuffers :-(
 // FIXME animated shaders! check in redraw
 var _ol_renderer_webgl_TileLayer_;/**
  * @classdesc
@@ -13263,6 +13551,9 @@ var _ol_renderer_webgl_TileLayer_;/**
  * @return {olx.format.WriteOptions|olx.format.ReadOptions|undefined}
  *     Updated options.
  */_ol_format_Feature_.prototype.adaptOptions=function(options){return _ol_obj_.assign({dataProjection:this.defaultDataProjection,featureProjection:this.defaultFeatureProjection},options);};/**
+ * Get the extent from the source of the last {@link readFeatures} call.
+ * @return {ol.Extent} Tile extent.
+ */_ol_format_Feature_.prototype.getLastExtent=function(){return null;};/**
  * @abstract
  * @return {ol.format.FormatType} Format.
  */_ol_format_Feature_.prototype.getType=function(){};/**
@@ -13324,11 +13615,11 @@ var _ol_renderer_webgl_TileLayer_;/**
    * @type {ol.geom.Geometry|ol.Extent}
    */var transformed;if(featureProjection&&dataProjection&&!_ol_proj_.equivalent(featureProjection,dataProjection)){if(geometry instanceof _ol_geom_Geometry_){transformed=(write?geometry.clone():geometry).transform(write?featureProjection:dataProjection,write?dataProjection:featureProjection);}else{// FIXME this is necessary because ol.format.GML treats extents
 // as geometries
-transformed=_ol_proj_.transformExtent(write?geometry.slice():geometry,write?featureProjection:dataProjection,write?dataProjection:featureProjection);}}else{transformed=geometry;}if(write&&opt_options&&opt_options.decimals){var power=Math.pow(10,opt_options.decimals);// if decimals option on write, round each coordinate appropriately
+transformed=_ol_proj_.transformExtent(geometry,dataProjection,featureProjection);}}else{transformed=geometry;}if(write&&opt_options&&opt_options.decimals!==undefined){var power=Math.pow(10,opt_options.decimals);// if decimals option on write, round each coordinate appropriately
 /**
      * @param {Array.<number>} coordinates Coordinates.
      * @return {Array.<number>} Transformed coordinates.
-     */var transform=function(coordinates){for(var i=0,ii=coordinates.length;i<ii;++i){coordinates[i]=Math.round(coordinates[i]*power)/power;}return coordinates;};if(Array.isArray(transformed)){transform(transformed);}else{transformed.applyTransform(transform);}}return transformed;};/**
+     */var transform=function(coordinates){for(var i=0,ii=coordinates.length;i<ii;++i){coordinates[i]=Math.round(coordinates[i]*power)/power;}return coordinates;};if(transformed===geometry){transformed=transformed.clone();}transformed.applyTransform(transform);}return transformed;};/**
  * @classdesc
  * Abstract base class; normally only used for creating subclasses and not
  * instantiated in apps.
@@ -13629,9 +13920,9 @@ projection=_ol_proj_.get('EPSG:'+crs.properties.code);}else{_ol_asserts_.assert(
 function InteractiveMap(map_tile_path){var self=this;this.map_tile_path=map_tile_path;this.MODE='navigation';this.layerDefs=layerDefinitions;this.baseLayerDefs=baseLayerDefinitions;this.view=new _ol_View_({zoom:0,center:mapConstants.imgCenter,projection:pixelProj,resolutions:mapConstants.resolutions,extent:[0,0,mapConstants.map_w,mapConstants.map_h]});this.data={};this.layerIndex={};this.version='706';this.visionRadius=mapConstants.visionRadius.observer;this.movementSpeed=mapConstants.defaultMovementSpeed;this.isNight=false;this.isDarkness=false;this.layerFilters={marker:function(layer){var layerDef=layer.get('layerDef');return layer.getVisible()&&layerDef&&(layerDef.group=='structure'||layerDef.group=='object');}};this.map=new _ol_Map_({controls:_ol_control_.defaults({zoom:false,attribution:false,rotate:false}),interactions:_ol_interaction_.defaults({altShiftDragRotate:false,pinchRotate:false}),target:'map',view:this.view});this.highlightSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.highlightLayer=new _ol_layer_Vector_({source:this.highlightSource,style:styles.highlight});this.selectSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.selectLayer=new _ol_layer_Vector_({source:this.selectSource,style:styles.select});this.wardRangeSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.wardRangeLayer=new _ol_layer_Vector_({source:this.wardRangeSource});this.rangeSources={dayVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),nightVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),trueSight:new _ol_source_Vector_({defaultDataProjection:'pixel'}),attackRange:new _ol_source_Vector_({defaultDataProjection:'pixel'})};this.rangeLayers={dayVision:new _ol_layer_Vector_({source:this.rangeSources.dayVision,style:styles.dayVision}),nightVision:new _ol_layer_Vector_({source:this.rangeSources.nightVision,style:styles.nightVision}),trueSight:new _ol_layer_Vector_({source:this.rangeSources.trueSight,style:styles.trueSight}),attackRange:new _ol_layer_Vector_({source:this.rangeSources.attackRange,style:styles.attackRange})};// setup base layers
 this.baseLayers=this.baseLayerDefs.map(function(layerDef){var layer=new _ol_layer_Tile_({title:layerDef.name,type:'base',extent:pixelProj.getExtent(),//proj.pixel.getExtent()
 source:new _ol_source_TileImage_({tileGrid:new _ol_tilegrid_TileGrid_({origin:[0,mapConstants.map_h],resolutions:mapConstants.resolutions}),projection:pixelProj,url:self.map_tile_path+layerDef.group+'/'+layerDef.id+'/{z}/tile_{x}_{y}.jpg'}),visible:!!layerDef.visible});layer.set('layerId',layerDef.group+'-'+layerDef.id,true);layer.set('layerDef',layerDef,true);return layer;});this.baseLayerGroup=new _ol_layer_Group_({title:'Base Layers',layers:new _ol_Collection_(this.baseLayers)});}InteractiveMap.prototype.getMapData=function(version){return this.data[version||this.version];};InteractiveMap.prototype.getData=function(version){return this.data[version||this.version].data;};InteractiveMap.prototype.getOverlayData=function(version){return this.data[version||this.version].data.data;};InteractiveMap.prototype.getStatData=function(version){return this.data[version||this.version].data.stats;};InteractiveMap.prototype.getMapLayerIndex=function(version){version=version||this.version;if(!this.layerIndex[version])this.layerIndex[version]={};return this.layerIndex[version];};InteractiveMap.prototype.getMapDataPath=function(version){version=version||this.version;return'data/'+version+'/mapdata.json';};InteractiveMap.prototype.setMapLayers=function(version,callback){var self=this;this.getDataJSON(version,function(err,data){if(!err){var currentLayerGroup=self.map.getLayerGroup();currentLayerGroup.setVisible(false);self.map.setLayerGroup(data.layerGroup);self.map.getLayerGroup().setVisible(true);}if(callback)callback(err);});};InteractiveMap.prototype.getDataJSON=function(version,callback){var self=this;if(this.data[version]){callback(null,self.data[version]);}else{getJSON(self.getMapDataPath(version),function(err,data){if(!err){self.data[version]={data:data,layerGroup:new _ol_layer_Group_({title:version+' Layers',layers:new _ol_Collection_([self.baseLayerGroup,loadLayerGroupFromData(self,data,version,self.getMapLayerIndex(version),self.layerDefs)])})};}callback(err,self.data[version]);});}};InteractiveMap.prototype.panTo=function(coordinate,duration){if(duration==null)duration=1000;this.view.animate({center:coordinate,duration:1000});};InteractiveMap.prototype.checkAndHighlightWard=function(pixel){var self=this;var feature=this.map.forEachFeatureAtPixel(pixel,function(feature,layer){return feature;},{layerFilter:self.wardControl.layerFilter});this.highlightWard(feature);return feature;};InteractiveMap.prototype.highlightWard=function(feature){if(feature!==this.highlightedWard){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}if(feature){feature.setStyle(styles[feature.get('wardType')][this.MODE=='navigate'?'highlight':'remove']);}this.highlightedWard=feature;}};InteractiveMap.prototype.unhighlightWard=function(){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}this.highlightedWard=null;};InteractiveMap.prototype.highlight=function(feature){if(feature!==this.highlightedFeature){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}if(feature){this.highlightSource.addFeature(feature);}this.highlightedFeature=feature;}};InteractiveMap.prototype.unhighlight=function(){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}this.highlightedFeature=null;};InteractiveMap.prototype.toggle=function(feature){if(feature){if(feature.get("clicked")){this.deselect(feature);return false;}else{this.select(feature);return true;}}};InteractiveMap.prototype.select=function(feature){if(feature&&!feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.addFeature(feature);feature.set("clicked",true,true);}};InteractiveMap.prototype.deselectAll=function(){this.selectSource.getFeatures().forEach(function(feature){feature.set("clicked",false,true);});this.selectSource.clear();};InteractiveMap.prototype.deselect=function(feature){if(feature&&feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.removeFeature(feature);feature.set("clicked",false,true);}};InteractiveMap.prototype.hasVisionRadius=function(feature){return this.getFeatureVisionRadius(feature)!=null;};InteractiveMap.prototype.getFeatureVisionRadius=function(feature,dotaProps,unitClass,rangeType){dotaProps=dotaProps||feature.get('dotaProps');unitClass=unitClass||dotaProps.unitClass;var stats=this.getStatData();var radius;if(unitClass=='observer'){radius=this.visionRadius||mapConstants.visionRadius[unitClass];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}}else if(unitClass=='sentry'){radius=mapConstants.visionRadius[unitClass];}else{if(rangeType&&!stats[unitClass].hasOwnProperty(rangeType))return null;switch(rangeType){case'dayVision':case'nightVision':radius=stats[unitClass][rangeType];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}case'trueSight':case'attackRange':radius=stats[unitClass][rangeType];break;default:if(this.isNight){radius=stats[unitClass].nightVision;}else{radius=stats[unitClass].dayVision;}if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}break;}}return radius;};InteractiveMap.prototype.getRangeCircle=function(feature,coordinate,unitClass,rangeType,radius){var dotaProps=feature.get('dotaProps');var radius=radius||this.getFeatureVisionRadius(feature,dotaProps,unitClass,rangeType);if(radius==null)return null;if(!coordinate){coordinate=worldToLatLon([dotaProps.x,dotaProps.y]);}var circle=new _ol_Feature_(new _ol_geom_Circle_(coordinate,getScaledRadius(radius)));return circle;};var modeNotificationText={observer:"Ward Mode: Observer",sentry:"Ward Mode: Sentry",navigate:"Navigation Mode",line:"Measure Mode: Line",circle:"Measure Mode: Circle",treeEnable:"<span>Navigation Mode</span><span>Trees: On</span>",treeDisable:"<span>Navigation Mode</span><span>Trees: Off</span>",nightOn:"Nighttime Vision",nightOff:"Daytime Vision",darknessOn:"Darkness: On",darknessOff:"Darkness: Off"};var forEach=function(array,callback,scope){for(var i=0;i<array.length;i++){callback.call(scope,array[i],i);// passes back stuff we need
-}};var commonjsGlobal=typeof window!=='undefined'?window:typeof global!=='undefined'?global:typeof self!=='undefined'?self:{};function createCommonjsModule(fn,module){return module={exports:{}},fn(module,module.exports),module.exports;}var rollbar_umd_min$1=createCommonjsModule(function(module,exports){!function(t,e){module.exports=e();}(commonjsGlobal,function(){return function(t){function e(n){if(r[n])return r[n].exports;var o=r[n]={exports:{},id:n,loaded:!1};return t[n].call(o.exports,o,o.exports,e),o.loaded=!0,o.exports;}var r={};return e.m=t,e.c=r,e.p="",e(0);}([function(t,e,r){t.exports=r(1);},function(t,e,r){"use strict";var n=r(2),o=window&&window._rollbarConfig,i=o&&o.globalAlias||"Rollbar",a=window&&window[i]&&"function"==typeof window[i].shimId&&void 0!==window[i].shimId();if(window&&!window._rollbarStartTime&&(window._rollbarStartTime=new Date().getTime()),!a&&o){var s=new n(o);window[i]=s;}else window.rollbar=n,window._rollbarDidLoad=!0;t.exports=n;},function(t,e,r){"use strict";function n(t,e){this.options=s.extend(!0,m,t);var r=new u(this.options,p,f);this.client=e||new a(this.options,r,c),o(this.client.notifier),i(this.client.queue),this.options.captureUncaught&&(l.captureUncaughtExceptions(window,this),l.wrapGlobals(window,this)),this.options.captureUnhandledRejections&&l.captureUnhandledRejections(window,this);}function o(t){t.addTransform(h.handleItemWithError).addTransform(h.ensureItemHasSomethingToSay).addTransform(h.addBaseInfo).addTransform(h.addRequestInfo(window)).addTransform(h.addClientInfo(window)).addTransform(h.addPluginInfo(window)).addTransform(h.addBody).addTransform(h.scrubPayload).addTransform(h.userTransform).addTransform(h.itemToPayload);}function i(t){t.addPredicate(d.checkIgnore).addPredicate(d.userCheckIgnore).addPredicate(d.urlIsWhitelisted).addPredicate(d.messageIsIgnored);}var a=r(3),s=r(6),u=r(10),c=r(12),l=r(15),p=r(16),f=r(17),h=r(18),d=r(22),g=r(19);n.prototype.global=function(t){return this.client.global(t),this;},n.prototype.configure=function(t){var e=this.options;return this.options=s.extend(!0,{},e,t),this.client.configure(t),this;},n.prototype.log=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.log(t),{uuid:e};},n.prototype.debug=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.debug(t),{uuid:e};},n.prototype.info=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.info(t),{uuid:e};},n.prototype.warn=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warn(t),{uuid:e};},n.prototype.warning=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warning(t),{uuid:e};},n.prototype.error=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.error(t),{uuid:e};},n.prototype.critical=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.critical(t),{uuid:e};},n.prototype.handleUncaughtException=function(t,e,r,n,o,i){var a,u=s.makeUnhandledStackInfo(t,e,r,n,o,"onerror","uncaught exception",g);s.isError(o)?(a=this._createItem([t,o,i]),a._unhandledStackInfo=u):s.isError(e)?(a=this._createItem([t,e,i]),a._unhandledStackInfo=u):(a=this._createItem([t,i]),a.stackInfo=u),a.level=this.options.uncaughtErrorLevel,a._isUncaught=!0,this.client.log(a);},n.prototype.handleUnhandledRejection=function(t,e){var r="unhandled rejection was null or undefined!";r=t?t.message||String(t):r;var n,o=t&&t._rollbarContext||e&&e._rollbarContext;s.isError(t)?n=this._createItem([r,t,o]):(n=this._createItem([r,o]),n.stackInfo=s.makeUnhandledStackInfo(r,"",0,0,null,"unhandledrejection","",g)),n.level=this.options.uncaughtErrorLevel,n._isUncaught=!0,this.client.log(n);},n.prototype.wrap=function(t,e){try{var r;if(r=s.isFunction(e)?e:function(){return e||{};},!s.isFunction(t))return t;if(t._isWrap)return t;if(!t._wrapped&&(t._wrapped=function(){try{return t.apply(this,arguments);}catch(n){var e=n;throw s.isType(e,"string")&&(e=new String(e)),e._rollbarContext=r()||{},e._rollbarContext._wrappedSource=t.toString(),window._rollbarWrappedError=e,e;}},t._wrapped._isWrap=!0,t.hasOwnProperty))for(var n in t)t.hasOwnProperty(n)&&(t._wrapped[n]=t[n]);return t._wrapped;}catch(e){return t;}},n.prototype._createItem=function(t){for(var e,r,n,o,i,a=[],u=0,l=t.length;u<l;++u)switch(i=t[u],s.typeName(i)){case"undefined":break;case"string":e?a.push(i):e=i;break;case"function":o=s.wrapRollbarFunction(c,i,this);break;case"date":a.push(i);break;case"error":case"domexception":r?a.push(i):r=i;break;case"object":case"array":if(i instanceof Error||"undefined"!=typeof DOMException&&i instanceof DOMException){r?a.push(i):r=i;break;}n?a.push(i):n=i;break;default:if(i instanceof Error||"undefined"!=typeof DOMException&&i instanceof DOMException){r?a.push(i):r=i;break;}a.push(i);}a.length>0&&(n=s.extend(!0,{},n),n.extraArgs=a);var p={message:e,err:r,custom:n,timestamp:new Date().getTime(),callback:o,uuid:s.uuid4()};return p._originalArgs=t,p;};var m={version:"2.0.4",scrubFields:["pw","pass","passwd","password","secret","confirm_password","confirmPassword","password_confirmation","passwordConfirmation","access_token","accessToken","secret_key","secretKey","secretToken"],logLevel:"debug",reportLevel:"debug",uncaughtErrorLevel:"error",endpoint:"api.rollbar.com/api/1/",enabled:!0};t.exports=n;},function(t,e,r){"use strict";function n(t,e,r){this.options=s.extend(!0,{},t),this.logger=r,this.queue=new i(n.rateLimiter,e,this.options),this.notifier=new a(this.queue,this.options);}var o=r(4),i=r(5),a=r(9),s=r(6),u={maxItems:0,itemsPerMinute:60};n.rateLimiter=new o(u),n.prototype.global=function(t){return n.rateLimiter.configureGlobal(t),this;},n.prototype.configure=function(t){this.notifier&&this.notifier.configure(t);var e=this.options;return this.options=s.extend(!0,{},e,t),this;},n.prototype.log=function(t){var e=this._defaultLogLevel();return this._log(e,t);},n.prototype.debug=function(t){this._log("debug",t);},n.prototype.info=function(t){this._log("info",t);},n.prototype.warn=function(t){this._log("warning",t);},n.prototype.warning=function(t){this._log("warning",t);},n.prototype.error=function(t){this._log("error",t);},n.prototype.critical=function(t){this._log("critical",t);},n.prototype.wait=function(t){this.queue.wait(t);},n.prototype._log=function(t,e){s.wrapRollbarFunction(this.logger,function(){var r=null;e.callback&&(r=e.callback,delete e.callback),e.level=e.level||t,this.notifier.log(e,r);},this)();},n.prototype._defaultLogLevel=function(){return this.options.logLevel||"debug";},t.exports=n;},function(t,e){"use strict";function r(t){this.startTime=new Date().getTime(),this.counter=0,this.perMinCounter=0,this.configureGlobal(t);}function n(t,e,r){return!t.ignoreRateLimit&&e>=1&&r>=e;}function o(t,e,r){var n=null;return t&&(t=new Error(t)),t||e||(n=i(r)),{error:t,shouldSend:e,payload:n};}function i(t){return{message:"maxItems has been hit. Ignoring errors until reset.",err:null,custom:{maxItems:t}};}r.globalSettings={startTime:new Date().getTime(),maxItems:void 0,itemsPerMinute:void 0},r.prototype.configureGlobal=function(t){void 0!==t.startTime&&(r.globalSettings.startTime=t.startTime),void 0!==t.maxItems&&(r.globalSettings.maxItems=t.maxItems),void 0!==t.itemsPerMinute&&(r.globalSettings.itemsPerMinute=t.itemsPerMinute);},r.prototype.shouldSend=function(t,e){e=e||new Date().getTime(),e-this.startTime>=6e4&&(this.startTime=e,this.perMinCounter=0);var i=r.globalSettings.maxItems,a=r.globalSettings.itemsPerMinute;if(n(t,i,this.counter))return o(i+" max items reached",!1);if(n(t,a,this.perMinCounter))return o(a+" items per minute reached",!1);this.counter++,this.perMinCounter++;var s=!n(t,i,this.counter);return o(null,s,i);},t.exports=r;},function(t,e,r){"use strict";function n(t,e,r){this.rateLimiter=t,this.api=e,this.options=r,this.predicates=[],this.pendingRequests=[],this.retryQueue=[],this.retryHandle=null,this.waitCallback=null;}var o=r(6);n.prototype.configure=function(t){this.api&&this.api.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},n.prototype.addPredicate=function(t){return o.isFunction(t)&&this.predicates.push(t),this;},n.prototype.addItem=function(t,e){e&&o.isFunction(e)||(e=function(){});var r=this._applyPredicates(t);if(r.stop)return void e(r.err);if(this.waitCallback)return void e();this.pendingRequests.push(t);try{this._makeApiRequest(t,function(r,n){this._dequeuePendingRequest(t),e(r,n);}.bind(this));}catch(r){this._dequeuePendingRequest(t),e(r);}},n.prototype.wait=function(t){o.isFunction(t)&&(this.waitCallback=t,0==this.pendingRequests.length&&this.waitCallback());},n.prototype._applyPredicates=function(t){for(var e=null,r=0,n=this.predicates.length;r<n;r++)if(e=this.predicates[r](t,this.options),!e||void 0!==e.err)return{stop:!0,err:e.err};return{stop:!1,err:null};},n.prototype._makeApiRequest=function(t,e){var r=this.rateLimiter.shouldSend(t);r.shouldSend?this.api.postItem(t,function(r,n){r?this._maybeRetry(r,t,e):e(r,n);}.bind(this)):r.error?e(r.error):this.api.postItem(r.payload,e);};var i=["ECONNRESET","ENOTFOUND","ESOCKETTIMEDOUT","ETIMEDOUT","ECONNREFUSED","EHOSTUNREACH","EPIPE","EAI_AGAIN"];n.prototype._maybeRetry=function(t,e,r){var n=!1;if(this.options.retryInterval)for(var o=0,a=i.length;o<a;o++)if(t.code===i[o]){n=!0;break;}n?this._retryApiRequest(e,r):r(t);},n.prototype._retryApiRequest=function(t,e){this.retryQueue.push({item:t,callback:e}),this.retryHandle||(this.retryHandle=setInterval(function(){for(;this.retryQueue.length;){var t=this.retryQueue.shift();this._makeApiRequest(t.item,t.callback);}}.bind(this),this.options.retryInterval));},n.prototype._dequeuePendingRequest=function(t){for(var e=1==this.pendingRequests.length,r=this.pendingRequests.length;r>=0;r--)if(this.pendingRequests[r]==t)return this.pendingRequests.splice(r,1),void(e&&o.isFunction(this.waitCallback)&&this.waitCallback());},t.exports=n;},function(t,e,r){"use strict";function n(){if(!I&&(I=!0,s(JSON)&&(a(JSON.stringify)&&(S.stringify=JSON.stringify),a(JSON.parse)&&(S.parse=JSON.parse)),!a(S.stringify)||!a(S.parse))){var t=r(8);t(S);}}function o(t,e){return e===i(t);}function i(t){var e=typeof t;return"object"!==e?e:t?t instanceof Error?"error":{}.toString.call(t).match(/\s([a-zA-Z]+)/)[1].toLowerCase():"null";}function a(t){return o(t,"function");}function s(t){return!o(t,"undefined");}function u(t){var e=i(t);return"object"===e||"array"===e;}function c(t){return o(t,"error");}function l(t,e,r){return function(){var n=r||this;try{return e.apply(n,arguments);}catch(e){t.error(e);}};}function p(t,e){var r,n,i,a=o(t,"object"),s=o(t,"array"),u=[];if(a)for(r in t)Object.prototype.hasOwnProperty.call(t,r)&&u.push(r);else if(s)for(i=0;i<t.length;++i)u.push(i);for(i=0;i<u.length;++i)r=u[i],n=t[r],t[r]=e(r,n);return t;}function f(){return"********";}function h(){var t=new Date().getTime(),e="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){var r=(t+16*Math.random())%16|0;return t=Math.floor(t/16),("x"===e?r:7&r|8).toString(16);});return e;}function d(t){var e=g(t);return""===e.anchor&&(e.source=e.source.replace("#","")),t=e.source.replace("?"+e.query,"");}function g(t){if(!o(t,"string"))throw new Error("received invalid input");for(var e=j,r=e.parser[e.strictMode?"strict":"loose"].exec(t),n={},i=e.key.length;i--;)n[e.key[i]]=r[i]||"";return n[e.q.name]={},n[e.key[12]].replace(e.q.parser,function(t,r,o){r&&(n[e.q.name][r]=o);}),n;}function m(t,e,r){r=r||{},r.access_token=t;var n,o=[];for(n in r)Object.prototype.hasOwnProperty.call(r,n)&&o.push([n,r[n]].join("="));var i="?"+o.sort().join("&");e=e||{},e.path=e.path||"";var a,s=e.path.indexOf("?"),u=e.path.indexOf("#");s!==-1&&(u===-1||u>s)?(a=e.path,e.path=a.substring(0,s)+i+"&"+a.substring(s+1)):u!==-1?(a=e.path,e.path=a.substring(0,u)+i+a.substring(u)):e.path=e.path+i;}function v(t,e){if(e=e||t.protocol,!e&&t.port&&(80===t.port?e="http:":443===t.port&&(e="https:")),e=e||"https:",!t.hostname)return null;var r=e+"//"+t.hostname;return t.port&&(r=r+":"+t.port),t.path&&(r+=t.path),r;}function y(t,e){var r,n;try{r=S.stringify(t);}catch(o){if(e&&a(e))try{r=e(t);}catch(t){n=t;}else n=o;}return{error:n,value:r};}function b(t){var e,r;try{e=S.parse(t);}catch(t){r=t;}return{error:r,value:e};}function w(t,e,r,n,o,i,a,s){var u={url:e||"",line:r,column:n};u.func=s.guessFunctionName(u.url,u.line),u.context=s.gatherContext(u.url,u.line);var c=document&&document.location&&document.location.href,l=window&&window.navigator&&window.navigator.userAgent;return{mode:i,message:o?String(o):t||a,url:c,stack:[u],useragent:l};}function x(t,e){if(t){var r=e.split("."),n=t;try{for(var o=0,i=r.length;o<i;++o)n=n[r[o]];}catch(t){n=void 0;}return n;}}function k(t,e,r){if(t){var n=e.split("."),o=n.length;if(!(o<1)){if(1===o)return void(t[n[0]]=r);try{for(var i=t[n[0]]||{},a=i,s=1;s<o-1;s++)i[n[s]]=i[n[s]]||{},i=i[n[s]];i[n[o-1]]=r,t[n[0]]=a;}catch(t){return;}}}}function E(t,e){function r(t,e,r,n,o,i){return e+f(i);}function n(t){var e;if(o(t,"string"))for(e=0;e<u.length;++e)t=t.replace(u[e],r);return t;}function i(t,e){var r;for(r=0;r<s.length;++r)if(s[r].test(t)){e=f(e);break;}return e;}function a(t,e){var r=i(t,e);return r===e?o(e,"object")||o(e,"array")?p(e,a):n(r):r;}e=e||[];var s=T(e),u=O(e);return p(t,a),t;}function T(t){for(var e,r=[],n=0;n<t.length;++n)e="\\[?(%5[bB])?"+t[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",r.push(new RegExp(e,"i"));return r;}function O(t){for(var e,r=[],n=0;n<t.length;++n)e="\\[?(%5[bB])?"+t[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",r.push(new RegExp("("+e+"=)([^&\\n]+)","igm"));return r;}var _=r(7),S={},I=!1;n();var N={debug:0,info:1,warning:2,error:3,critical:4},j={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}};t.exports={isType:o,typeName:i,isFunction:a,isIterable:u,isError:c,extend:_,traverse:p,redact:f,uuid4:h,wrapRollbarFunction:l,LEVELS:N,sanitizeUrl:d,addParamsAndAccessTokenToPath:m,formatUrl:v,stringify:y,jsonParse:b,makeUnhandledStackInfo:w,get:x,set:k,scrub:E};},function(t,e){"use strict";var r=Object.prototype.hasOwnProperty,n=Object.prototype.toString,o=function(t){return"function"==typeof Array.isArray?Array.isArray(t):"[object Array]"===n.call(t);},i=function(t){if(!t||"[object Object]"!==n.call(t))return!1;var e=r.call(t,"constructor"),o=t.constructor&&t.constructor.prototype&&r.call(t.constructor.prototype,"isPrototypeOf");if(t.constructor&&!e&&!o)return!1;var i;for(i in t);return"undefined"==typeof i||r.call(t,i);};t.exports=function t(){var e,r,n,a,s,u,c=arguments[0],l=1,p=arguments.length,f=!1;for("boolean"==typeof c?(f=c,c=arguments[1]||{},l=2):("object"!=typeof c&&"function"!=typeof c||null==c)&&(c={});l<p;++l)if(e=arguments[l],null!=e)for(r in e)n=c[r],a=e[r],c!==a&&(f&&a&&(i(a)||(s=o(a)))?(s?(s=!1,u=n&&o(n)?n:[]):u=n&&i(n)?n:{},c[r]=t(f,u,a)):"undefined"!=typeof a&&(c[r]=a));return c;};},function(t,e){var r=function(t){function e(t){return t<10?"0"+t:t;}function r(){return this.valueOf();}function n(t){return i.lastIndex=0,i.test(t)?'"'+t.replace(i,function(t){var e=u[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+t+'"';}function o(t,e){var r,i,u,l,p,f=a,h=e[t];switch(h&&"object"==typeof h&&"function"==typeof h.toJSON&&(h=h.toJSON(t)),"function"==typeof c&&(h=c.call(e,t,h)),typeof h){case"string":return n(h);case"number":return isFinite(h)?String(h):"null";case"boolean":case"null":return String(h);case"object":if(!h)return"null";if(a+=s,p=[],"[object Array]"===Object.prototype.toString.apply(h)){for(l=h.length,r=0;r<l;r+=1)p[r]=o(r,h)||"null";return u=0===p.length?"[]":a?"[\n"+a+p.join(",\n"+a)+"\n"+f+"]":"["+p.join(",")+"]",a=f,u;}if(c&&"object"==typeof c)for(l=c.length,r=0;r<l;r+=1)"string"==typeof c[r]&&(i=c[r],u=o(i,h),u&&p.push(n(i)+(a?": ":":")+u));else for(i in h)Object.prototype.hasOwnProperty.call(h,i)&&(u=o(i,h),u&&p.push(n(i)+(a?": ":":")+u));return u=0===p.length?"{}":a?"{\n"+a+p.join(",\n"+a)+"\n"+f+"}":"{"+p.join(",")+"}",a=f,u;}}var i=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+e(this.getUTCMonth()+1)+"-"+e(this.getUTCDate())+"T"+e(this.getUTCHours())+":"+e(this.getUTCMinutes())+":"+e(this.getUTCSeconds())+"Z":null;},Boolean.prototype.toJSON=r,Number.prototype.toJSON=r,String.prototype.toJSON=r);var a,s,u,c;"function"!=typeof t.stringify&&(u={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},t.stringify=function(t,e,r){var n;if(a="",s="","number"==typeof r)for(n=0;n<r;n+=1)s+=" ";else"string"==typeof r&&(s=r);if(c=e,e&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw new Error("JSON.stringify");return o("",{"":t});}),"function"!=typeof t.parse&&(t.parse=function(){function t(t){return t.replace(/\\(?:u(.{4})|([^u]))/g,function(t,e,r){return e?String.fromCharCode(parseInt(e,16)):a[r];});}var e,r,n,o,i,a={"\\":"\\",'"':'"',"/":"/",t:"\t",n:"\n",r:"\r",f:"\f",b:"\b"},s={go:function(){e="ok";},firstokey:function(){o=i,e="colon";},okey:function(){o=i,e="colon";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},u={go:function(){e="ok";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},c={"{":{go:function(){r.push({state:"ok"}),n={},e="firstokey";},ovalue:function(){r.push({container:n,state:"ocomma",key:o}),n={},e="firstokey";},firstavalue:function(){r.push({container:n,state:"acomma"}),n={},e="firstokey";},avalue:function(){r.push({container:n,state:"acomma"}),n={},e="firstokey";}},"}":{firstokey:function(){var t=r.pop();i=n,n=t.container,o=t.key,e=t.state;},ocomma:function(){var t=r.pop();n[o]=i,i=n,n=t.container,o=t.key,e=t.state;}},"[":{go:function(){r.push({state:"ok"}),n=[],e="firstavalue";},ovalue:function(){r.push({container:n,state:"ocomma",key:o}),n=[],e="firstavalue";},firstavalue:function(){r.push({container:n,state:"acomma"}),n=[],e="firstavalue";},avalue:function(){r.push({container:n,state:"acomma"}),n=[],e="firstavalue";}},"]":{firstavalue:function(){var t=r.pop();i=n,n=t.container,o=t.key,e=t.state;},acomma:function(){var t=r.pop();n.push(i),i=n,n=t.container,o=t.key,e=t.state;}},":":{colon:function(){if(Object.hasOwnProperty.call(n,o))throw new SyntaxError("Duplicate key '"+o+'"');e="ovalue";}},",":{ocomma:function(){n[o]=i,e="okey";},acomma:function(){n.push(i),e="avalue";}},true:{go:function(){i=!0,e="ok";},ovalue:function(){i=!0,e="ocomma";},firstavalue:function(){i=!0,e="acomma";},avalue:function(){i=!0,e="acomma";}},false:{go:function(){i=!1,e="ok";},ovalue:function(){i=!1,e="ocomma";},firstavalue:function(){i=!1,e="acomma";},avalue:function(){i=!1,e="acomma";}},null:{go:function(){i=null,e="ok";},ovalue:function(){i=null,e="ocomma";},firstavalue:function(){i=null,e="acomma";},avalue:function(){i=null,e="acomma";}}};return function(n,o){var a,l=/^[\u0020\t\n\r]*(?:([,:\[\]{}]|true|false|null)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)|"((?:[^\r\n\t\\\"]|\\(?:["\\\/trnfb]|u[0-9a-fA-F]{4}))*)")/;e="go",r=[];try{for(;;){if(a=l.exec(n),!a)break;a[1]?c[a[1]][e]():a[2]?(i=+a[2],u[e]()):(i=t(a[3]),s[e]()),n=n.slice(a[0].length);}}catch(t){e=t;}if("ok"!==e||/[^\u0020\t\n\r]/.test(n))throw e instanceof SyntaxError?e:new SyntaxError("JSON");return"function"==typeof o?function t(e,r){var n,a,s=e[r];if(s&&"object"==typeof s)for(n in i)Object.prototype.hasOwnProperty.call(s,n)&&(a=t(s,n),void 0!==a?s[n]=a:delete s[n]);return o.call(e,r,s);}({"":i},""):i;};}());};t.exports=r;},function(t,e,r){"use strict";function n(t,e){this.queue=t,this.options=e,this.transforms=[];}var o=r(6);n.prototype.configure=function(t){this.queue&&this.queue.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},n.prototype.addTransform=function(t){return o.isFunction(t)&&this.transforms.push(t),this;},n.prototype.log=function(t,e){return e&&o.isFunction(e)||(e=function(){}),this.options.enabled?void this._applyTransforms(t,function(t,r){return t?e(t,null):void this.queue.addItem(r,e);}.bind(this)):e(new Error("Rollbar is not enabled"));},n.prototype._applyTransforms=function(t,e){var r=-1,n=this.transforms.length,o=this.transforms,i=this.options,a=function(t,s){return t?void e(t,null):(r++,r===n?void e(null,s):void o[r](s,i,a));};a(null,t);},t.exports=n;},function(t,e,r){"use strict";function n(t,e,r,n){this.options=t,this.transport=e,this.url=r,this.jsonBackup=n,this.accessToken=t.accessToken,this.transportOptions=o(t,r);}function o(t,e){return a.getTransportFromOptions(t,s,e);}var i=r(6),a=r(11),s={hostname:"api.rollbar.com",path:"/api/1",search:null,version:"1",protocol:"https:",port:443};n.prototype.postItem=function(t,e){var r=a.transportOptions(this.transportOptions,"/item/","POST"),n=a.buildPayload(this.accessToken,t,this.jsonBackup);this.transport.post(this.accessToken,r,n,e);},n.prototype.configure=function(t){var e=this.oldOptions;return this.options=i.extend(!0,{},e,t),this.transportOptions=o(this.options,this.url),void 0!==this.options.accessToken&&(this.accessToken=this.options.accessToken),this;},t.exports=n;},function(t,e,r){"use strict";function n(t,e,r){if(s.isType(e.context,"object")){var n=s.stringify(e.context,r);n.error?e.context="Error: could not serialize 'context'":e.context=n.value||"",e.context.length>255&&(e.context=e.context.substr(0,255));}return{access_token:t,data:e};}function o(t,e,r){var n=e.hostname,o=e.protocol,i=e.port,a=e.path,s=e.search,u=t.proxy;if(t.endpoint){var c=r.parse(t.endpoint);n=c.hostname,o=c.protocol,i=c.port,a=c.pathname,s=c.search;}return{hostname:n,protocol:o,port:i,path:a,search:s,proxy:u};}function i(t,e,r){var n=t.protocol||"https:",o=t.port||("http:"===n?80:"https:"===n?443:void 0),i=t.hostname;return e=a(t.path,e),t.search&&(e+=t.search),t.proxy&&(e=n+"//"+i+e,i=t.proxy.host||t.proxy.hostname,o=t.proxy.port,n=t.proxy.protocol||n),{protocol:n,hostname:i,path:e,port:o,method:r};}function a(t,e){var r=/\/$/.test(t),n=/^\//.test(e);return r&&n?e=e.substring(1):r||n||(e="/"+e),t+e;}var s=r(6);t.exports={buildPayload:n,getTransportFromOptions:o,transportOptions:i,appendPathToPath:a};},function(t,e,r){"use strict";function n(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),s.ieVersion()<=8?console.error(a.apply(null,t)):console.error.apply(console,t);}function o(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),s.ieVersion()<=8?console.info(a.apply(null,t)):console.info.apply(console,t);}function i(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),s.ieVersion()<=8?console.log(a.apply(null,t)):console.log.apply(console,t);}function a(){for(var t=[],e=0;e<arguments.length;e++){var r=arguments[e];"object"==typeof r?(r=u.stringify(r),r=r.error||r.value,r.length>500&&(r=r.substr(0,500)+"...")):"undefined"==typeof r&&(r="undefined"),t.push(r);}return t.join(" ");}r(13);var s=r(14),u=r(6);t.exports={error:n,info:o,log:i};},function(t,e){!function(t){"use strict";t.console||(t.console={});for(var e,r,n=t.console,o=function(){},i=["memory"],a="assert,clear,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn".split(",");e=i.pop();)n[e]||(n[e]={});for(;r=a.pop();)n[r]||(n[r]=o);}("undefined"==typeof window?this:window);},function(t,e){"use strict";function r(){var t;if(!document)return t;for(var e=3,r=document.createElement("div"),n=r.getElementsByTagName("i");r.innerHTML="<!--[if gt IE "+ ++e+"]><i></i><![endif]-->",n[0];);return e>4?e:t;}var n={ieVersion:r};t.exports=n;},function(t,e){"use strict";function r(t,e,r){if(t){var o;"function"==typeof e._rollbarOldOnError?o=e._rollbarOldOnError:t.onerror&&!t.onerror.belongsToShim&&(o=t.onerror,e._rollbarOldOnError=o);var i=function(){var r=Array.prototype.slice.call(arguments,0);n(t,e,o,r);};i.belongsToShim=r,t.onerror=i;}}function n(t,e,r,n){t._rollbarWrappedError&&(n[4]||(n[4]=t._rollbarWrappedError),n[5]||(n[5]=t._rollbarWrappedError._rollbarContext),t._rollbarWrappedError=null),e.handleUncaughtException.apply(e,n),r&&r.apply(t,n);}function o(t,e,r){if(t){"function"==typeof t._rollbarURH&&t._rollbarURH.belongsToShim&&t.removeEventListener("unhandledrejection",t._rollbarURH);var n=function(t){var r=t.reason,n=t.promise,o=t.detail;!r&&o&&(r=o.reason,n=o.promise),e&&e.handleUnhandledRejection&&e.handleUnhandledRejection(r,n);};n.belongsToShim=r,t._rollbarURH=n,t.addEventListener("unhandledrejection",n);}}function i(t,e,r){if(t){var n,o,i="EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");for(n=0;n<i.length;++n)o=i[n],t[o]&&t[o].prototype&&a(e,t[o].prototype,r);}}function a(t,e,r){if(e.hasOwnProperty&&e.hasOwnProperty("addEventListener")){for(var n=e.addEventListener;n._rollbarOldAdd&&n.belongsToShim;)n=n._rollbarOldAdd;var o=function(e,r,o){n.call(this,e,t.wrap(r),o);};o._rollbarOldAdd=n,o.belongsToShim=r,e.addEventListener=o;for(var i=e.removeEventListener;i._rollbarOldRemove&&i.belongsToShim;)i=i._rollbarOldRemove;var a=function(t,e,r){i.call(this,t,e&&e._wrapped||e,r);};a._rollbarOldRemove=i,a.belongsToShim=r,e.removeEventListener=a;}}t.exports={captureUncaughtExceptions:r,captureUnhandledRejections:o,wrapGlobals:i};},function(t,e,r){"use strict";function n(t,e,r,n,o){n&&l.isFunction(n)||(n=function(){}),l.addParamsAndAccessTokenToPath(t,e,r);var a="GET",s=l.formatUrl(e);i(t,s,a,null,n,o);}function o(t,e,r,n,o){if(n&&l.isFunction(n)||(n=function(){}),!r)return n(new Error("Cannot send empty request"));var a=l.stringify(r);if(a.error)return n(a.error);var s=a.value,u="POST",c=l.formatUrl(e);i(t,c,u,s,n,o);}function i(t,e,r,n,o,i){var f;if(f=i?i():a(),!f)return o(new Error("No way to send a request"));try{try{var h=function(){try{if(h&&4===f.readyState){h=void 0;var t=l.jsonParse(f.responseText);if(s(f))return void o(t.error,t.value);if(u(f)){if(403===f.status){var e=t.value&&t.value.message;p.error(e);}o(new Error(String(f.status)));}else{var r="XHR response had no status code (likely connection failure)";o(c(r));}}}catch(t){var n;n=t&&t.stack?t:new Error(t),o(n);}};f.open(r,e,!0),f.setRequestHeader&&(f.setRequestHeader("Content-Type","application/json"),f.setRequestHeader("X-Rollbar-Access-Token",t)),f.onreadystatechange=h,f.send(n);}catch(t){if("undefined"!=typeof XDomainRequest){if(!window||!window.location)return o(new Error("No window available during request, unknown environment"));"http:"===window.location.href.substring(0,5)&&"https"===e.substring(0,5)&&(e="http"+e.substring(5));var d=new XDomainRequest();d.onprogress=function(){},d.ontimeout=function(){var t="Request timed out",e="ETIMEDOUT";o(c(t,e));},d.onerror=function(){o(new Error("Error during request"));},d.onload=function(){var t=l.jsonParse(d.responseText);o(t.error,t.value);},d.open(r,e,!0),d.send(n);}else o(new Error("Cannot find a method to transport a request"));}}catch(t){o(t);}}function a(){var t,e,r=[function(){return new XMLHttpRequest();},function(){return new ActiveXObject("Msxml2.XMLHTTP");},function(){return new ActiveXObject("Msxml3.XMLHTTP");},function(){return new ActiveXObject("Microsoft.XMLHTTP");}],n=r.length;for(e=0;e<n;e++)try{t=r[e]();break;}catch(t){}return t;}function s(t){return t&&t.status&&200===t.status;}function u(t){return t&&l.isType(t.status,"number")&&t.status>=400&&t.status<600;}function c(t,e){var r=new Error(t);return r.code=e||"ENOTFOUND",r;}var l=r(6),p=r(12);t.exports={get:n,post:o};},function(t,e){"use strict";function r(t){var e,r,n={protocol:null,auth:null,host:null,path:null,hash:null,href:t,hostname:null,port:null,pathname:null,search:null,query:null};if(e=t.indexOf("//"),e!==-1?(n.protocol=t.substring(0,e),r=e+2):r=0,e=t.indexOf("@",r),e!==-1&&(n.auth=t.substring(r,e),r=e+1),e=t.indexOf("/",r),e===-1){if(e=t.indexOf("?",r),e===-1)return e=t.indexOf("#",r),e===-1?n.host=t.substring(r):(n.host=t.substring(r,e),n.hash=t.substring(e)),n.hostname=n.host.split(":")[0],n.port=n.host.split(":")[1],n.port&&(n.port=parseInt(n.port,10)),n;n.host=t.substring(r,e),n.hostname=n.host.split(":")[0],n.port=n.host.split(":")[1],n.port&&(n.port=parseInt(n.port,10)),r=e;}else n.host=t.substring(r,e),n.hostname=n.host.split(":")[0],n.port=n.host.split(":")[1],n.port&&(n.port=parseInt(n.port,10)),r=e;if(e=t.indexOf("#",r),e===-1?n.path=t.substring(r):(n.path=t.substring(r,e),n.hash=t.substring(e)),n.path){var o=n.path.split("?");n.pathname=o[0],n.query=o[1],n.search=n.query?"?"+n.query:null;}return n;}t.exports={parse:r};},function(t,e,r){"use strict";function n(t,e,r){if(t.data=t.data||{},t.err)try{t.stackInfo=t.err._savedStackTrace||m.parse(t.err);}catch(e){v.error("Error while parsing the error object.",e),t.message=t.err.message||t.err.description||t.message||String(t.err),delete t.err;}r(null,t);}function o(t,e,r){t.message||t.stackInfo||t.custom||r(new Error("No message, stack info, or custom data"),null),r(null,t);}function i(t,e,r){var n=e.environment||e.payload&&e.payload.environment;t.data=g.extend(!0,{},t.data,{environment:n,level:t.level,endpoint:e.endpoint,platform:"browser",framework:"browser-js",language:"javascript",server:{},notifier:{name:"rollbar-browser-js",version:e.version}}),r(null,t);}function a(t){return function(e,r,n){return t&&t.location?(g.set(e,"data.request",{url:t.location.href,query_string:t.location.search,user_ip:"$remote_ip"}),void n(null,e)):n(null,e);};}function s(t){return function(e,r,n){return t?(g.set(e,"data.client",{runtime_ms:e.timestamp-t._rollbarStartTime,timestamp:Math.round(e.timestamp/1e3),javascript:{browser:t.navigator.userAgent,language:t.navigator.language,cookie_enabled:t.navigator.cookieEnabled,screen:{width:t.screen.width,height:t.screen.height}}}),void n(null,e)):n(null,e);};}function u(t){return function(e,r,n){if(!t||!t.navigator)return n(null,e);for(var o,i=[],a=t.navigator.plugins||[],s=0,u=a.length;s<u;++s)o=a[s],i.push({name:o.name,description:o.description});g.set(e,"data.client.javascript.plugins",i),n(null,e);};}function c(t,e,r){t.stackInfo?p(t,e,r):l(t,e,r);}function l(t,e,r){var n=t.message,o=t.custom;if(!n)if(o){var i=e.scrubFields,a=g.stringify(g.scrub(o,i));n=a.error||a.value||"";}else n="";var s={body:n};o&&(s.extra=g.extend(!0,{},o)),g.set(t,"data.body",{message:s}),r(null,t);}function p(t,e,r){var n=t.data.description,o=t.stackInfo,i=t.custom,a=m.guessErrorClass(o.message),s=o.name||a[0],u=a[1],c={exception:{class:s,message:u}};n&&(c.exception.description=n||"uncaught exception");var p=o.stack;if(p&&0===p.length&&t._unhandledStackInfo&&t._unhandledStackInfo.stack&&(p=t._unhandledStackInfo.stack),p){var f,h,d,v,y,b,w,x;for(c.frames=[],w=0;w<p.length;++w)f=p[w],h={filename:f.url?g.sanitizeUrl(f.url):"(unknown)",lineno:f.line||null,method:f.func&&"?"!==f.func?f.func:"[anonymous]",colno:f.column},d=v=y=null,b=f.context?f.context.length:0,b&&(x=Math.floor(b/2),v=f.context.slice(0,x),d=f.context[x],y=f.context.slice(x)),d&&(h.code=d),(v||y)&&(h.context={},v&&v.length&&(h.context.pre=v),y&&y.length&&(h.context.post=y)),f.args&&(h.args=f.args),c.frames.push(h);c.frames.reverse(),i&&(c.extra=g.extend(!0,{},i)),g.set(t,"data.body",{trace:c}),r(null,t);}else t.message=s+": "+u,l(t,e,r);}function f(t,e,r){var n=e.scrubFields;g.scrub(t.data,n),r(null,t);}function h(t,e,r){var n=g.extend(!0,{},t);try{g.isFunction(e.transform)&&e.transform(n.data);}catch(n){return e.transform=null,v.error("Error while calling custom transform() function. Removing custom transform().",n),void r(null,t);}r(null,n);}function d(t,e,r){var n=e.payload||{};n.body&&delete n.body;var o=g.extend(!0,{},t.data,n);t._isUncaught&&(o._isUncaught=!0),r(null,o);}var g=r(6),m=r(19),v=r(12);t.exports={handleItemWithError:n,ensureItemHasSomethingToSay:o,addBaseInfo:i,addRequestInfo:a,addClientInfo:s,addPluginInfo:u,addBody:c,scrubPayload:f,userTransform:h,itemToPayload:d};},function(t,e,r){"use strict";function n(){return l;}function o(){return null;}function i(t){var e={};return e._stackFrame=t,e.url=t.fileName,e.line=t.lineNumber,e.func=t.functionName,e.column=t.columnNumber,e.args=t.args,e.context=o(e.url,e.line),e;}function a(t){function e(){var e=[];try{e=c.parse(t);}catch(t){e=[];}for(var r=[],n=0;n<e.length;n++)r.push(new i(e[n]));return r;}return{stack:e(),message:t.message,name:t.name};}function s(t){return new a(t);}function u(t){if(!t)return["Unknown error. There was no error message to display.",""];var e=t.match(p),r="(unknown)";return e&&(r=e[e.length-1],t=t.replace((e[e.length-2]||"")+r+":",""),t=t.replace(/(^[\s]+|[\s]+$)/g,"")),[r,t];}var c=r(20),l="?",p=new RegExp("^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ");t.exports={guessFunctionName:n,guessErrorClass:u,gatherContext:o,parse:s,Stack:a,Frame:i};},function(t,e,r){var n,o,i;!function(a,s){"use strict";o=[r(21)],n=s,i="function"==typeof n?n.apply(e,o):n,!(void 0!==i&&(t.exports=i));}(this,function(t){"use strict";function e(t,e,r){if("function"==typeof Array.prototype.map)return t.map(e,r);for(var n=new Array(t.length),o=0;o<t.length;o++)n[o]=e.call(r,t[o]);return n;}function r(t,e,r){if("function"==typeof Array.prototype.filter)return t.filter(e,r);for(var n=[],o=0;o<t.length;o++)e.call(r,t[o])&&n.push(t[o]);return n;}var n=/(^|@)\S+\:\d+/,o=/^\s*at .*(\S+\:\d+|\(native\))/m,i=/^(eval@)?(\[native code\])?$/;return{parse:function(t){if("undefined"!=typeof t.stacktrace||"undefined"!=typeof t["opera#sourceloc"])return this.parseOpera(t);if(t.stack&&t.stack.match(o))return this.parseV8OrIE(t);if(t.stack)return this.parseFFOrSafari(t);throw new Error("Cannot parse given Error object");},extractLocation:function(t){if(t.indexOf(":")===-1)return[t];var e=t.replace(/[\(\)\s]/g,"").split(":"),r=e.pop(),n=e[e.length-1];if(!isNaN(parseFloat(n))&&isFinite(n)){var o=e.pop();return[e.join(":"),o,r];}return[e.join(":"),r,void 0];},parseV8OrIE:function(n){var i=r(n.stack.split("\n"),function(t){return!!t.match(o);},this);return e(i,function(e){e.indexOf("(eval ")>-1&&(e=e.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var r=e.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),n=this.extractLocation(r.pop()),o=r.join(" ")||void 0,i="eval"===n[0]?void 0:n[0];return new t(o,void 0,i,n[1],n[2],e);},this);},parseFFOrSafari:function(n){var o=r(n.stack.split("\n"),function(t){return!t.match(i);},this);return e(o,function(e){if(e.indexOf(" > eval")>-1&&(e=e.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),e.indexOf("@")===-1&&e.indexOf(":")===-1)return new t(e);var r=e.split("@"),n=this.extractLocation(r.pop()),o=r.shift()||void 0;return new t(o,void 0,n[0],n[1],n[2],e);},this);},parseOpera:function(t){return!t.stacktrace||t.message.indexOf("\n")>-1&&t.message.split("\n").length>t.stacktrace.split("\n").length?this.parseOpera9(t):t.stack?this.parseOpera11(t):this.parseOpera10(t);},parseOpera9:function(e){for(var r=/Line (\d+).*script (?:in )?(\S+)/i,n=e.message.split("\n"),o=[],i=2,a=n.length;i<a;i+=2){var s=r.exec(n[i]);s&&o.push(new t(void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera10:function(e){for(var r=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,n=e.stacktrace.split("\n"),o=[],i=0,a=n.length;i<a;i+=2){var s=r.exec(n[i]);s&&o.push(new t(s[3]||void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera11:function(o){var i=r(o.stack.split("\n"),function(t){return!!t.match(n)&&!t.match(/^Error created at/);},this);return e(i,function(e){var r,n=e.split("@"),o=this.extractLocation(n.pop()),i=n.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(r=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===r||"[arguments not available]"===r?void 0:r.split(",");return new t(a,s,o[0],o[1],o[2],e);},this);}};});},function(t,e,r){var n,o,i;!function(r,a){"use strict";o=[],n=a,i="function"==typeof n?n.apply(e,o):n,!(void 0!==i&&(t.exports=i));}(this,function(){"use strict";function t(t){return!isNaN(parseFloat(t))&&isFinite(t);}function e(t,e,r,n,o,i){void 0!==t&&this.setFunctionName(t),void 0!==e&&this.setArgs(e),void 0!==r&&this.setFileName(r),void 0!==n&&this.setLineNumber(n),void 0!==o&&this.setColumnNumber(o),void 0!==i&&this.setSource(i);}return e.prototype={getFunctionName:function(){return this.functionName;},setFunctionName:function(t){this.functionName=String(t);},getArgs:function(){return this.args;},setArgs:function(t){if("[object Array]"!==Object.prototype.toString.call(t))throw new TypeError("Args must be an Array");this.args=t;},getFileName:function(){return this.fileName;},setFileName:function(t){this.fileName=String(t);},getLineNumber:function(){return this.lineNumber;},setLineNumber:function(e){if(!t(e))throw new TypeError("Line Number must be a Number");this.lineNumber=Number(e);},getColumnNumber:function(){return this.columnNumber;},setColumnNumber:function(e){if(!t(e))throw new TypeError("Column Number must be a Number");this.columnNumber=Number(e);},getSource:function(){return this.source;},setSource:function(t){this.source=String(t);},toString:function(){var e=this.getFunctionName()||"{anonymous}",r="("+(this.getArgs()||[]).join(",")+")",n=this.getFileName()?"@"+this.getFileName():"",o=t(this.getLineNumber())?":"+this.getLineNumber():"",i=t(this.getColumnNumber())?":"+this.getColumnNumber():"";return e+r+n+o+i;}},e;});},function(t,e,r){"use strict";function n(t,e){var r=t.level,n=s.LEVELS[r]||0,o=s.LEVELS[e.reportLevel]||0;return!(n<o)&&(!s.get(e,"plugins.jquery.ignoreAjaxErrors")||!s.get(t,"body.message.extra.isAjax"));}function o(t,e){var r=!!t._isUncaught;delete t._isUncaught;var n=t._originalArgs;delete t._originalArgs;try{if(s.isFunction(e.checkIgnore)&&e.checkIgnore(r,n,t))return!1;}catch(t){e.checkIgnore=null,u.error("Error while calling custom checkIgnore(), removing",t);}return!0;}function i(t,e){var r,n,o,i,a,c,l,p,f,h;try{if(r=e.hostWhiteList,l=r&&r.length,n=s.get(t,"body.trace"),!r||0===l)return!0;if(!n||!n.frames)return!0;for(a=n.frames.length,f=0;f<a;f++){if(o=n.frames[f],i=o.filename,!s.isType(i,"string"))return!0;for(h=0;h<l;h++)if(c=r[h],p=new RegExp(c),p.test(i))return!0;}}catch(t){return e.hostWhiteList=null,u.error("Error while reading your configuration's hostWhiteList option. Removing custom hostWhiteList.",t),!0;}return!1;}function a(t,e){var r,n,o,i,a,c,l,p,f;try{if(a=!1,o=e.ignoredMessages,!o||0===o.length)return!0;if(l=t.body,p=s.get(l,"trace.exception.message"),f=s.get(l,"message.body"),r=p||f,!r)return!0;for(i=o.length,n=0;n<i&&(c=new RegExp(o[n],"gi"),!(a=c.test(r)));n++);}catch(t){e.ignoredMessages=null,u.error("Error while reading your configuration's ignoredMessages option. Removing custom ignoredMessages.");}return!a;}var s=r(6),u=r(12);t.exports={checkIgnore:n,userCheckIgnore:o,urlIsWhitelisted:i,messageIsIgnored:a};}]);});});var rollbarConfig={accessToken:"fe7cf327f2b24bb8991e252239f6200f",captureUncaught:true,ignoredMessages:["Error:  DOM Exception 18","SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.","SecurityError:  An attempt was made to break through the security policy of the user agent.","Script error."],payload:{environment:"development",client:{javascript:{source_map_enabled:true,code_version:"fb28f58bacc8a2a1ef9e2b0c4abb2a4625c4b0f4",// Optionally have Rollbar guess which frames the error was thrown from
+}};var commonjsGlobal=typeof window!=='undefined'?window:typeof global!=='undefined'?global:typeof self!=='undefined'?self:{};function createCommonjsModule(fn,module){return module={exports:{}},fn(module,module.exports),module.exports;}var rollbar_umd_min$1=createCommonjsModule(function(module,exports){!function(t,e){module.exports=e();}(commonjsGlobal,function(){return function(t){function e(n){if(r[n])return r[n].exports;var o=r[n]={exports:{},id:n,loaded:!1};return t[n].call(o.exports,o,o.exports,e),o.loaded=!0,o.exports;}var r={};return e.m=t,e.c=r,e.p="",e(0);}([function(t,e,r){t.exports=r(1);},function(t,e,r){"use strict";var n=r(2),o=window&&window._rollbarConfig,i=o&&o.globalAlias||"Rollbar",a=window&&window[i]&&"function"==typeof window[i].shimId&&void 0!==window[i].shimId();if(window&&!window._rollbarStartTime&&(window._rollbarStartTime=new Date().getTime()),!a&&o){var s=new n(o);window[i]=s;}else window.rollbar=n,window._rollbarDidLoad=!0;t.exports=n;},function(t,e,r){"use strict";function n(t,e){this.options=c.extend(!0,_,t);var r=new l(this.options,h,d);this.client=e||new u(this.options,r,p,"browser"),i(this.client.notifier),a(this.client.queue),(this.options.captureUncaught||this.options.handleUncaughtExceptions)&&(f.captureUncaughtExceptions(window,this),f.wrapGlobals(window,this)),(this.options.captureUnhandledRejections||this.options.handleUnhandledRejections)&&f.captureUnhandledRejections(window,this),this.instrumenter=new b(this.options,this.client.telemeter,this,window,document),this.instrumenter.instrument();}function o(t){var e="Rollbar is not initialized";p.error(e),t&&t(new Error(e));}function i(t){t.addTransform(m.handleItemWithError).addTransform(m.ensureItemHasSomethingToSay).addTransform(m.addBaseInfo).addTransform(m.addRequestInfo(window)).addTransform(m.addClientInfo(window)).addTransform(m.addPluginInfo(window)).addTransform(m.addBody).addTransform(g.addMessageWithError).addTransform(g.addTelemetryData).addTransform(m.scrubPayload).addTransform(m.userTransform).addTransform(g.itemToPayload);}function a(t){t.addPredicate(v.checkIgnore).addPredicate(v.userCheckIgnore).addPredicate(v.urlIsWhitelisted).addPredicate(v.messageIsIgnored);}function s(t){for(var e=0,r=t.length;e<r;++e)if(c.isFunction(t[e]))return t[e];}var u=r(3),c=r(6),l=r(11),p=r(13),f=r(16),h=r(17),d=r(18),m=r(19),g=r(23),v=r(24),y=r(20),b=r(25),w=null;n.init=function(t,e){return w?w.global(t).configure(t):w=new n(t,e);},n.prototype.global=function(t){return this.client.global(t),this;},n.global=function(t){return w?w.global(t):void o();},n.prototype.configure=function(t){var e=this.options;return this.options=c.extend(!0,{},e,t),this.client.configure(t),this;},n.configure=function(t){return w?w.configure(t):void o();},n.prototype.lastError=function(){return this.client.lastError;},n.lastError=function(){return w?w.lastError():void o();},n.prototype.log=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.log(t),{uuid:e};},n.log=function(){if(w)return w.log.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.debug=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.debug(t),{uuid:e};},n.debug=function(){if(w)return w.debug.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.info=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.info(t),{uuid:e};},n.info=function(){if(w)return w.info.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.warn=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warn(t),{uuid:e};},n.warn=function(){if(w)return w.warn.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.warning=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warning(t),{uuid:e};},n.warning=function(){if(w)return w.warning.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.error=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.error(t),{uuid:e};},n.error=function(){if(w)return w.error.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.critical=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.critical(t),{uuid:e};},n.critical=function(){if(w)return w.critical.apply(w,arguments);var t=s(arguments);o(t);},n.prototype.handleUncaughtException=function(t,e,r,n,o,i){var a,s=c.makeUnhandledStackInfo(t,e,r,n,o,"onerror","uncaught exception",y);c.isError(o)?(a=this._createItem([t,o,i]),a._unhandledStackInfo=s):c.isError(e)?(a=this._createItem([t,e,i]),a._unhandledStackInfo=s):(a=this._createItem([t,i]),a.stackInfo=s),a.level=this.options.uncaughtErrorLevel,a._isUncaught=!0,this.client.log(a);},n.prototype.handleUnhandledRejection=function(t,e){var r="unhandled rejection was null or undefined!";r=t?t.message||String(t):r;var n,o=t&&t._rollbarContext||e&&e._rollbarContext;c.isError(t)?n=this._createItem([r,t,o]):(n=this._createItem([r,t,o]),n.stackInfo=c.makeUnhandledStackInfo(r,"",0,0,null,"unhandledrejection","",y)),n.level=this.options.uncaughtErrorLevel,n._isUncaught=!0,n._originalArgs=n._originalArgs||[],n._originalArgs.push(e),this.client.log(n);},n.prototype.wrap=function(t,e,r){try{var n;if(n=c.isFunction(e)?e:function(){return e||{};},!c.isFunction(t))return t;if(t._isWrap)return t;if(!t._rollbar_wrapped&&(t._rollbar_wrapped=function(){r&&c.isFunction(r)&&r.apply(this,arguments);try{return t.apply(this,arguments);}catch(r){var e=r;throw c.isType(e,"string")&&(e=new String(e)),e._rollbarContext=n()||{},e._rollbarContext._wrappedSource=t.toString(),window._rollbarWrappedError=e,e;}},t._rollbar_wrapped._isWrap=!0,t.hasOwnProperty))for(var o in t)t.hasOwnProperty(o)&&(t._rollbar_wrapped[o]=t[o]);return t._rollbar_wrapped;}catch(e){return t;}},n.wrap=function(t,e){return w?w.wrap(t,e):void o();},n.prototype.captureEvent=function(t,e){return this.client.captureEvent(t,e);},n.captureEvent=function(t,e){return w?w.captureEvent(t,e):void o();},n.prototype.captureDomContentLoaded=function(t,e){return e||(e=new Date()),this.client.captureDomContentLoaded(e);},n.prototype.captureLoad=function(t,e){return e||(e=new Date()),this.client.captureLoad(e);},n.prototype._createItem=function(t){return c.createItem(t,p,this);};var _={version:"2.2.0",scrubFields:["pw","pass","passwd","password","secret","confirm_password","confirmPassword","password_confirmation","passwordConfirmation","access_token","accessToken","secret_key","secretKey","secretToken"],logLevel:"debug",reportLevel:"debug",uncaughtErrorLevel:"error",endpoint:"api.rollbar.com/api/1/",verbose:!1,enabled:!0};t.exports=n;},function(t,e,r){"use strict";function n(t,e,r,o){this.options=u.extend(!0,{},t),this.logger=r,n.rateLimiter.setPlatformOptions(o,this.options),this.queue=new i(n.rateLimiter,e,r,this.options),this.notifier=new a(this.queue,this.options),this.telemeter=new s(this.options),this.lastError=null;}var o=r(4),i=r(5),a=r(9),s=r(10),u=r(6),c={maxItems:0,itemsPerMinute:60};n.rateLimiter=new o(c),n.prototype.global=function(t){return n.rateLimiter.configureGlobal(t),this;},n.prototype.configure=function(t){this.notifier&&this.notifier.configure(t);var e=this.options;return this.options=u.extend(!0,{},e,t),this;},n.prototype.log=function(t){var e=this._defaultLogLevel();return this._log(e,t);},n.prototype.debug=function(t){this._log("debug",t);},n.prototype.info=function(t){this._log("info",t);},n.prototype.warn=function(t){this._log("warning",t);},n.prototype.warning=function(t){this._log("warning",t);},n.prototype.error=function(t){this._log("error",t);},n.prototype.critical=function(t){this._log("critical",t);},n.prototype.wait=function(t){this.queue.wait(t);},n.prototype.captureEvent=function(t,e){return this.telemeter.captureEvent(t,e);},n.prototype.captureDomContentLoaded=function(t){return this.telemeter.captureDomContentLoaded(t);},n.prototype.captureLoad=function(t){return this.telemeter.captureLoad(t);},n.prototype._log=function(t,e){if(!this._sameAsLastError(e))try{var r=null;e.callback&&(r=e.callback,delete e.callback),e.level=e.level||t,e.telemetryEvents=this.telemeter.copyEvents(),this.telemeter._captureRollbarItem(e),this.notifier.log(e,r);}catch(t){this.logger.error(t);}},n.prototype._defaultLogLevel=function(){return this.options.logLevel||"debug";},n.prototype._sameAsLastError=function(t){return!(!this.lastError||this.lastError!==t.err)||(this.lastError=t.err,!1);},t.exports=n;},function(t,e){"use strict";function r(t){this.startTime=new Date().getTime(),this.counter=0,this.perMinCounter=0,this.platform=null,this.platformOptions={},this.configureGlobal(t);}function n(t,e,r){return!t.ignoreRateLimit&&e>=1&&r>=e;}function o(t,e,r,n,o){var a=null;return r&&(r=new Error(r)),r||n||(a=i(t,e,o)),{error:r,shouldSend:n,payload:a};}function i(t,e,r){var n=e.environment||e.payload&&e.payload.environment,o={body:{message:{body:"maxItems has been hit. Ignoring errors until reset.",extra:{maxItems:r}}},language:"javascript",environment:n,notifier:{version:e.notifier&&e.notifier.version||e.version}};return"browser"===t?(o.platform="browser",o.framework="browser-js",o.notifier.name="rollbar-browser-js"):"server"===t&&(o.framework=e.framework||"node-js",o.notifier.name=e.notifier.name),o;}r.globalSettings={startTime:new Date().getTime(),maxItems:void 0,itemsPerMinute:void 0},r.prototype.configureGlobal=function(t){void 0!==t.startTime&&(r.globalSettings.startTime=t.startTime),void 0!==t.maxItems&&(r.globalSettings.maxItems=t.maxItems),void 0!==t.itemsPerMinute&&(r.globalSettings.itemsPerMinute=t.itemsPerMinute);},r.prototype.shouldSend=function(t,e){e=e||new Date().getTime(),e-this.startTime>=6e4&&(this.startTime=e,this.perMinCounter=0);var i=r.globalSettings.maxItems,a=r.globalSettings.itemsPerMinute;if(n(t,i,this.counter))return o(this.platform,this.platformOptions,i+" max items reached",!1);if(n(t,a,this.perMinCounter))return o(this.platform,this.platformOptions,a+" items per minute reached",!1);this.counter++,this.perMinCounter++;var s=!n(t,i,this.counter);return o(this.platform,this.platformOptions,null,s,i);},r.prototype.setPlatformOptions=function(t,e){this.platform=t,this.platformOptions=e;},t.exports=r;},function(t,e,r){"use strict";function n(t,e,r,n){this.rateLimiter=t,this.api=e,this.logger=r,this.options=n,this.predicates=[],this.pendingRequests=[],this.retryQueue=[],this.retryHandle=null,this.waitCallback=null,this.waitIntervalID=null;}var o=r(6);n.prototype.configure=function(t){this.api&&this.api.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},n.prototype.addPredicate=function(t){return o.isFunction(t)&&this.predicates.push(t),this;},n.prototype.addItem=function(t,e,r){e&&o.isFunction(e)||(e=function(){});var n=this._applyPredicates(t);if(n.stop)return void e(n.err);if(this.waitCallback)return void e();this._maybeLog(t,r),this.pendingRequests.push(t);try{this._makeApiRequest(t,function(r,n){this._dequeuePendingRequest(t),e(r,n);}.bind(this));}catch(r){this._dequeuePendingRequest(t),e(r);}},n.prototype.wait=function(t){o.isFunction(t)&&(this.waitCallback=t,this._maybeCallWait()||(this.waitIntervalID&&(this.waitIntervalID=clearInterval(this.waitIntervalID)),this.waitIntervalID=setInterval(function(){this._maybeCallWait();}.bind(this),500)));},n.prototype._applyPredicates=function(t){for(var e=null,r=0,n=this.predicates.length;r<n;r++)if(e=this.predicates[r](t,this.options),!e||void 0!==e.err)return{stop:!0,err:e.err};return{stop:!1,err:null};},n.prototype._makeApiRequest=function(t,e){var r=this.rateLimiter.shouldSend(t);r.shouldSend?this.api.postItem(t,function(r,n){r?this._maybeRetry(r,t,e):e(r,n);}.bind(this)):r.error?e(r.error):this.api.postItem(r.payload,e);};var i=["ECONNRESET","ENOTFOUND","ESOCKETTIMEDOUT","ETIMEDOUT","ECONNREFUSED","EHOSTUNREACH","EPIPE","EAI_AGAIN"];n.prototype._maybeRetry=function(t,e,r){var n=!1;if(this.options.retryInterval)for(var o=0,a=i.length;o<a;o++)if(t.code===i[o]){n=!0;break;}n?this._retryApiRequest(e,r):r(t);},n.prototype._retryApiRequest=function(t,e){this.retryQueue.push({item:t,callback:e}),this.retryHandle||(this.retryHandle=setInterval(function(){for(;this.retryQueue.length;){var t=this.retryQueue.shift();this._makeApiRequest(t.item,t.callback);}}.bind(this),this.options.retryInterval));},n.prototype._dequeuePendingRequest=function(t){for(var e=this.pendingRequests.length;e>=0;e--)if(this.pendingRequests[e]==t)return this.pendingRequests.splice(e,1),void this._maybeCallWait();},n.prototype._maybeLog=function(t,e){if(this.logger&&this.options.verbose){var r=e;if(r=r||o.get(t,"body.trace.exception.message"),r=r||o.get(t,"body.trace_chain.0.exception.message"))return void this.logger.error(r);r=o.get(t,"body.message.body"),r&&this.logger.log(r);}},n.prototype._maybeCallWait=function(){return!(!o.isFunction(this.waitCallback)||0!==this.pendingRequests.length)&&(this.waitIntervalID&&(this.waitIntervalID=clearInterval(this.waitIntervalID)),this.waitCallback(),!0);},t.exports=n;},function(t,e,r){"use strict";function n(){if(!C&&(C=!0,s(JSON)&&(a(JSON.stringify)&&(L.stringify=JSON.stringify),a(JSON.parse)&&(L.parse=JSON.parse)),!a(L.stringify)||!a(L.parse))){var t=r(8);t(L);}}function o(t,e){return e===i(t);}function i(t){var e=typeof t;return"object"!==e?e:t?t instanceof Error?"error":{}.toString.call(t).match(/\s([a-zA-Z]+)/)[1].toLowerCase():"null";}function a(t){return o(t,"function");}function s(t){return!o(t,"undefined");}function u(t){var e=i(t);return"object"===e||"array"===e;}function c(t){return o(t,"error");}function l(t,e){var r,n,i,a=o(t,"object"),s=o(t,"array"),u=[];if(a)for(r in t)Object.prototype.hasOwnProperty.call(t,r)&&u.push(r);else if(s)for(i=0;i<t.length;++i)u.push(i);for(i=0;i<u.length;++i)r=u[i],n=t[r],t[r]=e(r,n);return t;}function p(){return"********";}function f(){var t=O(),e="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){var r=(t+16*Math.random())%16|0;return t=Math.floor(t/16),("x"===e?r:7&r|8).toString(16);});return e;}function h(t){var e=d(t);return""===e.anchor&&(e.source=e.source.replace("#","")),t=e.source.replace("?"+e.query,"");}function d(t){if(!o(t,"string"))throw new Error("received invalid input");for(var e=A,r=e.parser[e.strictMode?"strict":"loose"].exec(t),n={},i=e.key.length;i--;)n[e.key[i]]=r[i]||"";return n[e.q.name]={},n[e.key[12]].replace(e.q.parser,function(t,r,o){r&&(n[e.q.name][r]=o);}),n;}function m(t,e,r){r=r||{},r.access_token=t;var n,o=[];for(n in r)Object.prototype.hasOwnProperty.call(r,n)&&o.push([n,r[n]].join("="));var i="?"+o.sort().join("&");e=e||{},e.path=e.path||"";var a,s=e.path.indexOf("?"),u=e.path.indexOf("#");s!==-1&&(u===-1||u>s)?(a=e.path,e.path=a.substring(0,s)+i+"&"+a.substring(s+1)):u!==-1?(a=e.path,e.path=a.substring(0,u)+i+a.substring(u)):e.path=e.path+i;}function g(t,e){if(e=e||t.protocol,!e&&t.port&&(80===t.port?e="http:":443===t.port&&(e="https:")),e=e||"https:",!t.hostname)return null;var r=e+"//"+t.hostname;return t.port&&(r=r+":"+t.port),t.path&&(r+=t.path),r;}function v(t,e){var r,n;try{r=L.stringify(t);}catch(o){if(e&&a(e))try{r=e(t);}catch(t){n=t;}else n=o;}return{error:n,value:r};}function y(t){var e,r;try{e=L.parse(t);}catch(t){r=t;}return{error:r,value:e};}function b(t,e,r,n,o,i,a,s){var u={url:e||"",line:r,column:n};u.func=s.guessFunctionName(u.url,u.line),u.context=s.gatherContext(u.url,u.line);var c=document&&document.location&&document.location.href,l=window&&window.navigator&&window.navigator.userAgent;return{mode:i,message:o?String(o):t||a,url:c,stack:[u],useragent:l};}function w(t,e){return function(r,n){try{e(r,n);}catch(e){t.error(e);}};}function _(t,e,r,n){for(var o,a,s,u,c,l,p=[],h=0,d=t.length;h<d;++h){l=t[h];var m=i(l);switch(m){case"undefined":break;case"string":o?p.push(l):o=l;break;case"function":u=w(e,l);break;case"date":p.push(l);break;case"error":case"domexception":a?p.push(l):a=l;break;case"object":case"array":if(l instanceof Error||"undefined"!=typeof DOMException&&l instanceof DOMException){a?p.push(l):a=l;break;}if(n&&"object"===m&&!c){for(var g=0,v=n.length;g<v;++g)if(void 0!==l[n[g]]){c=l;break;}if(c)break;}s?p.push(l):s=l;break;default:if(l instanceof Error||"undefined"!=typeof DOMException&&l instanceof DOMException){a?p.push(l):a=l;break;}p.push(l);}}p.length>0&&(s=N(!0,{},s),s.extraArgs=p);var y={message:o,err:a,custom:s,timestamp:O(),callback:u,uuid:f()};return s&&void 0!==s.level&&(y.level=s.level,delete s.level),n&&c&&(y.request=c),y._originalArgs=t,y;}function x(t,e){if(t){var r=e.split("."),n=t;try{for(var o=0,i=r.length;o<i;++o)n=n[r[o]];}catch(t){n=void 0;}return n;}}function k(t,e,r){if(t){var n=e.split("."),o=n.length;if(!(o<1)){if(1===o)return void(t[n[0]]=r);try{for(var i=t[n[0]]||{},a=i,s=1;s<o-1;s++)i[n[s]]=i[n[s]]||{},i=i[n[s]];i[n[o-1]]=r,t[n[0]]=a;}catch(t){return;}}}}function E(t,e){function r(t,e,r,n,o,i){return e+p(i);}function n(t){var e;if(o(t,"string"))for(e=0;e<u.length;++e)t=t.replace(u[e],r);return t;}function i(t,e){var r;for(r=0;r<s.length;++r)if(s[r].test(t)){e=p(e);break;}return e;}function a(t,e){var r=i(t,e);return r===e?o(e,"object")||o(e,"array")?l(e,a):n(r):r;}e=e||[];var s=I(e),u=T(e);return l(t,a),t;}function I(t){for(var e,r=[],n=0;n<t.length;++n)e="\\[?(%5[bB])?"+t[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",r.push(new RegExp(e,"i"));return r;}function T(t){for(var e,r=[],n=0;n<t.length;++n)e="\\[?(%5[bB])?"+t[n]+"\\[?(%5[bB])?\\]?(%5[dD])?",r.push(new RegExp("("+e+"=)([^&\\n]+)","igm"));return r;}function S(t){var e,r,n,o=[];for(e=0,r=t.length;e<r;e++)n=t[e],"object"==typeof n?(n=v(n),n=n.error||n.value,n.length>500&&(n=n.substr(0,500)+"...")):"undefined"==typeof n&&(n="undefined"),o.push(n);return o.join(" ");}function O(){return Date.now?Date.now():+new Date();}var N=r(7),L={},C=!1;n();var j={debug:0,info:1,warning:2,error:3,critical:4},A={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}};t.exports={isType:o,typeName:i,isFunction:a,isIterable:u,isError:c,extend:N,traverse:l,redact:p,uuid4:f,LEVELS:j,sanitizeUrl:h,addParamsAndAccessTokenToPath:m,formatUrl:g,stringify:v,jsonParse:y,makeUnhandledStackInfo:b,createItem:_,get:x,set:k,scrub:E,formatArgsAsString:S,now:O};},function(t,e){"use strict";var r=Object.prototype.hasOwnProperty,n=Object.prototype.toString,o=function(t){return"function"==typeof Array.isArray?Array.isArray(t):"[object Array]"===n.call(t);},i=function(t){if(!t||"[object Object]"!==n.call(t))return!1;var e=r.call(t,"constructor"),o=t.constructor&&t.constructor.prototype&&r.call(t.constructor.prototype,"isPrototypeOf");if(t.constructor&&!e&&!o)return!1;var i;for(i in t);return"undefined"==typeof i||r.call(t,i);};t.exports=function t(){var e,r,n,a,s,u,c=arguments[0],l=1,p=arguments.length,f=!1;for("boolean"==typeof c?(f=c,c=arguments[1]||{},l=2):("object"!=typeof c&&"function"!=typeof c||null==c)&&(c={});l<p;++l)if(e=arguments[l],null!=e)for(r in e)n=c[r],a=e[r],c!==a&&(f&&a&&(i(a)||(s=o(a)))?(s?(s=!1,u=n&&o(n)?n:[]):u=n&&i(n)?n:{},c[r]=t(f,u,a)):"undefined"!=typeof a&&(c[r]=a));return c;};},function(t,e){var r=function(t){function e(t){return t<10?"0"+t:t;}function r(){return this.valueOf();}function n(t){return i.lastIndex=0,i.test(t)?'"'+t.replace(i,function(t){var e=u[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+t+'"';}function o(t,e){var r,i,u,l,p,f=a,h=e[t];switch(h&&"object"==typeof h&&"function"==typeof h.toJSON&&(h=h.toJSON(t)),"function"==typeof c&&(h=c.call(e,t,h)),typeof h){case"string":return n(h);case"number":return isFinite(h)?String(h):"null";case"boolean":case"null":return String(h);case"object":if(!h)return"null";if(a+=s,p=[],"[object Array]"===Object.prototype.toString.apply(h)){for(l=h.length,r=0;r<l;r+=1)p[r]=o(r,h)||"null";return u=0===p.length?"[]":a?"[\n"+a+p.join(",\n"+a)+"\n"+f+"]":"["+p.join(",")+"]",a=f,u;}if(c&&"object"==typeof c)for(l=c.length,r=0;r<l;r+=1)"string"==typeof c[r]&&(i=c[r],u=o(i,h),u&&p.push(n(i)+(a?": ":":")+u));else for(i in h)Object.prototype.hasOwnProperty.call(h,i)&&(u=o(i,h),u&&p.push(n(i)+(a?": ":":")+u));return u=0===p.length?"{}":a?"{\n"+a+p.join(",\n"+a)+"\n"+f+"}":"{"+p.join(",")+"}",a=f,u;}}var i=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+e(this.getUTCMonth()+1)+"-"+e(this.getUTCDate())+"T"+e(this.getUTCHours())+":"+e(this.getUTCMinutes())+":"+e(this.getUTCSeconds())+"Z":null;},Boolean.prototype.toJSON=r,Number.prototype.toJSON=r,String.prototype.toJSON=r);var a,s,u,c;"function"!=typeof t.stringify&&(u={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},t.stringify=function(t,e,r){var n;if(a="",s="","number"==typeof r)for(n=0;n<r;n+=1)s+=" ";else"string"==typeof r&&(s=r);if(c=e,e&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw new Error("JSON.stringify");return o("",{"":t});}),"function"!=typeof t.parse&&(t.parse=function(){function t(t){return t.replace(/\\(?:u(.{4})|([^u]))/g,function(t,e,r){return e?String.fromCharCode(parseInt(e,16)):a[r];});}var e,r,n,o,i,a={"\\":"\\",'"':'"',"/":"/",t:"\t",n:"\n",r:"\r",f:"\f",b:"\b"},s={go:function(){e="ok";},firstokey:function(){o=i,e="colon";},okey:function(){o=i,e="colon";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},u={go:function(){e="ok";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},c={"{":{go:function(){r.push({state:"ok"}),n={},e="firstokey";},ovalue:function(){r.push({container:n,state:"ocomma",key:o}),n={},e="firstokey";},firstavalue:function(){r.push({container:n,state:"acomma"}),n={},e="firstokey";},avalue:function(){r.push({container:n,state:"acomma"}),n={},e="firstokey";}},"}":{firstokey:function(){var t=r.pop();i=n,n=t.container,o=t.key,e=t.state;},ocomma:function(){var t=r.pop();n[o]=i,i=n,n=t.container,o=t.key,e=t.state;}},"[":{go:function(){r.push({state:"ok"}),n=[],e="firstavalue";},ovalue:function(){r.push({container:n,state:"ocomma",key:o}),n=[],e="firstavalue";},firstavalue:function(){r.push({container:n,state:"acomma"}),n=[],e="firstavalue";},avalue:function(){r.push({container:n,state:"acomma"}),n=[],e="firstavalue";}},"]":{firstavalue:function(){var t=r.pop();i=n,n=t.container,o=t.key,e=t.state;},acomma:function(){var t=r.pop();n.push(i),i=n,n=t.container,o=t.key,e=t.state;}},":":{colon:function(){if(Object.hasOwnProperty.call(n,o))throw new SyntaxError("Duplicate key '"+o+'"');e="ovalue";}},",":{ocomma:function(){n[o]=i,e="okey";},acomma:function(){n.push(i),e="avalue";}},true:{go:function(){i=!0,e="ok";},ovalue:function(){i=!0,e="ocomma";},firstavalue:function(){i=!0,e="acomma";},avalue:function(){i=!0,e="acomma";}},false:{go:function(){i=!1,e="ok";},ovalue:function(){i=!1,e="ocomma";},firstavalue:function(){i=!1,e="acomma";},avalue:function(){i=!1,e="acomma";}},null:{go:function(){i=null,e="ok";},ovalue:function(){i=null,e="ocomma";},firstavalue:function(){i=null,e="acomma";},avalue:function(){i=null,e="acomma";}}};return function(n,o){var a,l=/^[\u0020\t\n\r]*(?:([,:\[\]{}]|true|false|null)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)|"((?:[^\r\n\t\\\"]|\\(?:["\\\/trnfb]|u[0-9a-fA-F]{4}))*)")/;e="go",r=[];try{for(;;){if(a=l.exec(n),!a)break;a[1]?c[a[1]][e]():a[2]?(i=+a[2],u[e]()):(i=t(a[3]),s[e]()),n=n.slice(a[0].length);}}catch(t){e=t;}if("ok"!==e||/[^\u0020\t\n\r]/.test(n))throw e instanceof SyntaxError?e:new SyntaxError("JSON");return"function"==typeof o?function t(e,r){var n,a,s=e[r];if(s&&"object"==typeof s)for(n in i)Object.prototype.hasOwnProperty.call(s,n)&&(a=t(s,n),void 0!==a?s[n]=a:delete s[n]);return o.call(e,r,s);}({"":i},""):i;};}());};t.exports=r;},function(t,e,r){"use strict";function n(t,e){this.queue=t,this.options=e,this.transforms=[];}var o=r(6);n.prototype.configure=function(t){this.queue&&this.queue.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},n.prototype.addTransform=function(t){return o.isFunction(t)&&this.transforms.push(t),this;},n.prototype.log=function(t,e){if(e&&o.isFunction(e)||(e=function(){}),!this.options.enabled)return e(new Error("Rollbar is not enabled"));var r=t.err;this._applyTransforms(t,function(t,n){return t?e(t,null):void this.queue.addItem(n,e,r);}.bind(this));},n.prototype._applyTransforms=function(t,e){var r=-1,n=this.transforms.length,o=this.transforms,i=this.options,a=function(t,s){return t?void e(t,null):(r++,r===n?void e(null,s):void o[r](s,i,a));};a(null,t);},t.exports=n;},function(t,e,r){"use strict";function n(t){this.queue=[],this.options=i.extend(!0,{},t);var e=this.options.maxTelemetryEvents||a;this.maxQueueSize=Math.max(0,Math.min(e,a));}function o(t,e){if(e)return e;var r={error:"error",manual:"info"};return r[t]||"info";}var i=r(6),a=100;n.prototype.copyEvents=function(){return Array.prototype.slice.call(this.queue,0);},n.prototype.capture=function(t,e,r,n,a){var s={level:o(t,r),type:t,timestamp_ms:a||i.now(),body:e,source:"client"};return n&&(s.uuid=n),this.push(s),s;},n.prototype.captureEvent=function(t,e,r){return this.capture("manual",t,e,r);},n.prototype.captureError=function(t,e,r,n){var o={message:t.message||String(t)};return t.stack&&(o.stack=t.stack),this.capture("error",o,e,r,n);},n.prototype.captureLog=function(t,e,r,n){return this.capture("log",{message:t},e,r,n);},n.prototype.captureNetwork=function(t,e,r){e=e||"xhr",t.subtype=t.subtype||e;var n=this.levelFromStatus(t.status_code);return this.capture("network",t,n,r);},n.prototype.levelFromStatus=function(t){return t>=200&&t<400?"info":0===t||t>=400?"error":"info";},n.prototype.captureDom=function(t,e,r,n,o){var i={subtype:t,element:e};return void 0!==r&&(i.value=r),void 0!==n&&(i.checked=n),this.capture("dom",i,"info",o);},n.prototype.captureNavigation=function(t,e,r){return this.capture("navigation",{from:t,to:e},"info",r);},n.prototype.captureDomContentLoaded=function(t){return this.capture("navigation",{subtype:"DOMContentLoaded"},"info",void 0,t&&t.getTime());},n.prototype.captureLoad=function(t){return this.capture("navigation",{subtype:"load"},"info",void 0,t&&t.getTime());},n.prototype.captureConnectivityChange=function(t,e){return this.captureNetwork({change:t},"connectivity",e);},n.prototype._captureRollbarItem=function(t){return t.err?this.captureError(t.err,t.level,t.uuid,t.timestamp):t.message?this.captureLog(t.message,t.level,t.uuid,t.timestamp):t.custom?this.capture("log",t.custom,t.level,t.uuid,t.timestamp):void 0;},n.prototype.push=function(t){this.queue.push(t),this.queue.length>this.maxQueueSize&&this.queue.shift();},t.exports=n;},function(t,e,r){"use strict";function n(t,e,r,n){this.options=t,this.transport=e,this.url=r,this.jsonBackup=n,this.accessToken=t.accessToken,this.transportOptions=o(t,r);}function o(t,e){return a.getTransportFromOptions(t,s,e);}var i=r(6),a=r(12),s={hostname:"api.rollbar.com",path:"/api/1",search:null,version:"1",protocol:"https:",port:443};n.prototype.postItem=function(t,e){var r=a.transportOptions(this.transportOptions,"/item/","POST"),n=a.buildPayload(this.accessToken,t,this.jsonBackup);this.transport.post(this.accessToken,r,n,e);},n.prototype.configure=function(t){var e=this.oldOptions;return this.options=i.extend(!0,{},e,t),this.transportOptions=o(this.options,this.url),void 0!==this.options.accessToken&&(this.accessToken=this.options.accessToken),this;},t.exports=n;},function(t,e,r){"use strict";function n(t,e,r){if(s.isType(e.context,"object")){var n=s.stringify(e.context,r);n.error?e.context="Error: could not serialize 'context'":e.context=n.value||"",e.context.length>255&&(e.context=e.context.substr(0,255));}return{access_token:t,data:e};}function o(t,e,r){var n=e.hostname,o=e.protocol,i=e.port,a=e.path,s=e.search,u=t.proxy;if(t.endpoint){var c=r.parse(t.endpoint);n=c.hostname,o=c.protocol,i=c.port,a=c.pathname,s=c.search;}return{hostname:n,protocol:o,port:i,path:a,search:s,proxy:u};}function i(t,e,r){var n=t.protocol||"https:",o=t.port||("http:"===n?80:"https:"===n?443:void 0),i=t.hostname;return e=a(t.path,e),t.search&&(e+=t.search),t.proxy&&(e=n+"//"+i+e,i=t.proxy.host||t.proxy.hostname,o=t.proxy.port,n=t.proxy.protocol||n),{protocol:n,hostname:i,path:e,port:o,method:r};}function a(t,e){var r=/\/$/.test(t),n=/^\//.test(e);return r&&n?e=e.substring(1):r||n||(e="/"+e),t+e;}var s=r(6);t.exports={buildPayload:n,getTransportFromOptions:o,transportOptions:i,appendPathToPath:a};},function(t,e,r){"use strict";function n(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.error(s.formatArgsAsString(t)):console.error.apply(console,t);}function o(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.info(s.formatArgsAsString(t)):console.info.apply(console,t);}function i(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.log(s.formatArgsAsString(t)):console.log.apply(console,t);}r(14);var a=r(15),s=r(6);t.exports={error:n,info:o,log:i};},function(t,e){!function(t){"use strict";t.console||(t.console={});for(var e,r,n=t.console,o=function(){},i=["memory"],a="assert,clear,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn".split(",");e=i.pop();)n[e]||(n[e]={});for(;r=a.pop();)n[r]||(n[r]=o);}("undefined"==typeof window?this:window);},function(t,e){"use strict";function r(){var t;if(!document)return t;for(var e=3,r=document.createElement("div"),n=r.getElementsByTagName("i");r.innerHTML="<!--[if gt IE "+ ++e+"]><i></i><![endif]-->",n[0];);return e>4?e:t;}var n={ieVersion:r};t.exports=n;},function(t,e){"use strict";function r(t,e,r){if(t){var o;"function"==typeof e._rollbarOldOnError?o=e._rollbarOldOnError:t.onerror&&!t.onerror.belongsToShim&&(o=t.onerror,e._rollbarOldOnError=o);var i=function(){var r=Array.prototype.slice.call(arguments,0);n(t,e,o,r);};i.belongsToShim=r,t.onerror=i;}}function n(t,e,r,n){t._rollbarWrappedError&&(n[4]||(n[4]=t._rollbarWrappedError),n[5]||(n[5]=t._rollbarWrappedError._rollbarContext),t._rollbarWrappedError=null),e.handleUncaughtException.apply(e,n),r&&r.apply(t,n);}function o(t,e,r){if(t){"function"==typeof t._rollbarURH&&t._rollbarURH.belongsToShim&&t.removeEventListener("unhandledrejection",t._rollbarURH);var n=function(t){var r=t.reason,n=t.promise,o=t.detail;!r&&o&&(r=o.reason,n=o.promise),e&&e.handleUnhandledRejection&&e.handleUnhandledRejection(r,n);};n.belongsToShim=r,t._rollbarURH=n,t.addEventListener("unhandledrejection",n);}}function i(t,e,r){if(t){var n,o,i="EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");for(n=0;n<i.length;++n)o=i[n],t[o]&&t[o].prototype&&a(e,t[o].prototype,r);}}function a(t,e,r){if(e.hasOwnProperty&&e.hasOwnProperty("addEventListener")){for(var n=e.addEventListener;n._rollbarOldAdd&&n.belongsToShim;)n=n._rollbarOldAdd;var o=function(e,r,o){n.call(this,e,t.wrap(r),o);};o._rollbarOldAdd=n,o.belongsToShim=r,e.addEventListener=o;for(var i=e.removeEventListener;i._rollbarOldRemove&&i.belongsToShim;)i=i._rollbarOldRemove;var a=function(t,e,r){i.call(this,t,e&&e._rollbar_wrapped||e,r);};a._rollbarOldRemove=i,a.belongsToShim=r,e.removeEventListener=a;}}t.exports={captureUncaughtExceptions:r,captureUnhandledRejections:o,wrapGlobals:i};},function(t,e,r){"use strict";function n(t,e,r,n,o){n&&l.isFunction(n)||(n=function(){}),l.addParamsAndAccessTokenToPath(t,e,r);var a="GET",s=l.formatUrl(e);i(t,s,a,null,n,o);}function o(t,e,r,n,o){if(n&&l.isFunction(n)||(n=function(){}),!r)return n(new Error("Cannot send empty request"));var a=l.stringify(r);if(a.error)return n(a.error);var s=a.value,u="POST",c=l.formatUrl(e);i(t,c,u,s,n,o);}function i(t,e,r,n,o,i){var f;if(f=i?i():a(),!f)return o(new Error("No way to send a request"));try{try{var h=function(){try{if(h&&4===f.readyState){h=void 0;var t=l.jsonParse(f.responseText);if(s(f))return void o(t.error,t.value);if(u(f)){if(403===f.status){var e=t.value&&t.value.message;p.error(e);}o(new Error(String(f.status)));}else{var r="XHR response had no status code (likely connection failure)";o(c(r));}}}catch(t){var n;n=t&&t.stack?t:new Error(t),o(n);}};f.open(r,e,!0),f.setRequestHeader&&(f.setRequestHeader("Content-Type","application/json"),f.setRequestHeader("X-Rollbar-Access-Token",t)),f.onreadystatechange=h,f.send(n);}catch(t){if("undefined"!=typeof XDomainRequest){if(!window||!window.location)return o(new Error("No window available during request, unknown environment"));"http:"===window.location.href.substring(0,5)&&"https"===e.substring(0,5)&&(e="http"+e.substring(5));var d=new XDomainRequest();d.onprogress=function(){},d.ontimeout=function(){var t="Request timed out",e="ETIMEDOUT";o(c(t,e));},d.onerror=function(){o(new Error("Error during request"));},d.onload=function(){var t=l.jsonParse(d.responseText);o(t.error,t.value);},d.open(r,e,!0),d.send(n);}else o(new Error("Cannot find a method to transport a request"));}}catch(t){o(t);}}function a(){var t,e,r=[function(){return new XMLHttpRequest();},function(){return new ActiveXObject("Msxml2.XMLHTTP");},function(){return new ActiveXObject("Msxml3.XMLHTTP");},function(){return new ActiveXObject("Microsoft.XMLHTTP");}],n=r.length;for(e=0;e<n;e++)try{t=r[e]();break;}catch(t){}return t;}function s(t){return t&&t.status&&200===t.status;}function u(t){return t&&l.isType(t.status,"number")&&t.status>=400&&t.status<600;}function c(t,e){var r=new Error(t);return r.code=e||"ENOTFOUND",r;}var l=r(6),p=r(13);t.exports={get:n,post:o};},function(t,e){"use strict";function r(t){var e,r,n={protocol:null,auth:null,host:null,path:null,hash:null,href:t,hostname:null,port:null,pathname:null,search:null,query:null};if(e=t.indexOf("//"),e!==-1?(n.protocol=t.substring(0,e),r=e+2):r=0,e=t.indexOf("@",r),e!==-1&&(n.auth=t.substring(r,e),r=e+1),e=t.indexOf("/",r),e===-1){if(e=t.indexOf("?",r),e===-1)return e=t.indexOf("#",r),e===-1?n.host=t.substring(r):(n.host=t.substring(r,e),n.hash=t.substring(e)),n.hostname=n.host.split(":")[0],n.port=n.host.split(":")[1],n.port&&(n.port=parseInt(n.port,10)),n;n.host=t.substring(r,e),n.hostname=n.host.split(":")[0],n.port=n.host.split(":")[1],n.port&&(n.port=parseInt(n.port,10)),r=e;}else n.host=t.substring(r,e),n.hostname=n.host.split(":")[0],n.port=n.host.split(":")[1],n.port&&(n.port=parseInt(n.port,10)),r=e;if(e=t.indexOf("#",r),e===-1?n.path=t.substring(r):(n.path=t.substring(r,e),n.hash=t.substring(e)),n.path){var o=n.path.split("?");n.pathname=o[0],n.query=o[1],n.search=n.query?"?"+n.query:null;}return n;}t.exports={parse:r};},function(t,e,r){"use strict";function n(t,e,r){if(t.data=t.data||{},t.err)try{t.stackInfo=t.err._savedStackTrace||m.parse(t.err);}catch(e){g.error("Error while parsing the error object.",e),t.message=t.err.message||t.err.description||t.message||String(t.err),delete t.err;}r(null,t);}function o(t,e,r){t.message||t.stackInfo||t.custom||r(new Error("No message, stack info, or custom data"),null),r(null,t);}function i(t,e,r){var n=e.payload&&e.payload.environment||e.environment;t.data=d.extend(!0,{},t.data,{environment:n,level:t.level,endpoint:e.endpoint,platform:"browser",framework:"browser-js",language:"javascript",server:{},uuid:t.uuid,notifier:{name:"rollbar-browser-js",version:e.version}}),r(null,t);}function a(t){return function(e,r,n){return t&&t.location?(d.set(e,"data.request",{url:t.location.href,query_string:t.location.search,user_ip:"$remote_ip"}),void n(null,e)):n(null,e);};}function s(t){return function(e,r,n){return t?(d.set(e,"data.client",{runtime_ms:e.timestamp-t._rollbarStartTime,timestamp:Math.round(e.timestamp/1e3),javascript:{browser:t.navigator.userAgent,language:t.navigator.language,cookie_enabled:t.navigator.cookieEnabled,screen:{width:t.screen.width,height:t.screen.height}}}),void n(null,e)):n(null,e);};}function u(t){return function(e,r,n){if(!t||!t.navigator)return n(null,e);for(var o,i=[],a=t.navigator.plugins||[],s=0,u=a.length;s<u;++s)o=a[s],i.push({name:o.name,description:o.description});d.set(e,"data.client.javascript.plugins",i),n(null,e);};}function c(t,e,r){t.stackInfo?p(t,e,r):l(t,e,r);}function l(t,e,r){var n=t.message,o=t.custom;if(!n)if(o){var i=e.scrubFields,a=d.stringify(d.scrub(o,i));n=a.error||a.value||"";}else n="";var s={body:n};o&&(s.extra=d.extend(!0,{},o)),d.set(t,"data.body",{message:s}),r(null,t);}function p(t,e,r){var n=t.data.description,o=t.stackInfo,i=t.custom,a=m.guessErrorClass(o.message),s=o.name||a[0],u=a[1],c={exception:{class:s,message:u}};n&&(c.exception.description=n);var p=o.stack;if(p&&0===p.length&&t._unhandledStackInfo&&t._unhandledStackInfo.stack&&(p=t._unhandledStackInfo.stack),p){var f,h,g,v,y,b,w,_;for(c.frames=[],w=0;w<p.length;++w)f=p[w],h={filename:f.url?d.sanitizeUrl(f.url):"(unknown)",lineno:f.line||null,method:f.func&&"?"!==f.func?f.func:"[anonymous]",colno:f.column},h.method&&h.method.endsWith&&h.method.endsWith("._rollbar_wrapped")||(g=v=y=null,b=f.context?f.context.length:0,b&&(_=Math.floor(b/2),v=f.context.slice(0,_),g=f.context[_],y=f.context.slice(_)),g&&(h.code=g),(v||y)&&(h.context={},v&&v.length&&(h.context.pre=v),y&&y.length&&(h.context.post=y)),f.args&&(h.args=f.args),c.frames.push(h));c.frames.reverse(),i&&(c.extra=d.extend(!0,{},i)),d.set(t,"data.body",{trace:c}),r(null,t);}else t.message=s+": "+u,l(t,e,r);}function f(t,e,r){var n=e.scrubFields;d.scrub(t.data,n),r(null,t);}function h(t,e,r){var n=d.extend(!0,{},t);try{d.isFunction(e.transform)&&e.transform(n.data);}catch(n){return e.transform=null,g.error("Error while calling custom transform() function. Removing custom transform().",n),void r(null,t);}r(null,n);}var d=r(6),m=r(20),g=r(13);t.exports={handleItemWithError:n,ensureItemHasSomethingToSay:o,addBaseInfo:i,addRequestInfo:a,addClientInfo:s,addPluginInfo:u,addBody:c,scrubPayload:f,userTransform:h};},function(t,e,r){"use strict";function n(){return l;}function o(){return null;}function i(t){var e={};return e._stackFrame=t,e.url=t.fileName,e.line=t.lineNumber,e.func=t.functionName,e.column=t.columnNumber,e.args=t.args,e.context=o(e.url,e.line),e;}function a(t){function e(){var e=[];try{e=c.parse(t);}catch(t){e=[];}for(var r=[],n=0;n<e.length;n++)r.push(new i(e[n]));return r;}return{stack:e(),message:t.message,name:t.name};}function s(t){return new a(t);}function u(t){if(!t)return["Unknown error. There was no error message to display.",""];var e=t.match(p),r="(unknown)";return e&&(r=e[e.length-1],t=t.replace((e[e.length-2]||"")+r+":",""),t=t.replace(/(^[\s]+|[\s]+$)/g,"")),[r,t];}var c=r(21),l="?",p=new RegExp("^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ");t.exports={guessFunctionName:n,guessErrorClass:u,gatherContext:o,parse:s,Stack:a,Frame:i};},function(t,e,r){var n,o,i;!function(a,s){"use strict";o=[r(22)],n=s,i="function"==typeof n?n.apply(e,o):n,!(void 0!==i&&(t.exports=i));}(this,function(t){"use strict";function e(t,e,r){if("function"==typeof Array.prototype.map)return t.map(e,r);for(var n=new Array(t.length),o=0;o<t.length;o++)n[o]=e.call(r,t[o]);return n;}function r(t,e,r){if("function"==typeof Array.prototype.filter)return t.filter(e,r);for(var n=[],o=0;o<t.length;o++)e.call(r,t[o])&&n.push(t[o]);return n;}var n=/(^|@)\S+\:\d+/,o=/^\s*at .*(\S+\:\d+|\(native\))/m,i=/^(eval@)?(\[native code\])?$/;return{parse:function(t){if("undefined"!=typeof t.stacktrace||"undefined"!=typeof t["opera#sourceloc"])return this.parseOpera(t);if(t.stack&&t.stack.match(o))return this.parseV8OrIE(t);if(t.stack)return this.parseFFOrSafari(t);throw new Error("Cannot parse given Error object");},extractLocation:function(t){if(t.indexOf(":")===-1)return[t];var e=t.replace(/[\(\)\s]/g,"").split(":"),r=e.pop(),n=e[e.length-1];if(!isNaN(parseFloat(n))&&isFinite(n)){var o=e.pop();return[e.join(":"),o,r];}return[e.join(":"),r,void 0];},parseV8OrIE:function(n){var i=r(n.stack.split("\n"),function(t){return!!t.match(o);},this);return e(i,function(e){e.indexOf("(eval ")>-1&&(e=e.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var r=e.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),n=this.extractLocation(r.pop()),o=r.join(" ")||void 0,i="eval"===n[0]?void 0:n[0];return new t(o,void 0,i,n[1],n[2],e);},this);},parseFFOrSafari:function(n){var o=r(n.stack.split("\n"),function(t){return!t.match(i);},this);return e(o,function(e){if(e.indexOf(" > eval")>-1&&(e=e.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),e.indexOf("@")===-1&&e.indexOf(":")===-1)return new t(e);var r=e.split("@"),n=this.extractLocation(r.pop()),o=r.shift()||void 0;return new t(o,void 0,n[0],n[1],n[2],e);},this);},parseOpera:function(t){return!t.stacktrace||t.message.indexOf("\n")>-1&&t.message.split("\n").length>t.stacktrace.split("\n").length?this.parseOpera9(t):t.stack?this.parseOpera11(t):this.parseOpera10(t);},parseOpera9:function(e){for(var r=/Line (\d+).*script (?:in )?(\S+)/i,n=e.message.split("\n"),o=[],i=2,a=n.length;i<a;i+=2){var s=r.exec(n[i]);s&&o.push(new t(void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera10:function(e){for(var r=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,n=e.stacktrace.split("\n"),o=[],i=0,a=n.length;i<a;i+=2){var s=r.exec(n[i]);s&&o.push(new t(s[3]||void 0,void 0,s[2],s[1],void 0,n[i]));}return o;},parseOpera11:function(o){var i=r(o.stack.split("\n"),function(t){return!!t.match(n)&&!t.match(/^Error created at/);},this);return e(i,function(e){var r,n=e.split("@"),o=this.extractLocation(n.pop()),i=n.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(r=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===r||"[arguments not available]"===r?void 0:r.split(",");return new t(a,s,o[0],o[1],o[2],e);},this);}};});},function(t,e,r){var n,o,i;!function(r,a){"use strict";o=[],n=a,i="function"==typeof n?n.apply(e,o):n,!(void 0!==i&&(t.exports=i));}(this,function(){"use strict";function t(t){return!isNaN(parseFloat(t))&&isFinite(t);}function e(t,e,r,n,o){void 0!==t&&this.setFunctionName(t),void 0!==e&&this.setArgs(e),void 0!==r&&this.setFileName(r),void 0!==n&&this.setLineNumber(n),void 0!==o&&this.setColumnNumber(o);}return e.prototype={getFunctionName:function(){return this.functionName;},setFunctionName:function(t){this.functionName=String(t);},getArgs:function(){return this.args;},setArgs:function(t){if("[object Array]"!==Object.prototype.toString.call(t))throw new TypeError("Args must be an Array");this.args=t;},getFileName:function(){return this.fileName;},setFileName:function(t){this.fileName=String(t);},getLineNumber:function(){return this.lineNumber;},setLineNumber:function(e){if(!t(e))throw new TypeError("Line Number must be a Number");this.lineNumber=Number(e);},getColumnNumber:function(){return this.columnNumber;},setColumnNumber:function(e){if(!t(e))throw new TypeError("Column Number must be a Number");this.columnNumber=Number(e);},toString:function(){var e=this.getFunctionName()||"{anonymous}",r="("+(this.getArgs()||[]).join(",")+")",n=this.getFileName()?"@"+this.getFileName():"",o=t(this.getLineNumber())?":"+this.getLineNumber():"",i=t(this.getColumnNumber())?":"+this.getColumnNumber():"";return e+r+n+o+i;}},e;});},function(t,e,r){"use strict";function n(t,e,r){var n=e.payload||{};n.body&&delete n.body;var o=a.extend(!0,{},t.data,n);t._isUncaught&&(o._isUncaught=!0),r(null,o);}function o(t,e,r){t.telemetryEvents&&a.set(t,"data.body.telemetry",t.telemetryEvents),r(null,t);}function i(t,e,r){if(!t.message)return void r(null,t);var n="data.body.trace_chain.0",o=a.get(t,n);if(o||(n="data.body.trace",o=a.get(t,n)),o){if(!o.exception||!o.exception.description)return a.set(t,n+".exception.description",t.message),void r(null,t);var i=a.get(t,n+".extra")||{},s=a.extend(!0,{},i,{message:t.message});a.set(t,n+".extra",s);}r(null,t);}var a=r(6);t.exports={itemToPayload:n,addTelemetryData:o,addMessageWithError:i};},function(t,e,r){"use strict";function n(t,e){var r=t.level,n=c.LEVELS[r]||0,o=c.LEVELS[e.reportLevel]||0;return!(n<o)&&(!c.get(e,"plugins.jquery.ignoreAjaxErrors")||!c.get(t,"body.message.extra.isAjax"));}function o(t,e){var r=!!t._isUncaught;delete t._isUncaught;var n=t._originalArgs;delete t._originalArgs;try{if(c.isFunction(e.checkIgnore)&&e.checkIgnore(r,n,t))return!1;}catch(t){e.checkIgnore=null,l.error("Error while calling custom checkIgnore(), removing",t);}return!0;}function i(t,e){return s(t,e,"blacklist");}function a(t,e){return s(t,e,"whitelist");}function s(t,e,r){var n=!1;"blacklist"===r&&(n=!0);var o,i,a,s,u,p,f,h,d,m;try{if(o=n?e.hostBlackList:e.hostWhiteList,f=o&&o.length,i=c.get(t,"body.trace"),!o||0===f)return!0;if(!i||!i.frames)return!0;for(u=i.frames.length,d=0;d<u;d++){if(a=i.frames[d],s=a.filename,!c.isType(s,"string"))return!0;for(m=0;m<f;m++)if(p=o[m],h=new RegExp(p),h.test(s))return!n;}}catch(t){n?e.hostBlackList=null:e.hostWhiteList=null;var g=n?"hostBlackList":"hostWhiteList";return l.error("Error while reading your configuration's "+g+" option. Removing custom "+g+".",t),!0;}return n;}function u(t,e){var r,n,o,i,a,s,u,p,f;try{if(a=!1,o=e.ignoredMessages,!o||0===o.length)return!0;if(u=t.body,p=c.get(u,"trace.exception.message"),f=c.get(u,"message.body"),r=p||f,!r)return!0;for(i=o.length,n=0;n<i&&(s=new RegExp(o[n],"gi"),!(a=s.test(r)));n++);}catch(t){e.ignoredMessages=null,l.error("Error while reading your configuration's ignoredMessages option. Removing custom ignoredMessages.");}return!a;}var c=r(6),l=r(13);t.exports={checkIgnore:n,userCheckIgnore:o,urlIsBlacklisted:i,urlIsWhitelisted:a,messageIsIgnored:u};},function(t,e,r){"use strict";function n(t,e,r,n){var o=t[e];t[e]=r(o),n&&n.push([t,e,o]);}function o(t){for(var e;t.length;)e=t.shift(),e[0][e[1]]=e[2];}function i(t,e,r,n,o){var i=t.autoInstrument;return i===!1?void(this.autoInstrument={}):(h.isType(i,"object")||(i=m),this.autoInstrument=h.extend(!0,{},m,i),this.telemeter=e,this.rollbar=r,this._window=n||{},this._document=o||{},this.replacements=[],this._location=this._window.location,void(this._lastHref=this._location&&this._location.href));}function a(t){return(t.getAttribute("type")||"").toLowerCase();}function s(t,e,r){if(t.tagName.toLowerCase()!==e.toLowerCase())return!1;if(!r)return!0;t=a(t);for(var n=0;n<r.length;n++)if(r[n]===t)return!0;return!1;}function u(t,e){return t.target?t.target:e&&e.elementFromPoint?e.elementFromPoint(t.clientX,t.clientY):void 0;}function c(t){for(var e,r=5,n=[],o=0;t&&o<r&&(e=f(t),"html"!==e.tagName);o++)n.push(e),t=t.parentNode;return n.reverse();}function l(t){for(var e,r,n=80,o=" > ",i=o.length,a=[],s=0,u=0;u<t.length&&(e=p(t[u]),r=s+a.length*i+e.length,!(u>0&&r>=n));u++)a.push(e),s+=e.length;return a.join(o);}function p(t){if(!t||!t.tagName)return"";var e=[t.tagName];t.id&&e.push("#"+t.id),t.classes&&e.push("."+t.classes.join("."));for(var r=0;r<t.attributes.length;r++)e.push("["+t.attributes[r].key+'="'+t.attributes[r].value+'"]');return e.join("");}function f(t){if(!t||!t.tagName)return null;var e,r,n,o,i={};i.tagName=t.tagName.toLowerCase(),t.id&&(i.id=t.id),e=t.className,e&&h.isType(e,"string")&&(i.classes=e.split(/\s+/));var a=["type","name","title","alt"];for(i.attributes=[],o=0;o<a.length;o++)r=a[o],n=t.getAttribute(r),n&&i.attributes.push({key:r,value:n});return i;}var h=r(6),d=r(18),m={network:!1,log:!0,dom:!0,navigation:!0,connectivity:!0};i.prototype.instrument=function(){this.autoInstrument.network&&this.instrumentNetwork(),this.autoInstrument.log&&this.instrumentConsole(),this.autoInstrument.dom&&this.instrumentDom(),this.autoInstrument.navigation&&this.instrumentNavigation(),this.autoInstrument.connectivity&&this.instrumentConnectivity();},i.prototype.instrumentNetwork=function(){function t(t,r){t in r&&h.isFunction(r[t])&&n(r,t,function(t){return e.rollbar.wrap(t);},e.replacements);}var e=this;if("XMLHttpRequest"in this._window){var r=this._window.XMLHttpRequest.prototype;n(r,"open",function(t){return function(e,r){return h.isType(r,"string")&&(this.__rollbar_xhr={method:e,url:r,status_code:null,start_time_ms:h.now(),end_time_ms:null}),t.apply(this,arguments);};},this.replacements),n(r,"send",function(r){return function(o){function i(){if(a.__rollbar_xhr&&(1===a.readyState||4===a.readyState)){null===a.__rollbar_xhr.status_code&&(a.__rollbar_xhr.status_code=0,a.__rollbar_event=e.telemeter.captureNetwork(a.__rollbar_xhr,"xhr")),1===a.readyState?a.__rollbar_xhr.start_time_ms=h.now():a.__rollbar_xhr.end_time_ms=h.now();try{var t=a.status;t=1223===t?204:t,a.__rollbar_xhr.status_code=t,a.__rollbar_event.level=e.telemeter.levelFromStatus(t);}catch(t){}}}var a=this;return t("onload",a),t("onerror",a),t("onprogress",a),"onreadystatechange"in a&&h.isFunction(a.onreadystatechange)?n(a,"onreadystatechange",function(t){e.rollbar.wrap(t,void 0,i);}):a.onreadystatechange=i,r.apply(this,arguments);};},this.replacements);}"fetch"in this._window&&n(this._window,"fetch",function(t){return function(r,n){for(var o=new Array(arguments.length),i=0,a=o.length;i<a;i++)o[i]=arguments[i];var s,u=o[0],c="GET";h.isType(u,"string")?s=u:(s=u.url,u.method&&(c=u.method)),o[1]&&o[1].method&&(c=o[1].method);var l={method:c,url:s,status_code:null,start_time_ms:h.now(),end_time_ms:null};return e.telemeter.captureNetwork(l,"fetch"),t.apply(this,o).then(function(t){return l.end_time_ms=h.now(),l.status_code=t.status,t;});};},this.replacements);},i.prototype.instrumentConsole=function(){function t(t){var n=r[t],o=r,i="warn"===t?"warning":t;r[t]=function(){var t=Array.prototype.slice.call(arguments),r=h.formatArgsAsString(t);e.telemeter.captureLog(r,i),n&&Function.prototype.apply.call(n,o,t);};}if("console"in this._window&&this._window.console.log)for(var e=this,r=this._window.console,n=["debug","info","warn","error","log"],o=0,i=n.length;o<i;o++)t(n[o]);},i.prototype.instrumentDom=function(){if("addEventListener"in this._window||"attachEvent"in this._window){var t=this.handleClick.bind(this),e=this.handleBlur.bind(this);this._window.addEventListener?(this._window.addEventListener("click",t,!0),this._window.addEventListener("blur",e,!0)):(this._window.attachEvent("click",t),this._window.attachEvent("onfocusout",e));}},i.prototype.handleClick=function(t){try{var e=u(t,this._document),r=e&&e.tagName,n=s(e,"a")||s(e,"button");r&&(n||s(e,"input",["button","submit"]))?this.captureDomEvent("click",e):s(e,"input",["checkbox","radio"])&&this.captureDomEvent("input",e,e.value,e.checked);}catch(t){}},i.prototype.handleBlur=function(t){try{var e=u(t,this._document);e&&e.tagName&&(s(e,"textarea")?this.captureDomEvent("input",e,e.value):s(e,"select")&&e.options&&e.options.length?this.handleSelectInputChanged(e):s(e,"input")&&!s(e,"input",["button","submit","hidden","checkbox","radio"])&&this.captureDomEvent("input",e,e.value));}catch(t){}},i.prototype.handleSelectInputChanged=function(t){if(t.multiple)for(var e=0;e<t.options.length;e++)t.options[e].selected&&this.captureDomEvent("input",t,t.options[e].value);else t.selectedIndex>=0&&t.options[t.selectedIndex]&&this.captureDomEvent("input",t,t.options[t.selectedIndex].value);},i.prototype.captureDomEvent=function(t,e,r,n){"password"===a(e)&&(r=void 0);var o=l(c(e));this.telemeter.captureDom(t,o,r,n);},i.prototype.instrumentNavigation=function(){var t=this._window.chrome,e=t&&t.app&&t.app.runtime,r=!e&&this._window.history&&this._window.history.pushState;if(r){var o=this,i=this._window.onpopstate;this._window.onpopstate=function(){var t=o._location.href;o.handleUrlChange(o._lastHref,t),i&&i.apply(this,arguments);},n(this._window.history,"pushState",function(t){return function(){var e=arguments.length>2?arguments[2]:void 0;return e&&o.handleUrlChange(o._lastHref,e+""),t.apply(this,arguments);};},this.replacements);}},i.prototype.handleUrlChange=function(t,e){var r=d.parse(this._location.href),n=d.parse(e),o=d.parse(t);this._lastHref=e,r.protocol===n.protocol&&r.host===n.host&&(e=n.path+(n.hash||"")),r.protocol===o.protocol&&r.host===o.host&&(t=o.path+(o.hash||"")),this.telemeter.captureNavigation(t,e);},i.prototype.instrumentConnectivity=function(){("addEventListener"in this._window||"body"in this._document)&&(this._window.addEventListener?(this._window.addEventListener("online",function(){this.telemeter.captureConnectivityChange("online");}.bind(this),!0),this._window.addEventListener("offline",function(){this.telemeter.captureConnectivityChange("offline");}.bind(this),!0)):(this._document.body.ononline=function(){this.telemeter.captureConnectivityChange("online");}.bind(this),this._document.body.onoffline=function(){this.telemeter.captureConnectivityChange("offline");}.bind(this)));},i.prototype.restore=function(){o(this.replacements),this.replacements=[];},t.exports=i;}]);});});var rollbarConfig={accessToken:"fe7cf327f2b24bb8991e252239f6200f",captureUncaught:true,ignoredMessages:["Error:  DOM Exception 18","SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.","SecurityError:  An attempt was made to break through the security policy of the user agent.","Script error."],payload:{environment:"development",client:{javascript:{source_map_enabled:true,code_version:"69a2f916935a7980acce0af050d7d3dfa66370f9",// Optionally have Rollbar guess which frames the error was thrown from
 // when the browser does not provide line and column numbers.
-guess_uncaught_frames:true}}}};var rollbar=new rollbar_umd_min$1(rollbarConfig);function ModalControl(id,openBtnId,closeBtnId){this.modal=document.getElementById(id);this.openBtn=document.getElementById(openBtnId);this.closeBtn=document.getElementById(closeBtnId);this.openHandler=this.open.bind(this);this.closeHandler=this.close.bind(this);this.openBtn.addEventListener('click',this.openHandler,false);this.closeBtn.addEventListener('click',this.closeHandler,false);window.addEventListener('click',this.closeHandler,false);}ModalControl.prototype.open=function(){this.modal.classList.add('modal-open');this.modal.classList.remove('modal-close');};ModalControl.prototype.close=function(event){if(event.target==this.modal||event.target==this.closeBtn){this.modal.classList.add('modal-close');this.modal.classList.remove('modal-open');}};var VisionSimulation=require("dota-vision-simulation");var worlddata=require("dota-vision-simulation/src/worlddata.json");var aboutModal=new ModalControl('about','about-open','about-close');var helpModal=new ModalControl('help','help-open','help-close');var buildDate="2017-08-17 12:14:23 UTC";document.getElementById('buildDate').innerHTML=buildDate;var releaseTag="4.4.1";document.getElementById('releaseTag').innerHTML=releaseTag;function App(map_tile_path,vision_data_image_path){var InteractiveMap$$1=new InteractiveMap(map_tile_path);InteractiveMap$$1.toggleLayerMenuOption=function(layerId,state){var element=document.querySelector('input[data-layer-id="'+layerId+'"]');if(state!=null)element.checked=state;updateLayerAndQueryString(element,layerId);};InteractiveMap$$1.vs=new VisionSimulation(worlddata,vision_data_image_path,initialize);InteractiveMap$$1.menuControl=new MenuControl(InteractiveMap$$1);InteractiveMap$$1.menuControl.initialize(layerToggleHandler,baseLayerToggleHandler);InteractiveMap$$1.infoControl=new InfoControl(InteractiveMap$$1);InteractiveMap$$1.infoControl.initialize('info');InteractiveMap$$1.notificationControl=new NotificationControl();InteractiveMap$$1.notificationControl.initialize('notification');InteractiveMap$$1.visionControl=new VisionControl(InteractiveMap$$1);InteractiveMap$$1.wardControl=new WardControl(InteractiveMap$$1);InteractiveMap$$1.treeControl=new TreeControl(InteractiveMap$$1);InteractiveMap$$1.cursorControl=new CursorControl(InteractiveMap$$1);InteractiveMap$$1.coordinateControl=new CoordinateControl(InteractiveMap$$1,'coordinates');InteractiveMap$$1.measureControl=new MeasureControl(InteractiveMap$$1);InteractiveMap$$1.creepControl=new CreepControl(InteractiveMap$$1);InteractiveMap$$1.creepControl.initialize('timer');//var DrawCurveControl = require('./controls/drawCurve');
+guess_uncaught_frames:true}}}};var rollbar=new rollbar_umd_min$1(rollbarConfig);function ModalControl(id,openBtnId,closeBtnId){this.modal=document.getElementById(id);this.openBtn=document.getElementById(openBtnId);this.closeBtn=document.getElementById(closeBtnId);this.openHandler=this.open.bind(this);this.closeHandler=this.close.bind(this);this.openBtn.addEventListener('click',this.openHandler,false);this.closeBtn.addEventListener('click',this.closeHandler,false);window.addEventListener('click',this.closeHandler,false);}ModalControl.prototype.open=function(){this.modal.classList.add('modal-open');this.modal.classList.remove('modal-close');};ModalControl.prototype.close=function(event){if(event.target==this.modal||event.target==this.closeBtn){this.modal.classList.add('modal-close');this.modal.classList.remove('modal-open');}};var VisionSimulation=require("dota-vision-simulation");var worlddata=require("dota-vision-simulation/src/worlddata.json");var aboutModal=new ModalControl('about','about-open','about-close');var helpModal=new ModalControl('help','help-open','help-close');var buildDate="2017-08-17 13:29:32 UTC";document.getElementById('buildDate').innerHTML=buildDate;var releaseTag="4.4.1";document.getElementById('releaseTag').innerHTML=releaseTag;function App(map_tile_path,vision_data_image_path){var InteractiveMap$$1=new InteractiveMap(map_tile_path);InteractiveMap$$1.toggleLayerMenuOption=function(layerId,state){var element=document.querySelector('input[data-layer-id="'+layerId+'"]');if(state!=null)element.checked=state;updateLayerAndQueryString(element,layerId);};InteractiveMap$$1.vs=new VisionSimulation(worlddata,vision_data_image_path,initialize);InteractiveMap$$1.menuControl=new MenuControl(InteractiveMap$$1);InteractiveMap$$1.menuControl.initialize(layerToggleHandler,baseLayerToggleHandler);InteractiveMap$$1.infoControl=new InfoControl(InteractiveMap$$1);InteractiveMap$$1.infoControl.initialize('info');InteractiveMap$$1.notificationControl=new NotificationControl();InteractiveMap$$1.notificationControl.initialize('notification');InteractiveMap$$1.visionControl=new VisionControl(InteractiveMap$$1);InteractiveMap$$1.wardControl=new WardControl(InteractiveMap$$1);InteractiveMap$$1.treeControl=new TreeControl(InteractiveMap$$1);InteractiveMap$$1.cursorControl=new CursorControl(InteractiveMap$$1);InteractiveMap$$1.coordinateControl=new CoordinateControl(InteractiveMap$$1,'coordinates');InteractiveMap$$1.measureControl=new MeasureControl(InteractiveMap$$1);InteractiveMap$$1.creepControl=new CreepControl(InteractiveMap$$1);InteractiveMap$$1.creepControl.initialize('timer');//var DrawCurveControl = require('./controls/drawCurve');
 //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
 function changeMode(mode){switch(mode){case'observer':case'sentry':document.querySelector('input[name="ward-type"][value="'+mode+'"]').checked=true;case'ward':document.querySelector('input[name="mode"][value="ward"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="ward-type"]:checked').value;document.getElementById('btn-ward').setAttribute('ward-type',InteractiveMap$$1.MODE);document.getElementById('btn-ward').classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.activate();InteractiveMap$$1.infoControl.deactivate();break;case'line':case'circle':document.querySelector('input[name="measure-type"][value="'+mode+'"]').checked=true;case'measure':document.querySelector('input[name="mode"][value="measure"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="measure-type"]:checked').value;document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.add('active');document.getElementById('btn-measure').setAttribute('measure-type',InteractiveMap$$1.MODE);setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.change(InteractiveMap$$1.MODE);InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.deactivate();break;default:document.querySelector('input[name="mode"][value="navigate"]').checked=true;InteractiveMap$$1.MODE=mode||"navigate";document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.add('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE=='navigate'?null:InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.activate();break;}InteractiveMap$$1.notificationControl.show(modeNotificationText[InteractiveMap$$1.MODE]);}function updateLayerAndQueryString(element,layerId){layerId=layerId||element.getAttribute('data-layer-id');var layer=InteractiveMap$$1.getMapLayerIndex()[layerId];if(layer){layer.setVisible(element.checked);var param=layer.get("title").replace(/ /g,'');setQueryString(param,element.checked?true:null);if(layerId=='ent_dota_tree'){document.getElementById('btn-tree').setAttribute('trees-enabled',element.checked?"yes":"no");}}}function layerToggleHandler(){updateLayerAndQueryString(this);}function baseLayerToggleHandler(){var layerId=this.getAttribute('data-layer-id');InteractiveMap$$1.baseLayers.forEach(function(layer){layer.setVisible(layer.get('layerId')===layerId);});setQueryString('BaseLayer',layerId);}// updates element visibility based on map layer index
 // updates layer visibility based on element state
