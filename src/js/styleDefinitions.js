@@ -197,7 +197,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/water-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
@@ -207,7 +208,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/stadium-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
@@ -217,7 +219,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/landmark-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
@@ -227,7 +230,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/castle-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
@@ -237,7 +241,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/shop-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
@@ -247,7 +252,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/town-hall-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
@@ -257,7 +263,8 @@ var styles = {
         new Style({
             image: new Icon({
                 src: 'img/svgs/place-of-worship-15.svg',
-                anchor: [0.5, 0.5]
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21]
             }),
             geometry: getFeatureCenter
         })
