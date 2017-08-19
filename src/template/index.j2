@@ -224,6 +224,9 @@
         <div id="coordinates"></div>
     </div>
     
+    {% block analytics %}
+        {{ super() }}
+    {% endblock analytics %}
     {% block js %}
         {{ super() }}
         <!-- @if NODE_ENV!='production' -->
