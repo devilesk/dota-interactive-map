@@ -258,11 +258,18 @@ WardControl.prototype.clearWards = function () {
 }
 
 WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
+    var self = this;
     var wardRange = feature.get('wardRange');
     if (wardRange) {
-        this.InteractiveMap.wardRangeSource.removeFeature(wardRange);
+        // loop to check that feature exists before trying to remove
+        this.InteractiveMap.wardRangeSource.forEachFeature(function (f) {
+            if (f == wardRange) self.InteractiveMap.wardRangeSource.removeFeature(f);
+        });
     }
-    this.source.removeFeature(feature);
+    // loop to check that feature exists before trying to remove
+    this.source.forEachFeature(function (f) {
+        if (f == feature) self.source.removeFeature(f);
+    });
     this.InteractiveMap.visionControl.removeVisionFeature(feature);
     
     var worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
