@@ -255,6 +255,8 @@ WardControl.prototype.clearWards = function () {
     features.forEach(function (feature) {
         self.removeWard(feature, true);
     });
+    this.updateQueryString('observer');
+    this.updateQueryString('sentry');
 }
 
 WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
@@ -275,7 +277,7 @@ WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
     var worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
     var wardType = feature.get('wardType');
     delete this.placedWardCoordinates[wardType][worldXY];
-    this.updateQueryString(wardType);
+    if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
 WardControl.prototype.highlight = function (feature) {
