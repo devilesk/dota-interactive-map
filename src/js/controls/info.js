@@ -155,7 +155,7 @@ InfoControl.prototype.initialize = function (id) {
 }
 
 InfoControl.prototype.displayFeatureInfo = function (feature, bClicked) {
-    this.setContent(getPopupContent(this.InteractiveMap.getMapData(), feature));
+    this.setContent(getPopupContent(this.InteractiveMap.getStatData(), feature));
     this.open(bClicked);
 };
 

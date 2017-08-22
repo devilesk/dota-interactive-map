@@ -24,10 +24,10 @@ function getUnitName(unitType, unitSubType) {
     
 var pullTypes = ['Normal', 'Fast', 'Slow'];
 var neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
-function getPopupContent(data, feature) {
+function getPopupContent(stats, feature) {
     var dotaProps = feature.get('dotaProps');
     var unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
-    var stats = data.data.stats[unitClass];
+    var unitStats = stats[unitClass];
     var htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
     if (dotaProps.pullType != null) {
         htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
@@ -35,23 +35,25 @@ function getPopupContent(data, feature) {
     if (dotaProps.neutralType != null) {
         htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
     }
-    if (stats.hasOwnProperty('damageMin') && stats.hasOwnProperty('damageMax')) {
-        htmlContent += '<br><span class="info-line">Damage: ' + stats.damageMin + "&ndash;" + stats.damageMax + '</span>';
-    }
-    if (stats.hasOwnProperty('bat')) {
-        htmlContent += '<br><span class="info-line">BAT: ' + stats.bat + '</span>';
-    }
-    if (stats.hasOwnProperty('attackRange')) {
-        htmlContent += '<br><span class="info-line">Attack Range: ' + stats.attackRange + '</span>';
-    }
-    if (stats.hasOwnProperty('health')) {
-        htmlContent += '<br><span class="info-line">Health: ' + stats.health + '</span>';
-    }
-    if (stats.hasOwnProperty('armor')) {
-        htmlContent += '<br><span class="info-line">Armor: ' + stats.armor + '</span>';
-    }
-    if (stats.hasOwnProperty('dayVision') && stats.hasOwnProperty('nightVision')) {
-        htmlContent += '<br><span class="info-line">Vision: ' + stats.dayVision + "/" + stats.nightVision + '</span>';
+    if (stats && unitStats) {
+        if (unitStats.hasOwnProperty('damageMin') && unitStats.hasOwnProperty('damageMax')) {
+            htmlContent += '<br><span class="info-line">Damage: ' + unitStats.damageMin + "&ndash;" + unitStats.damageMax + '</span>';
+        }
+        if (unitStats.hasOwnProperty('bat')) {
+            htmlContent += '<br><span class="info-line">BAT: ' + unitStats.bat + '</span>';
+        }
+        if (unitStats.hasOwnProperty('attackRange')) {
+            htmlContent += '<br><span class="info-line">Attack Range: ' + unitStats.attackRange + '</span>';
+        }
+        if (unitStats.hasOwnProperty('health')) {
+            htmlContent += '<br><span class="info-line">Health: ' + unitStats.health + '</span>';
+        }
+        if (unitStats.hasOwnProperty('armor')) {
+            htmlContent += '<br><span class="info-line">Armor: ' + unitStats.armor + '</span>';
+        }
+        if (unitStats.hasOwnProperty('dayVision') && unitStats.hasOwnProperty('nightVision')) {
+            htmlContent += '<br><span class="info-line">Vision: ' + unitStats.dayVision + "/" + unitStats.nightVision + '</span>';
+        }
     }
     htmlContent += '</span></div>';
     return htmlContent;

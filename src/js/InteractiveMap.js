@@ -138,19 +138,19 @@ function InteractiveMap(map_tile_path) {
 }
 
 InteractiveMap.prototype.getMapData = function (version) {
-    return this.data[version || this.version];
+    return this.data[version || this.version] || {};
 }
 
 InteractiveMap.prototype.getData = function (version) {
-    return this.data[version || this.version].data;
+    return this.getMapData(version).data || {};
 }
 
 InteractiveMap.prototype.getOverlayData = function (version) {
-    return this.data[version || this.version].data.data;
+    return this.getData(version).data || {};
 }
 
 InteractiveMap.prototype.getStatData = function (version) {
-    return this.data[version || this.version].data.stats;
+    return this.getData(version).stats || {};
 }
 
 InteractiveMap.prototype.getMapLayerIndex = function (version) {
@@ -305,7 +305,7 @@ InteractiveMap.prototype.hasVisionRadius = function (feature) {
 InteractiveMap.prototype.getFeatureVisionRadius = function (feature, dotaProps, unitClass, rangeType) {
     dotaProps = dotaProps || feature.get('dotaProps');
     unitClass = unitClass || dotaProps.unitClass;
-    var stats = this.getStatData();
+    var unitStats = this.getStatData()[unitClass] || {};
     var radius;
     if (unitClass == 'observer') {
         radius = this.visionRadius || mapConstants.visionRadius[unitClass];
@@ -317,25 +317,25 @@ InteractiveMap.prototype.getFeatureVisionRadius = function (feature, dotaProps, 
         radius = mapConstants.visionRadius[unitClass];
     }
     else {
-        if (rangeType && !stats[unitClass].hasOwnProperty(rangeType)) return null;
+        if (rangeType && !unitStats.hasOwnProperty(rangeType)) return null;
         
         switch (rangeType) {
             case 'dayVision':
             case 'nightVision':
-                radius = stats[unitClass][rangeType];
+                radius = unitStats[rangeType];
                 if (this.isDarkness) {
                     radius = Math.min(mapConstants.visionRadius.darkness, radius);
                 }
             case 'trueSight':
             case 'attackRange':
-                radius = stats[unitClass][rangeType];
+                radius = unitStats[rangeType];
             break;
             default:
                 if (this.isNight) {
-                    radius = stats[unitClass].nightVision;
+                    radius = unitStats.nightVision;
                 }
                 else {
-                    radius = stats[unitClass].dayVision;
+                    radius = unitStats.dayVision;
                 }
                 if (this.isDarkness) {
                     radius = Math.min(mapConstants.visionRadius.darkness, radius);
