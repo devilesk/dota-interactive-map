@@ -41,13 +41,13 @@
   "homepage": "https://github.com/devilesk/dota-interactive-map#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^7.3.0",
     "browserify": "^13.1.1",
     "browserify-replace": "^0.9.0",
     "browserify-shim": "^3.8.12",
-    "clean-css": "^3.4.22",
+    "clean-css": "^3.4.28",
     "del": "^2.2.2",
     "exorcist": "^0.4.0",
     "git-rev-sync": "^1.8.0",
@@ -57,21 +57,21 @@
     "gulp-sourcemaps": "^1.9.1",
     "imagemin-cli": "^3.0.0",
     "marked": "^0.3.6",
-    "node-sass": "^4.1.1",
-    "nodemon": "^1.11.0",
+    "node-sass": "^4.6.0",
+    "nodemon": "^1.12.1",
     "preprocess": "^3.1.0",
     "replace": "^0.3.0",
-    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollupify": "^0.3.9",
-    "uglify-js": "^2.7.5",
+    "uglify-js": "^2.8.29",
     "watchify": "^3.8.0"
   },
   "dependencies": {
     "@turf/bezier": "^3.7.0",
     "@turf/union": "^3.7.0",
     "dota-vision-simulation": "^0.16.0",
-    "ol": "^4.3.1",
-    "rollbar": "^2.2.3"
+    "ol": "^4.4.2",
+    "rollbar": "^2.3.1"
   }
 }
