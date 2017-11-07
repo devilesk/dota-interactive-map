@@ -249,6 +249,15 @@ WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryString
     if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
+WardControl.prototype.updateAllWardVision = function () {
+    var self = this;
+    this.source.forEachFeature(function (f) {
+        var wardType = f.get('wardType');
+        var coordinate = f.getGeometry().getCoordinates();
+        self.InteractiveMap.visionControl.setVisionFeature(f, coordinate, wardType);
+    });
+}
+
 WardControl.prototype.clearWards = function () {
     var self = this;
     var features = this.source.getFeatures();

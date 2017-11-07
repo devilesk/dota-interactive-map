@@ -42,23 +42,28 @@ TreeControl.prototype.parseQueryString = function () {
                 var feature = treeMap[worldXY];
                 if (feature) {
                     if (!!feature.get('isCut') == !index) {
-                        self.toggleTree(feature, feature.get('dotaProps'), true)
+                        self.toggleTree(feature, feature.get('dotaProps'), true, true);
                     }
                 }
             });
         }
     });
     this.updateQueryString();
+    
+    this.InteractiveMap.wardControl.updateAllWardVision();
 }
 
-TreeControl.prototype.toggleTree = function (feature, dotaProps, bSkipQueryStringUpdate) {
+TreeControl.prototype.toggleTree = function (feature, dotaProps, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
+    var self = this;
     var gridXY = this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
     this.InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
     feature.set('isCut', !feature.get('isCut'));
     if (!bSkipQueryStringUpdate) this.updateQueryString();
+    
+    if (!bSkipWardVisionUpdate) this.InteractiveMap.wardControl.updateAllWardVision();
 }
 
-TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate) {
+TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
     var self = this;
     this.allTreesCutState = state;
     var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
@@ -66,10 +71,12 @@ TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate) 
     var features = source.getFeatures();
     features.forEach(function (feature) {
         if (!!feature.get('isCut') != state) {
-            self.toggleTree(feature, feature.get('dotaProps'), true);
+            self.toggleTree(feature, feature.get('dotaProps'), true, true);
         }
     });
     if (!bSkipQueryStringUpdate) this.updateQueryString();
+    
+    if (!bSkipWardVisionUpdate) this.InteractiveMap.wardControl.updateAllWardVision();
 }
 
 export default TreeControl;
