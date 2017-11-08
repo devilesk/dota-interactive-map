@@ -27,7 +27,7 @@
     "rollbar": "npm run rollbar:sourcemap && npm run rollbar:deploy -- production",
     "deploy": "node scripts/deploy.js",
     "deploy:prod": "npm run deploy -- production && npm run rollbar",
-    "render": "python scripts/render.py"
+    "render": "node scripts/render.js"
   },
   "repository": {
     "type": "git",
@@ -56,6 +56,8 @@
     "gulp-rollbar": "^0.1.4",
     "gulp-sourcemaps": "^1.9.1",
     "imagemin-cli": "^3.0.0",
+    "jinjs": "^0.3.6",
+    "js-yaml": "^3.10.0",
     "marked": "^0.3.6",
     "node-sass": "^4.6.0",
     "nodemon": "^1.12.1",

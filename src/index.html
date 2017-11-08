@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
-
-    <meta charset="utf-8">
+<head>    <meta charset="utf-8">
     <title>Dota 2 Interactive Map v4</title>
     <meta name="description" content="Dota 2 Interactive Map. View, pan, and zoom in on any part of the Dota 2 map. Turn on various overlays for more information, place wards to see sight ranges, and measure distances.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,8 +12,7 @@
 <link rel="stylesheet" href="app-<!-- @echo COMMIT_HASH !>.min.css" type="text/css">
 <!-- @endif -->
 </head>
-<body>
-    <div id="map"></div>
+<body>    <div id="map"></div>
     <div id="tool-btn-container"><!--
      --><a id="btn-zoom-in" href="javascript:void(0)" class="btn-tool"><div class="zoom-label">+</div></a><!--
      --><a id="btn-zoom-out" href="javascript:void(0)" class="btn-tool"><div class="zoom-label">&minus;</div></a><!--
@@ -234,11 +231,8 @@
         <div id="coordinates"></div>
     </div>
     
-    
-        
-    
-    
-        
+            
+                
         <!-- @if NODE_ENV!='production' -->
         <script src="bundle.js"></script>
         <script>InteractiveMap("tiles/", "img/map_data_707.png")</script>
@@ -247,6 +241,5 @@
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
         <script>InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>")</script>
         <!-- @endif -->
-    
-</body>
+    </body>
 </html>

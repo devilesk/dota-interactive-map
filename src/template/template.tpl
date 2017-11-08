@@ -10,8 +10,6 @@
 </head>
 <body>
     {%- block body -%}
-        {% block analytics %}{% endblock analytics %}
-        {%- block js %}{% endblock js -%}
     {%- endblock body -%}    
 </body>
 </html>
