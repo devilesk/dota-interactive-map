@@ -1818,10 +1818,26 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
  */_ol_.WEBGL_TEXTURE_CACHE_HIGH_WATER_MARK=1024;/**
  * @define {string} OpenLayers version.
  */_ol_.VERSION='v4.4.2';/**
- * The maximum supported WebGL texture size in pixels. If WebGL is not
- * supported, the value is set to `undefined`.
- * @const
- * @type {number|undefined}
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * Usage:
+ *
+ *     function ParentClass(a, b) { }
+ *     ParentClass.prototype.foo = function(a) { }
+ *
+ *     function ChildClass(a, b, c) {
+ *       // Call parent constructor
+ *       ParentClass.call(this, a, b);
+ *     }
+ *     ol.inherits(ChildClass, ParentClass);
+ *
+ *     var child = new ChildClass('a', 'b', 'see');
+ *     child.foo(); // This works.
+ *
+ * @param {!Function} childCtor Child constructor.
+ * @param {!Function} parentCtor Parent constructor.
+ * @function
+ * @api
  */_ol_.inherits=function(childCtor,parentCtor){childCtor.prototype=Object.create(parentCtor.prototype);childCtor.prototype.constructor=childCtor;};/**
  * A reusable function, used e.g. as a default for callbacks.
  *
@@ -1837,7 +1853,15 @@ module.exports={"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY"
  * Counter for getUid.
  * @type {number}
  * @private
- */_ol_.uidCounter_=0;var _ol_AssertionError_=function(code){var path=_ol_.VERSION?_ol_.VERSION.split('-')[0]:'latest';/**
+ */_ol_.uidCounter_=0;/**
+ * Error object thrown when an assertion failed. This is an ECMA-262 Error,
+ * extended with a `code` property.
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error}
+ * @constructor
+ * @extends {Error}
+ * @implements {oli.AssertionError}
+ * @param {number} code Error code.
+ */var _ol_AssertionError_=function(code){var path=_ol_.VERSION?_ol_.VERSION.split('-')[0]:'latest';/**
    * @type {string}
    */this.message='Assertion failed. See https://openlayers.org/en/'+path+'/doc/errors/#'+code+' for details.';/**
    * Error code. The meaning of the code can be found on
@@ -1933,6 +1957,21 @@ var x=new Array(n);for(var l=n-1;l>=0;l--){x[l]=mat[l][n]/mat[l][l];for(var m=l-
  * Latitude/longitude spherical geodesy formulae taken from
  * http://www.movable-type.co.uk/scripts/latlong.html
  * Licensed under CC-BY-3.0.
+ *//**
+ * @classdesc
+ * Class to create objects that can be used with {@link
+ * ol.geom.Polygon.circular}.
+ *
+ * For example to create a sphere whose radius is equal to the semi-major
+ * axis of the WGS84 ellipsoid:
+ *
+ * ```js
+ * var wgs84Sphere= new ol.Sphere(6378137);
+ * ```
+ *
+ * @constructor
+ * @param {number} radius Radius.
+ * @api
  */var _ol_Sphere_=function(radius){/**
    * @type {number}
    */this.radius=radius;};/**
@@ -2289,7 +2328,36 @@ _ol_proj_Units_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]=2*Math.PI*6370997/360;_
  */_ol_proj_proj4_.set=function(proj4){_ol_proj_proj4_.cache_=proj4;};/**
  * Get proj4.
  * @return {Proj4} The proj4 function set above or available globally.
- */_ol_proj_proj4_.get=function(){return _ol_proj_proj4_.cache_||window['proj4'];};var _ol_proj_Projection_$1=function(options){/**
+ */_ol_proj_proj4_.get=function(){return _ol_proj_proj4_.cache_||window['proj4'];};/**
+ * @classdesc
+ * Projection definition class. One of these is created for each projection
+ * supported in the application and stored in the {@link ol.proj} namespace.
+ * You can use these in applications, but this is not required, as API params
+ * and options use {@link ol.ProjectionLike} which means the simple string
+ * code will suffice.
+ *
+ * You can use {@link ol.proj.get} to retrieve the object for a particular
+ * projection.
+ *
+ * The library includes definitions for `EPSG:4326` and `EPSG:3857`, together
+ * with the following aliases:
+ * * `EPSG:4326`: CRS:84, urn:ogc:def:crs:EPSG:6.6:4326,
+ *     urn:ogc:def:crs:OGC:1.3:CRS84, urn:ogc:def:crs:OGC:2:84,
+ *     http://www.opengis.net/gml/srs/epsg.xml#4326,
+ *     urn:x-ogc:def:crs:EPSG:4326
+ * * `EPSG:3857`: EPSG:102100, EPSG:102113, EPSG:900913,
+ *     urn:ogc:def:crs:EPSG:6.18:3:3857,
+ *     http://www.opengis.net/gml/srs/epsg.xml#3857
+ *
+ * If you use proj4js, aliases can be added using `proj4.defs()`; see
+ * [documentation](https://github.com/proj4js/proj4js). To set an alternative
+ * namespace for proj4, use {@link ol.proj.setProj4}.
+ *
+ * @constructor
+ * @param {olx.ProjectionOptions} options Projection options.
+ * @struct
+ * @api
+ */var _ol_proj_Projection_$1=function(options){/**
    * @private
    * @type {string}
    */this.code_=options.code;/**
@@ -2815,7 +2883,10 @@ listenerObj.callOnce=false;}}else{listenerObj=/** @type {ol.EventsKey} */{bindTo
  * {@link https://google.github.io/closure-library/api/source/closure/goog/events/events.js.src.html}
  *
  * @param {ol.EventTargetLike} target Target.
- */_ol_events_.unlistenAll=function(target){var listenerMap=_ol_events_.getListenerMap_(target);for(var type in listenerMap){_ol_events_.removeListeners_(target,type);}};var _ol_Disposable_=function(){};/**
+ */_ol_events_.unlistenAll=function(target){var listenerMap=_ol_events_.getListenerMap_(target);for(var type in listenerMap){_ol_events_.removeListeners_(target,type);}};/**
+ * Objects that need to clean up after themselves.
+ * @constructor
+ */var _ol_Disposable_=function(){};/**
  * The object has already been disposed.
  * @type {boolean}
  * @private
@@ -2861,7 +2932,24 @@ listenerObj.callOnce=false;}}else{listenerObj=/** @type {ol.EventsKey} */{bindTo
  * @param {Event|ol.events.Event} evt Event
  */_ol_events_Event_.stopPropagation=function(evt){evt.stopPropagation();};/**
  * @param {Event|ol.events.Event} evt Event
- */_ol_events_Event_.preventDefault=function(evt){evt.preventDefault();};var _ol_events_EventTarget_=function(){_ol_Disposable_.call(this);/**
+ */_ol_events_Event_.preventDefault=function(evt){evt.preventDefault();};/**
+ * @classdesc
+ * A simplified implementation of the W3C DOM Level 2 EventTarget interface.
+ * @see {@link https://www.w3.org/TR/2000/REC-DOM-Level-2-Events-20001113/events.html#Events-EventTarget}
+ *
+ * There are two important simplifications compared to the specification:
+ *
+ * 1. The handling of `useCapture` in `addEventListener` and
+ *    `removeEventListener`. There is no real capture model.
+ * 2. The handling of `stopPropagation` and `preventDefault` on `dispatchEvent`.
+ *    There is no event target hierarchy. When a listener calls
+ *    `stopPropagation` or `preventDefault` on an event object, it means that no
+ *    more listeners after this one will be called. Same as when the listener
+ *    returns false.
+ *
+ * @constructor
+ * @extends {ol.Disposable}
+ */var _ol_events_EventTarget_=function(){_ol_Disposable_.call(this);/**
    * @private
    * @type {!Object.<string, number>}
    */this.pendingRemovals_={};/**
@@ -2902,7 +2990,20 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
    * Generic change event. Triggered when the revision counter is increased.
    * @event ol.events.Event#change
    * @api
-   */CHANGE:'change',CLICK:'click',DBLCLICK:'dblclick',DRAGENTER:'dragenter',DRAGOVER:'dragover',DROP:'drop',ERROR:'error',KEYDOWN:'keydown',KEYPRESS:'keypress',LOAD:'load',MOUSEDOWN:'mousedown',MOUSEMOVE:'mousemove',MOUSEOUT:'mouseout',MOUSEUP:'mouseup',MOUSEWHEEL:'mousewheel',MSPOINTERDOWN:'MSPointerDown',RESIZE:'resize',TOUCHSTART:'touchstart',TOUCHMOVE:'touchmove',TOUCHEND:'touchend',WHEEL:'wheel'};var _ol_Observable_=function(){_ol_events_EventTarget_.call(this);/**
+   */CHANGE:'change',CLICK:'click',DBLCLICK:'dblclick',DRAGENTER:'dragenter',DRAGOVER:'dragover',DROP:'drop',ERROR:'error',KEYDOWN:'keydown',KEYPRESS:'keypress',LOAD:'load',MOUSEDOWN:'mousedown',MOUSEMOVE:'mousemove',MOUSEOUT:'mouseout',MOUSEUP:'mouseup',MOUSEWHEEL:'mousewheel',MSPOINTERDOWN:'MSPointerDown',RESIZE:'resize',TOUCHSTART:'touchstart',TOUCHMOVE:'touchmove',TOUCHEND:'touchend',WHEEL:'wheel'};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * An event target providing convenient methods for listener registration
+ * and unregistration. A generic `change` event is always available through
+ * {@link ol.Observable#changed}.
+ *
+ * @constructor
+ * @extends {ol.events.EventTarget}
+ * @fires ol.events.Event
+ * @struct
+ * @api
+ */var _ol_Observable_=function(){_ol_events_EventTarget_.call(this);/**
    * @private
    * @type {number}
    */this.revision_=0;};_ol_.inherits(_ol_Observable_,_ol_events_EventTarget_);/**
@@ -2914,14 +3015,9 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
  * Increases the revision counter and dispatches a 'change' event.
  * @api
  */_ol_Observable_.prototype.changed=function(){++this.revision_;this.dispatchEvent(_ol_events_EventType_.CHANGE);};/**
- * Dispatches an event and calls all listeners listening for events
- * of this type. The event parameter can either be a string or an
- * Object with a `type` property.
- *
- * @param {{type: string,
- *     target: (EventTarget|ol.events.EventTarget|undefined)}|ol.events.Event|
- *     string} event Event object.
- * @function
+ * Get the version number for this object.  Each time the object is modified,
+ * its version number will be incremented.
+ * @return {number} Revision.
  * @api
  */_ol_Observable_.prototype.getRevision=function(){return this.revision_;};/**
  * Listen for a certain type of event.
@@ -3027,7 +3123,51 @@ listeners[index]=_ol_.nullFunction;++this.pendingRemovals_[type];}else{listeners
    * Triggered when a property is changed.
    * @event ol.Object.Event#propertychange
    * @api
-   */PROPERTYCHANGE:'propertychange'};var _ol_Object_=function(opt_values){_ol_Observable_.call(this);// Call ol.getUid to ensure that the order of objects' ids is the same as
+   */PROPERTYCHANGE:'propertychange'};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Most non-trivial classes inherit from this.
+ *
+ * This extends {@link ol.Observable} with observable properties, where each
+ * property is observable as well as the object as a whole.
+ *
+ * Classes that inherit from this have pre-defined properties, to which you can
+ * add your owns. The pre-defined properties are listed in this documentation as
+ * 'Observable Properties', and have their own accessors; for example,
+ * {@link ol.Map} has a `target` property, accessed with `getTarget()`  and
+ * changed with `setTarget()`. Not all properties are however settable. There
+ * are also general-purpose accessors `get()` and `set()`. For example,
+ * `get('target')` is equivalent to `getTarget()`.
+ *
+ * The `set` accessors trigger a change event, and you can monitor this by
+ * registering a listener. For example, {@link ol.View} has a `center`
+ * property, so `view.on('change:center', function(evt) {...});` would call the
+ * function whenever the value of the center property changes. Within the
+ * function, `evt.target` would be the view, so `evt.target.getCenter()` would
+ * return the new center.
+ *
+ * You can add your own observable properties with
+ * `object.set('prop', 'value')`, and retrieve that with `object.get('prop')`.
+ * You can listen for changes on that property value with
+ * `object.on('change:prop', listener)`. You can get a list of all
+ * properties with {@link ol.Object#getProperties object.getProperties()}.
+ *
+ * Note that the observable properties are separate from standard JS properties.
+ * You can, for example, give your map object a title with
+ * `map.title='New title'` and with `map.set('title', 'Another title')`. The
+ * first will be a `hasOwnProperty`; the second will appear in
+ * `getProperties()`. Only the second is observable.
+ *
+ * Properties can be deleted by using the unset method. E.g.
+ * object.unset('foo').
+ *
+ * @constructor
+ * @extends {ol.Observable}
+ * @param {Object.<string, *>=} opt_values An object with key-value pairs.
+ * @fires ol.Object.Event
+ * @api
+ */var _ol_Object_=function(opt_values){_ol_Observable_.call(this);// Call ol.getUid to ensure that the order of objects' ids is the same as
 // the order in which they were created.  This also helps to ensure that
 // object properties are always added in the same order, which helps many
 // JavaScript engines generate faster code.
@@ -3216,7 +3356,20 @@ var a=transform[0];var b=transform[1];var c=transform[2];var d=transform[3];var 
  * Returns the determinant of the given matrix.
  * @param {!ol.Transform} mat Matrix.
  * @return {number} Determinant.
- */_ol_transform_.determinant=function(mat){return mat[0]*mat[3]-mat[1]*mat[2];};var _ol_geom_Geometry_=function(){_ol_Object_.call(this);/**
+ */_ol_transform_.determinant=function(mat){return mat[0]*mat[3]-mat[1]*mat[2];};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Base class for vector geometries.
+ *
+ * To get notified of changes to the geometry, register a listener for the
+ * generic `change` event on your geometry instance.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.Object}
+ * @api
+ */var _ol_geom_Geometry_=function(){_ol_Object_.call(this);/**
    * @private
    * @type {ol.Extent}
    */this.extent_=_ol_extent_.createEmpty();/**
@@ -3343,7 +3496,16 @@ var a=transform[0];var b=transform[1];var c=transform[2];var d=transform[3];var 
  * @return {ol.geom.Geometry} This geometry.  Note that original geometry is
  *     modified in place.
  * @api
- */_ol_geom_Geometry_.prototype.transform=function(source,destination){var tmpTransform=this.tmpTransform_;source=_ol_proj_.get(source);var transformFn=source.getUnits()==_ol_proj_Units_.TILE_PIXELS?function(inCoordinates,outCoordinates,stride){var pixelExtent=source.getExtent();var projectedExtent=source.getWorldExtent();var scale=_ol_extent_.getHeight(projectedExtent)/_ol_extent_.getHeight(pixelExtent);_ol_transform_.compose(tmpTransform,projectedExtent[0],projectedExtent[3],scale,-scale,0,0,0);_ol_geom_flat_transform_.transform2D(inCoordinates,0,inCoordinates.length,stride,tmpTransform,outCoordinates);return _ol_proj_.getTransform(source,destination)(inCoordinates,outCoordinates,stride);}:_ol_proj_.getTransform(source,destination);this.applyTransform(transformFn);return this;};var _ol_geom_SimpleGeometry_=function(){_ol_geom_Geometry_.call(this);/**
+ */_ol_geom_Geometry_.prototype.transform=function(source,destination){var tmpTransform=this.tmpTransform_;source=_ol_proj_.get(source);var transformFn=source.getUnits()==_ol_proj_Units_.TILE_PIXELS?function(inCoordinates,outCoordinates,stride){var pixelExtent=source.getExtent();var projectedExtent=source.getWorldExtent();var scale=_ol_extent_.getHeight(projectedExtent)/_ol_extent_.getHeight(pixelExtent);_ol_transform_.compose(tmpTransform,projectedExtent[0],projectedExtent[3],scale,-scale,0,0,0);_ol_geom_flat_transform_.transform2D(inCoordinates,0,inCoordinates.length,stride,tmpTransform,outCoordinates);return _ol_proj_.getTransform(source,destination)(inCoordinates,outCoordinates,stride);}:_ol_proj_.getTransform(source,destination);this.applyTransform(transformFn);return this;};/**
+ * @classdesc
+ * Abstract base class; only used for creating subclasses; do not instantiate
+ * in apps, as cannot be rendered.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.geom.Geometry}
+ * @api
+ */var _ol_geom_SimpleGeometry_=function(){_ol_geom_Geometry_.call(this);/**
    * @protected
    * @type {ol.geom.GeometryLayout}
    */this.layout=_ol_geom_GeometryLayout_.XY;/**
@@ -3723,7 +3885,17 @@ simplifiedFlatCoordinates[simplifiedOffset++]=x2;simplifiedFlatCoordinates[simpl
  * @param {number} simplifiedOffset Simplified offset.
  * @param {Array.<Array.<number>>} simplifiedEndss Simplified endss.
  * @return {number} Simplified offset.
- */_ol_geom_flat_simplify_.quantizess=function(flatCoordinates,offset,endss,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEndss){var i,ii;for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];var simplifiedEnds=[];simplifiedOffset=_ol_geom_flat_simplify_.quantizes(flatCoordinates,offset,ends,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEnds);simplifiedEndss.push(simplifiedEnds);offset=ends[ends.length-1];}return simplifiedOffset;};var _ol_geom_LinearRing_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_simplify_.quantizess=function(flatCoordinates,offset,endss,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEndss){var i,ii;for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];var simplifiedEnds=[];simplifiedOffset=_ol_geom_flat_simplify_.quantizes(flatCoordinates,offset,ends,stride,tolerance,simplifiedFlatCoordinates,simplifiedOffset,simplifiedEnds);simplifiedEndss.push(simplifiedEnds);offset=ends[ends.length-1];}return simplifiedOffset;};/**
+ * @classdesc
+ * Linear ring geometry. Only used as part of polygon; cannot be rendered
+ * on its own.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<ol.Coordinate>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_LinearRing_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @private
    * @type {number}
    */this.maxDelta_=-1;/**
@@ -3761,7 +3933,16 @@ simplifiedFlatCoordinates[simplifiedOffset++]=x2;simplifiedFlatCoordinates[simpl
  */_ol_geom_LinearRing_.prototype.setCoordinates=function(coordinates,opt_layout){if(!coordinates){this.setFlatCoordinates(_ol_geom_GeometryLayout_.XY,null);}else{this.setLayout(opt_layout,coordinates,1);if(!this.flatCoordinates){this.flatCoordinates=[];}this.flatCoordinates.length=_ol_geom_flat_deflate_.coordinates(this.flatCoordinates,0,coordinates,this.stride);this.changed();}};/**
  * @param {ol.geom.GeometryLayout} layout Layout.
  * @param {Array.<number>} flatCoordinates Flat coordinates.
- */_ol_geom_LinearRing_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};var _ol_geom_Point_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_Point_,_ol_geom_SimpleGeometry_);/**
+ */_ol_geom_LinearRing_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};/**
+ * @classdesc
+ * Point geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {ol.Coordinate} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_Point_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_Point_,_ol_geom_SimpleGeometry_);/**
  * Make a complete copy of the geometry.
  * @return {!ol.geom.Point} Clone.
  * @override
@@ -3968,7 +4149,21 @@ var edge=0;var x1=flatCoordinates[end-stride];var y1=flatCoordinates[end-stride+
  * @param {number} stride Stride.
  * @param {boolean=} opt_right Follow the right-hand rule for orientation.
  * @return {number} End.
- */_ol_geom_flat_orient_.orientLinearRingss=function(flatCoordinates,offset,endss,stride,opt_right){var i,ii;for(i=0,ii=endss.length;i<ii;++i){offset=_ol_geom_flat_orient_.orientLinearRings(flatCoordinates,offset,endss[i],stride,opt_right);}return offset;};var _ol_geom_Polygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_orient_.orientLinearRingss=function(flatCoordinates,offset,endss,stride,opt_right){var i,ii;for(i=0,ii=endss.length;i<ii;++i){offset=_ol_geom_flat_orient_.orientLinearRings(flatCoordinates,offset,endss[i],stride,opt_right);}return offset;};/**
+ * @classdesc
+ * Polygon geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<Array.<ol.Coordinate>>} coordinates Array of linear
+ *     rings that define the polygon. The first linear ring of the array
+ *     defines the outer-boundary or surface of the polygon. Each subsequent
+ *     linear ring defines a hole in the surface of the polygon. A linear ring
+ *     is an array of vertices' coordinates where the first coordinate and the
+ *     last are equivalent.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_Polygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @type {Array.<number>}
    * @private
    */this.ends_=[];/**
@@ -4357,13 +4552,7 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * True if browser supports ms pointer events (IE 10).
  * @const
  * @type {boolean}
- */_ol_has_.MSPOINTER=!!navigator.msPointerEnabled;/**
- * True if both OpenLayers and browser support WebGL.  Always `false`
- * if `ol.ENABLE_WEBGL` is set to `false` at compile time.
- * @const
- * @type {boolean}
- * @api
- */(function(){if(_ol_.ENABLE_WEBGL){var hasWebGL=false;var textureSize;var/** @type {Array.<string>} */extensions=[];if('WebGLRenderingContext'in window){try{var canvas=/** @type {HTMLCanvasElement} */document.createElement('CANVAS');var gl=_ol_webgl_.getContext(canvas,{failIfMajorPerformanceCaveat:true});if(gl){hasWebGL=true;textureSize=/** @type {number} */gl.getParameter(gl.MAX_TEXTURE_SIZE);extensions=gl.getSupportedExtensions();}}catch(e){// pass
+ */_ol_has_.MSPOINTER=!!navigator.msPointerEnabled;(function(){if(_ol_.ENABLE_WEBGL){var hasWebGL=false;var textureSize;var/** @type {Array.<string>} */extensions=[];if('WebGLRenderingContext'in window){try{var canvas=/** @type {HTMLCanvasElement} */document.createElement('CANVAS');var gl=_ol_webgl_.getContext(canvas,{failIfMajorPerformanceCaveat:true});if(gl){hasWebGL=true;textureSize=/** @type {number} */gl.getParameter(gl.MAX_TEXTURE_SIZE);extensions=gl.getSupportedExtensions();}}catch(e){// pass
 }}_ol_has_.WEBGL=hasWebGL;_ol_.WEBGL_EXTENSIONS=extensions;_ol_.WEBGL_MAX_TEXTURE_SIZE=textureSize;}})();/**
  * @enum {number}
  */var _ol_ImageState_={IDLE:0,LOADING:1,LOADED:2,ERROR:3};var _ol_render_canvas_={};/**
@@ -4517,7 +4706,17 @@ parts=s.slice(4,-1).split(',').map(Number);parts.push(1);color=_ol_color_.normal
  * @param {function(this: T, ol.events.Event)} listener Listener function.
  * @param {T} thisArg Value to use as `this` when executing `listener`.
  * @template T
- */_ol_style_Image_.prototype.unlistenImageChange=function(listener,thisArg){};var _ol_style_RegularShape_=function(options){/**
+ */_ol_style_Image_.prototype.unlistenImageChange=function(listener,thisArg){};/**
+ * @classdesc
+ * Set regular shape style for vector features. The resulting shape will be
+ * a regular polygon when `radius` is provided, or a star when `radius1` and
+ * `radius2` are provided.
+ *
+ * @constructor
+ * @param {olx.style.RegularShapeOptions} options Options.
+ * @extends {ol.style.Image}
+ * @api
+ */var _ol_style_RegularShape_=function(options){/**
    * @private
    * @type {Array.<string>}
    */this.checksums_=null;/**
@@ -4650,7 +4849,15 @@ var context=_ol_dom_.createCanvasContext2D(renderOptions.size,renderOptions.size
 context.setTransform(1,0,0,1,0,0);// then move to (x, y)
 context.translate(x,y);context.beginPath();var points=this.points_;if(points===Infinity){context.arc(renderOptions.size/2,renderOptions.size/2,this.radius_,0,2*Math.PI,true);}else{var radius2=this.radius2_!==undefined?this.radius2_:this.radius_;if(radius2!==this.radius_){points=2*points;}var i,radiusC,angle0;for(i=0;i<=points;i++){angle0=i*2*Math.PI/points-Math.PI/2+this.angle_;radiusC=i%2===0?this.radius_:radius2;context.lineTo(renderOptions.size/2+radiusC*Math.cos(angle0),renderOptions.size/2+radiusC*Math.sin(angle0));}}context.fillStyle=_ol_render_canvas_.defaultFillStyle;context.fill();if(this.stroke_){context.strokeStyle=renderOptions.strokeStyle;context.lineWidth=renderOptions.strokeWidth;if(renderOptions.lineDash){context.setLineDash(renderOptions.lineDash);context.lineDashOffset=renderOptions.lineDashOffset;}context.stroke();}context.closePath();};/**
  * @return {string} The checksum.
- */_ol_style_RegularShape_.prototype.getChecksum=function(){var strokeChecksum=this.stroke_?this.stroke_.getChecksum():'-';var fillChecksum=this.fill_?this.fill_.getChecksum():'-';var recalculate=!this.checksums_||strokeChecksum!=this.checksums_[1]||fillChecksum!=this.checksums_[2]||this.radius_!=this.checksums_[3]||this.radius2_!=this.checksums_[4]||this.angle_!=this.checksums_[5]||this.points_!=this.checksums_[6];if(recalculate){var checksum='r'+strokeChecksum+fillChecksum+(this.radius_!==undefined?this.radius_.toString():'-')+(this.radius2_!==undefined?this.radius2_.toString():'-')+(this.angle_!==undefined?this.angle_.toString():'-')+(this.points_!==undefined?this.points_.toString():'-');this.checksums_=[checksum,strokeChecksum,fillChecksum,this.radius_,this.radius2_,this.angle_,this.points_];}return this.checksums_[0];};var _ol_style_Circle_=function(opt_options){var options=opt_options||{};_ol_style_RegularShape_.call(this,{points:Infinity,fill:options.fill,radius:options.radius,snapToPixel:options.snapToPixel,stroke:options.stroke,atlasManager:options.atlasManager});};_ol_.inherits(_ol_style_Circle_,_ol_style_RegularShape_);/**
+ */_ol_style_RegularShape_.prototype.getChecksum=function(){var strokeChecksum=this.stroke_?this.stroke_.getChecksum():'-';var fillChecksum=this.fill_?this.fill_.getChecksum():'-';var recalculate=!this.checksums_||strokeChecksum!=this.checksums_[1]||fillChecksum!=this.checksums_[2]||this.radius_!=this.checksums_[3]||this.radius2_!=this.checksums_[4]||this.angle_!=this.checksums_[5]||this.points_!=this.checksums_[6];if(recalculate){var checksum='r'+strokeChecksum+fillChecksum+(this.radius_!==undefined?this.radius_.toString():'-')+(this.radius2_!==undefined?this.radius2_.toString():'-')+(this.angle_!==undefined?this.angle_.toString():'-')+(this.points_!==undefined?this.points_.toString():'-');this.checksums_=[checksum,strokeChecksum,fillChecksum,this.radius_,this.radius2_,this.angle_,this.points_];}return this.checksums_[0];};/**
+ * @classdesc
+ * Set circle style for vector features.
+ *
+ * @constructor
+ * @param {olx.style.CircleOptions=} opt_options Options.
+ * @extends {ol.style.RegularShape}
+ * @api
+ */var _ol_style_Circle_=function(opt_options){var options=opt_options||{};_ol_style_RegularShape_.call(this,{points:Infinity,fill:options.fill,radius:options.radius,snapToPixel:options.snapToPixel,stroke:options.stroke,atlasManager:options.atlasManager});};_ol_.inherits(_ol_style_Circle_,_ol_style_RegularShape_);/**
  * Clones the style.  If an atlasmanager was provided to the original style it will be used in the cloned style, too.
  * @return {ol.style.Circle} The cloned style.
  * @override
@@ -4660,7 +4867,14 @@ context.translate(x,y);context.beginPath();var points=this.points_;if(points===I
  *
  * @param {number} radius Circle radius.
  * @api
- */_ol_style_Circle_.prototype.setRadius=function(radius){this.radius_=radius;this.render_(this.atlasManager_);};var _ol_style_Fill_=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Circle_.prototype.setRadius=function(radius){this.radius_=radius;this.render_(this.atlasManager_);};/**
+ * @classdesc
+ * Set fill style for vector features.
+ *
+ * @constructor
+ * @param {olx.style.FillOptions=} opt_options Options.
+ * @api
+ */var _ol_style_Fill_=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {ol.Color|ol.ColorLike}
    */this.color_=options.color!==undefined?options.color:null;/**
@@ -4681,7 +4895,17 @@ context.translate(x,y);context.beginPath();var points=this.points_;if(points===I
  * @api
  */_ol_style_Fill_.prototype.setColor=function(color){this.color_=color;this.checksum_=undefined;};/**
  * @return {string} The checksum.
- */_ol_style_Fill_.prototype.getChecksum=function(){if(this.checksum_===undefined){if(this.color_ instanceof CanvasPattern||this.color_ instanceof CanvasGradient){this.checksum_=_ol_.getUid(this.color_).toString();}else{this.checksum_='f'+(this.color_?_ol_color_.asString(this.color_):'-');}}return this.checksum_;};var _ol_style_Stroke_=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Fill_.prototype.getChecksum=function(){if(this.checksum_===undefined){if(this.color_ instanceof CanvasPattern||this.color_ instanceof CanvasGradient){this.checksum_=_ol_.getUid(this.color_).toString();}else{this.checksum_='f'+(this.color_?_ol_color_.asString(this.color_):'-');}}return this.checksum_;};/**
+ * @classdesc
+ * Set stroke style for vector features.
+ * Note that the defaults given are the Canvas defaults, which will be used if
+ * option is not defined. The `get` functions return whatever was entered in
+ * the options; they will not return the default.
+ *
+ * @constructor
+ * @param {olx.style.StrokeOptions=} opt_options Options.
+ * @api
+ */var _ol_style_Stroke_=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {ol.Color|ol.ColorLike}
    */this.color_=options.color!==undefined?options.color:null;/**
@@ -4780,7 +5004,17 @@ context.translate(x,y);context.beginPath();var points=this.points_;if(points===I
  * @api
  */_ol_style_Stroke_.prototype.setWidth=function(width){this.width_=width;this.checksum_=undefined;};/**
  * @return {string} The checksum.
- */_ol_style_Stroke_.prototype.getChecksum=function(){if(this.checksum_===undefined){this.checksum_='s';if(this.color_){if(typeof this.color_==='string'){this.checksum_+=this.color_;}else{this.checksum_+=_ol_.getUid(this.color_).toString();}}else{this.checksum_+='-';}this.checksum_+=','+(this.lineCap_!==undefined?this.lineCap_.toString():'-')+','+(this.lineDash_?this.lineDash_.toString():'-')+','+(this.lineDashOffset_!==undefined?this.lineDashOffset_:'-')+','+(this.lineJoin_!==undefined?this.lineJoin_:'-')+','+(this.miterLimit_!==undefined?this.miterLimit_.toString():'-')+','+(this.width_!==undefined?this.width_.toString():'-');}return this.checksum_;};var _ol_style_Style_$1=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Stroke_.prototype.getChecksum=function(){if(this.checksum_===undefined){this.checksum_='s';if(this.color_){if(typeof this.color_==='string'){this.checksum_+=this.color_;}else{this.checksum_+=_ol_.getUid(this.color_).toString();}}else{this.checksum_+='-';}this.checksum_+=','+(this.lineCap_!==undefined?this.lineCap_.toString():'-')+','+(this.lineDash_?this.lineDash_.toString():'-')+','+(this.lineDashOffset_!==undefined?this.lineDashOffset_:'-')+','+(this.lineJoin_!==undefined?this.lineJoin_:'-')+','+(this.miterLimit_!==undefined?this.miterLimit_.toString():'-')+','+(this.width_!==undefined?this.width_.toString():'-');}return this.checksum_;};/**
+ * @classdesc
+ * Container for vector feature rendering styles. Any changes made to the style
+ * or its children through `set*()` methods will not take effect until the
+ * feature or layer that uses the style is re-rendered.
+ *
+ * @constructor
+ * @struct
+ * @param {olx.style.StyleOptions=} opt_options Style options.
+ * @api
+ */var _ol_style_Style_$1=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {string|ol.geom.Geometry|ol.StyleGeometryFunction}
    */this.geometry_=null;/**
@@ -4907,7 +5141,51 @@ if(!_ol_style_Style_$1.default_){var fill=new _ol_style_Fill_({color:'rgba(255,2
  * @param {ol.Feature|ol.render.Feature} feature Feature to get the geometry
  *     for.
  * @return {ol.geom.Geometry|ol.render.Feature|undefined} Geometry to render.
- */_ol_style_Style_$1.defaultGeometryFunction=function(feature){return feature.getGeometry();};var _ol_Feature_=function(opt_geometryOrProperties){_ol_Object_.call(this);/**
+ */_ol_style_Style_$1.defaultGeometryFunction=function(feature){return feature.getGeometry();};/**
+ * @classdesc
+ * A vector object for geographic features with a geometry and other
+ * attribute properties, similar to the features in vector file formats like
+ * GeoJSON.
+ *
+ * Features can be styled individually with `setStyle`; otherwise they use the
+ * style of their vector layer.
+ *
+ * Note that attribute properties are set as {@link ol.Object} properties on
+ * the feature object, so they are observable, and have get/set accessors.
+ *
+ * Typically, a feature has a single geometry property. You can set the
+ * geometry using the `setGeometry` method and get it with `getGeometry`.
+ * It is possible to store more than one geometry on a feature using attribute
+ * properties. By default, the geometry used for rendering is identified by
+ * the property name `geometry`. If you want to use another geometry property
+ * for rendering, use the `setGeometryName` method to change the attribute
+ * property associated with the geometry for the feature.  For example:
+ *
+ * ```js
+ * var feature = new ol.Feature({
+ *   geometry: new ol.geom.Polygon(polyCoords),
+ *   labelPoint: new ol.geom.Point(labelCoords),
+ *   name: 'My Polygon'
+ * });
+ *
+ * // get the polygon geometry
+ * var poly = feature.getGeometry();
+ *
+ * // Render the feature as a point using the coordinates from labelPoint
+ * feature.setGeometryName('labelPoint');
+ *
+ * // get the point geometry
+ * var point = feature.getGeometry();
+ * ```
+ *
+ * @constructor
+ * @extends {ol.Object}
+ * @param {ol.geom.Geometry|Object.<string, *>=} opt_geometryOrProperties
+ *     You may pass a Geometry object directly, or an object literal
+ *     containing properties.  If you pass an object literal, you may
+ *     include a Geometry associated with a `geometry` key.
+ * @api
+ */var _ol_Feature_=function(opt_geometryOrProperties){_ol_Object_.call(this);/**
    * @private
    * @type {number|string|undefined}
    */this.id_=undefined;/**
@@ -5004,7 +5282,9 @@ if(!_ol_style_Style_$1.default_){var fill=new _ol_style_Fill_({color:'rgba(255,2
 styles=[obj];}styleFunction=function(){return styles;};}return styleFunction;};function capitalize(string){return string.charAt(0).toUpperCase()+string.slice(1);}var unitNames={npc_dota_roshan_spawner:"Roshan",dota_item_rune_spawner_powerup:"Rune",dota_item_rune_spawner_bounty:"Bounty Rune",ent_dota_tree:"Tree",npc_dota_healer:"Shrine",ent_dota_fountain:"Fountain",npc_dota_fort:"Ancient",ent_dota_shop:"Shop",npc_dota_tower:"Tower",npc_dota_barracks:"Barracks",npc_dota_filler:"Building",trigger_multiple:"Neutral Camp Spawn Box",npc_dota_neutral_spawner:"Neutral Camp",observer:"Observer Ward",sentry:"Sentry Ward"};function getUnitName(unitType,unitSubType){return(unitSubType?capitalize(unitSubType.replace('tower','Tier ').replace('range','Ranged'))+' ':'')+unitNames[unitType];}var pullTypes=['Normal','Fast','Slow'];var neutralTypes=['Easy','Medium','Hard','Ancient'];function getPopupContent(stats,feature){var dotaProps=feature.get('dotaProps');var unitClass=dotaProps.subType?dotaProps.id+'_'+dotaProps.subType:dotaProps.id;var unitStats=stats[unitClass];var htmlContent='<div class="info"><span class="info-header">'+getUnitName(dotaProps.id,dotaProps.subType)+'</span><span class="info-body">';if(dotaProps.pullType!=null){htmlContent+='<br><span class="info-line">Pull Type: '+pullTypes[dotaProps.pullType]+'</span>';}if(dotaProps.neutralType!=null){htmlContent+='<br><span class="info-line">Difficulty: '+neutralTypes[dotaProps.neutralType]+'</span>';}if(stats&&unitStats){if(unitStats.hasOwnProperty('damageMin')&&unitStats.hasOwnProperty('damageMax')){htmlContent+='<br><span class="info-line">Damage: '+unitStats.damageMin+"&ndash;"+unitStats.damageMax+'</span>';}if(unitStats.hasOwnProperty('bat')){htmlContent+='<br><span class="info-line">BAT: '+unitStats.bat+'</span>';}if(unitStats.hasOwnProperty('attackRange')){htmlContent+='<br><span class="info-line">Attack Range: '+unitStats.attackRange+'</span>';}if(unitStats.hasOwnProperty('health')){htmlContent+='<br><span class="info-line">Health: '+unitStats.health+'</span>';}if(unitStats.hasOwnProperty('armor')){htmlContent+='<br><span class="info-line">Armor: '+unitStats.armor+'</span>';}if(unitStats.hasOwnProperty('dayVision')&&unitStats.hasOwnProperty('nightVision')){htmlContent+='<br><span class="info-line">Vision: '+unitStats.dayVision+"/"+unitStats.nightVision+'</span>';}}htmlContent+='</span></div>';return htmlContent;}/**
  * Icon anchor units. One of 'fraction', 'pixels'.
  * @enum {string}
- */var _ol_style_IconAnchorUnits_={FRACTION:'fraction',PIXELS:'pixels'};var _ol_style_IconImageCache_=function(){/**
+ */var _ol_style_IconAnchorUnits_={FRACTION:'fraction',PIXELS:'pixels'};/**
+ * @constructor
+ */var _ol_style_IconImageCache_=function(){/**
    * @type {Object.<string, ol.style.IconImage>}
    * @private
    */this.cache_={};/**
@@ -5033,7 +5313,16 @@ styles=[obj];}styleFunction=function(){return styles;};}return styleFunction;};f
  * @param {?string} crossOrigin Cross origin.
  * @param {ol.Color} color Color.
  * @param {ol.style.IconImage} iconImage Icon image.
- */_ol_style_IconImageCache_.prototype.set=function(src,crossOrigin,color,iconImage){var key=_ol_style_IconImageCache_.getKey(src,crossOrigin,color);this.cache_[key]=iconImage;++this.cacheSize_;};var _ol_style_={};_ol_style_.iconImageCache=new _ol_style_IconImageCache_();var _ol_style_IconImage_=function(image,src,size,crossOrigin,imageState,color){_ol_events_EventTarget_.call(this);/**
+ */_ol_style_IconImageCache_.prototype.set=function(src,crossOrigin,color,iconImage){var key=_ol_style_IconImageCache_.getKey(src,crossOrigin,color);this.cache_[key]=iconImage;++this.cacheSize_;};var _ol_style_={};_ol_style_.iconImageCache=new _ol_style_IconImageCache_();/**
+ * @constructor
+ * @param {Image|HTMLCanvasElement} image Image.
+ * @param {string|undefined} src Src.
+ * @param {ol.Size} size Size.
+ * @param {?string} crossOrigin Cross origin.
+ * @param {ol.ImageState} imageState Image state.
+ * @param {ol.Color} color Color.
+ * @extends {ol.events.EventTarget}
+ */var _ol_style_IconImage_=function(image,src,size,crossOrigin,imageState,color){_ol_events_EventTarget_.call(this);/**
    * @private
    * @type {Image|HTMLCanvasElement}
    */this.hitDetectionImage_=null;/**
@@ -5099,7 +5388,15 @@ styles=[obj];}styleFunction=function(){return styles;};}return styleFunction;};f
  */_ol_style_IconImage_.prototype.unlistenImage_=function(){this.imageListenerKeys_.forEach(_ol_events_.unlistenByKey);this.imageListenerKeys_=null;};/**
  * Icon origin. One of 'bottom-left', 'bottom-right', 'top-left', 'top-right'.
  * @enum {string}
- */var _ol_style_IconOrigin_={BOTTOM_LEFT:'bottom-left',BOTTOM_RIGHT:'bottom-right',TOP_LEFT:'top-left',TOP_RIGHT:'top-right'};var _ol_style_Icon_=function(opt_options){var options=opt_options||{};/**
+ */var _ol_style_IconOrigin_={BOTTOM_LEFT:'bottom-left',BOTTOM_RIGHT:'bottom-right',TOP_LEFT:'top-left',TOP_RIGHT:'top-right'};/**
+ * @classdesc
+ * Set icon style for vector features.
+ *
+ * @constructor
+ * @param {olx.style.IconOptions=} opt_options Options.
+ * @extends {ol.style.Image}
+ * @api
+ */var _ol_style_Icon_=function(opt_options){var options=opt_options||{};/**
    * @private
    * @type {Array.<number>}
    */this.anchor_=options.anchor!==undefined?options.anchor:[0.5,0.5];/**
@@ -5223,6 +5520,21 @@ else if(!self.isActive()){self.unhighlight();self.close(true);}self.InteractiveM
    */REMOVE:'remove'};/**
  * An implementation of Google Maps' MVCArray.
  * @see https://developers.google.com/maps/documentation/javascript/reference
+ *//**
+ * @classdesc
+ * An expanded version of standard JS Array, adding convenience methods for
+ * manipulation. Add and remove changes to the Collection trigger a Collection
+ * event. Note that this does not cover changes to the objects _within_ the
+ * Collection; they trigger events on the appropriate object, not on the
+ * Collection as a whole.
+ *
+ * @constructor
+ * @extends {ol.Object}
+ * @fires ol.Collection.Event
+ * @param {Array.<T>=} opt_array Array.
+ * @param {olx.CollectionOptions=} opt_options Collection options.
+ * @template T
+ * @api
  */var _ol_Collection_=function(opt_array,opt_options){_ol_Object_.call(this);var options=opt_options||{};/**
    * @private
    * @type {boolean}
@@ -5701,7 +6013,16 @@ charCode=48;if(tileCoord[1]&mask){charCode+=1;}if(tileCoord[2]&mask){charCode+=2
  * @param {ol.TileCoord} tileCoord Tile coordinate.
  * @param {!ol.tilegrid.TileGrid} tileGrid Tile grid.
  * @return {boolean} Tile coordinate is within extent and zoom level range.
- */_ol_tilecoord_.withinExtentAndZ=function(tileCoord,tileGrid){var z=tileCoord[0];var x=tileCoord[1];var y=tileCoord[2];if(tileGrid.getMinZoom()>z||z>tileGrid.getMaxZoom()){return false;}var extent=tileGrid.getExtent();var tileRange;if(!extent){tileRange=tileGrid.getFullTileRange(z);}else{tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z);}if(!tileRange){return true;}else{return tileRange.containsXY(x,y);}};var _ol_tilegrid_TileGrid_=function(options){/**
+ */_ol_tilecoord_.withinExtentAndZ=function(tileCoord,tileGrid){var z=tileCoord[0];var x=tileCoord[1];var y=tileCoord[2];if(tileGrid.getMinZoom()>z||z>tileGrid.getMaxZoom()){return false;}var extent=tileGrid.getExtent();var tileRange;if(!extent){tileRange=tileGrid.getFullTileRange(z);}else{tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z);}if(!tileRange){return true;}else{return tileRange.containsXY(x,y);}};/**
+ * @classdesc
+ * Base class for setting the grid pattern for sources accessing tiled-image
+ * servers.
+ *
+ * @constructor
+ * @param {olx.tilegrid.TileGridOptions} options Tile grid options.
+ * @struct
+ * @api
+ */var _ol_tilegrid_TileGrid_=function(options){/**
    * @protected
    * @type {number}
    */this.minZoom=options.minZoom!==undefined?options.minZoom:0;/**
@@ -5920,7 +6241,27 @@ var zoomFactor;if(!options.origins){for(var i=0,ii=this.resolutions_.length-1;i<
  * extent, it is used.  If not, a global extent is assumed.
  * @param {ol.ProjectionLike} projection Projection.
  * @return {ol.Extent} Extent.
- */_ol_tilegrid_.extentFromProjection=function(projection){projection=_ol_proj_.get(projection);var extent=projection.getExtent();if(!extent){var half=180*_ol_proj_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]/projection.getMetersPerUnit();extent=_ol_extent_.createOrUpdate(-half,-half,half,half);}return extent;};var _ol_Attribution_=function(options){/**
+ */_ol_tilegrid_.extentFromProjection=function(projection){projection=_ol_proj_.get(projection);var extent=projection.getExtent();if(!extent){var half=180*_ol_proj_.METERS_PER_UNIT[_ol_proj_Units_.DEGREES]/projection.getMetersPerUnit();extent=_ol_extent_.createOrUpdate(-half,-half,half,half);}return extent;};/**
+ * @classdesc
+ * An attribution for a layer source.
+ *
+ * Example:
+ *
+ *     source: new ol.source.OSM({
+ *       attributions: [
+ *         new ol.Attribution({
+ *           html: 'All maps &copy; ' +
+ *               '<a href="https://www.opencyclemap.org/">OpenCycleMap</a>'
+ *         }),
+ *         ol.source.OSM.ATTRIBUTION
+ *       ],
+ *     ..
+ *
+ * @constructor
+ * @param {olx.AttributionOptions} options Attribution options.
+ * @struct
+ * @api
+ */var _ol_Attribution_=function(options){/**
    * @private
    * @type {string}
    */this.html_=options.html;/**
@@ -5938,7 +6279,20 @@ var zoomFactor;if(!options.origins){for(var i=0,ii=this.resolutions_.length-1;i<
  */_ol_Attribution_.prototype.intersectsAnyTileRange=function(tileRanges,tileGrid,projection){if(!this.tileRanges_){return true;}var i,ii,tileRange,zKey;for(zKey in tileRanges){if(!(zKey in this.tileRanges_)){continue;}tileRange=tileRanges[zKey];var testTileRange;for(i=0,ii=this.tileRanges_[zKey].length;i<ii;++i){testTileRange=this.tileRanges_[zKey][i];if(testTileRange.intersects(tileRange)){return true;}var extentTileRange=tileGrid.getTileRangeForExtentAndZ(_ol_tilegrid_.extentFromProjection(projection),parseInt(zKey,10));var width=extentTileRange.getWidth();if(tileRange.minX<extentTileRange.minX||tileRange.maxX>extentTileRange.maxX){if(testTileRange.intersects(new _ol_TileRange_(_ol_math_.modulo(tileRange.minX,width),_ol_math_.modulo(tileRange.maxX,width),tileRange.minY,tileRange.maxY))){return true;}if(tileRange.getWidth()>width&&testTileRange.intersects(extentTileRange)){return true;}}}}return false;};/**
  * State of the source, one of 'undefined', 'loading', 'ready' or 'error'.
  * @enum {string}
- */var _ol_source_State_={UNDEFINED:'undefined',LOADING:'loading',READY:'ready',ERROR:'error'};var _ol_source_Source_=function(options){_ol_Object_.call(this);/**
+ */var _ol_source_State_={UNDEFINED:'undefined',LOADING:'loading',READY:'ready',ERROR:'error'};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Base class for {@link ol.layer.Layer} sources.
+ *
+ * A generic `change` event is triggered when the state of the source changes.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.Object}
+ * @param {ol.SourceSourceOptions} options Source options.
+ * @api
+ */var _ol_source_Source_=function(options){_ol_Object_.call(this);/**
    * @private
    * @type {ol.proj.Projection}
    */this.projection_=_ol_proj_.get(options.projection);/**
@@ -6072,7 +6426,15 @@ var compareArr=['return a',' - b',';'];this.compareMinX=new Function('a','b',com
 function calcBBox(node,toBBox){distBBox(node,0,node.children.length,toBBox,node);}// min bounding rectangle of node children from k to p-1
 function distBBox(node,k,p,toBBox,destNode){if(!destNode)destNode=createNode(null);destNode.minX=Infinity;destNode.minY=Infinity;destNode.maxX=-Infinity;destNode.maxY=-Infinity;for(var i=k,child;i<p;i++){child=node.children[i];extend(destNode,node.leaf?toBBox(child):child);}return destNode;}function extend(a,b){a.minX=Math.min(a.minX,b.minX);a.minY=Math.min(a.minY,b.minY);a.maxX=Math.max(a.maxX,b.maxX);a.maxY=Math.max(a.maxY,b.maxY);return a;}function compareNodeMinX(a,b){return a.minX-b.minX;}function compareNodeMinY(a,b){return a.minY-b.minY;}function bboxArea(a){return(a.maxX-a.minX)*(a.maxY-a.minY);}function bboxMargin(a){return a.maxX-a.minX+(a.maxY-a.minY);}function enlargedArea(a,b){return(Math.max(b.maxX,a.maxX)-Math.min(b.minX,a.minX))*(Math.max(b.maxY,a.maxY)-Math.min(b.minY,a.minY));}function intersectionArea(a,b){var minX=Math.max(a.minX,b.minX),minY=Math.max(a.minY,b.minY),maxX=Math.min(a.maxX,b.maxX),maxY=Math.min(a.maxY,b.maxY);return Math.max(0,maxX-minX)*Math.max(0,maxY-minY);}function contains(a,b){return a.minX<=b.minX&&a.minY<=b.minY&&b.maxX<=a.maxX&&b.maxY<=a.maxY;}function intersects(a,b){return b.minX<=a.maxX&&b.minY<=a.maxY&&b.maxX>=a.minX&&b.maxY>=a.minY;}function createNode(children){return{children:children,height:1,leaf:true,minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};}// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
 // combines selection algorithm with binary divide & conquer approach
-function multiSelect(arr,left,right,n,compare){var stack=[left,right],mid;while(stack.length){right=stack.pop();left=stack.pop();if(right-left<=n)continue;mid=left+Math.ceil((right-left)/n/2)*n;quickselect(arr,mid,left,right,compare);stack.push(left,mid,mid,right);}}var _ol_structs_RBush_=function(opt_maxEntries){/**
+function multiSelect(arr,left,right,n,compare){var stack=[left,right],mid;while(stack.length){right=stack.pop();left=stack.pop();if(right-left<=n)continue;mid=left+Math.ceil((right-left)/n/2)*n;quickselect(arr,mid,left,right,compare);stack.push(left,mid,mid,right);}}/**
+ * Wrapper around the RBush by Vladimir Agafonkin.
+ *
+ * @constructor
+ * @param {number=} opt_maxEntries Max entries.
+ * @see https://github.com/mourner/rbush
+ * @struct
+ * @template T
+ */var _ol_structs_RBush_=function(opt_maxEntries){/**
    * @private
    */this.rbush_=rbush_1(opt_maxEntries);/**
    * A mapping between the objects added to this rbush wrapper
@@ -6138,7 +6500,18 @@ var data=this.rbush_.data;return _ol_extent_.createOrUpdate(data.minX,data.minY,
  * @param {ol.structs.RBush} rbush R-Tree.
  */_ol_structs_RBush_.prototype.concat=function(rbush){this.rbush_.load(rbush.rbush_.all());for(var i in rbush.items_){this.items_[i|0]=rbush.items_[i|0];}};// FIXME bulk feature upload - suppress events
 // FIXME make change-detection more refined (notably, geometry hint)
-var _ol_source_Vector_=function(opt_options){var options=opt_options||{};_ol_source_Source_.call(this,{attributions:options.attributions,logo:options.logo,projection:undefined,state:_ol_source_State_.READY,wrapX:options.wrapX!==undefined?options.wrapX:true});/**
+/**
+ * @classdesc
+ * Provides a source of features for vector layers. Vector features provided
+ * by this source are suitable for editing. See {@link ol.source.VectorTile} for
+ * vector data that is optimized for rendering.
+ *
+ * @constructor
+ * @extends {ol.source.Source}
+ * @fires ol.source.Vector.Event
+ * @param {olx.source.VectorOptions=} opt_options Vector source options.
+ * @api
+ */var _ol_source_Vector_=function(opt_options){var options=opt_options||{};_ol_source_Source_.call(this,{attributions:options.attributions,logo:options.logo,projection:undefined,state:_ol_source_State_.READY,wrapX:options.wrapX!==undefined?options.wrapX:true});/**
    * @private
    * @type {ol.FeatureLoader}
    */this.loader_=_ol_.nullFunction;/**
@@ -6411,7 +6784,20 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * @enum {string}
  */var _ol_LayerType_={IMAGE:'IMAGE',TILE:'TILE',VECTOR_TILE:'VECTOR_TILE',VECTOR:'VECTOR'};/**
  * @enum {string}
- */var _ol_layer_Property_={OPACITY:'opacity',VISIBLE:'visible',EXTENT:'extent',Z_INDEX:'zIndex',MAX_RESOLUTION:'maxResolution',MIN_RESOLUTION:'minResolution',SOURCE:'source'};var _ol_layer_Base_=function(options){_ol_Object_.call(this);/**
+ */var _ol_layer_Property_={OPACITY:'opacity',VISIBLE:'visible',EXTENT:'extent',Z_INDEX:'zIndex',MAX_RESOLUTION:'maxResolution',MIN_RESOLUTION:'minResolution',SOURCE:'source'};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Note that with `ol.layer.Base` and all its subclasses, any property set in
+ * the options is set as a {@link ol.Object} property on the layer object, so
+ * is observable, and has get/set accessors.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.Object}
+ * @param {olx.layer.BaseOptions} options Layer options.
+ * @api
+ */var _ol_layer_Base_=function(options){_ol_Object_.call(this);/**
    * @type {Object.<string, *>}
    */var properties=_ol_obj_.assign({},options);properties[_ol_layer_Property_.OPACITY]=options.opacity!==undefined?options.opacity:1;properties[_ol_layer_Property_.VISIBLE]=options.visible!==undefined?options.visible:true;properties[_ol_layer_Property_.Z_INDEX]=options.zIndex!==undefined?options.zIndex:0;properties[_ol_layer_Property_.MAX_RESOLUTION]=options.maxResolution!==undefined?options.maxResolution:Infinity;properties[_ol_layer_Property_.MIN_RESOLUTION]=options.minResolution!==undefined?options.minResolution:0;this.setProperties(properties);/**
    * @type {ol.LayerState}
@@ -6513,7 +6899,28 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
    */PRECOMPOSE:'precompose',/**
    * @event ol.render.Event#render
    * @api
-   */RENDER:'render'};var _ol_layer_Layer_=function(options){var baseOptions=_ol_obj_.assign({},options);delete baseOptions.source;_ol_layer_Base_.call(this,/** @type {olx.layer.BaseOptions} */baseOptions);/**
+   */RENDER:'render'};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * A visual representation of raster or vector map data.
+ * Layers group together those properties that pertain to how the data is to be
+ * displayed, irrespective of the source of that data.
+ *
+ * Layers are usually added to a map with {@link ol.Map#addLayer}. Components
+ * like {@link ol.interaction.Select} use unmanaged layers internally. These
+ * unmanaged layers are associated with the map using
+ * {@link ol.layer.Layer#setMap} instead.
+ *
+ * A generic `change` event is fired when the state of the source changes.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.layer.Base}
+ * @fires ol.render.Event
+ * @param {olx.layer.LayerOptions} options Layer options.
+ * @api
+ */var _ol_layer_Layer_=function(options){var baseOptions=_ol_obj_.assign({},options);delete baseOptions.source;_ol_layer_Base_.call(this,/** @type {olx.layer.BaseOptions} */baseOptions);/**
    * @private
    * @type {?ol.EventsKey}
    */this.mapPrecomposeKey_=null;/**
@@ -6560,7 +6967,19 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * @param {ol.source.Source} source The layer source.
  * @observable
  * @api
- */_ol_layer_Layer_.prototype.setSource=function(source){this.set(_ol_layer_Property_.SOURCE,source);};var _ol_layer_Vector_=function(opt_options){var options=opt_options?opt_options:/** @type {olx.layer.VectorOptions} */{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.style;delete baseOptions.renderBuffer;delete baseOptions.updateWhileAnimating;delete baseOptions.updateWhileInteracting;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);/**
+ */_ol_layer_Layer_.prototype.setSource=function(source){this.set(_ol_layer_Property_.SOURCE,source);};/**
+ * @classdesc
+ * Vector data that is rendered client-side.
+ * Note that any property set in the options is set as a {@link ol.Object}
+ * property on the layer object; for example, setting `title: 'My Title'` in the
+ * options means that `title` is observable, and has get/set accessors.
+ *
+ * @constructor
+ * @extends {ol.layer.Layer}
+ * @fires ol.render.Event
+ * @param {olx.layer.VectorOptions=} opt_options Options.
+ * @api
+ */var _ol_layer_Vector_=function(opt_options){var options=opt_options?opt_options:/** @type {olx.layer.VectorOptions} */{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.style;delete baseOptions.renderBuffer;delete baseOptions.updateWhileAnimating;delete baseOptions.updateWhileInteracting;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);/**
    * @type {number}
    * @private
    */this.renderBuffer_=options.renderBuffer!==undefined?options.renderBuffer:100;/**
@@ -6587,9 +7006,10 @@ var minDistance=Math.sqrt(minSquaredDistance);extent[0]=x-minDistance;extent[1]=
  * @return {function(ol.Feature, ol.Feature): number|null|undefined} Render
  *     order.
  */_ol_layer_Vector_.prototype.getRenderOrder=function(){return(/** @type {ol.RenderOrderFunction|null|undefined} */this.get(_ol_layer_Vector_.Property_.RENDER_ORDER));};/**
- * Return the associated {@link ol.source.Vector vectorsource} of the layer.
- * @function
- * @return {ol.source.Vector} Source.
+ * Get the style for features.  This returns whatever was passed to the `style`
+ * option at construction or to the `setStyle` method.
+ * @return {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction}
+ *     Layer style.
  * @api
  */_ol_layer_Vector_.prototype.getStyle=function(){return this.style_;};/**
  * Get the style function.
@@ -6655,7 +7075,16 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  * @param {number} end End.
  * @param {number} stride Stride.
  * @return {number} Perimeter.
- */_ol_geom_flat_length_.linearRing=function(flatCoordinates,offset,end,stride){var perimeter=_ol_geom_flat_length_.lineString(flatCoordinates,offset,end,stride);var dx=flatCoordinates[end-stride]-flatCoordinates[offset];var dy=flatCoordinates[end-stride+1]-flatCoordinates[offset+1];perimeter+=Math.sqrt(dx*dx+dy*dy);return perimeter;};var _ol_geom_LineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_length_.linearRing=function(flatCoordinates,offset,end,stride){var perimeter=_ol_geom_flat_length_.lineString(flatCoordinates,offset,end,stride);var dx=flatCoordinates[end-stride]-flatCoordinates[offset];var dy=flatCoordinates[end-stride+1]-flatCoordinates[offset+1];perimeter+=Math.sqrt(dx*dx+dy*dy);return perimeter;};/**
+ * @classdesc
+ * Linestring geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<ol.Coordinate>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_LineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @private
    * @type {ol.Coordinate}
    */this.flatMidpoint_=null;/**
@@ -6740,7 +7169,17 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  */_ol_geom_LineString_.prototype.setCoordinates=function(coordinates,opt_layout){if(!coordinates){this.setFlatCoordinates(_ol_geom_GeometryLayout_.XY,null);}else{this.setLayout(opt_layout,coordinates,1);if(!this.flatCoordinates){this.flatCoordinates=[];}this.flatCoordinates.length=_ol_geom_flat_deflate_.coordinates(this.flatCoordinates,0,coordinates,this.stride);this.changed();}};/**
  * @param {ol.geom.GeometryLayout} layout Layout.
  * @param {Array.<number>} flatCoordinates Flat coordinates.
- */_ol_geom_LineString_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};var _ol_geom_Circle_=function(center,opt_radius,opt_layout){_ol_geom_SimpleGeometry_.call(this);var radius=opt_radius?opt_radius:0;this.setCenterAndRadius(center,radius,opt_layout);};_ol_.inherits(_ol_geom_Circle_,_ol_geom_SimpleGeometry_);/**
+ */_ol_geom_LineString_.prototype.setFlatCoordinates=function(layout,flatCoordinates){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.changed();};/**
+ * @classdesc
+ * Circle geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {ol.Coordinate} center Center.
+ * @param {number=} opt_radius Radius.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_Circle_=function(center,opt_radius,opt_layout){_ol_geom_SimpleGeometry_.call(this);var radius=opt_radius?opt_radius:0;this.setCenterAndRadius(center,radius,opt_layout);};_ol_.inherits(_ol_geom_Circle_,_ol_geom_SimpleGeometry_);/**
  * Make a complete copy of the geometry.
  * @return {!ol.geom.Circle} Clone.
  * @override
@@ -6791,26 +7230,8 @@ if(m==flatCoordinates[offset+stride-1]){return flatCoordinates.slice(offset,offs
  * @param {number} radius Radius.
  * @api
  */_ol_geom_Circle_.prototype.setRadius=function(radius){this.flatCoordinates[this.stride]=this.flatCoordinates[0]+radius;this.changed();};/**
- * Transform each coordinate of the circle from one coordinate reference system
- * to another. The geometry is modified in place.
- * If you do not want the geometry modified in place, first clone() it and
- * then use this function on the clone.
- *
- * Internally a circle is currently represented by two points: the center of
- * the circle `[cx, cy]`, and the point to the right of the circle
- * `[cx + r, cy]`. This `transform` function just transforms these two points.
- * So the resulting geometry is also a circle, and that circle does not
- * correspond to the shape that would be obtained by transforming every point
- * of the original circle.
- *
- * @param {ol.ProjectionLike} source The current projection.  Can be a
- *     string identifier or a {@link ol.proj.Projection} object.
- * @param {ol.ProjectionLike} destination The desired projection.  Can be a
- *     string identifier or a {@link ol.proj.Projection} object.
- * @return {ol.geom.Circle} This geometry.  Note that original geometry is
- *     modified in place.
- * @function
- * @api
+ * Constants for event names.
+ * @enum {string}
  */var _ol_MapBrowserEventType_={/**
    * A true single click with no dragging and no double click. Note that this
    * event is delayed by 250 ms to ensure that it is not a double click.
@@ -7131,7 +7552,16 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
  * @return {boolean} True if the event originates from a primary pointer.
  * @api
- */_ol_events_condition_.primaryAction=function(mapBrowserEvent){var pointerEvent=mapBrowserEvent.pointerEvent;return pointerEvent.isPrimary&&pointerEvent.button===0;};var _ol_geom_MultiLineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_events_condition_.primaryAction=function(mapBrowserEvent){var pointerEvent=mapBrowserEvent.pointerEvent;return pointerEvent.isPrimary&&pointerEvent.button===0;};/**
+ * @classdesc
+ * Multi-linestring geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<Array.<ol.Coordinate>>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_MultiLineString_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @type {Array.<number>}
    * @private
    */this.ends_=[];/**
@@ -7210,7 +7640,16 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @param {Array.<number>} ends Ends.
  */_ol_geom_MultiLineString_.prototype.setFlatCoordinates=function(layout,flatCoordinates,ends){this.setFlatCoordinatesInternal(layout,flatCoordinates);this.ends_=ends;this.changed();};/**
  * @param {Array.<ol.geom.LineString>} lineStrings LineStrings.
- */_ol_geom_MultiLineString_.prototype.setLineStrings=function(lineStrings){var layout=this.getLayout();var flatCoordinates=[];var ends=[];var i,ii;for(i=0,ii=lineStrings.length;i<ii;++i){var lineString=lineStrings[i];if(i===0){layout=lineString.getLayout();}_ol_array_.extend(flatCoordinates,lineString.getFlatCoordinates());ends.push(flatCoordinates.length);}this.setFlatCoordinates(layout,flatCoordinates,ends);};var _ol_geom_MultiPoint_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_MultiPoint_,_ol_geom_SimpleGeometry_);/**
+ */_ol_geom_MultiLineString_.prototype.setLineStrings=function(lineStrings){var layout=this.getLayout();var flatCoordinates=[];var ends=[];var i,ii;for(i=0,ii=lineStrings.length;i<ii;++i){var lineString=lineStrings[i];if(i===0){layout=lineString.getLayout();}_ol_array_.extend(flatCoordinates,lineString.getFlatCoordinates());ends.push(flatCoordinates.length);}this.setFlatCoordinates(layout,flatCoordinates,ends);};/**
+ * @classdesc
+ * Multi-point geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<ol.Coordinate>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_MultiPoint_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);this.setCoordinates(coordinates,opt_layout);};_ol_.inherits(_ol_geom_MultiPoint_,_ol_geom_SimpleGeometry_);/**
  * Append the passed point to this multipoint.
  * @param {ol.geom.Point} point Point.
  * @api
@@ -7256,7 +7695,16 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @param {Array.<Array.<number>>} endss Endss.
  * @param {number} stride Stride.
  * @return {Array.<number>} Flat centers.
- */_ol_geom_flat_center_.linearRingss=function(flatCoordinates,offset,endss,stride){var flatCenters=[];var i,ii;var extent=_ol_extent_.createEmpty();for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];extent=_ol_extent_.createOrUpdateFromFlatCoordinates(flatCoordinates,offset,ends[0],stride);flatCenters.push((extent[0]+extent[2])/2,(extent[1]+extent[3])/2);offset=ends[ends.length-1];}return flatCenters;};var _ol_geom_MultiPolygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
+ */_ol_geom_flat_center_.linearRingss=function(flatCoordinates,offset,endss,stride){var flatCenters=[];var i,ii;var extent=_ol_extent_.createEmpty();for(i=0,ii=endss.length;i<ii;++i){var ends=endss[i];extent=_ol_extent_.createOrUpdateFromFlatCoordinates(flatCoordinates,offset,ends[0],stride);flatCenters.push((extent[0]+extent[2])/2,(extent[1]+extent[3])/2);offset=ends[ends.length-1];}return flatCenters;};/**
+ * @classdesc
+ * Multi-polygon geometry.
+ *
+ * @constructor
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<Array.<Array.<ol.Coordinate>>>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api
+ */var _ol_geom_MultiPolygon_=function(coordinates,opt_layout){_ol_geom_SimpleGeometry_.call(this);/**
    * @type {Array.<Array.<number>>}
    * @private
    */this.endss_=[];/**
@@ -7357,7 +7805,18 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
    * Triggered upon feature draw end
    * @event ol.interaction.Draw.Event#drawend
    * @api
-   */DRAWEND:'drawend'};var _ol_MapEvent_=function(type,map,opt_frameState){_ol_events_Event_.call(this,type);/**
+   */DRAWEND:'drawend'};/**
+ * @classdesc
+ * Events emitted as map events are instances of this type.
+ * See {@link ol.Map} for which events trigger a map event.
+ *
+ * @constructor
+ * @extends {ol.events.Event}
+ * @implements {oli.MapEvent}
+ * @param {string} type Event type.
+ * @param {ol.PluggableMap} map Map.
+ * @param {?olx.FrameState=} opt_frameState Frame state.
+ */var _ol_MapEvent_=function(type,map,opt_frameState){_ol_events_Event_.call(this,type);/**
    * The map where the event occurred.
    * @type {ol.PluggableMap}
    * @api
@@ -7365,7 +7824,20 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
    * The frame state at the time of the event.
    * @type {?olx.FrameState}
    * @api
-   */this.frameState=opt_frameState!==undefined?opt_frameState:null;};_ol_.inherits(_ol_MapEvent_,_ol_events_Event_);var _ol_MapBrowserEvent_=function(type,map,browserEvent,opt_dragging,opt_frameState){_ol_MapEvent_.call(this,type,map,opt_frameState);/**
+   */this.frameState=opt_frameState!==undefined?opt_frameState:null;};_ol_.inherits(_ol_MapEvent_,_ol_events_Event_);/**
+ * @classdesc
+ * Events emitted as map browser events are instances of this type.
+ * See {@link ol.Map} for which events trigger a map browser event.
+ *
+ * @constructor
+ * @extends {ol.MapEvent}
+ * @implements {oli.MapBrowserEvent}
+ * @param {string} type Event type.
+ * @param {ol.PluggableMap} map Map.
+ * @param {Event} browserEvent Browser event.
+ * @param {boolean=} opt_dragging Is the map currently being dragged?
+ * @param {?olx.FrameState=} opt_frameState Frame state.
+ */var _ol_MapBrowserEvent_=function(type,map,browserEvent,opt_dragging,opt_frameState){_ol_MapEvent_.call(this,type,map,opt_frameState);/**
    * The original browser event.
    * @const
    * @type {Event}
@@ -7394,7 +7866,15 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  * @see https://developer.mozilla.org/en-US/docs/Web/API/event.stopPropagation
  * @override
  * @api
- */_ol_MapBrowserEvent_.prototype.stopPropagation=function(){_ol_MapEvent_.prototype.stopPropagation.call(this);this.originalEvent.stopPropagation();};var _ol_MapBrowserPointerEvent_=function(type,map,pointerEvent,opt_dragging,opt_frameState){_ol_MapBrowserEvent_.call(this,type,map,pointerEvent.originalEvent,opt_dragging,opt_frameState);/**
+ */_ol_MapBrowserEvent_.prototype.stopPropagation=function(){_ol_MapEvent_.prototype.stopPropagation.call(this);this.originalEvent.stopPropagation();};/**
+ * @constructor
+ * @extends {ol.MapBrowserEvent}
+ * @param {string} type Event type.
+ * @param {ol.PluggableMap} map Map.
+ * @param {ol.pointer.PointerEvent} pointerEvent Pointer event.
+ * @param {boolean=} opt_dragging Is the map currently being dragged?
+ * @param {?olx.FrameState=} opt_frameState Frame state.
+ */var _ol_MapBrowserPointerEvent_=function(type,map,pointerEvent,opt_dragging,opt_frameState){_ol_MapBrowserEvent_.call(this,type,map,pointerEvent.originalEvent,opt_dragging,opt_frameState);/**
    * @const
    * @type {ol.pointer.PointerEvent}
    */this.pointerEvent=pointerEvent;};_ol_.inherits(_ol_MapBrowserPointerEvent_,_ol_MapBrowserEvent_);var _ol_easing_={};/**
@@ -7427,7 +7907,23 @@ return(/** @type {ol.MapBrowserEvent} */mapBrowserEvent.pointerEvent.pointerType
  */_ol_easing_.upAndDown=function(t){if(t<0.5){return _ol_easing_.inAndOut(2*t);}else{return 1-_ol_easing_.inAndOut(2*(t-0.5));}};/**
  * @enum {string}
  */var _ol_interaction_Property_={ACTIVE:'active'};// FIXME factor out key precondition (shift et. al)
-var _ol_interaction_Interaction_=function(options){_ol_Object_.call(this);/**
+/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * User actions that change the state of the map. Some are similar to controls,
+ * but are not associated with a DOM element.
+ * For example, {@link ol.interaction.KeyboardZoom} is functionally the same as
+ * {@link ol.control.Zoom}, but triggered by a keyboard event not a button
+ * element event.
+ * Although interactions do not have a DOM element, some of them do render
+ * vectors and so are visible on the screen.
+ *
+ * @constructor
+ * @param {olx.interaction.InteractionOptions} options Options.
+ * @extends {ol.Object}
+ * @api
+ */var _ol_interaction_Interaction_=function(options){_ol_Object_.call(this);/**
    * @private
    * @type {ol.PluggableMap}
    */this.map_=null;this.setActive(true);/**
@@ -7491,7 +7987,21 @@ if(opt_anchor&&resolution!==undefined&&resolution!==currentResolution){var curre
  * @param {number|undefined} resolution Resolution to go to.
  * @param {ol.Coordinate=} opt_anchor Anchor coordinate.
  * @param {number=} opt_duration Duration.
- */_ol_interaction_Interaction_.zoomWithoutConstraints=function(view,resolution,opt_anchor,opt_duration){if(resolution){var currentResolution=view.getResolution();var currentCenter=view.getCenter();if(currentResolution!==undefined&&currentCenter&&resolution!==currentResolution&&opt_duration){view.animate({resolution:resolution,anchor:opt_anchor,duration:opt_duration,easing:_ol_easing_.easeOut});}else{if(opt_anchor){var center=view.calculateCenterZoom(resolution,opt_anchor);view.setCenter(center);}view.setResolution(resolution);}}};var _ol_interaction_Pointer_=function(opt_options){var options=opt_options?opt_options:{};var handleEvent=options.handleEvent?options.handleEvent:_ol_interaction_Pointer_.handleEvent;_ol_interaction_Interaction_.call(this,{handleEvent:handleEvent});/**
+ */_ol_interaction_Interaction_.zoomWithoutConstraints=function(view,resolution,opt_anchor,opt_duration){if(resolution){var currentResolution=view.getResolution();var currentCenter=view.getCenter();if(currentResolution!==undefined&&currentCenter&&resolution!==currentResolution&&opt_duration){view.animate({resolution:resolution,anchor:opt_anchor,duration:opt_duration,easing:_ol_easing_.easeOut});}else{if(opt_anchor){var center=view.calculateCenterZoom(resolution,opt_anchor);view.setCenter(center);}view.setResolution(resolution);}}};/**
+ * @classdesc
+ * Base class that calls user-defined functions on `down`, `move` and `up`
+ * events. This class also manages "drag sequences".
+ *
+ * When the `handleDownEvent` user function returns `true` a drag sequence is
+ * started. During a drag sequence the `handleDragEvent` user function is
+ * called on `move` events. The drag sequence ends when the `handleUpEvent`
+ * user function is called and returns `false`.
+ *
+ * @constructor
+ * @param {olx.interaction.PointerOptions=} opt_options Options.
+ * @extends {ol.interaction.Interaction}
+ * @api
+ */var _ol_interaction_Pointer_=function(opt_options){var options=opt_options?opt_options:{};var handleEvent=options.handleEvent?options.handleEvent:_ol_interaction_Pointer_.handleEvent;_ol_interaction_Interaction_.call(this,{handleEvent:handleEvent});/**
    * @type {function(ol.MapBrowserPointerEvent):boolean}
    * @private
    */this.handleDownEvent_=options.handleDownEvent?options.handleDownEvent:_ol_interaction_Pointer_.handleDownEvent;/**
@@ -7558,7 +8068,16 @@ this.trackedPointers_[id]=event;}this.targetPointers=_ol_obj_.getValues(this.tra
  * @param {boolean} handled Was the event handled by the interaction?
  * @return {boolean} Should the event be stopped?
  * @protected
- */_ol_interaction_Pointer_.prototype.shouldStopEvent=function(handled){return handled;};var _ol_interaction_Draw_=function(options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_Draw_.handleDownEvent_,handleEvent:_ol_interaction_Draw_.handleEvent,handleUpEvent:_ol_interaction_Draw_.handleUpEvent_});/**
+ */_ol_interaction_Pointer_.prototype.shouldStopEvent=function(handled){return handled;};/**
+ * @classdesc
+ * Interaction for drawing feature geometries.
+ *
+ * @constructor
+ * @extends {ol.interaction.Pointer}
+ * @fires ol.interaction.Draw.Event
+ * @param {olx.interaction.DrawOptions} options Options.
+ * @api
+ */var _ol_interaction_Draw_=function(options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_Draw_.handleDownEvent_,handleEvent:_ol_interaction_Draw_.handleEvent,handleUpEvent:_ol_interaction_Draw_.handleUpEvent_});/**
    * @type {boolean}
    * @private
    */this.shouldHandle_=false;/**
@@ -7832,7 +8351,27 @@ if(this.features_){this.features_.push(sketchFeature);}if(this.source_){this.sou
  *
  * @const
  * @type {string}
- */_ol_css_.CLASS_CONTROL='ol-control';var _ol_Overlay_=function(options){_ol_Object_.call(this);/**
+ */_ol_css_.CLASS_CONTROL='ol-control';/**
+ * @classdesc
+ * An element to be displayed over the map and attached to a single map
+ * location.  Like {@link ol.control.Control}, Overlays are visible widgets.
+ * Unlike Controls, they are not in a fixed position on the screen, but are tied
+ * to a geographical coordinate, so panning the map will move an Overlay but not
+ * a Control.
+ *
+ * Example:
+ *
+ *     var popup = new ol.Overlay({
+ *       element: document.getElementById('popup')
+ *     });
+ *     popup.setPosition(coordinate);
+ *     map.addOverlay(popup);
+ *
+ * @constructor
+ * @extends {ol.Object}
+ * @param {olx.OverlayOptions} options Overlay options.
+ * @api
+ */var _ol_Overlay_=function(options){_ol_Object_.call(this);/**
    * @private
    * @type {number|string|undefined}
    */this.id_=options.id;/**
@@ -8021,7 +8560,35 @@ var feature=InteractiveMap.checkAndHighlightWard(pixel);// no highlighted featur
 if(!feature){self.unhighlight();}else{self.showVisibilityInfo();}}// vision cursor
 if(Date.now()-self.lastPointerMoveTime<throttleTime){return;}self.lastPointerMoveTime=Date.now();if(bBuildingHover){if(!feature.get('visionFeature')){var hoverFeature=self.InteractiveMap.visionControl.getVisionFeature(feature);}else{self.InteractiveMap.cursorControl.source.clear(true);}}else{var hoverFeature=self.InteractiveMap.visionControl.getVisionFeature(null,evt.coordinate,self.InteractiveMap.visionRadius);}if(hoverFeature){self.InteractiveMap.cursorControl.source.clear(true);self.InteractiveMap.cursorControl.source.addFeature(hoverFeature);if(!bBuildingHover){self.showVisibilityInfo();}}else if(!bBuildingHover){self.clearInfo();}};this.pointerMoveListener=null;this.clickHandler=function(evt){self.unhighlight();var feature=self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel,function(feature,layer){return feature;},{layerFilter:self.InteractiveMap.layerFilters.marker});if(feature&&self.InteractiveMap.hasVisionRadius(feature)){self.InteractiveMap.toggle(feature);if(self.InteractiveMap.visionControl.toggleVisionFeature(feature)){self.showVisibilityInfo();}else{self.clearInfo();}self.InteractiveMap.cursorControl.source.clear(true);}else{feature=self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel,function(feature,layer){return feature;},{layerFilter:self.layerFilter});if(feature){self.removeWard(feature);self.clearInfo(true);}else{self.addWard(evt.coordinate,self.InteractiveMap.MODE);self.InteractiveMap.cursorControl.source.clear(true);}}};this.clickListener=null;}WardControl.prototype.toggleAll=function(layer,state){if(state){this.showAll(layer);}else{this.hideAll(layer);}};WardControl.prototype.showAll=function(layer){var self=this;var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){self.InteractiveMap.select(feature);self.highlight(feature);});};WardControl.prototype.hideAll=function(layer){var self=this;var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){self.InteractiveMap.deselect(feature);self.unhighlight(feature);});};WardControl.prototype.showVisibilityInfo=function(visionFeature,bClicked){var info=this.InteractiveMap.infoControl;var vs=this.InteractiveMap.vs;var lightArea=vs.lightArea;var area=vs.area;if(visionFeature){var visionData=visionFeature.get('visionData');if(visionData){lightArea=visionData.lightArea;area=visionData.area;info.setContent("Visibility: "+(lightArea/area*100).toFixed()+'% '+lightArea+"/"+area);info.open(bClicked);}}else{info.setContent("Visibility: "+(lightArea/area*100).toFixed()+'% '+lightArea+"/"+area);info.open(bClicked);}};WardControl.prototype.clearInfo=function(bOverrideActive){this.InteractiveMap.infoControl.setContent("");this.InteractiveMap.infoControl.close(bOverrideActive);};WardControl.prototype.activate=function(){if(!this.pointerMoveListener){this.pointerMoveListener=this.InteractiveMap.map.on('pointermove',this.pointerMoveHandler);}if(!this.clickListener){this.clickListener=this.InteractiveMap.map.on('click',this.clickHandler);}};WardControl.prototype.deactivate=function(){this.InteractiveMap.unhighlightWard();this.InteractiveMap.cursorControl.source.clear(true);_ol_Observable_.unByKey(this.pointerMoveListener);this.pointerMoveListener=null;_ol_Observable_.unByKey(this.clickListener);this.clickListener=null;};WardControl.prototype.parseQueryString=function(){var self=this;['observer','sentry'].forEach(function(wardType){var values=getParameterByName(wardType);if(values){values=values.split(';');values.forEach(function(worldXY){worldXY=worldXY.split(',');if(worldXY.length==2){worldXY=worldXY.map(parseFloat);if(!worldXY.some(isNaN)){var coordinate=worldToLatLon(worldXY);self.addWard(coordinate,wardType,true);}}});}self.updateQueryString(wardType);});};WardControl.prototype.updateQueryString=function(wardType){var values=Object.keys(this.placedWardCoordinates[wardType]).join(';');setQueryString(wardType,values||null);};WardControl.prototype.addWard=function(coordinate,wardType,bSkipQueryStringUpdate){if(coordinate[0]<0||coordinate[0]>mapConstants.map_w||coordinate[1]<0||coordinate[1]>mapConstants.map_h)return;var geom=new _ol_geom_Point_(coordinate);var feature=new _ol_Feature_(geom);feature.set('wardType',wardType,true);feature.setStyle(styles[wardType].normal);this.source.addFeature(feature);if(wardType=='observer'){if(this.InteractiveMap.visionControl.setVisionFeature(feature,coordinate,wardType)){this.showVisibilityInfo();}}var circle=this.InteractiveMap.getRangeCircle(feature,coordinate,wardType);if(circle){circle.setStyle(wardType=='observer'?styles.dayVision:styles.trueSight);feature.set('wardRange',circle,true);this.InteractiveMap.wardRangeSource.addFeature(circle);}var worldXY=latLonToWorld(coordinate).map(Math.round).join(',');this.placedWardCoordinates[wardType][worldXY]=true;if(!bSkipQueryStringUpdate)this.updateQueryString(wardType);};WardControl.prototype.updateAllWardVision=function(){var self=this;this.source.forEachFeature(function(f){var wardType=f.get('wardType');var coordinate=f.getGeometry().getCoordinates();self.InteractiveMap.visionControl.setVisionFeature(f,coordinate,wardType);});};WardControl.prototype.clearWards=function(){var self=this;var features=this.source.getFeatures();features.forEach(function(feature){self.removeWard(feature,true);});this.updateQueryString('observer');this.updateQueryString('sentry');};WardControl.prototype.removeWard=function(feature,bSkipQueryStringUpdate){var self=this;var wardRange=feature.get('wardRange');if(wardRange){// loop to check that feature exists before trying to remove
 this.InteractiveMap.wardRangeSource.forEachFeature(function(f){if(f==wardRange)self.InteractiveMap.wardRangeSource.removeFeature(f);});}// loop to check that feature exists before trying to remove
-this.source.forEachFeature(function(f){if(f==feature)self.source.removeFeature(f);});this.InteractiveMap.visionControl.removeVisionFeature(feature);var worldXY=latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');var wardType=feature.get('wardType');delete this.placedWardCoordinates[wardType][worldXY];if(!bSkipQueryStringUpdate)this.updateQueryString(wardType);};WardControl.prototype.highlight=function(feature){this.InteractiveMap.cursorControl.source.clear(true);this.unhighlight();var visionFeature=this.InteractiveMap.visionControl.setVisionFeature(feature);this.addRangeCircles(feature);this.InteractiveMap.highlight(feature);return visionFeature;};WardControl.prototype.unhighlight=function(feature){var highlightedFeature=feature||this.InteractiveMap.highlightedFeature;if(highlightedFeature&&!highlightedFeature.get("clicked")){this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);this.removeRangeCircles(highlightedFeature);}this.InteractiveMap.unhighlight();};WardControl.prototype.addRangeCircles=function(feature){this.addRangeCircle(feature,'dayVision');this.addRangeCircle(feature,'nightVision');this.addRangeCircle(feature,'trueSight');this.addRangeCircle(feature,'attackRange');};WardControl.prototype.removeRangeCircles=function(feature){this.removeRangeCircle(feature,'dayVision');this.removeRangeCircle(feature,'nightVision');this.removeRangeCircle(feature,'trueSight');this.removeRangeCircle(feature,'attackRange');};WardControl.prototype.addRangeCircle=function(feature,rangeType){if(!feature.get(rangeType)){var circle=this.InteractiveMap.getRangeCircle(feature,null,null,rangeType);if(circle){feature.set(rangeType,circle,true);this.InteractiveMap.rangeSources[rangeType].addFeature(circle);}}};WardControl.prototype.removeRangeCircle=function(feature,rangeType){var circle=feature.get(rangeType);if(circle){feature.set(rangeType,null,true);this.InteractiveMap.rangeSources[rangeType].removeFeature(circle);}};function TreeControl(InteractiveMap){this.InteractiveMap=InteractiveMap;this.allTreesCutState=false;}TreeControl.prototype.updateQueryString=function(){var self=this;var keys=['cut_trees','uncut_trees'];var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var values=features.filter(function(feature){return!!feature.get('isCut')!=self.allTreesCutState;}).map(function(feature){var dotaProps=feature.get('dotaProps');return dotaProps.x+','+dotaProps.y;}).join(';');setQueryString(keys[this.allTreesCutState?1:0],values||null);setQueryString(keys[this.allTreesCutState?0:1],null);document.getElementById('toggle-ent_dota_tree').checked=this.allTreesCutState;};TreeControl.prototype.parseQueryString=function(){var self=this;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var treeMap={};features.forEach(function(feature){var dotaProps=feature.get('dotaProps');var worldXY=dotaProps.x+','+dotaProps.y;treeMap[worldXY]=feature;});['uncut_trees','cut_trees'].forEach(function(treeCutState,index){var values=getParameterByName(treeCutState);if(values){self.toggleAllTrees(!index,true);values=values.split(';');values.forEach(function(worldXY){var feature=treeMap[worldXY];if(feature){if(!!feature.get('isCut')==!index){self.toggleTree(feature,feature.get('dotaProps'),true);}}});}});this.updateQueryString();};TreeControl.prototype.toggleTree=function(feature,dotaProps,bSkipQueryStringUpdate,bSkipWardVisionUpdate){var self=this;var gridXY=this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x,dotaProps.y);this.InteractiveMap.vs.toggleTree(gridXY.x,gridXY.y);feature.set('isCut',!feature.get('isCut'));if(!bSkipQueryStringUpdate)this.updateQueryString();if(!bSkipWardVisionUpdate)this.InteractiveMap.wardControl.updateAllWardVision();};TreeControl.prototype.toggleAllTrees=function(state,bSkipQueryStringUpdate,bSkipWardVisionUpdate){var self=this;this.allTreesCutState=state;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){if(!!feature.get('isCut')!=state){self.toggleTree(feature,feature.get('dotaProps'),true,true);}});if(!bSkipQueryStringUpdate)this.updateQueryString();if(!bSkipWardVisionUpdate)this.InteractiveMap.wardControl.updateAllWardVision();};function CursorControl(InteractiveMap){var self=this;this.InteractiveMap=InteractiveMap;this.source=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.layer=new _ol_layer_Vector_({source:this.source,style:styles.cursor});this.layerFilter=function(layer){return layer===self.layer;};}var _ol_control_Control_=function(options){_ol_Object_.call(this);/**
+this.source.forEachFeature(function(f){if(f==feature)self.source.removeFeature(f);});this.InteractiveMap.visionControl.removeVisionFeature(feature);var worldXY=latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');var wardType=feature.get('wardType');delete this.placedWardCoordinates[wardType][worldXY];if(!bSkipQueryStringUpdate)this.updateQueryString(wardType);};WardControl.prototype.highlight=function(feature){this.InteractiveMap.cursorControl.source.clear(true);this.unhighlight();var visionFeature=this.InteractiveMap.visionControl.setVisionFeature(feature);this.addRangeCircles(feature);this.InteractiveMap.highlight(feature);return visionFeature;};WardControl.prototype.unhighlight=function(feature){var highlightedFeature=feature||this.InteractiveMap.highlightedFeature;if(highlightedFeature&&!highlightedFeature.get("clicked")){this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);this.removeRangeCircles(highlightedFeature);}this.InteractiveMap.unhighlight();};WardControl.prototype.addRangeCircles=function(feature){this.addRangeCircle(feature,'dayVision');this.addRangeCircle(feature,'nightVision');this.addRangeCircle(feature,'trueSight');this.addRangeCircle(feature,'attackRange');};WardControl.prototype.removeRangeCircles=function(feature){this.removeRangeCircle(feature,'dayVision');this.removeRangeCircle(feature,'nightVision');this.removeRangeCircle(feature,'trueSight');this.removeRangeCircle(feature,'attackRange');};WardControl.prototype.addRangeCircle=function(feature,rangeType){if(!feature.get(rangeType)){var circle=this.InteractiveMap.getRangeCircle(feature,null,null,rangeType);if(circle){feature.set(rangeType,circle,true);this.InteractiveMap.rangeSources[rangeType].addFeature(circle);}}};WardControl.prototype.removeRangeCircle=function(feature,rangeType){var circle=feature.get(rangeType);if(circle){feature.set(rangeType,null,true);this.InteractiveMap.rangeSources[rangeType].removeFeature(circle);}};function TreeControl(InteractiveMap){this.InteractiveMap=InteractiveMap;this.allTreesCutState=false;}TreeControl.prototype.updateQueryString=function(){var self=this;var keys=['cut_trees','uncut_trees'];var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var values=features.filter(function(feature){return!!feature.get('isCut')!=self.allTreesCutState;}).map(function(feature){var dotaProps=feature.get('dotaProps');return dotaProps.x+','+dotaProps.y;}).join(';');setQueryString(keys[this.allTreesCutState?1:0],values||null);setQueryString(keys[this.allTreesCutState?0:1],null);document.getElementById('toggle-ent_dota_tree').checked=this.allTreesCutState;};TreeControl.prototype.parseQueryString=function(){var self=this;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();var treeMap={};features.forEach(function(feature){var dotaProps=feature.get('dotaProps');var worldXY=dotaProps.x+','+dotaProps.y;treeMap[worldXY]=feature;});['uncut_trees','cut_trees'].forEach(function(treeCutState,index){var values=getParameterByName(treeCutState);if(values){self.toggleAllTrees(!index,true);values=values.split(';');values.forEach(function(worldXY){var feature=treeMap[worldXY];if(feature){if(!!feature.get('isCut')==!index){self.toggleTree(feature,feature.get('dotaProps'),true,true);}}});}});this.updateQueryString();this.InteractiveMap.wardControl.updateAllWardVision();};TreeControl.prototype.toggleTree=function(feature,dotaProps,bSkipQueryStringUpdate,bSkipWardVisionUpdate){var self=this;var gridXY=this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x,dotaProps.y);this.InteractiveMap.vs.toggleTree(gridXY.x,gridXY.y);feature.set('isCut',!feature.get('isCut'));if(!bSkipQueryStringUpdate)this.updateQueryString();if(!bSkipWardVisionUpdate)this.InteractiveMap.wardControl.updateAllWardVision();};TreeControl.prototype.toggleAllTrees=function(state,bSkipQueryStringUpdate,bSkipWardVisionUpdate){var self=this;this.allTreesCutState=state;var layer=this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];var source=layer.getSource();var features=source.getFeatures();features.forEach(function(feature){if(!!feature.get('isCut')!=state){self.toggleTree(feature,feature.get('dotaProps'),true,true);}});if(!bSkipQueryStringUpdate)this.updateQueryString();if(!bSkipWardVisionUpdate)this.InteractiveMap.wardControl.updateAllWardVision();};function CursorControl(InteractiveMap){var self=this;this.InteractiveMap=InteractiveMap;this.source=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.layer=new _ol_layer_Vector_({source:this.source,style:styles.cursor});this.layerFilter=function(layer){return layer===self.layer;};}/**
+ * @classdesc
+ * A control is a visible widget with a DOM element in a fixed position on the
+ * screen. They can involve user input (buttons), or be informational only;
+ * the position is determined using CSS. By default these are placed in the
+ * container with CSS class name `ol-overlaycontainer-stopevent`, but can use
+ * any outside DOM element.
+ *
+ * This is the base class for controls. You can use it for simple custom
+ * controls by creating the element with listeners, creating an instance:
+ * ```js
+ * var myControl = new ol.control.Control({element: myElement});
+ * ```
+ * and then adding this to the map.
+ *
+ * The main advantage of having this as a control rather than a simple separate
+ * DOM element is that preventing propagation is handled for you. Controls
+ * will also be `ol.Object`s in a `ol.Collection`, so you can use their
+ * methods.
+ *
+ * You can also extend this base for your own control class. See
+ * examples/custom-controls for an example of how to do this.
+ *
+ * @constructor
+ * @extends {ol.Object}
+ * @implements {oli.control.Control}
+ * @param {olx.control.ControlOptions} options Control options.
+ * @api
+ */var _ol_control_Control_=function(options){_ol_Object_.call(this);/**
    * @protected
    * @type {Element}
    */this.element=options.element?options.element:null;/**
@@ -8057,7 +8624,19 @@ this.source.forEachFeature(function(f){if(f==feature)self.source.removeFeature(f
  * @param {Element|string} target Target.
  * @api
  */_ol_control_Control_.prototype.setTarget=function(target){this.target_=typeof target==='string'?document.getElementById(target):target;};// FIXME should listen on appropriate pane, once it is defined
-var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt_options:{};var element=document.createElement('DIV');element.className=options.className!==undefined?options.className:'ol-mouse-position';var render=options.render?options.render:_ol_control_MousePosition_.render;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});_ol_events_.listen(this,_ol_Object_.getChangeEventType(_ol_control_MousePosition_.Property_.PROJECTION),this.handleProjectionChanged_,this);if(options.coordinateFormat){this.setCoordinateFormat(options.coordinateFormat);}if(options.projection){this.setProjection(options.projection);}/**
+/**
+ * @classdesc
+ * A control to show the 2D coordinates of the mouse cursor. By default, these
+ * are in the view projection, but can be in any supported projection.
+ * By default the control is shown in the top right corner of the map, but this
+ * can be changed by using the css selector `.ol-mouse-position`.
+ *
+ * @constructor
+ * @extends {ol.control.Control}
+ * @param {olx.control.MousePositionOptions=} opt_options Mouse position
+ *     options.
+ * @api
+ */var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt_options:{};var element=document.createElement('DIV');element.className=options.className!==undefined?options.className:'ol-mouse-position';var render=options.render?options.render:_ol_control_MousePosition_.render;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});_ol_events_.listen(this,_ol_Object_.getChangeEventType(_ol_control_MousePosition_.Property_.PROJECTION),this.handleProjectionChanged_,this);if(options.coordinateFormat){this.setCoordinateFormat(options.coordinateFormat);}if(options.projection){this.setProjection(options.projection);}/**
    * @private
    * @type {string}
    */this.undefinedHTML_=options.undefinedHTML!==undefined?options.undefinedHTML:'';/**
@@ -8172,7 +8751,63 @@ var _ol_control_MousePosition_=function(opt_options){var options=opt_options?opt
  * @enum {number}
  */var _ol_ViewHint_={ANIMATING:0,INTERACTING:1};/**
  * @enum {string}
- */var _ol_ViewProperty_={CENTER:'center',RESOLUTION:'resolution',ROTATION:'rotation'};var _ol_View_=function(opt_options){_ol_Object_.call(this);var options=_ol_obj_.assign({},opt_options);/**
+ */var _ol_ViewProperty_={CENTER:'center',RESOLUTION:'resolution',ROTATION:'rotation'};/**
+ * @classdesc
+ * An ol.View object represents a simple 2D view of the map.
+ *
+ * This is the object to act upon to change the center, resolution,
+ * and rotation of the map.
+ *
+ * ### The view states
+ *
+ * An `ol.View` is determined by three states: `center`, `resolution`,
+ * and `rotation`. Each state has a corresponding getter and setter, e.g.
+ * `getCenter` and `setCenter` for the `center` state.
+ *
+ * An `ol.View` has a `projection`. The projection determines the
+ * coordinate system of the center, and its units determine the units of the
+ * resolution (projection units per pixel). The default projection is
+ * Spherical Mercator (EPSG:3857).
+ *
+ * ### The constraints
+ *
+ * `setCenter`, `setResolution` and `setRotation` can be used to change the
+ * states of the view. Any value can be passed to the setters. And the value
+ * that is passed to a setter will effectively be the value set in the view,
+ * and returned by the corresponding getter.
+ *
+ * But an `ol.View` object also has a *resolution constraint*, a
+ * *rotation constraint* and a *center constraint*.
+ *
+ * As said above, no constraints are applied when the setters are used to set
+ * new states for the view. Applying constraints is done explicitly through
+ * the use of the `constrain*` functions (`constrainResolution` and
+ * `constrainRotation` and `constrainCenter`).
+ *
+ * The main users of the constraints are the interactions and the
+ * controls. For example, double-clicking on the map changes the view to
+ * the "next" resolution. And releasing the fingers after pinch-zooming
+ * snaps to the closest resolution (with an animation).
+ *
+ * The *resolution constraint* snaps to specific resolutions. It is
+ * determined by the following options: `resolutions`, `maxResolution`,
+ * `maxZoom`, and `zoomFactor`. If `resolutions` is set, the other three
+ * options are ignored. See documentation for each option for more
+ * information.
+ *
+ * The *rotation constraint* snaps to specific angles. It is determined
+ * by the following options: `enableRotation` and `constrainRotation`.
+ * By default the rotation value is snapped to zero when approaching the
+ * horizontal.
+ *
+ * The *center constraint* is determined by the `extent` option. By
+ * default the center is not constrained at all.
+ *
+ * @constructor
+ * @extends {ol.Object}
+ * @param {olx.ViewOptions=} opt_options View options.
+ * @api
+ */var _ol_View_=function(opt_options){_ol_Object_.call(this);var options=_ol_obj_.assign({},opt_options);/**
    * @private
    * @type {Array.<number>}
    */this.hints_=[0,0];/**
@@ -8531,7 +9166,11 @@ maxZoom=minZoom+Math.floor(Math.log(maxResolution/minResolution)/Math.log(zoomFa
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-var _ol_pointer_MouseSource_=function(dispatcher){var mapping={'mousedown':this.mousedown,'mousemove':this.mousemove,'mouseup':this.mouseup,'mouseover':this.mouseover,'mouseout':this.mouseout};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher Event handler.
+ * @constructor
+ * @extends {ol.pointer.EventSource}
+ */var _ol_pointer_MouseSource_=function(dispatcher){var mapping={'mousedown':this.mousedown,'mousemove':this.mousemove,'mouseup':this.mouseup,'mouseover':this.mouseover,'mouseout':this.mouseout};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
    * @const
    * @type {!Object.<string, Event|Object>}
    */this.pointerMap=dispatcher.pointerMap;/**
@@ -8636,7 +9275,11 @@ if(_ol_pointer_MouseSource_.POINTER_ID.toString()in this.pointerMap){this.cancel
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-var _ol_pointer_MsSource_=function(dispatcher){var mapping={'MSPointerDown':this.msPointerDown,'MSPointerMove':this.msPointerMove,'MSPointerUp':this.msPointerUp,'MSPointerOut':this.msPointerOut,'MSPointerOver':this.msPointerOver,'MSPointerCancel':this.msPointerCancel,'MSGotPointerCapture':this.msGotPointerCapture,'MSLostPointerCapture':this.msLostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher Event handler.
+ * @constructor
+ * @extends {ol.pointer.EventSource}
+ */var _ol_pointer_MsSource_=function(dispatcher){var mapping={'MSPointerDown':this.msPointerDown,'MSPointerMove':this.msPointerMove,'MSPointerUp':this.msPointerUp,'MSPointerOut':this.msPointerOut,'MSPointerOver':this.msPointerOver,'MSPointerCancel':this.msPointerCancel,'MSGotPointerCapture':this.msGotPointerCapture,'MSLostPointerCapture':this.msLostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
    * @const
    * @type {!Object.<string, Event|Object>}
    */this.pointerMap=dispatcher.pointerMap;/**
@@ -8712,7 +9355,11 @@ var _ol_pointer_MsSource_=function(dispatcher){var mapping={'MSPointerDown':this
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-var _ol_pointer_NativeSource_=function(dispatcher){var mapping={'pointerdown':this.pointerDown,'pointermove':this.pointerMove,'pointerup':this.pointerUp,'pointerout':this.pointerOut,'pointerover':this.pointerOver,'pointercancel':this.pointerCancel,'gotpointercapture':this.gotPointerCapture,'lostpointercapture':this.lostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);};_ol_.inherits(_ol_pointer_NativeSource_,_ol_pointer_EventSource_);/**
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher Event handler.
+ * @constructor
+ * @extends {ol.pointer.EventSource}
+ */var _ol_pointer_NativeSource_=function(dispatcher){var mapping={'pointerdown':this.pointerDown,'pointermove':this.pointerMove,'pointerup':this.pointerUp,'pointerout':this.pointerOut,'pointerover':this.pointerOver,'pointercancel':this.pointerCancel,'gotpointercapture':this.gotPointerCapture,'lostpointercapture':this.lostPointerCapture};_ol_pointer_EventSource_.call(this,dispatcher,mapping);};_ol_.inherits(_ol_pointer_NativeSource_,_ol_pointer_EventSource_);/**
  * Handler for `pointerdown`.
  *
  * @param {Event} inEvent The in event.
@@ -8772,7 +9419,19 @@ var _ol_pointer_NativeSource_=function(dispatcher){var mapping={'pointerdown':th
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-var _ol_pointer_PointerEvent_=function(type,originalEvent,opt_eventDict){_ol_events_Event_.call(this,type);/**
+/**
+ * A class for pointer events.
+ *
+ * This class is used as an abstraction for mouse events,
+ * touch events and even native pointer events.
+ *
+ * @constructor
+ * @extends {ol.events.Event}
+ * @param {string} type The type of the event to create.
+ * @param {Event} originalEvent The event.
+ * @param {Object.<string, ?>=} opt_eventDict An optional dictionary of
+ *    initial event properties.
+ */var _ol_pointer_PointerEvent_=function(type,originalEvent,opt_eventDict){_ol_events_Event_.call(this,type);/**
    * @const
    * @type {Event}
    */this.originalEvent=originalEvent;var eventDict=opt_eventDict?opt_eventDict:{};/**
@@ -8893,7 +9552,12 @@ var pressure=0;if(eventDict.pressure){pressure=eventDict.pressure;}else{pressure
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-var _ol_pointer_TouchSource_=function(dispatcher,mouseSource){var mapping={'touchstart':this.touchstart,'touchmove':this.touchmove,'touchend':this.touchend,'touchcancel':this.touchcancel};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
+/**
+ * @constructor
+ * @param {ol.pointer.PointerEventHandler} dispatcher The event handler.
+ * @param {ol.pointer.MouseSource} mouseSource Mouse source.
+ * @extends {ol.pointer.EventSource}
+ */var _ol_pointer_TouchSource_=function(dispatcher,mouseSource){var mapping={'touchstart':this.touchstart,'touchmove':this.touchmove,'touchend':this.touchend,'touchcancel':this.touchcancel};_ol_pointer_EventSource_.call(this,dispatcher,mapping);/**
    * @const
    * @type {!Object.<string, Event|Object>}
    */this.pointerMap=dispatcher.pointerMap;/**
@@ -9050,7 +9714,11 @@ _ol_array_.remove(lts,lt);},_ol_pointer_TouchSource_.DEDUP_TIMEOUT);}};// Based 
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-var _ol_pointer_PointerEventHandler_=function(element){_ol_events_EventTarget_.call(this);/**
+/**
+ * @constructor
+ * @extends {ol.events.EventTarget}
+ * @param {Element|HTMLDocument} element Viewport element.
+ */var _ol_pointer_PointerEventHandler_=function(element){_ol_events_EventTarget_.call(this);/**
    * @const
    * @private
    * @type {Element|HTMLDocument}
@@ -9178,7 +9846,12 @@ this.register_();};/**
 ['bubbles',false],['cancelable',false],['view',null],['detail',null],['screenX',0],['screenY',0],['clientX',0],['clientY',0],['ctrlKey',false],['altKey',false],['shiftKey',false],['metaKey',false],['button',0],['relatedTarget',null],// DOM Level 3
 ['buttons',0],// PointerEvent
 ['pointerId',0],['width',0],['height',0],['pressure',0],['tiltX',0],['tiltY',0],['pointerType',''],['hwTimestamp',0],['isPrimary',false],// event instance
-['type',''],['target',null],['currentTarget',null],['which',0]];var _ol_MapBrowserEventHandler_=function(map,moveTolerance){_ol_events_EventTarget_.call(this);/**
+['type',''],['target',null],['currentTarget',null],['which',0]];/**
+ * @param {ol.PluggableMap} map The map with the viewport to listen to events on.
+ * @param {number|undefined} moveTolerance The minimal distance the pointer must travel to trigger a move.
+ * @constructor
+ * @extends {ol.events.EventTarget}
+ */var _ol_MapBrowserEventHandler_=function(map,moveTolerance){_ol_events_EventTarget_.call(this);/**
    * This is the element that we will listen to the real events on.
    * @type {ol.PluggableMap}
    * @private
@@ -9287,7 +9960,21 @@ pointerEvent.preventDefault();};/**
  * @enum {string}
  */var _ol_MapProperty_={LAYERGROUP:'layergroup',SIZE:'size',TARGET:'target',VIEW:'view'};/**
  * @enum {number}
- */var _ol_TileState_={IDLE:0,LOADING:1,LOADED:2,ERROR:3,EMPTY:4,ABORT:5};var _ol_structs_PriorityQueue_=function(priorityFunction,keyFunction){/**
+ */var _ol_TileState_={IDLE:0,LOADING:1,LOADED:2,ERROR:3,EMPTY:4,ABORT:5};/**
+ * Priority queue.
+ *
+ * The implementation is inspired from the Closure Library's Heap class and
+ * Python's heapq module.
+ *
+ * @see http://closure-library.googlecode.com/svn/docs/closure_goog_structs_heap.js.source.html
+ * @see http://hg.python.org/cpython/file/2.7/Lib/heapq.py
+ *
+ * @constructor
+ * @param {function(T): number} priorityFunction Priority function.
+ * @param {function(T): string} keyFunction Key function.
+ * @struct
+ * @template T
+ */var _ol_structs_PriorityQueue_=function(priorityFunction,keyFunction){/**
    * @type {function(T): number}
    * @private
    */this.priorityFunction_=priorityFunction;/**
@@ -9352,7 +10039,15 @@ var priority=this.priorityFunction_(element);if(priority!=_ol_structs_PriorityQu
  * @private
  */_ol_structs_PriorityQueue_.prototype.siftDown_=function(startIndex,index){var elements=this.elements_;var priorities=this.priorities_;var element=elements[index];var priority=priorities[index];while(index>startIndex){var parentIndex=this.getParentIndex_(index);if(priorities[parentIndex]>priority){elements[index]=elements[parentIndex];priorities[index]=priorities[parentIndex];index=parentIndex;}else{break;}}elements[index]=element;priorities[index]=priority;};/**
  * FIXME empty description for jsdoc
- */_ol_structs_PriorityQueue_.prototype.reprioritize=function(){var priorityFunction=this.priorityFunction_;var elements=this.elements_;var priorities=this.priorities_;var index=0;var n=elements.length;var element,i,priority;for(i=0;i<n;++i){element=elements[i];priority=priorityFunction(element);if(priority==_ol_structs_PriorityQueue_.DROP){delete this.queuedElements_[this.keyFunction_(element)];}else{priorities[index]=priority;elements[index++]=element;}}elements.length=index;priorities.length=index;this.heapify_();};var _ol_TileQueue_=function(tilePriorityFunction,tileChangeCallback){_ol_structs_PriorityQueue_.call(this,/**
+ */_ol_structs_PriorityQueue_.prototype.reprioritize=function(){var priorityFunction=this.priorityFunction_;var elements=this.elements_;var priorities=this.priorities_;var index=0;var n=elements.length;var element,i,priority;for(i=0;i<n;++i){element=elements[i];priority=priorityFunction(element);if(priority==_ol_structs_PriorityQueue_.DROP){delete this.queuedElements_[this.keyFunction_(element)];}else{priorities[index]=priority;elements[index++]=element;}}elements.length=index;priorities.length=index;this.heapify_();};/**
+ * @constructor
+ * @extends {ol.structs.PriorityQueue.<Array>}
+ * @param {ol.TilePriorityFunction} tilePriorityFunction
+ *     Tile priority function.
+ * @param {function(): ?} tileChangeCallback
+ *     Function called on each tile change event.
+ * @struct
+ */var _ol_TileQueue_=function(tilePriorityFunction,tileChangeCallback){_ol_structs_PriorityQueue_.call(this,/**
        * @param {Array} element Element.
        * @return {number} Priority.
        */function(element){return tilePriorityFunction.apply(null,element);},/**
@@ -9379,7 +10074,17 @@ var priority=this.priorityFunction_(element);if(priority!=_ol_structs_PriorityQu
  * @param {number} maxNewLoads Maximum number of new tiles to load.
  */_ol_TileQueue_.prototype.loadMoreTiles=function(maxTotalLoading,maxNewLoads){var newLoads=0;var abortedTiles=false;var state,tile,tileKey;while(this.tilesLoading_<maxTotalLoading&&newLoads<maxNewLoads&&this.getCount()>0){tile=/** @type {ol.Tile} */this.dequeue()[0];tileKey=tile.getKey();state=tile.getState();if(state===_ol_TileState_.ABORT){abortedTiles=true;}else if(state===_ol_TileState_.IDLE&&!(tileKey in this.tilesLoadingKeys_)){this.tilesLoadingKeys_[tileKey]=true;++this.tilesLoading_;++newLoads;tile.load();}}if(newLoads===0&&abortedTiles){// Do not stop the render loop when all wanted tiles were aborted due to
 // a small, saturated tile cache.
-this.tileChangeCallback_();}};var _ol_layer_Group_=function(opt_options){var options=opt_options||{};var baseOptions=/** @type {olx.layer.GroupOptions} */_ol_obj_.assign({},options);delete baseOptions.layers;var layers=options.layers;_ol_layer_Base_.call(this,baseOptions);/**
+this.tileChangeCallback_();}};/**
+ * @classdesc
+ * A {@link ol.Collection} of layers that are handled together.
+ *
+ * A generic `change` event is triggered when the group/Collection changes.
+ *
+ * @constructor
+ * @extends {ol.layer.Base}
+ * @param {olx.layer.GroupOptions=} opt_options Layer options.
+ * @api
+ */var _ol_layer_Group_=function(opt_options){var options=opt_options||{};var baseOptions=/** @type {olx.layer.GroupOptions} */_ol_obj_.assign({},options);delete baseOptions.layers;var layers=options.layers;_ol_layer_Base_.call(this,baseOptions);/**
    * @private
    * @type {Array.<ol.EventsKey>}
    */this.layersListenerKeys_=[];/**
@@ -9449,7 +10154,16 @@ layers=layers;}}else{layers=new _ol_Collection_(undefined,{unique:true});}this.s
  */_ol_plugins_.registerMultiple=function(type,plugins){for(var i=0,ii=plugins.length;i<ii;++i){_ol_plugins_.register(type,plugins[i]);}};/**
  * Available renderers: `'canvas'` or `'webgl'`.
  * @enum {string}
- */var _ol_renderer_Type_={CANVAS:'canvas',WEBGL:'webgl'};var _ol_PluggableMap_=function(options){_ol_Object_.call(this);var optionsInternal=_ol_PluggableMap_.createOptionsInternal(options);/**
+ */var _ol_renderer_Type_={CANVAS:'canvas',WEBGL:'webgl'};/**
+ * @constructor
+ * @extends {ol.Object}
+ * @param {olx.MapOptions} options Map options.
+ * @fires ol.MapBrowserEvent
+ * @fires ol.MapEvent
+ * @fires ol.render.Event#postcompose
+ * @fires ol.render.Event#precompose
+ * @api
+ */var _ol_PluggableMap_=function(options){_ol_Object_.call(this);var optionsInternal=_ol_PluggableMap_.createOptionsInternal(options);/**
    * @type {boolean}
    * @private
    */this.loadTilesWhileAnimating_=options.loadTilesWhileAnimating!==undefined?options.loadTilesWhileAnimating:false;/**
@@ -9882,7 +10596,18 @@ logos[logo.src]=logo.href;}}var layerGroup=options.layers instanceof _ol_layer_G
 controls=options.controls;}}var interactions;if(options.interactions!==undefined){if(Array.isArray(options.interactions)){interactions=new _ol_Collection_(options.interactions.slice());}else{_ol_asserts_.assert(options.interactions instanceof _ol_Collection_,48);// Expected `interactions` to be an array or an `ol.Collection`
 interactions=options.interactions;}}var overlays;if(options.overlays!==undefined){if(Array.isArray(options.overlays)){overlays=new _ol_Collection_(options.overlays.slice());}else{_ol_asserts_.assert(options.overlays instanceof _ol_Collection_,49);// Expected `overlays` to be an array or an `ol.Collection`
 overlays=options.overlays;}}else{overlays=new _ol_Collection_();}return{controls:controls,interactions:interactions,keyboardEventTarget:keyboardEventTarget,logos:logos,overlays:overlays,mapRendererPlugin:mapRendererPlugin,values:values};};// FIXME handle date line wrap
-var _ol_control_Attribution_=function(opt_options){var options=opt_options?opt_options:{};/**
+/**
+ * @classdesc
+ * Control to show all the attributions associated with the layer sources
+ * in the map. This control is one of the default controls included in maps.
+ * By default it will show in the bottom right portion of the map, but this can
+ * be changed by using a css selector for `.ol-attribution`.
+ *
+ * @constructor
+ * @extends {ol.control.Control}
+ * @param {olx.control.AttributionOptions=} opt_options Attribution options.
+ * @api
+ */var _ol_control_Attribution_=function(opt_options){var options=opt_options?opt_options:{};/**
    * @private
    * @type {Element}
    */this.ulElement_=document.createElement('UL');/**
@@ -9950,7 +10675,17 @@ var _ol_control_Attribution_=function(opt_options){var options=opt_options?opt_o
  * otherwise.
  * @return {boolean} True if the widget is collapsed.
  * @api
- */_ol_control_Attribution_.prototype.getCollapsed=function(){return this.collapsed_;};var _ol_control_Rotate_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-rotate';var label=options.label!==undefined?options.label:'\u21E7';/**
+ */_ol_control_Attribution_.prototype.getCollapsed=function(){return this.collapsed_;};/**
+ * @classdesc
+ * A button control to reset rotation to 0.
+ * To style this control use css selector `.ol-rotate`. A `.ol-hidden` css
+ * selector is added to the button when the rotation is 0.
+ *
+ * @constructor
+ * @extends {ol.control.Control}
+ * @param {olx.control.RotateOptions=} opt_options Rotate options.
+ * @api
+ */var _ol_control_Rotate_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-rotate';var label=options.label!==undefined?options.label:'\u21E7';/**
    * @type {Element}
    * @private
    */this.label_=null;if(typeof label==='string'){this.label_=document.createElement('span');this.label_.className='ol-compass';this.label_.textContent=label;}else{this.label_=label;this.label_.classList.add('ol-compass');}var tipLabel=options.tipLabel?options.tipLabel:'Reset rotation';var button=document.createElement('button');button.className=className+'-reset';button.setAttribute('type','button');button.title=tipLabel;button.appendChild(this.label_);_ol_events_.listen(button,_ol_events_EventType_.CLICK,_ol_control_Rotate_.prototype.handleClick_,this);var cssClasses=className+' '+_ol_css_.CLASS_UNSELECTABLE+' '+_ol_css_.CLASS_CONTROL;var element=document.createElement('div');element.className=cssClasses;element.appendChild(button);var render=options.render?options.render:_ol_control_Rotate_.render;this.callResetNorth_=options.resetNorth?options.resetNorth:undefined;_ol_control_Control_.call(this,{element:element,render:render,target:options.target});/**
@@ -9974,7 +10709,17 @@ return;}if(view.getRotation()!==undefined){if(this.duration_>0){view.animate({ro
  * @param {ol.MapEvent} mapEvent Map event.
  * @this {ol.control.Rotate}
  * @api
- */_ol_control_Rotate_.render=function(mapEvent){var frameState=mapEvent.frameState;if(!frameState){return;}var rotation=frameState.viewState.rotation;if(rotation!=this.rotation_){var transform='rotate('+rotation+'rad)';if(this.autoHide_){var contains=this.element.classList.contains(_ol_css_.CLASS_HIDDEN);if(!contains&&rotation===0){this.element.classList.add(_ol_css_.CLASS_HIDDEN);}else if(contains&&rotation!==0){this.element.classList.remove(_ol_css_.CLASS_HIDDEN);}}this.label_.style.msTransform=transform;this.label_.style.webkitTransform=transform;this.label_.style.transform=transform;}this.rotation_=rotation;};var _ol_control_Zoom_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-zoom';var delta=options.delta!==undefined?options.delta:1;var zoomInLabel=options.zoomInLabel!==undefined?options.zoomInLabel:'+';var zoomOutLabel=options.zoomOutLabel!==undefined?options.zoomOutLabel:'\u2212';var zoomInTipLabel=options.zoomInTipLabel!==undefined?options.zoomInTipLabel:'Zoom in';var zoomOutTipLabel=options.zoomOutTipLabel!==undefined?options.zoomOutTipLabel:'Zoom out';var inElement=document.createElement('button');inElement.className=className+'-in';inElement.setAttribute('type','button');inElement.title=zoomInTipLabel;inElement.appendChild(typeof zoomInLabel==='string'?document.createTextNode(zoomInLabel):zoomInLabel);_ol_events_.listen(inElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,delta));var outElement=document.createElement('button');outElement.className=className+'-out';outElement.setAttribute('type','button');outElement.title=zoomOutTipLabel;outElement.appendChild(typeof zoomOutLabel==='string'?document.createTextNode(zoomOutLabel):zoomOutLabel);_ol_events_.listen(outElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,-delta));var cssClasses=className+' '+_ol_css_.CLASS_UNSELECTABLE+' '+_ol_css_.CLASS_CONTROL;var element=document.createElement('div');element.className=cssClasses;element.appendChild(inElement);element.appendChild(outElement);_ol_control_Control_.call(this,{element:element,target:options.target});/**
+ */_ol_control_Rotate_.render=function(mapEvent){var frameState=mapEvent.frameState;if(!frameState){return;}var rotation=frameState.viewState.rotation;if(rotation!=this.rotation_){var transform='rotate('+rotation+'rad)';if(this.autoHide_){var contains=this.element.classList.contains(_ol_css_.CLASS_HIDDEN);if(!contains&&rotation===0){this.element.classList.add(_ol_css_.CLASS_HIDDEN);}else if(contains&&rotation!==0){this.element.classList.remove(_ol_css_.CLASS_HIDDEN);}}this.label_.style.msTransform=transform;this.label_.style.webkitTransform=transform;this.label_.style.transform=transform;}this.rotation_=rotation;};/**
+ * @classdesc
+ * A control with 2 buttons, one for zoom in and one for zoom out.
+ * This control is one of the default controls of a map. To style this control
+ * use css selectors `.ol-zoom-in` and `.ol-zoom-out`.
+ *
+ * @constructor
+ * @extends {ol.control.Control}
+ * @param {olx.control.ZoomOptions=} opt_options Zoom options.
+ * @api
+ */var _ol_control_Zoom_=function(opt_options){var options=opt_options?opt_options:{};var className=options.className!==undefined?options.className:'ol-zoom';var delta=options.delta!==undefined?options.delta:1;var zoomInLabel=options.zoomInLabel!==undefined?options.zoomInLabel:'+';var zoomOutLabel=options.zoomOutLabel!==undefined?options.zoomOutLabel:'\u2212';var zoomInTipLabel=options.zoomInTipLabel!==undefined?options.zoomInTipLabel:'Zoom in';var zoomOutTipLabel=options.zoomOutTipLabel!==undefined?options.zoomOutTipLabel:'Zoom out';var inElement=document.createElement('button');inElement.className=className+'-in';inElement.setAttribute('type','button');inElement.title=zoomInTipLabel;inElement.appendChild(typeof zoomInLabel==='string'?document.createTextNode(zoomInLabel):zoomInLabel);_ol_events_.listen(inElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,delta));var outElement=document.createElement('button');outElement.className=className+'-out';outElement.setAttribute('type','button');outElement.title=zoomOutTipLabel;outElement.appendChild(typeof zoomOutLabel==='string'?document.createTextNode(zoomOutLabel):zoomOutLabel);_ol_events_.listen(outElement,_ol_events_EventType_.CLICK,_ol_control_Zoom_.prototype.handleClick_.bind(this,-delta));var cssClasses=className+' '+_ol_css_.CLASS_UNSELECTABLE+' '+_ol_css_.CLASS_CONTROL;var element=document.createElement('div');element.className=cssClasses;element.appendChild(inElement);element.appendChild(outElement);_ol_control_Control_.call(this,{element:element,target:options.target});/**
    * @type {number}
    * @private
    */this.duration_=options.duration!==undefined?options.duration:250;};_ol_.inherits(_ol_control_Zoom_,_ol_control_Control_);/**
@@ -10045,7 +10790,15 @@ if(duration<1000/60){return false;}var dx=this.points_[lastIndex]-this.points_[f
  * @return {number} Total distance travelled (pixels).
  */_ol_Kinetic_.prototype.getDistance=function(){return(this.minVelocity_-this.initialVelocity_)/this.decay_;};/**
  * @return {number} Angle of the kinetic panning animation (radians).
- */_ol_Kinetic_.prototype.getAngle=function(){return this.angle_;};var _ol_interaction_DoubleClickZoom_=function(opt_options){var options=opt_options?opt_options:{};/**
+ */_ol_Kinetic_.prototype.getAngle=function(){return this.angle_;};/**
+ * @classdesc
+ * Allows the user to zoom by double-clicking on the map.
+ *
+ * @constructor
+ * @extends {ol.interaction.Interaction}
+ * @param {olx.interaction.DoubleClickZoomOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_DoubleClickZoom_=function(opt_options){var options=opt_options?opt_options:{};/**
    * @private
    * @type {number}
    */this.delta_=options.delta?options.delta:1;_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_DoubleClickZoom_.handleEvent});/**
@@ -10058,7 +10811,15 @@ if(duration<1000/60){return false;}var dx=this.points_[lastIndex]-this.points_[f
  * @return {boolean} `false` to stop event propagation.
  * @this {ol.interaction.DoubleClickZoom}
  * @api
- */_ol_interaction_DoubleClickZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;var browserEvent=mapBrowserEvent.originalEvent;if(mapBrowserEvent.type==_ol_MapBrowserEventType_.DBLCLICK){var map=mapBrowserEvent.map;var anchor=mapBrowserEvent.coordinate;var delta=browserEvent.shiftKey?-this.delta_:this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,anchor,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}return!stopEvent;};var _ol_interaction_DragPan_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragPan_.handleDownEvent_,handleDragEvent:_ol_interaction_DragPan_.handleDragEvent_,handleUpEvent:_ol_interaction_DragPan_.handleUpEvent_});var options=opt_options?opt_options:{};/**
+ */_ol_interaction_DoubleClickZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;var browserEvent=mapBrowserEvent.originalEvent;if(mapBrowserEvent.type==_ol_MapBrowserEventType_.DBLCLICK){var map=mapBrowserEvent.map;var anchor=mapBrowserEvent.coordinate;var delta=browserEvent.shiftKey?-this.delta_:this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,anchor,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}return!stopEvent;};/**
+ * @classdesc
+ * Allows the user to pan the map by dragging the map.
+ *
+ * @constructor
+ * @extends {ol.interaction.Pointer}
+ * @param {olx.interaction.DragPanOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_DragPan_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragPan_.handleDownEvent_,handleDragEvent:_ol_interaction_DragPan_.handleDragEvent_,handleUpEvent:_ol_interaction_DragPan_.handleUpEvent_});var options=opt_options?opt_options:{};/**
    * @private
    * @type {ol.Kinetic|undefined}
    */this.kinetic_=options.kinetic;/**
@@ -10094,7 +10855,19 @@ if(view.getHints()[_ol_ViewHint_.ANIMATING]){view.setCenter(mapBrowserEvent.fram
 // detected. This is to prevent nasty pans after pinch.
 this.noKinetic_=this.targetPointers.length>1;return true;}else{return false;}};/**
  * @inheritDoc
- */_ol_interaction_DragPan_.prototype.shouldStopEvent=_ol_functions_.FALSE;var _ol_interaction_DragRotate_=function(opt_options){var options=opt_options?opt_options:{};_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_DragRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_DragRotate_.handleUpEvent_});/**
+ */_ol_interaction_DragPan_.prototype.shouldStopEvent=_ol_functions_.FALSE;/**
+ * @classdesc
+ * Allows the user to rotate the map by clicking and dragging on the map,
+ * normally combined with an {@link ol.events.condition} that limits
+ * it to when the alt and shift keys are held down.
+ *
+ * This interaction is only supported for mouse devices.
+ *
+ * @constructor
+ * @extends {ol.interaction.Pointer}
+ * @param {olx.interaction.DragRotateOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_DragRotate_=function(opt_options){var options=opt_options?opt_options:{};_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_DragRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_DragRotate_.handleUpEvent_});/**
    * @private
    * @type {ol.EventsConditionType}
    */this.condition_=options.condition?options.condition:_ol_events_condition_.altShiftKeysOnly;/**
@@ -10120,7 +10893,11 @@ this.noKinetic_=this.targetPointers.length>1;return true;}else{return false;}};/
  */_ol_interaction_DragRotate_.handleDownEvent_=function(mapBrowserEvent){if(!_ol_events_condition_.mouseOnly(mapBrowserEvent)){return false;}if(_ol_events_condition_.mouseActionButton(mapBrowserEvent)&&this.condition_(mapBrowserEvent)){var map=mapBrowserEvent.map;map.getView().setHint(_ol_ViewHint_.INTERACTING,1);this.lastAngle_=undefined;return true;}else{return false;}};/**
  * @inheritDoc
  */_ol_interaction_DragRotate_.prototype.shouldStopEvent=_ol_functions_.FALSE;// FIXME add rotation
-var _ol_render_Box_=function(className){/**
+/**
+ * @constructor
+ * @extends {ol.Disposable}
+ * @param {string} className CSS class name.
+ */var _ol_render_Box_=function(className){/**
    * @type {ol.geom.Polygon}
    * @private
    */this.geometry_=null;/**
@@ -10150,7 +10927,23 @@ var _ol_render_Box_=function(className){/**
 coordinates[4]=coordinates[0].slice();if(!this.geometry_){this.geometry_=new _ol_geom_Polygon_([coordinates]);}else{this.geometry_.setCoordinates([coordinates]);}};/**
  * @return {ol.geom.Polygon} Geometry.
  */_ol_render_Box_.prototype.getGeometry=function(){return this.geometry_;};// FIXME draw drag box
-var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragBox_.handleDownEvent_,handleDragEvent:_ol_interaction_DragBox_.handleDragEvent_,handleUpEvent:_ol_interaction_DragBox_.handleUpEvent_});var options=opt_options?opt_options:{};/**
+/**
+ * @classdesc
+ * Allows the user to draw a vector box by clicking and dragging on the map,
+ * normally combined with an {@link ol.events.condition} that limits
+ * it to when the shift or other key is held down. This is used, for example,
+ * for zooming to a specific area of the map
+ * (see {@link ol.interaction.DragZoom} and
+ * {@link ol.interaction.DragRotateAndZoom}).
+ *
+ * This interaction is only supported for mouse devices.
+ *
+ * @constructor
+ * @extends {ol.interaction.Pointer}
+ * @fires ol.interaction.DragBox.Event
+ * @param {olx.interaction.DragBoxOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_DragBox_.handleDownEvent_,handleDragEvent:_ol_interaction_DragBox_.handleDragEvent_,handleUpEvent:_ol_interaction_DragBox_.handleUpEvent_});var options=opt_options?opt_options:{};/**
    * @type {ol.render.Box}
    * @private
    */this.box_=new _ol_render_Box_(options.className||'ol-dragbox');/**
@@ -10232,7 +11025,20 @@ var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call
    * @const
    * @type {ol.MapBrowserEvent}
    * @api
-   */this.mapBrowserEvent=mapBrowserEvent;};_ol_.inherits(_ol_interaction_DragBox_.Event,_ol_events_Event_);var _ol_interaction_DragZoom_=function(opt_options){var options=opt_options?opt_options:{};var condition=options.condition?options.condition:_ol_events_condition_.shiftKeyOnly;/**
+   */this.mapBrowserEvent=mapBrowserEvent;};_ol_.inherits(_ol_interaction_DragBox_.Event,_ol_events_Event_);/**
+ * @classdesc
+ * Allows the user to zoom the map by clicking and dragging on the map,
+ * normally combined with an {@link ol.events.condition} that limits
+ * it to when a key, shift by default, is held down.
+ *
+ * To change the style of the box, use CSS and the `.ol-dragzoom` selector, or
+ * your custom one configured with `className`.
+ *
+ * @constructor
+ * @extends {ol.interaction.DragBox}
+ * @param {olx.interaction.DragZoomOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_DragZoom_=function(opt_options){var options=opt_options?opt_options:{};var condition=options.condition?options.condition:_ol_events_condition_.shiftKeyOnly;/**
    * @private
    * @type {number}
    */this.duration_=options.duration!==undefined?options.duration:200;/**
@@ -10243,7 +11049,23 @@ var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call
  */_ol_interaction_DragZoom_.prototype.onBoxEnd=function(){var map=this.getMap();var view=/** @type {!ol.View} */map.getView();var size=/** @type {!ol.Size} */map.getSize();var extent=this.getGeometry().getExtent();if(this.out_){var mapExtent=view.calculateExtent(size);var boxPixelExtent=_ol_extent_.createOrUpdateFromCoordinates([map.getPixelFromCoordinate(_ol_extent_.getBottomLeft(extent)),map.getPixelFromCoordinate(_ol_extent_.getTopRight(extent))]);var factor=view.getResolutionForExtent(boxPixelExtent,size);_ol_extent_.scaleFromCenter(mapExtent,1/factor);extent=mapExtent;}var resolution=view.constrainResolution(view.getResolutionForExtent(extent,size));var center=_ol_extent_.getCenter(extent);center=view.constrainCenter(center);view.animate({resolution:resolution,center:center,duration:this.duration_,easing:_ol_easing_.easeOut});};/**
  * @enum {number}
  * @const
- */var _ol_events_KeyCode_={LEFT:37,UP:38,RIGHT:39,DOWN:40};var _ol_interaction_KeyboardPan_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardPan_.handleEvent});var options=opt_options||{};/**
+ */var _ol_events_KeyCode_={LEFT:37,UP:38,RIGHT:39,DOWN:40};/**
+ * @classdesc
+ * Allows the user to pan the map using keyboard arrows.
+ * Note that, although this interaction is by default included in maps,
+ * the keys can only be used when browser focus is on the element to which
+ * the keyboard events are attached. By default, this is the map div,
+ * though you can change this with the `keyboardEventTarget` in
+ * {@link ol.Map}. `document` never loses focus but, for any other element,
+ * focus will have to be on, and returned to, this element if the keys are to
+ * function.
+ * See also {@link ol.interaction.KeyboardZoom}.
+ *
+ * @constructor
+ * @extends {ol.interaction.Interaction}
+ * @param {olx.interaction.KeyboardPanOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_KeyboardPan_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardPan_.handleEvent});var options=opt_options||{};/**
    * @private
    * @param {ol.MapBrowserEvent} mapBrowserEvent Browser event.
    * @return {boolean} Combined condition result.
@@ -10264,7 +11086,23 @@ var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call
  * @return {boolean} `false` to stop event propagation.
  * @this {ol.interaction.KeyboardPan}
  * @api
- */_ol_interaction_KeyboardPan_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN){var keyEvent=mapBrowserEvent.originalEvent;var keyCode=keyEvent.keyCode;if(this.condition_(mapBrowserEvent)&&(keyCode==_ol_events_KeyCode_.DOWN||keyCode==_ol_events_KeyCode_.LEFT||keyCode==_ol_events_KeyCode_.RIGHT||keyCode==_ol_events_KeyCode_.UP)){var map=mapBrowserEvent.map;var view=map.getView();var mapUnitsDelta=view.getResolution()*this.pixelDelta_;var deltaX=0,deltaY=0;if(keyCode==_ol_events_KeyCode_.DOWN){deltaY=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.LEFT){deltaX=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.RIGHT){deltaX=mapUnitsDelta;}else{deltaY=mapUnitsDelta;}var delta=[deltaX,deltaY];_ol_coordinate_.rotate(delta,view.getRotation());_ol_interaction_Interaction_.pan(view,delta,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};var _ol_interaction_KeyboardZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardZoom_.handleEvent});var options=opt_options?opt_options:{};/**
+ */_ol_interaction_KeyboardPan_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN){var keyEvent=mapBrowserEvent.originalEvent;var keyCode=keyEvent.keyCode;if(this.condition_(mapBrowserEvent)&&(keyCode==_ol_events_KeyCode_.DOWN||keyCode==_ol_events_KeyCode_.LEFT||keyCode==_ol_events_KeyCode_.RIGHT||keyCode==_ol_events_KeyCode_.UP)){var map=mapBrowserEvent.map;var view=map.getView();var mapUnitsDelta=view.getResolution()*this.pixelDelta_;var deltaX=0,deltaY=0;if(keyCode==_ol_events_KeyCode_.DOWN){deltaY=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.LEFT){deltaX=-mapUnitsDelta;}else if(keyCode==_ol_events_KeyCode_.RIGHT){deltaX=mapUnitsDelta;}else{deltaY=mapUnitsDelta;}var delta=[deltaX,deltaY];_ol_coordinate_.rotate(delta,view.getRotation());_ol_interaction_Interaction_.pan(view,delta,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};/**
+ * @classdesc
+ * Allows the user to zoom the map using keyboard + and -.
+ * Note that, although this interaction is by default included in maps,
+ * the keys can only be used when browser focus is on the element to which
+ * the keyboard events are attached. By default, this is the map div,
+ * though you can change this with the `keyboardEventTarget` in
+ * {@link ol.Map}. `document` never loses focus but, for any other element,
+ * focus will have to be on, and returned to, this element if the keys are to
+ * function.
+ * See also {@link ol.interaction.KeyboardPan}.
+ *
+ * @constructor
+ * @param {olx.interaction.KeyboardZoomOptions=} opt_options Options.
+ * @extends {ol.interaction.Interaction}
+ * @api
+ */var _ol_interaction_KeyboardZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_KeyboardZoom_.handleEvent});var options=opt_options?opt_options:{};/**
    * @private
    * @type {ol.EventsConditionType}
    */this.condition_=options.condition?options.condition:_ol_events_condition_.targetNotEditable;/**
@@ -10281,7 +11119,15 @@ var _ol_interaction_DragBox_=function(opt_options){_ol_interaction_Pointer_.call
  * @return {boolean} `false` to stop event propagation.
  * @this {ol.interaction.KeyboardZoom}
  * @api
- */_ol_interaction_KeyboardZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN||mapBrowserEvent.type==_ol_events_EventType_.KEYPRESS){var keyEvent=mapBrowserEvent.originalEvent;var charCode=keyEvent.charCode;if(this.condition_(mapBrowserEvent)&&(charCode=='+'.charCodeAt(0)||charCode=='-'.charCodeAt(0))){var map=mapBrowserEvent.map;var delta=charCode=='+'.charCodeAt(0)?this.delta_:-this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,undefined,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};var _ol_interaction_MouseWheelZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_MouseWheelZoom_.handleEvent});var options=opt_options||{};/**
+ */_ol_interaction_KeyboardZoom_.handleEvent=function(mapBrowserEvent){var stopEvent=false;if(mapBrowserEvent.type==_ol_events_EventType_.KEYDOWN||mapBrowserEvent.type==_ol_events_EventType_.KEYPRESS){var keyEvent=mapBrowserEvent.originalEvent;var charCode=keyEvent.charCode;if(this.condition_(mapBrowserEvent)&&(charCode=='+'.charCodeAt(0)||charCode=='-'.charCodeAt(0))){var map=mapBrowserEvent.map;var delta=charCode=='+'.charCodeAt(0)?this.delta_:-this.delta_;var view=map.getView();_ol_interaction_Interaction_.zoomByDelta(view,delta,undefined,this.duration_);mapBrowserEvent.preventDefault();stopEvent=true;}}return!stopEvent;};/**
+ * @classdesc
+ * Allows the user to zoom the map by scrolling the mouse wheel.
+ *
+ * @constructor
+ * @extends {ol.interaction.Interaction}
+ * @param {olx.interaction.MouseWheelZoomOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_MouseWheelZoom_=function(opt_options){_ol_interaction_Interaction_.call(this,{handleEvent:_ol_interaction_MouseWheelZoom_.handleEvent});var options=opt_options||{};/**
    * @private
    * @type {number}
    */this.delta_=0;/**
@@ -10344,7 +11190,16 @@ var delta;if(mapBrowserEvent.type==_ol_events_EventType_.WHEEL){delta=wheelEvent
  */_ol_interaction_MouseWheelZoom_.prototype.setMouseAnchor=function(useAnchor){this.useAnchor_=useAnchor;if(!useAnchor){this.lastAnchor_=null;}};/**
  * @enum {string}
  * @private
- */_ol_interaction_MouseWheelZoom_.Mode_={TRACKPAD:'trackpad',WHEEL:'wheel'};var _ol_interaction_PinchRotate_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchRotate_.handleUpEvent_});var options=opt_options||{};/**
+ */_ol_interaction_MouseWheelZoom_.Mode_={TRACKPAD:'trackpad',WHEEL:'wheel'};/**
+ * @classdesc
+ * Allows the user to rotate the map by twisting with two fingers
+ * on a touch screen.
+ *
+ * @constructor
+ * @extends {ol.interaction.Pointer}
+ * @param {olx.interaction.PinchRotateOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_PinchRotate_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchRotate_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchRotate_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchRotate_.handleUpEvent_});var options=opt_options||{};/**
    * @private
    * @type {ol.Coordinate}
    */this.anchor_=null;/**
@@ -10383,7 +11238,16 @@ if(this.rotating_){var rotation=view.getRotation();map.render();_ol_interaction_
  * @private
  */_ol_interaction_PinchRotate_.handleDownEvent_=function(mapBrowserEvent){if(this.targetPointers.length>=2){var map=mapBrowserEvent.map;this.anchor_=null;this.lastAngle_=undefined;this.rotating_=false;this.rotationDelta_=0.0;if(!this.handlingDownUpSequence){map.getView().setHint(_ol_ViewHint_.INTERACTING,1);}return true;}else{return false;}};/**
  * @inheritDoc
- */_ol_interaction_PinchRotate_.prototype.shouldStopEvent=_ol_functions_.FALSE;var _ol_interaction_PinchZoom_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchZoom_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchZoom_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchZoom_.handleUpEvent_});var options=opt_options?opt_options:{};/**
+ */_ol_interaction_PinchRotate_.prototype.shouldStopEvent=_ol_functions_.FALSE;/**
+ * @classdesc
+ * Allows the user to zoom the map by pinching with two fingers
+ * on a touch screen.
+ *
+ * @constructor
+ * @extends {ol.interaction.Pointer}
+ * @param {olx.interaction.PinchZoomOptions=} opt_options Options.
+ * @api
+ */var _ol_interaction_PinchZoom_=function(opt_options){_ol_interaction_Pointer_.call(this,{handleDownEvent:_ol_interaction_PinchZoom_.handleDownEvent_,handleDragEvent:_ol_interaction_PinchZoom_.handleDragEvent_,handleUpEvent:_ol_interaction_PinchZoom_.handleUpEvent_});var options=opt_options?opt_options:{};/**
    * @private
    * @type {boolean}
    */this.constrainResolution_=options.constrainResolution||false;/**
@@ -10442,7 +11306,16 @@ var direction=this.lastScaleDelta_-1;_ol_interaction_Interaction_.zoom(view,reso
  * @return {ol.Collection.<ol.interaction.Interaction>} A collection of
  * interactions to be used with the ol.Map constructor's interactions option.
  * @api
- */_ol_interaction_.defaults=function(opt_options){var options=opt_options?opt_options:{};var interactions=new _ol_Collection_();var kinetic=new _ol_Kinetic_(-0.005,0.05,100);var altShiftDragRotate=options.altShiftDragRotate!==undefined?options.altShiftDragRotate:true;if(altShiftDragRotate){interactions.push(new _ol_interaction_DragRotate_());}var doubleClickZoom=options.doubleClickZoom!==undefined?options.doubleClickZoom:true;if(doubleClickZoom){interactions.push(new _ol_interaction_DoubleClickZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var dragPan=options.dragPan!==undefined?options.dragPan:true;if(dragPan){interactions.push(new _ol_interaction_DragPan_({kinetic:kinetic}));}var pinchRotate=options.pinchRotate!==undefined?options.pinchRotate:true;if(pinchRotate){interactions.push(new _ol_interaction_PinchRotate_());}var pinchZoom=options.pinchZoom!==undefined?options.pinchZoom:true;if(pinchZoom){interactions.push(new _ol_interaction_PinchZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var keyboard=options.keyboard!==undefined?options.keyboard:true;if(keyboard){interactions.push(new _ol_interaction_KeyboardPan_());interactions.push(new _ol_interaction_KeyboardZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var mouseWheelZoom=options.mouseWheelZoom!==undefined?options.mouseWheelZoom:true;if(mouseWheelZoom){interactions.push(new _ol_interaction_MouseWheelZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var shiftDragZoom=options.shiftDragZoom!==undefined?options.shiftDragZoom:true;if(shiftDragZoom){interactions.push(new _ol_interaction_DragZoom_({duration:options.zoomDuration}));}return interactions;};var _ol_render_Event_=function(type,opt_vectorContext,opt_frameState,opt_context,opt_glContext){_ol_events_Event_.call(this,type);/**
+ */_ol_interaction_.defaults=function(opt_options){var options=opt_options?opt_options:{};var interactions=new _ol_Collection_();var kinetic=new _ol_Kinetic_(-0.005,0.05,100);var altShiftDragRotate=options.altShiftDragRotate!==undefined?options.altShiftDragRotate:true;if(altShiftDragRotate){interactions.push(new _ol_interaction_DragRotate_());}var doubleClickZoom=options.doubleClickZoom!==undefined?options.doubleClickZoom:true;if(doubleClickZoom){interactions.push(new _ol_interaction_DoubleClickZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var dragPan=options.dragPan!==undefined?options.dragPan:true;if(dragPan){interactions.push(new _ol_interaction_DragPan_({kinetic:kinetic}));}var pinchRotate=options.pinchRotate!==undefined?options.pinchRotate:true;if(pinchRotate){interactions.push(new _ol_interaction_PinchRotate_());}var pinchZoom=options.pinchZoom!==undefined?options.pinchZoom:true;if(pinchZoom){interactions.push(new _ol_interaction_PinchZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var keyboard=options.keyboard!==undefined?options.keyboard:true;if(keyboard){interactions.push(new _ol_interaction_KeyboardPan_());interactions.push(new _ol_interaction_KeyboardZoom_({delta:options.zoomDelta,duration:options.zoomDuration}));}var mouseWheelZoom=options.mouseWheelZoom!==undefined?options.mouseWheelZoom:true;if(mouseWheelZoom){interactions.push(new _ol_interaction_MouseWheelZoom_({constrainResolution:options.constrainResolution,duration:options.zoomDuration}));}var shiftDragZoom=options.shiftDragZoom!==undefined?options.shiftDragZoom:true;if(shiftDragZoom){interactions.push(new _ol_interaction_DragZoom_({duration:options.zoomDuration}));}return interactions;};/**
+ * @constructor
+ * @extends {ol.events.Event}
+ * @implements {oli.render.Event}
+ * @param {ol.render.EventType} type Type.
+ * @param {ol.render.VectorContext=} opt_vectorContext Vector context.
+ * @param {olx.FrameState=} opt_frameState Frame state.
+ * @param {?CanvasRenderingContext2D=} opt_context Context.
+ * @param {?ol.webgl.Context=} opt_glContext WebGL Context.
+ */var _ol_render_Event_=function(type,opt_vectorContext,opt_frameState,opt_context,opt_glContext){_ol_events_Event_.call(this,type);/**
    * For canvas, this is an instance of {@link ol.render.canvas.Immediate}.
    * @type {ol.render.VectorContext|undefined}
    * @api
@@ -10526,7 +11399,24 @@ var direction=this.lastScaleDelta_-1;_ol_interaction_Interaction_.zoom(view,reso
  */_ol_render_VectorContext_.prototype.setTextStyle=function(textStyle){};// FIXME test, especially polygons with holes and multipolygons
 // FIXME need to handle large thick features (where pixel size matters)
 // FIXME add offset and end to ol.geom.flat.transform.transform2D?
-var _ol_render_canvas_Immediate_=function(context,pixelRatio,extent,transform,viewRotation){_ol_render_VectorContext_.call(this);/**
+/**
+ * @classdesc
+ * A concrete subclass of {@link ol.render.VectorContext} that implements
+ * direct rendering of features and geometries to an HTML5 Canvas context.
+ * Instances of this class are created internally by the library and
+ * provided to application code as vectorContext member of the
+ * {@link ol.render.Event} object associated with postcompose, precompose and
+ * render events emitted by layers and maps.
+ *
+ * @constructor
+ * @extends {ol.render.VectorContext}
+ * @param {CanvasRenderingContext2D} context Context.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.Extent} extent Extent.
+ * @param {ol.Transform} transform Transform.
+ * @param {number} viewRotation View rotation.
+ * @struct
+ */var _ol_render_canvas_Immediate_=function(context,pixelRatio,extent,transform,viewRotation){_ol_render_VectorContext_.call(this);/**
    * @private
    * @type {CanvasRenderingContext2D}
    */this.context_=context;/**
@@ -10754,7 +11644,12 @@ var imageImage=imageStyle.getImage(1);var imageOrigin=imageStyle.getOrigin();var
  *
  * @param {ol.style.Text} textStyle Text style.
  * @override
- */_ol_render_canvas_Immediate_.prototype.setTextStyle=function(textStyle){if(!textStyle){this.text_='';}else{var textFillStyle=textStyle.getFill();if(!textFillStyle){this.textFillState_=null;}else{var textFillStyleColor=textFillStyle.getColor();this.textFillState_={fillStyle:_ol_colorlike_.asColorLike(textFillStyleColor?textFillStyleColor:_ol_render_canvas_.defaultFillStyle)};}var textStrokeStyle=textStyle.getStroke();if(!textStrokeStyle){this.textStrokeState_=null;}else{var textStrokeStyleColor=textStrokeStyle.getColor();var textStrokeStyleLineCap=textStrokeStyle.getLineCap();var textStrokeStyleLineDash=textStrokeStyle.getLineDash();var textStrokeStyleLineDashOffset=textStrokeStyle.getLineDashOffset();var textStrokeStyleLineJoin=textStrokeStyle.getLineJoin();var textStrokeStyleWidth=textStrokeStyle.getWidth();var textStrokeStyleMiterLimit=textStrokeStyle.getMiterLimit();this.textStrokeState_={lineCap:textStrokeStyleLineCap!==undefined?textStrokeStyleLineCap:_ol_render_canvas_.defaultLineCap,lineDash:textStrokeStyleLineDash?textStrokeStyleLineDash:_ol_render_canvas_.defaultLineDash,lineDashOffset:textStrokeStyleLineDashOffset?textStrokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset,lineJoin:textStrokeStyleLineJoin!==undefined?textStrokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin,lineWidth:textStrokeStyleWidth!==undefined?textStrokeStyleWidth:_ol_render_canvas_.defaultLineWidth,miterLimit:textStrokeStyleMiterLimit!==undefined?textStrokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit,strokeStyle:_ol_colorlike_.asColorLike(textStrokeStyleColor?textStrokeStyleColor:_ol_render_canvas_.defaultStrokeStyle)};}var textFont=textStyle.getFont();var textOffsetX=textStyle.getOffsetX();var textOffsetY=textStyle.getOffsetY();var textRotateWithView=textStyle.getRotateWithView();var textRotation=textStyle.getRotation();var textScale=textStyle.getScale();var textText=textStyle.getText();var textTextAlign=textStyle.getTextAlign();var textTextBaseline=textStyle.getTextBaseline();this.textState_={font:textFont!==undefined?textFont:_ol_render_canvas_.defaultFont,textAlign:textTextAlign!==undefined?textTextAlign:_ol_render_canvas_.defaultTextAlign,textBaseline:textTextBaseline!==undefined?textTextBaseline:_ol_render_canvas_.defaultTextBaseline};this.text_=textText!==undefined?textText:'';this.textOffsetX_=textOffsetX!==undefined?this.pixelRatio_*textOffsetX:0;this.textOffsetY_=textOffsetY!==undefined?this.pixelRatio_*textOffsetY:0;this.textRotateWithView_=textRotateWithView!==undefined?textRotateWithView:false;this.textRotation_=textRotation!==undefined?textRotation:0;this.textScale_=this.pixelRatio_*(textScale!==undefined?textScale:1);}};var _ol_renderer_Layer_=function(layer){_ol_Observable_.call(this);/**
+ */_ol_render_canvas_Immediate_.prototype.setTextStyle=function(textStyle){if(!textStyle){this.text_='';}else{var textFillStyle=textStyle.getFill();if(!textFillStyle){this.textFillState_=null;}else{var textFillStyleColor=textFillStyle.getColor();this.textFillState_={fillStyle:_ol_colorlike_.asColorLike(textFillStyleColor?textFillStyleColor:_ol_render_canvas_.defaultFillStyle)};}var textStrokeStyle=textStyle.getStroke();if(!textStrokeStyle){this.textStrokeState_=null;}else{var textStrokeStyleColor=textStrokeStyle.getColor();var textStrokeStyleLineCap=textStrokeStyle.getLineCap();var textStrokeStyleLineDash=textStrokeStyle.getLineDash();var textStrokeStyleLineDashOffset=textStrokeStyle.getLineDashOffset();var textStrokeStyleLineJoin=textStrokeStyle.getLineJoin();var textStrokeStyleWidth=textStrokeStyle.getWidth();var textStrokeStyleMiterLimit=textStrokeStyle.getMiterLimit();this.textStrokeState_={lineCap:textStrokeStyleLineCap!==undefined?textStrokeStyleLineCap:_ol_render_canvas_.defaultLineCap,lineDash:textStrokeStyleLineDash?textStrokeStyleLineDash:_ol_render_canvas_.defaultLineDash,lineDashOffset:textStrokeStyleLineDashOffset?textStrokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset,lineJoin:textStrokeStyleLineJoin!==undefined?textStrokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin,lineWidth:textStrokeStyleWidth!==undefined?textStrokeStyleWidth:_ol_render_canvas_.defaultLineWidth,miterLimit:textStrokeStyleMiterLimit!==undefined?textStrokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit,strokeStyle:_ol_colorlike_.asColorLike(textStrokeStyleColor?textStrokeStyleColor:_ol_render_canvas_.defaultStrokeStyle)};}var textFont=textStyle.getFont();var textOffsetX=textStyle.getOffsetX();var textOffsetY=textStyle.getOffsetY();var textRotateWithView=textStyle.getRotateWithView();var textRotation=textStyle.getRotation();var textScale=textStyle.getScale();var textText=textStyle.getText();var textTextAlign=textStyle.getTextAlign();var textTextBaseline=textStyle.getTextBaseline();this.textState_={font:textFont!==undefined?textFont:_ol_render_canvas_.defaultFont,textAlign:textTextAlign!==undefined?textTextAlign:_ol_render_canvas_.defaultTextAlign,textBaseline:textTextBaseline!==undefined?textTextBaseline:_ol_render_canvas_.defaultTextBaseline};this.text_=textText!==undefined?textText:'';this.textOffsetX_=textOffsetX!==undefined?this.pixelRatio_*textOffsetX:0;this.textOffsetY_=textOffsetY!==undefined?this.pixelRatio_*textOffsetY:0;this.textRotateWithView_=textRotateWithView!==undefined?textRotateWithView:false;this.textRotation_=textRotation!==undefined?textRotation:0;this.textScale_=this.pixelRatio_*(textScale!==undefined?textScale:1);}};/**
+ * @constructor
+ * @extends {ol.Observable}
+ * @param {ol.layer.Layer} layer Layer.
+ * @struct
+ */var _ol_renderer_Layer_=function(layer){_ol_Observable_.call(this);/**
    * @private
    * @type {ol.layer.Layer}
    */this.layer_=layer;};_ol_.inherits(_ol_renderer_Layer_,_ol_Observable_);/**
@@ -10844,7 +11739,12 @@ var tileSourceKey=_ol_.getUid(tileSource).toString();var zKey=z.toString();if(ti
  * @param {T=} opt_this Object to use as `this` in `opt_tileCallback`.
  * @protected
  * @template T
- */_ol_renderer_Layer_.prototype.manageTilePyramid=function(frameState,tileSource,tileGrid,pixelRatio,projection,extent,currentZ,preload,opt_tileCallback,opt_this){var tileSourceKey=_ol_.getUid(tileSource).toString();if(!(tileSourceKey in frameState.wantedTiles)){frameState.wantedTiles[tileSourceKey]={};}var wantedTiles=frameState.wantedTiles[tileSourceKey];var tileQueue=frameState.tileQueue;var minZoom=tileGrid.getMinZoom();var tile,tileRange,tileResolution,x,y,z;for(z=minZoom;z<=currentZ;++z){tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z,tileRange);tileResolution=tileGrid.getResolution(z);for(x=tileRange.minX;x<=tileRange.maxX;++x){for(y=tileRange.minY;y<=tileRange.maxY;++y){if(currentZ-z<=preload){tile=tileSource.getTile(z,x,y,pixelRatio,projection);if(tile.getState()==_ol_TileState_.IDLE){wantedTiles[tile.getKey()]=true;if(!tileQueue.isKeyQueued(tile.getKey())){tileQueue.enqueue([tile,tileSourceKey,tileGrid.getTileCoordCenter(tile.tileCoord),tileResolution]);}}if(opt_tileCallback!==undefined){opt_tileCallback.call(opt_this,tile);}}else{tileSource.useTile(z,x,y,projection);}}}}};var _ol_renderer_canvas_Layer_=function(layer){_ol_renderer_Layer_.call(this,layer);/**
+ */_ol_renderer_Layer_.prototype.manageTilePyramid=function(frameState,tileSource,tileGrid,pixelRatio,projection,extent,currentZ,preload,opt_tileCallback,opt_this){var tileSourceKey=_ol_.getUid(tileSource).toString();if(!(tileSourceKey in frameState.wantedTiles)){frameState.wantedTiles[tileSourceKey]={};}var wantedTiles=frameState.wantedTiles[tileSourceKey];var tileQueue=frameState.tileQueue;var minZoom=tileGrid.getMinZoom();var tile,tileRange,tileResolution,x,y,z;for(z=minZoom;z<=currentZ;++z){tileRange=tileGrid.getTileRangeForExtentAndZ(extent,z,tileRange);tileResolution=tileGrid.getResolution(z);for(x=tileRange.minX;x<=tileRange.maxX;++x){for(y=tileRange.minY;y<=tileRange.maxY;++y){if(currentZ-z<=preload){tile=tileSource.getTile(z,x,y,pixelRatio,projection);if(tile.getState()==_ol_TileState_.IDLE){wantedTiles[tile.getKey()]=true;if(!tileQueue.isKeyQueued(tile.getKey())){tileQueue.enqueue([tile,tileSourceKey,tileGrid.getTileCoordCenter(tile.tileCoord),tileResolution]);}}if(opt_tileCallback!==undefined){opt_tileCallback.call(opt_this,tile);}}else{tileSource.useTile(z,x,y,projection);}}}}};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.renderer.Layer}
+ * @param {ol.layer.Layer} layer Layer.
+ */var _ol_renderer_canvas_Layer_=function(layer){_ol_renderer_Layer_.call(this,layer);/**
    * @protected
    * @type {number}
    */this.renderedResolution;/**
@@ -10900,7 +11800,12 @@ var tileSourceKey=_ol_.getUid(tileSource).toString();var zKey=z.toString();if(ti
  * @param {olx.FrameState} frameState Frame state.
  * @param {ol.LayerState} layerState Layer state.
  * @return {boolean} whether composeFrame should be called.
- */_ol_renderer_canvas_Layer_.prototype.prepareFrame=function(frameState,layerState){};var _ol_renderer_canvas_IntermediateCanvas_=function(layer){_ol_renderer_canvas_Layer_.call(this,layer);/**
+ */_ol_renderer_canvas_Layer_.prototype.prepareFrame=function(frameState,layerState){};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.renderer.canvas.Layer}
+ * @param {ol.layer.Layer} layer Layer.
+ */var _ol_renderer_canvas_IntermediateCanvas_=function(layer){_ol_renderer_canvas_Layer_.call(this,layer);/**
    * @protected
    * @type {ol.Transform}
    */this.coordinateToCanvasPixelTransform=_ol_transform_.create();/**
@@ -10929,7 +11834,12 @@ var dx=imageTransform[4];var dy=imageTransform[5];var dw=image.width*imageTransf
  * @inheritDoc
  */_ol_renderer_canvas_IntermediateCanvas_.prototype.forEachLayerAtCoordinate=function(coordinate,frameState,callback,thisArg){if(!this.getImage()){return undefined;}if(this.getLayer().getSource().forEachFeatureAtCoordinate!==_ol_.nullFunction){// for ImageVector sources use the original hit-detection logic,
 // so that for example also transparent polygons are detected
-return _ol_renderer_canvas_Layer_.prototype.forEachLayerAtCoordinate.apply(this,arguments);}else{var pixel=_ol_transform_.apply(this.coordinateToCanvasPixelTransform,coordinate.slice());_ol_coordinate_.scale(pixel,frameState.viewState.resolution/this.renderedResolution);if(!this.hitCanvasContext_){this.hitCanvasContext_=_ol_dom_.createCanvasContext2D(1,1);}this.hitCanvasContext_.clearRect(0,0,1,1);this.hitCanvasContext_.drawImage(this.getImage(),pixel[0],pixel[1],1,1,0,0,1,1);var imageData=this.hitCanvasContext_.getImageData(0,0,1,1).data;if(imageData[3]>0){return callback.call(thisArg,this.getLayer(),imageData);}else{return undefined;}}};var _ol_renderer_canvas_ImageLayer_=function(imageLayer){_ol_renderer_canvas_IntermediateCanvas_.call(this,imageLayer);/**
+return _ol_renderer_canvas_Layer_.prototype.forEachLayerAtCoordinate.apply(this,arguments);}else{var pixel=_ol_transform_.apply(this.coordinateToCanvasPixelTransform,coordinate.slice());_ol_coordinate_.scale(pixel,frameState.viewState.resolution/this.renderedResolution);if(!this.hitCanvasContext_){this.hitCanvasContext_=_ol_dom_.createCanvasContext2D(1,1);}this.hitCanvasContext_.clearRect(0,0,1,1);this.hitCanvasContext_.drawImage(this.getImage(),pixel[0],pixel[1],1,1,0,0,1,1);var imageData=this.hitCanvasContext_.getImageData(0,0,1,1).data;if(imageData[3]>0){return callback.call(thisArg,this.getLayer(),imageData);}else{return undefined;}}};/**
+ * @constructor
+ * @extends {ol.renderer.canvas.IntermediateCanvas}
+ * @param {ol.layer.Image} imageLayer Single image layer.
+ * @api
+ */var _ol_renderer_canvas_ImageLayer_=function(imageLayer){_ol_renderer_canvas_IntermediateCanvas_.call(this,imageLayer);/**
    * @private
    * @type {?ol.ImageBase}
    */this.image_=null;/**
@@ -10951,7 +11861,14 @@ return _ol_renderer_canvas_Layer_.prototype.forEachLayerAtCoordinate.apply(this,
  * @inheritDoc
  */_ol_renderer_canvas_ImageLayer_.prototype.getImageTransform=function(){return this.imageTransform_;};/**
  * @inheritDoc
- */_ol_renderer_canvas_ImageLayer_.prototype.prepareFrame=function(frameState,layerState){var pixelRatio=frameState.pixelRatio;var size=frameState.size;var viewState=frameState.viewState;var viewCenter=viewState.center;var viewResolution=viewState.resolution;var image;var imageLayer=/** @type {ol.layer.Image} */this.getLayer();var imageSource=imageLayer.getSource();var hints=frameState.viewHints;var renderedExtent=frameState.extent;if(layerState.extent!==undefined){renderedExtent=_ol_extent_.getIntersection(renderedExtent,layerState.extent);}if(!hints[_ol_ViewHint_.ANIMATING]&&!hints[_ol_ViewHint_.INTERACTING]&&!_ol_extent_.isEmpty(renderedExtent)){var projection=viewState.projection;if(!_ol_.ENABLE_RASTER_REPROJECTION){var sourceProjection=imageSource.getProjection();if(sourceProjection){projection=sourceProjection;}}image=imageSource.getImage(renderedExtent,viewResolution,pixelRatio,projection);if(image){var loaded=this.loadImage(image);if(loaded){this.image_=image;}}}if(this.image_){image=this.image_;var imageExtent=image.getExtent();var imageResolution=image.getResolution();var imagePixelRatio=image.getPixelRatio();var scale=pixelRatio*imageResolution/(viewResolution*imagePixelRatio);var transform=_ol_transform_.compose(this.imageTransform_,pixelRatio*size[0]/2,pixelRatio*size[1]/2,scale,scale,0,imagePixelRatio*(imageExtent[0]-viewCenter[0])/imageResolution,imagePixelRatio*(viewCenter[1]-imageExtent[3])/imageResolution);_ol_transform_.compose(this.coordinateToCanvasPixelTransform,pixelRatio*size[0]/2-transform[4],pixelRatio*size[1]/2-transform[5],pixelRatio/viewResolution,-pixelRatio/viewResolution,0,-viewCenter[0],-viewCenter[1]);this.updateAttributions(frameState.attributions,image.getAttributions());this.updateLogos(frameState,imageSource);this.renderedResolution=imageResolution*pixelRatio/imagePixelRatio;}return!!this.image_;};var _ol_renderer_Map_=function(container,map){_ol_Disposable_.call(this);/**
+ */_ol_renderer_canvas_ImageLayer_.prototype.prepareFrame=function(frameState,layerState){var pixelRatio=frameState.pixelRatio;var size=frameState.size;var viewState=frameState.viewState;var viewCenter=viewState.center;var viewResolution=viewState.resolution;var image;var imageLayer=/** @type {ol.layer.Image} */this.getLayer();var imageSource=imageLayer.getSource();var hints=frameState.viewHints;var renderedExtent=frameState.extent;if(layerState.extent!==undefined){renderedExtent=_ol_extent_.getIntersection(renderedExtent,layerState.extent);}if(!hints[_ol_ViewHint_.ANIMATING]&&!hints[_ol_ViewHint_.INTERACTING]&&!_ol_extent_.isEmpty(renderedExtent)){var projection=viewState.projection;if(!_ol_.ENABLE_RASTER_REPROJECTION){var sourceProjection=imageSource.getProjection();if(sourceProjection){projection=sourceProjection;}}image=imageSource.getImage(renderedExtent,viewResolution,pixelRatio,projection);if(image){var loaded=this.loadImage(image);if(loaded){this.image_=image;}}}if(this.image_){image=this.image_;var imageExtent=image.getExtent();var imageResolution=image.getResolution();var imagePixelRatio=image.getPixelRatio();var scale=pixelRatio*imageResolution/(viewResolution*imagePixelRatio);var transform=_ol_transform_.compose(this.imageTransform_,pixelRatio*size[0]/2,pixelRatio*size[1]/2,scale,scale,0,imagePixelRatio*(imageExtent[0]-viewCenter[0])/imageResolution,imagePixelRatio*(viewCenter[1]-imageExtent[3])/imageResolution);_ol_transform_.compose(this.coordinateToCanvasPixelTransform,pixelRatio*size[0]/2-transform[4],pixelRatio*size[1]/2-transform[5],pixelRatio/viewResolution,-pixelRatio/viewResolution,0,-viewCenter[0],-viewCenter[1]);this.updateAttributions(frameState.attributions,image.getAttributions());this.updateLogos(frameState,imageSource);this.renderedResolution=imageResolution*pixelRatio/imagePixelRatio;}return!!this.image_;};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.Disposable}
+ * @param {Element} container Container.
+ * @param {ol.PluggableMap} map Map.
+ * @struct
+ */var _ol_renderer_Map_=function(container,map){_ol_Disposable_.call(this);/**
    * @private
    * @type {ol.PluggableMap}
    */this.map_=map;/**
@@ -11053,7 +11970,13 @@ return _ol_renderer_canvas_Layer_.prototype.forEachLayerAtCoordinate.apply(this,
  * @param {ol.LayerState} state2 Second layer state.
  * @return {number} The zIndex difference.
  */_ol_renderer_Map_.sortByZIndex=function(state1,state2){return state1.zIndex-state2.zIndex;};// FIXME offset panning
-var _ol_renderer_canvas_Map_=function(container,map){_ol_renderer_Map_.call(this,container,map);/**
+/**
+ * @constructor
+ * @extends {ol.renderer.Map}
+ * @param {Element} container Container.
+ * @param {ol.PluggableMap} map Map.
+ * @api
+ */var _ol_renderer_canvas_Map_=function(container,map){_ol_renderer_Map_.call(this,container,map);/**
    * @private
    * @type {CanvasRenderingContext2D}
    */this.context_=_ol_dom_.createCanvasContext2D();/**
@@ -11088,7 +12011,12 @@ var _ol_renderer_canvas_Map_=function(container,map){_ol_renderer_Map_.call(this
  * @inheritDoc
  */_ol_renderer_canvas_Map_.prototype.renderFrame=function(frameState){if(!frameState){if(this.renderedVisible_){this.canvas_.style.display='none';this.renderedVisible_=false;}return;}var context=this.context_;var pixelRatio=frameState.pixelRatio;var width=Math.round(frameState.size[0]*pixelRatio);var height=Math.round(frameState.size[1]*pixelRatio);if(this.canvas_.width!=width||this.canvas_.height!=height){this.canvas_.width=width;this.canvas_.height=height;}else{context.clearRect(0,0,width,height);}var rotation=frameState.viewState.rotation;this.calculateMatrices2D(frameState);this.dispatchComposeEvent_(_ol_render_EventType_.PRECOMPOSE,frameState);var layerStatesArray=frameState.layerStatesArray;_ol_array_.stableSort(layerStatesArray,_ol_renderer_Map_.sortByZIndex);if(rotation){context.save();_ol_render_canvas_.rotateAtOffset(context,rotation,width/2,height/2);}var viewResolution=frameState.viewState.resolution;var i,ii,layer,layerRenderer,layerState;for(i=0,ii=layerStatesArray.length;i<ii;++i){layerState=layerStatesArray[i];layer=layerState.layer;layerRenderer=/** @type {ol.renderer.canvas.Layer} */this.getLayerRenderer(layer);if(!_ol_layer_Layer_.visibleAtResolution(layerState,viewResolution)||layerState.sourceState!=_ol_source_State_.READY){continue;}if(layerRenderer.prepareFrame(frameState,layerState)){layerRenderer.composeFrame(frameState,layerState,context);}}if(rotation){context.restore();}this.dispatchComposeEvent_(_ol_render_EventType_.POSTCOMPOSE,frameState);if(!this.renderedVisible_){this.canvas_.style.display='';this.renderedVisible_=true;}this.scheduleRemoveUnusedLayerRenderers(frameState);this.scheduleExpireIconCache(frameState);};/**
  * @inheritDoc
- */_ol_renderer_canvas_Map_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg,layerFilter,thisArg2){var result;var viewState=frameState.viewState;var viewResolution=viewState.resolution;var layerStates=frameState.layerStatesArray;var numLayers=layerStates.length;var coordinate=_ol_transform_.apply(frameState.pixelToCoordinateTransform,pixel.slice());var i;for(i=numLayers-1;i>=0;--i){var layerState=layerStates[i];var layer=layerState.layer;if(_ol_layer_Layer_.visibleAtResolution(layerState,viewResolution)&&layerFilter.call(thisArg2,layer)){var layerRenderer=/** @type {ol.renderer.canvas.Layer} */this.getLayerRenderer(layer);result=layerRenderer.forEachLayerAtCoordinate(coordinate,frameState,callback,thisArg);if(result){return result;}}}return undefined;};var _ol_renderer_canvas_TileLayer_=function(tileLayer){_ol_renderer_canvas_IntermediateCanvas_.call(this,tileLayer);/**
+ */_ol_renderer_canvas_Map_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg,layerFilter,thisArg2){var result;var viewState=frameState.viewState;var viewResolution=viewState.resolution;var layerStates=frameState.layerStatesArray;var numLayers=layerStates.length;var coordinate=_ol_transform_.apply(frameState.pixelToCoordinateTransform,pixel.slice());var i;for(i=numLayers-1;i>=0;--i){var layerState=layerStates[i];var layer=layerState.layer;if(_ol_layer_Layer_.visibleAtResolution(layerState,viewResolution)&&layerFilter.call(thisArg2,layer)){var layerRenderer=/** @type {ol.renderer.canvas.Layer} */this.getLayerRenderer(layer);result=layerRenderer.forEachLayerAtCoordinate(coordinate,frameState,callback,thisArg);if(result){return result;}}}return undefined;};/**
+ * @constructor
+ * @extends {ol.renderer.canvas.IntermediateCanvas}
+ * @param {ol.layer.Tile|ol.layer.VectorTile} tileLayer Tile layer.
+ * @api
+ */var _ol_renderer_canvas_TileLayer_=function(tileLayer){_ol_renderer_canvas_IntermediateCanvas_.call(this,tileLayer);/**
    * @protected
    * @type {CanvasRenderingContext2D}
    */this.context=this.context===null?null:_ol_dom_.createCanvasContext2D();/**
@@ -11150,8 +12078,7 @@ continue;}}var childTileRange=tileGrid.getTileCoordChildTileRange(tile.tileCoord
  */_ol_renderer_canvas_TileLayer_.prototype.drawTileImage=function(tile,frameState,layerState,x,y,w,h,gutter,transition){var image=tile.getImage(this.getLayer());if(!image){return;}var uid=_ol_.getUid(this);var alpha=transition?tile.getAlpha(uid,frameState.time):1;if(alpha===1&&!this.getLayer().getSource().getOpaque(frameState.viewState.projection)){this.context.clearRect(x,y,w,h);}var alphaChanged=alpha!==this.context.globalAlpha;if(alphaChanged){this.context.save();this.context.globalAlpha=alpha;}this.context.drawImage(image,gutter,gutter,image.width-2*gutter,image.height-2*gutter,x,y,w,h);if(alphaChanged){this.context.restore();}if(alpha!==1){frameState.animate=true;}else if(transition){tile.endTransition(uid);}};/**
  * @inheritDoc
  */_ol_renderer_canvas_TileLayer_.prototype.getImage=function(){var context=this.context;return context?context.canvas:null;};/**
- * @function
- * @return {ol.layer.Tile|ol.layer.VectorTile}
+ * @inheritDoc
  */_ol_renderer_canvas_TileLayer_.prototype.getImageTransform=function(){return this.imageTransform_;};/**
  * Base class for replay groups.
  * @constructor
@@ -11183,7 +12110,16 @@ continue;}}var childTileRange=tileGrid.getTileCoordChildTileRange(tile.tileCoord
  */_ol_geom_flat_textpath_.lineString=function(flatCoordinates,offset,end,stride,text,measure,startM,maxAngle,opt_result){var result=opt_result?opt_result:[];// Keep text upright
 var reverse=flatCoordinates[offset]>flatCoordinates[end-stride];var numChars=text.length;var x1=flatCoordinates[offset];var y1=flatCoordinates[offset+1];offset+=stride;var x2=flatCoordinates[offset];var y2=flatCoordinates[offset+1];var segmentM=0;var segmentLength=Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));var index,previousAngle;for(var i=0;i<numChars;++i){index=reverse?numChars-i-1:i;var char=text[index];var charLength=measure(char);var charM=startM+charLength/2;while(offset<end-stride&&segmentM+segmentLength<charM){x1=x2;y1=y2;offset+=stride;x2=flatCoordinates[offset];y2=flatCoordinates[offset+1];segmentM+=segmentLength;segmentLength=Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));}var segmentPos=charM-segmentM;var angle=Math.atan2(y2-y1,x2-x1);if(reverse){angle+=angle>0?-Math.PI:Math.PI;}if(previousAngle!==undefined){var delta=angle-previousAngle;delta+=delta>Math.PI?-2*Math.PI:delta<-Math.PI?2*Math.PI:0;if(Math.abs(delta)>maxAngle){return null;}}previousAngle=angle;var interpolate=segmentPos/segmentLength;var x=_ol_math_.lerp(x1,x2,interpolate);var y=_ol_math_.lerp(y1,y2,interpolate);result[index]=[x,y,angle];startM+=charLength;}return result;};/**
  * @enum {number}
- */var _ol_render_canvas_Instruction_={BEGIN_GEOMETRY:0,BEGIN_PATH:1,CIRCLE:2,CLOSE_PATH:3,CUSTOM:4,DRAW_CHARS:5,DRAW_IMAGE:6,END_GEOMETRY:7,FILL:8,MOVE_TO_LINE_TO:9,SET_FILL_STYLE:10,SET_STROKE_STYLE:11,STROKE:12};var _ol_render_canvas_Replay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_VectorContext_.call(this);/**
+ */var _ol_render_canvas_Instruction_={BEGIN_GEOMETRY:0,BEGIN_PATH:1,CIRCLE:2,CLOSE_PATH:3,CUSTOM:4,DRAW_CHARS:5,DRAW_IMAGE:6,END_GEOMETRY:7,FILL:8,MOVE_TO_LINE_TO:9,SET_FILL_STYLE:10,SET_STROKE_STYLE:11,STROKE:12};/**
+ * @constructor
+ * @extends {ol.render.VectorContext}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Maximum extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {boolean} overlaps The replay can have overlapping geometries.
+ * @struct
+ */var _ol_render_canvas_Replay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_VectorContext_.call(this);/**
    * @protected
    * @type {number}
    */this.tolerance=tolerance;/**
@@ -11342,7 +12278,16 @@ var i;var n=hitDetectionInstructions.length;var instruction;var type;var begin=-
  * this extent, we calculate a buffered extent (e.g. based on stroke width).
  * @return {ol.Extent} The buffered rendering extent.
  * @protected
- */_ol_render_canvas_Replay_.prototype.getBufferedMaxExtent=function(){return this.maxExtent;};var _ol_render_canvas_ImageReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
+ */_ol_render_canvas_Replay_.prototype.getBufferedMaxExtent=function(){return this.maxExtent;};/**
+ * @constructor
+ * @extends {ol.render.canvas.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Maximum extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {boolean} overlaps The replay can have overlapping geometries.
+ * @struct
+ */var _ol_render_canvas_ImageReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
    * @private
    * @type {HTMLCanvasElement|HTMLVideoElement|Image}
    */this.hitDetectionImage_=null;/**
@@ -11401,7 +12346,16 @@ this.anchorX_,this.anchorY_,this.height_,this.opacity_,this.originX_,this.origin
  */_ol_render_canvas_ImageReplay_.prototype.finish=function(){this.reverseHitDetectionInstructions();// FIXME this doesn't really protect us against further calls to draw*Geometry
 this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;this.image_=null;this.height_=undefined;this.scale_=undefined;this.opacity_=undefined;this.originX_=undefined;this.originY_=undefined;this.rotateWithView_=undefined;this.rotation_=undefined;this.snapToPixel_=undefined;this.width_=undefined;};/**
  * @inheritDoc
- */_ol_render_canvas_ImageReplay_.prototype.setImageStyle=function(imageStyle){var anchor=imageStyle.getAnchor();var size=imageStyle.getSize();var hitDetectionImage=imageStyle.getHitDetectionImage(1);var image=imageStyle.getImage(1);var origin=imageStyle.getOrigin();this.anchorX_=anchor[0];this.anchorY_=anchor[1];this.hitDetectionImage_=hitDetectionImage;this.image_=image;this.height_=size[1];this.opacity_=imageStyle.getOpacity();this.originX_=origin[0];this.originY_=origin[1];this.rotateWithView_=imageStyle.getRotateWithView();this.rotation_=imageStyle.getRotation();this.scale_=imageStyle.getScale();this.snapToPixel_=imageStyle.getSnapToPixel();this.width_=size[0];};var _ol_render_canvas_LineStringReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
+ */_ol_render_canvas_ImageReplay_.prototype.setImageStyle=function(imageStyle){var anchor=imageStyle.getAnchor();var size=imageStyle.getSize();var hitDetectionImage=imageStyle.getHitDetectionImage(1);var image=imageStyle.getImage(1);var origin=imageStyle.getOrigin();this.anchorX_=anchor[0];this.anchorY_=anchor[1];this.hitDetectionImage_=hitDetectionImage;this.image_=image;this.height_=size[1];this.opacity_=imageStyle.getOpacity();this.originX_=origin[0];this.originY_=origin[1];this.rotateWithView_=imageStyle.getRotateWithView();this.rotation_=imageStyle.getRotation();this.scale_=imageStyle.getScale();this.snapToPixel_=imageStyle.getSnapToPixel();this.width_=size[0];};/**
+ * @constructor
+ * @extends {ol.render.canvas.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Maximum extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {boolean} overlaps The replay can have overlapping geometries.
+ * @struct
+ */var _ol_render_canvas_LineStringReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
    * @private
    * @type {ol.Extent}
    */this.bufferedMaxExtent_=null;/**
@@ -11441,7 +12395,16 @@ this.anchorX_=undefined;this.anchorY_=undefined;this.hitDetectionImage_=null;thi
  */_ol_render_canvas_LineStringReplay_.prototype.finish=function(){var state=this.state_;if(state.lastStroke!=undefined&&state.lastStroke!=this.coordinates.length){this.instructions.push([_ol_render_canvas_Instruction_.STROKE]);}this.reverseHitDetectionInstructions();this.state_=null;};/**
  * @inheritDoc
  */_ol_render_canvas_LineStringReplay_.prototype.setFillStrokeStyle=function(fillStyle,strokeStyle){var strokeStyleColor=strokeStyle.getColor();this.state_.strokeStyle=_ol_colorlike_.asColorLike(strokeStyleColor?strokeStyleColor:_ol_render_canvas_.defaultStrokeStyle);var strokeStyleLineCap=strokeStyle.getLineCap();this.state_.lineCap=strokeStyleLineCap!==undefined?strokeStyleLineCap:_ol_render_canvas_.defaultLineCap;var strokeStyleLineDash=strokeStyle.getLineDash();this.state_.lineDash=strokeStyleLineDash?strokeStyleLineDash:_ol_render_canvas_.defaultLineDash;var strokeStyleLineDashOffset=strokeStyle.getLineDashOffset();this.state_.lineDashOffset=strokeStyleLineDashOffset?strokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset;var strokeStyleLineJoin=strokeStyle.getLineJoin();this.state_.lineJoin=strokeStyleLineJoin!==undefined?strokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin;var strokeStyleWidth=strokeStyle.getWidth();this.state_.lineWidth=strokeStyleWidth!==undefined?strokeStyleWidth:_ol_render_canvas_.defaultLineWidth;var strokeStyleMiterLimit=strokeStyle.getMiterLimit();this.state_.miterLimit=strokeStyleMiterLimit!==undefined?strokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit;if(this.state_.lineWidth>this.maxLineWidth){this.maxLineWidth=this.state_.lineWidth;// invalidate the buffered max extent cache
-this.bufferedMaxExtent_=null;}};var _ol_render_canvas_PolygonReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
+this.bufferedMaxExtent_=null;}};/**
+ * @constructor
+ * @extends {ol.render.canvas.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Maximum extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {boolean} overlaps The replay can have overlapping geometries.
+ * @struct
+ */var _ol_render_canvas_PolygonReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
    * @private
    * @type {ol.Extent}
    */this.bufferedMaxExtent_=null;/**
@@ -11510,7 +12473,15 @@ this.bufferedMaxExtent_=null;}}else{state.strokeStyle=undefined;state.lineCap=un
  */_ol_render_replay_.ORDER=[_ol_render_ReplayType_.POLYGON,_ol_render_ReplayType_.CIRCLE,_ol_render_ReplayType_.LINE_STRING,_ol_render_ReplayType_.IMAGE,_ol_render_ReplayType_.TEXT,_ol_render_ReplayType_.DEFAULT];/**
  * @const
  * @enum {number}
- */_ol_render_replay_.TEXT_ALIGN={};_ol_render_replay_.TEXT_ALIGN['left']=0;_ol_render_replay_.TEXT_ALIGN['end']=0;_ol_render_replay_.TEXT_ALIGN['center']=0.5;_ol_render_replay_.TEXT_ALIGN['right']=1;_ol_render_replay_.TEXT_ALIGN['start']=1;_ol_render_replay_.TEXT_ALIGN['top']=0;_ol_render_replay_.TEXT_ALIGN['middle']=0.5;_ol_render_replay_.TEXT_ALIGN['hanging']=0.2;_ol_render_replay_.TEXT_ALIGN['alphabetic']=0.8;_ol_render_replay_.TEXT_ALIGN['ideographic']=0.8;_ol_render_replay_.TEXT_ALIGN['bottom']=1;var _ol_structs_LRUCache_=function(opt_highWaterMark){/**
+ */_ol_render_replay_.TEXT_ALIGN={};_ol_render_replay_.TEXT_ALIGN['left']=0;_ol_render_replay_.TEXT_ALIGN['end']=0;_ol_render_replay_.TEXT_ALIGN['center']=0.5;_ol_render_replay_.TEXT_ALIGN['right']=1;_ol_render_replay_.TEXT_ALIGN['start']=1;_ol_render_replay_.TEXT_ALIGN['top']=0;_ol_render_replay_.TEXT_ALIGN['middle']=0.5;_ol_render_replay_.TEXT_ALIGN['hanging']=0.2;_ol_render_replay_.TEXT_ALIGN['alphabetic']=0.8;_ol_render_replay_.TEXT_ALIGN['ideographic']=0.8;_ol_render_replay_.TEXT_ALIGN['bottom']=1;/**
+ * Implements a Least-Recently-Used cache where the keys do not conflict with
+ * Object's properties (e.g. 'hasOwnProperty' is not allowed as a key). Expiring
+ * items from the cache is the responsibility of the user.
+ * @constructor
+ * @struct
+ * @template T
+ * @param {number=} opt_highWaterMark High water mark.
+ */var _ol_structs_LRUCache_=function(opt_highWaterMark){/**
    * @type {number}
    */this.highWaterMark=opt_highWaterMark!==undefined?opt_highWaterMark:2048;/**
    * @private
@@ -11576,7 +12547,16 @@ var entry=/** @type {ol.LRUCacheEntry} */{key_:key,newer:null,older:this.newest_
  * {@link ol.geom.Polygon}, {@link ol.geom.MultiLineString} or
  * {@link ol.geom.MultiPolygon}.
  * @enum {string}
- */var _ol_style_TextPlacement_={POINT:'point',LINE:'line'};var _ol_render_canvas_TextReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
+ */var _ol_style_TextPlacement_={POINT:'point',LINE:'line'};/**
+ * @constructor
+ * @extends {ol.render.canvas.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Maximum extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {boolean} overlaps The replay can have overlapping geometries.
+ * @struct
+ */var _ol_render_canvas_TextReplay_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps){_ol_render_canvas_Replay_.call(this,tolerance,maxExtent,resolution,pixelRatio,overlaps);/**
    * @private
    * @type {Array.<HTMLCanvasElement>}
    */this.labels_=null;/**
@@ -11652,7 +12632,17 @@ var entry=/** @type {ol.LRUCacheEntry} */{key_:key,newer:null,older:this.newest_
  * @param {number} end End.
  */_ol_render_canvas_TextReplay_.prototype.drawChars_=function(begin,end){var pixelRatio=this.pixelRatio;var strokeState=this.textStrokeState_;var fill=!!this.textFillState_;var stroke=!!strokeState;var textState=this.textState_;var baseline=_ol_render_replay_.TEXT_ALIGN[textState.textBaseline];var labels=[];var text=this.text_;var numChars=this.text_.length;var i;if(stroke){for(i=0;i<numChars;++i){labels.push(this.getImage_(text.charAt(i),false,stroke));}}if(fill){for(i=0;i<numChars;++i){labels.push(this.getImage_(text.charAt(i),fill,false));}}var context=labels[0].getContext('2d');var offsetY=this.textOffsetY_*pixelRatio;var align=_ol_render_replay_.TEXT_ALIGN[textState.textAlign||_ol_render_canvas_.defaultTextAlign];var widths={};this.instructions.push([_ol_render_canvas_Instruction_.DRAW_CHARS,begin,end,labels,baseline,textState.exceedLength,textState.maxAngle,_ol_render_canvas_TextReplay_.getTextWidth.bind(widths,context,pixelRatio*this.textScale_),offsetY,this.text_,align,1]);this.hitDetectionInstructions.push([_ol_render_canvas_Instruction_.DRAW_CHARS,begin,end,labels,baseline,textState.exceedLength,textState.maxAngle,_ol_render_canvas_TextReplay_.getTextWidth.bind(widths,context,this.textScale_),offsetY,this.text_,align,1/pixelRatio]);};/**
  * @inheritDoc
- */_ol_render_canvas_TextReplay_.prototype.setTextStyle=function(textStyle){var textState,fillState,strokeState;if(!textStyle){this.text_='';}else{var textFillStyle=textStyle.getFill();if(!textFillStyle){fillState=this.textFillState_=null;}else{var textFillStyleColor=textFillStyle.getColor();var fillStyle=_ol_colorlike_.asColorLike(textFillStyleColor?textFillStyleColor:_ol_render_canvas_.defaultFillStyle);fillState=this.textFillState_;if(!fillState){fillState=this.textFillState_=/** @type {ol.CanvasFillState} */{};}fillState.fillStyle=fillStyle;}var textStrokeStyle=textStyle.getStroke();if(!textStrokeStyle){strokeState=this.textStrokeState_=null;}else{var textStrokeStyleColor=textStrokeStyle.getColor();var textStrokeStyleLineCap=textStrokeStyle.getLineCap();var textStrokeStyleLineDash=textStrokeStyle.getLineDash();var textStrokeStyleLineDashOffset=textStrokeStyle.getLineDashOffset();var textStrokeStyleLineJoin=textStrokeStyle.getLineJoin();var textStrokeStyleWidth=textStrokeStyle.getWidth();var textStrokeStyleMiterLimit=textStrokeStyle.getMiterLimit();var lineCap=textStrokeStyleLineCap!==undefined?textStrokeStyleLineCap:_ol_render_canvas_.defaultLineCap;var lineDash=textStrokeStyleLineDash?textStrokeStyleLineDash.slice():_ol_render_canvas_.defaultLineDash;var lineDashOffset=textStrokeStyleLineDashOffset!==undefined?textStrokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset;var lineJoin=textStrokeStyleLineJoin!==undefined?textStrokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin;var lineWidth=textStrokeStyleWidth!==undefined?textStrokeStyleWidth:_ol_render_canvas_.defaultLineWidth;var miterLimit=textStrokeStyleMiterLimit!==undefined?textStrokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit;var strokeStyle=_ol_colorlike_.asColorLike(textStrokeStyleColor?textStrokeStyleColor:_ol_render_canvas_.defaultStrokeStyle);strokeState=this.textStrokeState_;if(!strokeState){strokeState=this.textStrokeState_=/** @type {ol.CanvasStrokeState} */{};}strokeState.lineCap=lineCap;strokeState.lineDash=lineDash;strokeState.lineDashOffset=lineDashOffset;strokeState.lineJoin=lineJoin;strokeState.lineWidth=lineWidth;strokeState.miterLimit=miterLimit;strokeState.strokeStyle=strokeStyle;}var textFont=textStyle.getFont();var textOffsetX=textStyle.getOffsetX();var textOffsetY=textStyle.getOffsetY();var textRotateWithView=textStyle.getRotateWithView();var textRotation=textStyle.getRotation();var textScale=textStyle.getScale();var textText=textStyle.getText();var textTextAlign=textStyle.getTextAlign();var textTextBaseline=textStyle.getTextBaseline();var font=textFont!==undefined?textFont:_ol_render_canvas_.defaultFont;var textAlign=textTextAlign;var textBaseline=textTextBaseline!==undefined?textTextBaseline:_ol_render_canvas_.defaultTextBaseline;textState=this.textState_;if(!textState){textState=this.textState_=/** @type {ol.CanvasTextState} */{};}textState.exceedLength=textStyle.getExceedLength();textState.font=font;textState.maxAngle=textStyle.getMaxAngle();textState.placement=textStyle.getPlacement();textState.textAlign=textAlign;textState.textBaseline=textBaseline;this.text_=textText!==undefined?textText:'';this.textOffsetX_=textOffsetX!==undefined?textOffsetX:0;this.textOffsetY_=textOffsetY!==undefined?textOffsetY:0;this.textRotateWithView_=textRotateWithView!==undefined?textRotateWithView:false;this.textRotation_=textRotation!==undefined?textRotation:0;this.textScale_=textScale!==undefined?textScale:1;this.strokeKey_=strokeState?(typeof strokeState.strokeStyle=='string'?strokeState.strokeStyle:_ol_.getUid(strokeState.strokeStyle))+strokeState.lineCap+strokeState.lineDashOffset+'|'+strokeState.lineWidth+strokeState.lineJoin+strokeState.miterLimit+'['+strokeState.lineDash.join()+']':'';this.textKey_=textState.font+(textState.textAlign||'?')+this.textScale_;this.fillKey_=fillState?typeof fillState.fillStyle=='string'?fillState.fillStyle:'|'+_ol_.getUid(fillState.fillStyle):'';}};var _ol_render_canvas_ReplayGroup_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps,opt_renderBuffer){_ol_render_ReplayGroup_.call(this);/**
+ */_ol_render_canvas_TextReplay_.prototype.setTextStyle=function(textStyle){var textState,fillState,strokeState;if(!textStyle){this.text_='';}else{var textFillStyle=textStyle.getFill();if(!textFillStyle){fillState=this.textFillState_=null;}else{var textFillStyleColor=textFillStyle.getColor();var fillStyle=_ol_colorlike_.asColorLike(textFillStyleColor?textFillStyleColor:_ol_render_canvas_.defaultFillStyle);fillState=this.textFillState_;if(!fillState){fillState=this.textFillState_=/** @type {ol.CanvasFillState} */{};}fillState.fillStyle=fillStyle;}var textStrokeStyle=textStyle.getStroke();if(!textStrokeStyle){strokeState=this.textStrokeState_=null;}else{var textStrokeStyleColor=textStrokeStyle.getColor();var textStrokeStyleLineCap=textStrokeStyle.getLineCap();var textStrokeStyleLineDash=textStrokeStyle.getLineDash();var textStrokeStyleLineDashOffset=textStrokeStyle.getLineDashOffset();var textStrokeStyleLineJoin=textStrokeStyle.getLineJoin();var textStrokeStyleWidth=textStrokeStyle.getWidth();var textStrokeStyleMiterLimit=textStrokeStyle.getMiterLimit();var lineCap=textStrokeStyleLineCap!==undefined?textStrokeStyleLineCap:_ol_render_canvas_.defaultLineCap;var lineDash=textStrokeStyleLineDash?textStrokeStyleLineDash.slice():_ol_render_canvas_.defaultLineDash;var lineDashOffset=textStrokeStyleLineDashOffset!==undefined?textStrokeStyleLineDashOffset:_ol_render_canvas_.defaultLineDashOffset;var lineJoin=textStrokeStyleLineJoin!==undefined?textStrokeStyleLineJoin:_ol_render_canvas_.defaultLineJoin;var lineWidth=textStrokeStyleWidth!==undefined?textStrokeStyleWidth:_ol_render_canvas_.defaultLineWidth;var miterLimit=textStrokeStyleMiterLimit!==undefined?textStrokeStyleMiterLimit:_ol_render_canvas_.defaultMiterLimit;var strokeStyle=_ol_colorlike_.asColorLike(textStrokeStyleColor?textStrokeStyleColor:_ol_render_canvas_.defaultStrokeStyle);strokeState=this.textStrokeState_;if(!strokeState){strokeState=this.textStrokeState_=/** @type {ol.CanvasStrokeState} */{};}strokeState.lineCap=lineCap;strokeState.lineDash=lineDash;strokeState.lineDashOffset=lineDashOffset;strokeState.lineJoin=lineJoin;strokeState.lineWidth=lineWidth;strokeState.miterLimit=miterLimit;strokeState.strokeStyle=strokeStyle;}var textFont=textStyle.getFont();var textOffsetX=textStyle.getOffsetX();var textOffsetY=textStyle.getOffsetY();var textRotateWithView=textStyle.getRotateWithView();var textRotation=textStyle.getRotation();var textScale=textStyle.getScale();var textText=textStyle.getText();var textTextAlign=textStyle.getTextAlign();var textTextBaseline=textStyle.getTextBaseline();var font=textFont!==undefined?textFont:_ol_render_canvas_.defaultFont;var textAlign=textTextAlign;var textBaseline=textTextBaseline!==undefined?textTextBaseline:_ol_render_canvas_.defaultTextBaseline;textState=this.textState_;if(!textState){textState=this.textState_=/** @type {ol.CanvasTextState} */{};}textState.exceedLength=textStyle.getExceedLength();textState.font=font;textState.maxAngle=textStyle.getMaxAngle();textState.placement=textStyle.getPlacement();textState.textAlign=textAlign;textState.textBaseline=textBaseline;this.text_=textText!==undefined?textText:'';this.textOffsetX_=textOffsetX!==undefined?textOffsetX:0;this.textOffsetY_=textOffsetY!==undefined?textOffsetY:0;this.textRotateWithView_=textRotateWithView!==undefined?textRotateWithView:false;this.textRotation_=textRotation!==undefined?textRotation:0;this.textScale_=textScale!==undefined?textScale:1;this.strokeKey_=strokeState?(typeof strokeState.strokeStyle=='string'?strokeState.strokeStyle:_ol_.getUid(strokeState.strokeStyle))+strokeState.lineCap+strokeState.lineDashOffset+'|'+strokeState.lineWidth+strokeState.lineJoin+strokeState.miterLimit+'['+strokeState.lineDash.join()+']':'';this.textKey_=textState.font+(textState.textAlign||'?')+this.textScale_;this.fillKey_=fillState?typeof fillState.fillStyle=='string'?fillState.fillStyle:'|'+_ol_.getUid(fillState.fillStyle):'';}};/**
+ * @constructor
+ * @extends {ol.render.ReplayGroup}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {boolean} overlaps The replay group can have overlapping geometries.
+ * @param {number=} opt_renderBuffer Optional rendering buffer.
+ * @struct
+ */var _ol_render_canvas_ReplayGroup_=function(tolerance,maxExtent,resolution,pixelRatio,overlaps,opt_renderBuffer){_ol_render_ReplayGroup_.call(this);/**
    * @private
    * @type {number}
    */this.tolerance_=tolerance;/**
@@ -11844,7 +12834,12 @@ var flatClipCoords=this.getClipCoords(transform);context.save();context.beginPat
  * @type {Object.<ol.geom.GeometryType,
  *                function(ol.render.ReplayGroup, ol.geom.Geometry,
  *                         ol.style.Style, Object)>}
- */_ol_renderer_vector_.GEOMETRY_RENDERERS_={'Point':_ol_renderer_vector_.renderPointGeometry_,'LineString':_ol_renderer_vector_.renderLineStringGeometry_,'Polygon':_ol_renderer_vector_.renderPolygonGeometry_,'MultiPoint':_ol_renderer_vector_.renderMultiPointGeometry_,'MultiLineString':_ol_renderer_vector_.renderMultiLineStringGeometry_,'MultiPolygon':_ol_renderer_vector_.renderMultiPolygonGeometry_,'GeometryCollection':_ol_renderer_vector_.renderGeometryCollectionGeometry_,'Circle':_ol_renderer_vector_.renderCircleGeometry_};var _ol_renderer_canvas_VectorLayer_=function(vectorLayer){_ol_renderer_canvas_Layer_.call(this,vectorLayer);/**
+ */_ol_renderer_vector_.GEOMETRY_RENDERERS_={'Point':_ol_renderer_vector_.renderPointGeometry_,'LineString':_ol_renderer_vector_.renderLineStringGeometry_,'Polygon':_ol_renderer_vector_.renderPolygonGeometry_,'MultiPoint':_ol_renderer_vector_.renderMultiPointGeometry_,'MultiLineString':_ol_renderer_vector_.renderMultiLineStringGeometry_,'MultiPolygon':_ol_renderer_vector_.renderMultiPolygonGeometry_,'GeometryCollection':_ol_renderer_vector_.renderGeometryCollectionGeometry_,'Circle':_ol_renderer_vector_.renderCircleGeometry_};/**
+ * @constructor
+ * @extends {ol.renderer.canvas.Layer}
+ * @param {ol.layer.Vector} vectorLayer Vector layer.
+ * @api
+ */var _ol_renderer_canvas_VectorLayer_=function(vectorLayer){_ol_renderer_canvas_Layer_.call(this,vectorLayer);/**
    * @private
    * @type {boolean}
    */this.dirty_=false;/**
@@ -11924,7 +12919,12 @@ var worldWidth=_ol_extent_.getWidth(projectionExtent);var buffer=Math.max(_ol_ex
  *  * `'vector'`: Vector tiles are rendered as vectors. Most accurate rendering
  *    even during animations, but slower performance than the other options.
  * @api
- */var _ol_layer_VectorTileRenderType_={IMAGE:'image',HYBRID:'hybrid',VECTOR:'vector'};var _ol_renderer_canvas_VectorTileLayer_=function(layer){/**
+ */var _ol_layer_VectorTileRenderType_={IMAGE:'image',HYBRID:'hybrid',VECTOR:'vector'};/**
+ * @constructor
+ * @extends {ol.renderer.canvas.TileLayer}
+ * @param {ol.layer.VectorTile} layer VectorTile layer.
+ * @api
+ */var _ol_renderer_canvas_VectorTileLayer_=function(layer){/**
    * @type {CanvasRenderingContext2D}
    */this.context=null;_ol_renderer_canvas_TileLayer_.call(this,layer);/**
    * @private
@@ -11997,7 +12997,12 @@ context.moveTo(clip[6],clip[7]);context.lineTo(clip[4],clip[5]);context.lineTo(c
  * @param {olx.FrameState} frameState Frame state.
  * @param {ol.LayerState} layerState Layer state.
  * @private
- */_ol_renderer_canvas_VectorTileLayer_.prototype.renderTileImage_=function(tile,frameState,layerState){var layer=this.getLayer();var replayState=tile.getReplayState(layer);var revision=layer.getRevision();var replays=_ol_renderer_canvas_VectorTileLayer_.IMAGE_REPLAYS[layer.getRenderMode()];if(replays&&replayState.renderedTileRevision!==revision){replayState.renderedTileRevision=revision;var tileCoord=tile.wrappedTileCoord;var z=tileCoord[0];var pixelRatio=frameState.pixelRatio;var source=/** @type {ol.source.VectorTile} */layer.getSource();var tileGrid=source.getTileGridForProjection(frameState.viewState.projection);var resolution=tileGrid.getResolution(z);var context=tile.getContext(layer);var size=source.getTilePixelSize(z,pixelRatio,frameState.viewState.projection);context.canvas.width=size[0];context.canvas.height=size[1];var tileExtent=tileGrid.getTileCoordExtent(tileCoord);for(var i=0,ii=tile.tileKeys.length;i<ii;++i){var sourceTile=tile.getTile(tile.tileKeys[i]);if(sourceTile.getState()==_ol_TileState_.ERROR){continue;}var pixelScale=pixelRatio/resolution;var transform=_ol_transform_.reset(this.tmpTransform_);_ol_transform_.scale(transform,pixelScale,-pixelScale);_ol_transform_.translate(transform,-tileExtent[0],-tileExtent[3]);var replayGroup=sourceTile.getReplayGroup(layer,tile.tileCoord.toString());replayGroup.replay(context,transform,0,{},replays,true);}}};var _ol_webgl_Shader_=function(source){/**
+ */_ol_renderer_canvas_VectorTileLayer_.prototype.renderTileImage_=function(tile,frameState,layerState){var layer=this.getLayer();var replayState=tile.getReplayState(layer);var revision=layer.getRevision();var replays=_ol_renderer_canvas_VectorTileLayer_.IMAGE_REPLAYS[layer.getRenderMode()];if(replays&&replayState.renderedTileRevision!==revision){replayState.renderedTileRevision=revision;var tileCoord=tile.wrappedTileCoord;var z=tileCoord[0];var pixelRatio=frameState.pixelRatio;var source=/** @type {ol.source.VectorTile} */layer.getSource();var tileGrid=source.getTileGridForProjection(frameState.viewState.projection);var resolution=tileGrid.getResolution(z);var context=tile.getContext(layer);var size=source.getTilePixelSize(z,pixelRatio,frameState.viewState.projection);context.canvas.width=size[0];context.canvas.height=size[1];var tileExtent=tileGrid.getTileCoordExtent(tileCoord);for(var i=0,ii=tile.tileKeys.length;i<ii;++i){var sourceTile=tile.getTile(tile.tileKeys[i]);if(sourceTile.getState()==_ol_TileState_.ERROR){continue;}var pixelScale=pixelRatio/resolution;var transform=_ol_transform_.reset(this.tmpTransform_);_ol_transform_.scale(transform,pixelScale,-pixelScale);_ol_transform_.translate(transform,-tileExtent[0],-tileExtent[3]);var replayGroup=sourceTile.getReplayGroup(layer,tile.tileCoord.toString());replayGroup.replay(context,transform,0,{},replays,true);}}};/**
+ * @constructor
+ * @abstract
+ * @param {string} source Source.
+ * @struct
+ */var _ol_webgl_Shader_=function(source){/**
    * @private
    * @type {string}
    */this.source_=source;};/**
@@ -12007,13 +13012,28 @@ context.moveTo(clip[6],clip[7]);context.lineTo(clip[4],clip[5]);context.lineTo(c
  * @return {string} Source.
  */_ol_webgl_Shader_.prototype.getSource=function(){return this.source_;};/**
  * @return {boolean} Is animated?
- */_ol_webgl_Shader_.prototype.isAnimated=_ol_functions_.FALSE;var _ol_webgl_Fragment_=function(source){_ol_webgl_Shader_.call(this,source);};_ol_.inherits(_ol_webgl_Fragment_,_ol_webgl_Shader_);/**
+ */_ol_webgl_Shader_.prototype.isAnimated=_ol_functions_.FALSE;/**
+ * @constructor
+ * @extends {ol.webgl.Shader}
+ * @param {string} source Source.
+ * @struct
+ */var _ol_webgl_Fragment_=function(source){_ol_webgl_Shader_.call(this,source);};_ol_.inherits(_ol_webgl_Fragment_,_ol_webgl_Shader_);/**
  * @inheritDoc
- */_ol_webgl_Fragment_.prototype.getType=function(){return _ol_webgl_.FRAGMENT_SHADER;};var _ol_webgl_Vertex_=function(source){_ol_webgl_Shader_.call(this,source);};_ol_.inherits(_ol_webgl_Vertex_,_ol_webgl_Shader_);/**
+ */_ol_webgl_Fragment_.prototype.getType=function(){return _ol_webgl_.FRAGMENT_SHADER;};/**
+ * @constructor
+ * @extends {ol.webgl.Shader}
+ * @param {string} source Source.
+ * @struct
+ */var _ol_webgl_Vertex_=function(source){_ol_webgl_Shader_.call(this,source);};_ol_.inherits(_ol_webgl_Vertex_,_ol_webgl_Shader_);/**
  * @inheritDoc
  */_ol_webgl_Vertex_.prototype.getType=function(){return _ol_webgl_.VERTEX_SHADER;};// This file is automatically generated, do not edit
 var _ol_render_webgl_circlereplay_defaultshader_={};_ol_render_webgl_circlereplay_defaultshader_.fragment=new _ol_webgl_Fragment_(_ol_.DEBUG_WEBGL?'precision mediump float;\nvarying vec2 v_center;\nvarying vec2 v_offset;\nvarying float v_halfWidth;\nvarying float v_pixelRatio;\n\n\n\nuniform float u_opacity;\nuniform vec4 u_fillColor;\nuniform vec4 u_strokeColor;\nuniform vec2 u_size;\n\nvoid main(void) {\n  vec2 windowCenter = vec2((v_center.x + 1.0) / 2.0 * u_size.x * v_pixelRatio,\n      (v_center.y + 1.0) / 2.0 * u_size.y * v_pixelRatio);\n  vec2 windowOffset = vec2((v_offset.x + 1.0) / 2.0 * u_size.x * v_pixelRatio,\n      (v_offset.y + 1.0) / 2.0 * u_size.y * v_pixelRatio);\n  float radius = length(windowCenter - windowOffset);\n  float dist = length(windowCenter - gl_FragCoord.xy);\n  if (dist > radius + v_halfWidth) {\n    if (u_strokeColor.a == 0.0) {\n      gl_FragColor = u_fillColor;\n    } else {\n      gl_FragColor = u_strokeColor;\n    }\n    gl_FragColor.a = gl_FragColor.a - (dist - (radius + v_halfWidth));\n  } else if (u_fillColor.a == 0.0) {\n    // Hooray, no fill, just stroke. We can use real antialiasing.\n    gl_FragColor = u_strokeColor;\n    if (dist < radius - v_halfWidth) {\n      gl_FragColor.a = gl_FragColor.a - (radius - v_halfWidth - dist);\n    }\n  } else {\n    gl_FragColor = u_fillColor;\n    float strokeDist = radius - v_halfWidth;\n    float antialias = 2.0 * v_pixelRatio;\n    if (dist > strokeDist) {\n      gl_FragColor = u_strokeColor;\n    } else if (dist >= strokeDist - antialias) {\n      float step = smoothstep(strokeDist - antialias, strokeDist, dist);\n      gl_FragColor = mix(u_fillColor, u_strokeColor, step);\n    }\n  }\n  gl_FragColor.a = gl_FragColor.a * u_opacity;\n  if (gl_FragColor.a <= 0.0) {\n    discard;\n  }\n}\n':'precision mediump float;varying vec2 a;varying vec2 b;varying float c;varying float d;uniform float m;uniform vec4 n;uniform vec4 o;uniform vec2 p;void main(void){vec2 windowCenter=vec2((a.x+1.0)/2.0*p.x*d,(a.y+1.0)/2.0*p.y*d);vec2 windowOffset=vec2((b.x+1.0)/2.0*p.x*d,(b.y+1.0)/2.0*p.y*d);float radius=length(windowCenter-windowOffset);float dist=length(windowCenter-gl_FragCoord.xy);if(dist>radius+c){if(o.a==0.0){gl_FragColor=n;}else{gl_FragColor=o;}gl_FragColor.a=gl_FragColor.a-(dist-(radius+c));}else if(n.a==0.0){gl_FragColor=o;if(dist<radius-c){gl_FragColor.a=gl_FragColor.a-(radius-c-dist);}} else{gl_FragColor=n;float strokeDist=radius-c;float antialias=2.0*d;if(dist>strokeDist){gl_FragColor=o;}else if(dist>=strokeDist-antialias){float step=smoothstep(strokeDist-antialias,strokeDist,dist);gl_FragColor=mix(n,o,step);}} gl_FragColor.a=gl_FragColor.a*m;if(gl_FragColor.a<=0.0){discard;}}');_ol_render_webgl_circlereplay_defaultshader_.vertex=new _ol_webgl_Vertex_(_ol_.DEBUG_WEBGL?'varying vec2 v_center;\nvarying vec2 v_offset;\nvarying float v_halfWidth;\nvarying float v_pixelRatio;\n\n\nattribute vec2 a_position;\nattribute float a_instruction;\nattribute float a_radius;\n\nuniform mat4 u_projectionMatrix;\nuniform mat4 u_offsetScaleMatrix;\nuniform mat4 u_offsetRotateMatrix;\nuniform float u_lineWidth;\nuniform float u_pixelRatio;\n\nvoid main(void) {\n  mat4 offsetMatrix = u_offsetScaleMatrix * u_offsetRotateMatrix;\n  v_center = vec4(u_projectionMatrix * vec4(a_position, 0.0, 1.0)).xy;\n  v_pixelRatio = u_pixelRatio;\n  float lineWidth = u_lineWidth * u_pixelRatio;\n  v_halfWidth = lineWidth / 2.0;\n  if (lineWidth == 0.0) {\n    lineWidth = 2.0 * u_pixelRatio;\n  }\n  vec2 offset;\n  // Radius with anitaliasing (roughly).\n  float radius = a_radius + 3.0 * u_pixelRatio;\n  // Until we get gl_VertexID in WebGL, we store an instruction.\n  if (a_instruction == 0.0) {\n    // Offsetting the edges of the triangle by lineWidth / 2 is necessary, however\n    // we should also leave some space for the antialiasing, thus we offset by lineWidth.\n    offset = vec2(-1.0, 1.0);\n  } else if (a_instruction == 1.0) {\n    offset = vec2(-1.0, -1.0);\n  } else if (a_instruction == 2.0) {\n    offset = vec2(1.0, -1.0);\n  } else {\n    offset = vec2(1.0, 1.0);\n  }\n\n  gl_Position = u_projectionMatrix * vec4(a_position + offset * radius, 0.0, 1.0) +\n      offsetMatrix * vec4(offset * lineWidth, 0.0, 0.0);\n  v_offset = vec4(u_projectionMatrix * vec4(a_position.x + a_radius, a_position.y,\n      0.0, 1.0)).xy;\n\n  if (distance(v_center, v_offset) > 20000.0) {\n    gl_Position = vec4(v_center, 0.0, 1.0);\n  }\n}\n\n\n':'varying vec2 a;varying vec2 b;varying float c;varying float d;attribute vec2 e;attribute float f;attribute float g;uniform mat4 h;uniform mat4 i;uniform mat4 j;uniform float k;uniform float l;void main(void){mat4 offsetMatrix=i*j;a=vec4(h*vec4(e,0.0,1.0)).xy;d=l;float lineWidth=k*l;c=lineWidth/2.0;if(lineWidth==0.0){lineWidth=2.0*l;}vec2 offset;float radius=g+3.0*l;//Until we get gl_VertexID in WebGL,we store an instruction.if(f==0.0){//Offsetting the edges of the triangle by lineWidth/2 is necessary,however//we should also leave some space for the antialiasing,thus we offset by lineWidth.offset=vec2(-1.0,1.0);}else if(f==1.0){offset=vec2(-1.0,-1.0);}else if(f==2.0){offset=vec2(1.0,-1.0);}else{offset=vec2(1.0,1.0);}gl_Position=h*vec4(e+offset*radius,0.0,1.0)+offsetMatrix*vec4(offset*lineWidth,0.0,0.0);b=vec4(h*vec4(e.x+g,e.y,0.0,1.0)).xy;if(distance(a,b)>20000.0){gl_Position=vec4(a,0.0,1.0);}}');// This file is automatically generated, do not edit
-var _ol_render_webgl_circlereplay_defaultshader_Locations_=function(gl,program){/**
+/**
+ * @constructor
+ * @param {WebGLRenderingContext} gl GL.
+ * @param {WebGLProgram} program Program.
+ * @struct
+ */var _ol_render_webgl_circlereplay_defaultshader_Locations_=function(gl,program){/**
    * @type {WebGLUniformLocation}
    */this.u_projectionMatrix=gl.getUniformLocation(program,_ol_.DEBUG_WEBGL?'u_projectionMatrix':'h');/**
    * @type {WebGLUniformLocation}
@@ -12043,7 +13063,14 @@ var _ol_render_webgl_circlereplay_defaultshader_Locations_=function(gl,program){
  * @param {Array.<number>} mat4 Flattened 4x4 matrix receiving the result.
  * @param {ol.Transform} transform Transformation matrix.
  * @return {Array.<number>} 2D transformation matrix as flattened 4x4 matrix.
- */_ol_vec_Mat4_.fromTransform=function(mat4,transform){mat4[0]=transform[0];mat4[1]=transform[1];mat4[4]=transform[2];mat4[5]=transform[3];mat4[12]=transform[4];mat4[13]=transform[5];return mat4;};var _ol_render_webgl_Replay_=function(tolerance,maxExtent){_ol_render_VectorContext_.call(this);/**
+ */_ol_vec_Mat4_.fromTransform=function(mat4,transform){mat4[0]=transform[0];mat4[1]=transform[1];mat4[4]=transform[2];mat4[5]=transform[3];mat4[12]=transform[4];mat4[13]=transform[5];return mat4;};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.render.VectorContext}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_Replay_=function(tolerance,maxExtent){_ol_render_VectorContext_.call(this);/**
    * @protected
    * @type {number}
    */this.tolerance=tolerance;/**
@@ -12233,7 +13260,12 @@ this.shutDownProgram(gl,locations);if(this.lineStringReplay){if(!tmpStencil){gl.
  */_ol_render_webgl_.triangleIsCounterClockwise=function(x1,y1,x2,y2,x3,y3){var area=(x2-x1)*(y3-y1)-(x3-x1)*(y2-y1);return area<=_ol_render_webgl_.EPSILON&&area>=-_ol_render_webgl_.EPSILON?undefined:area>0;};/**
  * @const
  * @type {number}
- */_ol_render_webgl_.EPSILON=Number.EPSILON||2.220446049250313e-16;var _ol_webgl_Buffer_=function(opt_arr,opt_usage){/**
+ */_ol_render_webgl_.EPSILON=Number.EPSILON||2.220446049250313e-16;/**
+ * @constructor
+ * @param {Array.<number>=} opt_arr Array.
+ * @param {number=} opt_usage Usage.
+ * @struct
+ */var _ol_webgl_Buffer_=function(opt_arr,opt_usage){/**
    * @private
    * @type {Array.<number>}
    */this.arr_=opt_arr!==undefined?opt_arr:[];/**
@@ -12246,7 +13278,13 @@ this.shutDownProgram(gl,locations);if(this.lineStringReplay){if(!tmpStencil){gl.
  */_ol_webgl_Buffer_.prototype.getUsage=function(){return this.usage_;};/**
  * @enum {number}
  * @private
- */_ol_webgl_Buffer_.Usage_={STATIC_DRAW:_ol_webgl_.STATIC_DRAW,STREAM_DRAW:_ol_webgl_.STREAM_DRAW,DYNAMIC_DRAW:_ol_webgl_.DYNAMIC_DRAW};var _ol_render_webgl_CircleReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);/**
+ */_ol_webgl_Buffer_.Usage_={STATIC_DRAW:_ol_webgl_.STATIC_DRAW,STREAM_DRAW:_ol_webgl_.STREAM_DRAW,DYNAMIC_DRAW:_ol_webgl_.DYNAMIC_DRAW};/**
+ * @constructor
+ * @extends {ol.render.webgl.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_CircleReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);/**
    * @private
    * @type {ol.render.webgl.circlereplay.defaultshader.Locations}
    */this.defaultLocations_=null;/**
@@ -12316,7 +13354,12 @@ var i,start,end,nextStyle;end=this.startIndices[this.startIndices.length-1];for(
  * @inheritDoc
  */_ol_render_webgl_CircleReplay_.prototype.setFillStrokeStyle=function(fillStyle,strokeStyle){var strokeStyleColor,strokeStyleWidth;if(strokeStyle){var strokeStyleLineDash=strokeStyle.getLineDash();this.state_.lineDash=strokeStyleLineDash?strokeStyleLineDash:_ol_render_webgl_.defaultLineDash;var strokeStyleLineDashOffset=strokeStyle.getLineDashOffset();this.state_.lineDashOffset=strokeStyleLineDashOffset?strokeStyleLineDashOffset:_ol_render_webgl_.defaultLineDashOffset;strokeStyleColor=strokeStyle.getColor();if(!(strokeStyleColor instanceof CanvasGradient)&&!(strokeStyleColor instanceof CanvasPattern)){strokeStyleColor=_ol_color_.asArray(strokeStyleColor).map(function(c,i){return i!=3?c/255:c;})||_ol_render_webgl_.defaultStrokeStyle;}else{strokeStyleColor=_ol_render_webgl_.defaultStrokeStyle;}strokeStyleWidth=strokeStyle.getWidth();strokeStyleWidth=strokeStyleWidth!==undefined?strokeStyleWidth:_ol_render_webgl_.defaultLineWidth;}else{strokeStyleColor=[0,0,0,0];strokeStyleWidth=0;}var fillStyleColor=fillStyle?fillStyle.getColor():[0,0,0,0];if(!(fillStyleColor instanceof CanvasGradient)&&!(fillStyleColor instanceof CanvasPattern)){fillStyleColor=_ol_color_.asArray(fillStyleColor).map(function(c,i){return i!=3?c/255:c;})||_ol_render_webgl_.defaultFillStyle;}else{fillStyleColor=_ol_render_webgl_.defaultFillStyle;}if(!this.state_.strokeColor||!_ol_array_.equals(this.state_.strokeColor,strokeStyleColor)||!this.state_.fillColor||!_ol_array_.equals(this.state_.fillColor,fillStyleColor)||this.state_.lineWidth!==strokeStyleWidth){this.state_.changed=true;this.state_.fillColor=fillStyleColor;this.state_.strokeColor=strokeStyleColor;this.state_.lineWidth=strokeStyleWidth;this.styles_.push([fillStyleColor,strokeStyleColor,strokeStyleWidth]);}};// This file is automatically generated, do not edit
 var _ol_render_webgl_texturereplay_defaultshader_={};_ol_render_webgl_texturereplay_defaultshader_.fragment=new _ol_webgl_Fragment_(_ol_.DEBUG_WEBGL?'precision mediump float;\nvarying vec2 v_texCoord;\nvarying float v_opacity;\n\nuniform float u_opacity;\nuniform sampler2D u_image;\n\nvoid main(void) {\n  vec4 texColor = texture2D(u_image, v_texCoord);\n  gl_FragColor.rgb = texColor.rgb;\n  float alpha = texColor.a * v_opacity * u_opacity;\n  if (alpha == 0.0) {\n    discard;\n  }\n  gl_FragColor.a = alpha;\n}\n':'precision mediump float;varying vec2 a;varying float b;uniform float k;uniform sampler2D l;void main(void){vec4 texColor=texture2D(l,a);gl_FragColor.rgb=texColor.rgb;float alpha=texColor.a*b*k;if(alpha==0.0){discard;}gl_FragColor.a=alpha;}');_ol_render_webgl_texturereplay_defaultshader_.vertex=new _ol_webgl_Vertex_(_ol_.DEBUG_WEBGL?'varying vec2 v_texCoord;\nvarying float v_opacity;\n\nattribute vec2 a_position;\nattribute vec2 a_texCoord;\nattribute vec2 a_offsets;\nattribute float a_opacity;\nattribute float a_rotateWithView;\n\nuniform mat4 u_projectionMatrix;\nuniform mat4 u_offsetScaleMatrix;\nuniform mat4 u_offsetRotateMatrix;\n\nvoid main(void) {\n  mat4 offsetMatrix = u_offsetScaleMatrix;\n  if (a_rotateWithView == 1.0) {\n    offsetMatrix = u_offsetScaleMatrix * u_offsetRotateMatrix;\n  }\n  vec4 offsets = offsetMatrix * vec4(a_offsets, 0.0, 0.0);\n  gl_Position = u_projectionMatrix * vec4(a_position, 0.0, 1.0) + offsets;\n  v_texCoord = a_texCoord;\n  v_opacity = a_opacity;\n}\n\n\n':'varying vec2 a;varying float b;attribute vec2 c;attribute vec2 d;attribute vec2 e;attribute float f;attribute float g;uniform mat4 h;uniform mat4 i;uniform mat4 j;void main(void){mat4 offsetMatrix=i;if(g==1.0){offsetMatrix=i*j;}vec4 offsets=offsetMatrix*vec4(e,0.0,0.0);gl_Position=h*vec4(c,0.0,1.0)+offsets;a=d;b=f;}');// This file is automatically generated, do not edit
-var _ol_render_webgl_texturereplay_defaultshader_Locations_=function(gl,program){/**
+/**
+ * @constructor
+ * @param {WebGLRenderingContext} gl GL.
+ * @param {WebGLProgram} program Program.
+ * @struct
+ */var _ol_render_webgl_texturereplay_defaultshader_Locations_=function(gl,program){/**
    * @type {WebGLUniformLocation}
    */this.u_projectionMatrix=gl.getUniformLocation(program,_ol_.DEBUG_WEBGL?'u_projectionMatrix':'h');/**
    * @type {WebGLUniformLocation}
@@ -12338,7 +13381,15 @@ var _ol_render_webgl_texturereplay_defaultshader_Locations_=function(gl,program)
    * @type {number}
    */this.a_rotateWithView=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_rotateWithView':'g');};/**
  * @enum {string}
- */var _ol_webgl_ContextEventType_={LOST:'webglcontextlost',RESTORED:'webglcontextrestored'};var _ol_webgl_Context_=function(canvas,gl){/**
+ */var _ol_webgl_ContextEventType_={LOST:'webglcontextlost',RESTORED:'webglcontextrestored'};/**
+ * @classdesc
+ * A WebGL context for accessing low-level WebGL capabilities.
+ *
+ * @constructor
+ * @extends {ol.Disposable}
+ * @param {HTMLCanvasElement} canvas Canvas.
+ * @param {WebGLRenderingContext} gl GL.
+ */var _ol_webgl_Context_=function(canvas,gl){/**
    * @private
    * @type {HTMLCanvasElement}
    */this.canvas_=canvas;/**
@@ -12431,7 +13482,14 @@ gl.deleteFramebuffer(this.hitDetectionFramebuffer_);gl.deleteRenderbuffer(this.h
  * @param {number=} opt_wrapS wrapS.
  * @param {number=} opt_wrapT wrapT.
  * @return {WebGLTexture} The texture.
- */_ol_webgl_Context_.createTexture=function(gl,image,opt_wrapS,opt_wrapT){var texture=_ol_webgl_Context_.createTexture_(gl,opt_wrapS,opt_wrapT);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);return texture;};var _ol_render_webgl_TextureReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);/**
+ */_ol_webgl_Context_.createTexture=function(gl,image,opt_wrapS,opt_wrapT){var texture=_ol_webgl_Context_.createTexture_(gl,opt_wrapS,opt_wrapT);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);return texture;};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.render.webgl.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_TextureReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);/**
    * @type {number|undefined}
    * @protected
    */this.anchorX=undefined;/**
@@ -12561,7 +13619,13 @@ while(featureIndex>=0&&this.startIndices[featureIndex]>=groupStart){start=this.s
  * @abstract
  * @protected
  * @returns {Array.<WebGLTexture>} Textures.
- */_ol_render_webgl_TextureReplay_.prototype.getHitDetectionTextures=function(){};var _ol_render_webgl_ImageReplay_=function(tolerance,maxExtent){_ol_render_webgl_TextureReplay_.call(this,tolerance,maxExtent);/**
+ */_ol_render_webgl_TextureReplay_.prototype.getHitDetectionTextures=function(){};/**
+ * @constructor
+ * @extends {ol.render.webgl.TextureReplay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_ImageReplay_=function(tolerance,maxExtent){_ol_render_webgl_TextureReplay_.call(this,tolerance,maxExtent);/**
    * @type {Array.<HTMLCanvasElement|HTMLImageElement|HTMLVideoElement>}
    * @protected
    */this.images_=[];/**
@@ -12597,7 +13661,12 @@ this.indicesBuffer=new _ol_webgl_Buffer_(indices);// create textures
  * @return {boolean} The linestring is a boundary.
  */_ol_geom_flat_topology_.lineStringIsClosed=function(flatCoordinates,offset,end,stride){var lastCoord=end-stride;if(flatCoordinates[offset]===flatCoordinates[lastCoord]&&flatCoordinates[offset+1]===flatCoordinates[lastCoord+1]&&(end-offset)/stride>3){return!!_ol_geom_flat_area_.linearRing(flatCoordinates,offset,end,stride);}return false;};// This file is automatically generated, do not edit
 var _ol_render_webgl_linestringreplay_defaultshader_={};_ol_render_webgl_linestringreplay_defaultshader_.fragment=new _ol_webgl_Fragment_(_ol_.DEBUG_WEBGL?'precision mediump float;\nvarying float v_round;\nvarying vec2 v_roundVertex;\nvarying float v_halfWidth;\n\n\n\nuniform float u_opacity;\nuniform vec4 u_color;\nuniform vec2 u_size;\nuniform float u_pixelRatio;\n\nvoid main(void) {\n  if (v_round > 0.0) {\n    vec2 windowCoords = vec2((v_roundVertex.x + 1.0) / 2.0 * u_size.x * u_pixelRatio,\n        (v_roundVertex.y + 1.0) / 2.0 * u_size.y * u_pixelRatio);\n    if (length(windowCoords - gl_FragCoord.xy) > v_halfWidth * u_pixelRatio) {\n      discard;\n    }\n  }\n  gl_FragColor = u_color;\n  float alpha = u_color.a * u_opacity;\n  if (alpha == 0.0) {\n    discard;\n  }\n  gl_FragColor.a = alpha;\n}\n':'precision mediump float;varying float a;varying vec2 aVertex;varying float c;uniform float m;uniform vec4 n;uniform vec2 o;uniform float p;void main(void){if(a>0.0){vec2 windowCoords=vec2((aVertex.x+1.0)/2.0*o.x*p,(aVertex.y+1.0)/2.0*o.y*p);if(length(windowCoords-gl_FragCoord.xy)>c*p){discard;}} gl_FragColor=n;float alpha=n.a*m;if(alpha==0.0){discard;}gl_FragColor.a=alpha;}');_ol_render_webgl_linestringreplay_defaultshader_.vertex=new _ol_webgl_Vertex_(_ol_.DEBUG_WEBGL?'varying float v_round;\nvarying vec2 v_roundVertex;\nvarying float v_halfWidth;\n\n\nattribute vec2 a_lastPos;\nattribute vec2 a_position;\nattribute vec2 a_nextPos;\nattribute float a_direction;\n\nuniform mat4 u_projectionMatrix;\nuniform mat4 u_offsetScaleMatrix;\nuniform mat4 u_offsetRotateMatrix;\nuniform float u_lineWidth;\nuniform float u_miterLimit;\n\nbool nearlyEquals(in float value, in float ref) {\n  float epsilon = 0.000000000001;\n  return value >= ref - epsilon && value <= ref + epsilon;\n}\n\nvoid alongNormal(out vec2 offset, in vec2 nextP, in float turnDir, in float direction) {\n  vec2 dirVect = nextP - a_position;\n  vec2 normal = normalize(vec2(-turnDir * dirVect.y, turnDir * dirVect.x));\n  offset = u_lineWidth / 2.0 * normal * direction;\n}\n\nvoid miterUp(out vec2 offset, out float round, in bool isRound, in float direction) {\n  float halfWidth = u_lineWidth / 2.0;\n  vec2 tangent = normalize(normalize(a_nextPos - a_position) + normalize(a_position - a_lastPos));\n  vec2 normal = vec2(-tangent.y, tangent.x);\n  vec2 dirVect = a_nextPos - a_position;\n  vec2 tmpNormal = normalize(vec2(-dirVect.y, dirVect.x));\n  float miterLength = abs(halfWidth / dot(normal, tmpNormal));\n  offset = normal * direction * miterLength;\n  round = 0.0;\n  if (isRound) {\n    round = 1.0;\n  } else if (miterLength > u_miterLimit + u_lineWidth) {\n    offset = halfWidth * tmpNormal * direction;\n  }\n}\n\nbool miterDown(out vec2 offset, in vec4 projPos, in mat4 offsetMatrix, in float direction) {\n  bool degenerate = false;\n  vec2 tangent = normalize(normalize(a_nextPos - a_position) + normalize(a_position - a_lastPos));\n  vec2 normal = vec2(-tangent.y, tangent.x);\n  vec2 dirVect = a_lastPos - a_position;\n  vec2 tmpNormal = normalize(vec2(-dirVect.y, dirVect.x));\n  vec2 longOffset, shortOffset, longVertex;\n  vec4 shortProjVertex;\n  float halfWidth = u_lineWidth / 2.0;\n  if (length(a_nextPos - a_position) > length(a_lastPos - a_position)) {\n    longOffset = tmpNormal * direction * halfWidth;\n    shortOffset = normalize(vec2(dirVect.y, -dirVect.x)) * direction * halfWidth;\n    longVertex = a_nextPos;\n    shortProjVertex = u_projectionMatrix * vec4(a_lastPos, 0.0, 1.0);\n  } else {\n    shortOffset = tmpNormal * direction * halfWidth;\n    longOffset = normalize(vec2(dirVect.y, -dirVect.x)) * direction * halfWidth;\n    longVertex = a_lastPos;\n    shortProjVertex = u_projectionMatrix * vec4(a_nextPos, 0.0, 1.0);\n  }\n  //Intersection algorithm based on theory by Paul Bourke (http://paulbourke.net/geometry/pointlineplane/).\n  vec4 p1 = u_projectionMatrix * vec4(longVertex, 0.0, 1.0) + offsetMatrix * vec4(longOffset, 0.0, 0.0);\n  vec4 p2 = projPos + offsetMatrix * vec4(longOffset, 0.0, 0.0);\n  vec4 p3 = shortProjVertex + offsetMatrix * vec4(-shortOffset, 0.0, 0.0);\n  vec4 p4 = shortProjVertex + offsetMatrix * vec4(shortOffset, 0.0, 0.0);\n  float denom = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);\n  float firstU = ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / denom;\n  float secondU = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / denom;\n  float epsilon = 0.000000000001;\n  if (firstU > epsilon && firstU < 1.0 - epsilon && secondU > epsilon && secondU < 1.0 - epsilon) {\n    shortProjVertex.x = p1.x + firstU * (p2.x - p1.x);\n    shortProjVertex.y = p1.y + firstU * (p2.y - p1.y);\n    offset = shortProjVertex.xy;\n    degenerate = true;\n  } else {\n    float miterLength = abs(halfWidth / dot(normal, tmpNormal));\n    offset = normal * direction * miterLength;\n  }\n  return degenerate;\n}\n\nvoid squareCap(out vec2 offset, out float round, in bool isRound, in vec2 nextP,\n    in float turnDir, in float direction) {\n  round = 0.0;\n  vec2 dirVect = a_position - nextP;\n  vec2 firstNormal = normalize(dirVect);\n  vec2 secondNormal = vec2(turnDir * firstNormal.y * direction, -turnDir * firstNormal.x * direction);\n  vec2 hypotenuse = normalize(firstNormal - secondNormal);\n  vec2 normal = vec2(turnDir * hypotenuse.y * direction, -turnDir * hypotenuse.x * direction);\n  float length = sqrt(v_halfWidth * v_halfWidth * 2.0);\n  offset = normal * length;\n  if (isRound) {\n    round = 1.0;\n  }\n}\n\nvoid main(void) {\n  bool degenerate = false;\n  float direction = float(sign(a_direction));\n  mat4 offsetMatrix = u_offsetScaleMatrix * u_offsetRotateMatrix;\n  vec2 offset;\n  vec4 projPos = u_projectionMatrix * vec4(a_position, 0.0, 1.0);\n  bool round = nearlyEquals(mod(a_direction, 2.0), 0.0);\n\n  v_round = 0.0;\n  v_halfWidth = u_lineWidth / 2.0;\n  v_roundVertex = projPos.xy;\n\n  if (nearlyEquals(mod(a_direction, 3.0), 0.0) || nearlyEquals(mod(a_direction, 17.0), 0.0)) {\n    alongNormal(offset, a_nextPos, 1.0, direction);\n  } else if (nearlyEquals(mod(a_direction, 5.0), 0.0) || nearlyEquals(mod(a_direction, 13.0), 0.0)) {\n    alongNormal(offset, a_lastPos, -1.0, direction);\n  } else if (nearlyEquals(mod(a_direction, 23.0), 0.0)) {\n    miterUp(offset, v_round, round, direction);\n  } else if (nearlyEquals(mod(a_direction, 19.0), 0.0)) {\n    degenerate = miterDown(offset, projPos, offsetMatrix, direction);\n  } else if (nearlyEquals(mod(a_direction, 7.0), 0.0)) {\n    squareCap(offset, v_round, round, a_nextPos, 1.0, direction);\n  } else if (nearlyEquals(mod(a_direction, 11.0), 0.0)) {\n    squareCap(offset, v_round, round, a_lastPos, -1.0, direction);\n  }\n  if (!degenerate) {\n    vec4 offsets = offsetMatrix * vec4(offset, 0.0, 0.0);\n    gl_Position = projPos + offsets;\n  } else {\n    gl_Position = vec4(offset, 0.0, 1.0);\n  }\n}\n\n\n':'varying float a;varying vec2 aVertex;varying float c;attribute vec2 d;attribute vec2 e;attribute vec2 f;attribute float g;uniform mat4 h;uniform mat4 i;uniform mat4 j;uniform float k;uniform float l;bool nearlyEquals(in float value,in float ref){float epsilon=0.000000000001;return value>=ref-epsilon&&value<=ref+epsilon;}void alongNormal(out vec2 offset,in vec2 nextP,in float turnDir,in float direction){vec2 dirVect=nextP-e;vec2 normal=normalize(vec2(-turnDir*dirVect.y,turnDir*dirVect.x));offset=k/2.0*normal*direction;}void miterUp(out vec2 offset,out float round,in bool isRound,in float direction){float halfWidth=k/2.0;vec2 tangent=normalize(normalize(f-e)+normalize(e-d));vec2 normal=vec2(-tangent.y,tangent.x);vec2 dirVect=f-e;vec2 tmpNormal=normalize(vec2(-dirVect.y,dirVect.x));float miterLength=abs(halfWidth/dot(normal,tmpNormal));offset=normal*direction*miterLength;round=0.0;if(isRound){round=1.0;}else if(miterLength>l+k){offset=halfWidth*tmpNormal*direction;}} bool miterDown(out vec2 offset,in vec4 projPos,in mat4 offsetMatrix,in float direction){bool degenerate=false;vec2 tangent=normalize(normalize(f-e)+normalize(e-d));vec2 normal=vec2(-tangent.y,tangent.x);vec2 dirVect=d-e;vec2 tmpNormal=normalize(vec2(-dirVect.y,dirVect.x));vec2 longOffset,shortOffset,longVertex;vec4 shortProjVertex;float halfWidth=k/2.0;if(length(f-e)>length(d-e)){longOffset=tmpNormal*direction*halfWidth;shortOffset=normalize(vec2(dirVect.y,-dirVect.x))*direction*halfWidth;longVertex=f;shortProjVertex=h*vec4(d,0.0,1.0);}else{shortOffset=tmpNormal*direction*halfWidth;longOffset=normalize(vec2(dirVect.y,-dirVect.x))*direction*halfWidth;longVertex=d;shortProjVertex=h*vec4(f,0.0,1.0);}vec4 p1=h*vec4(longVertex,0.0,1.0)+offsetMatrix*vec4(longOffset,0.0,0.0);vec4 p2=projPos+offsetMatrix*vec4(longOffset,0.0,0.0);vec4 p3=shortProjVertex+offsetMatrix*vec4(-shortOffset,0.0,0.0);vec4 p4=shortProjVertex+offsetMatrix*vec4(shortOffset,0.0,0.0);float denom=(p4.y-p3.y)*(p2.x-p1.x)-(p4.x-p3.x)*(p2.y-p1.y);float firstU=((p4.x-p3.x)*(p1.y-p3.y)-(p4.y-p3.y)*(p1.x-p3.x))/denom;float secondU=((p2.x-p1.x)*(p1.y-p3.y)-(p2.y-p1.y)*(p1.x-p3.x))/denom;float epsilon=0.000000000001;if(firstU>epsilon&&firstU<1.0-epsilon&&secondU>epsilon&&secondU<1.0-epsilon){shortProjVertex.x=p1.x+firstU*(p2.x-p1.x);shortProjVertex.y=p1.y+firstU*(p2.y-p1.y);offset=shortProjVertex.xy;degenerate=true;}else{float miterLength=abs(halfWidth/dot(normal,tmpNormal));offset=normal*direction*miterLength;}return degenerate;}void squareCap(out vec2 offset,out float round,in bool isRound,in vec2 nextP,in float turnDir,in float direction){round=0.0;vec2 dirVect=e-nextP;vec2 firstNormal=normalize(dirVect);vec2 secondNormal=vec2(turnDir*firstNormal.y*direction,-turnDir*firstNormal.x*direction);vec2 hypotenuse=normalize(firstNormal-secondNormal);vec2 normal=vec2(turnDir*hypotenuse.y*direction,-turnDir*hypotenuse.x*direction);float length=sqrt(c*c*2.0);offset=normal*length;if(isRound){round=1.0;}} void main(void){bool degenerate=false;float direction=float(sign(g));mat4 offsetMatrix=i*j;vec2 offset;vec4 projPos=h*vec4(e,0.0,1.0);bool round=nearlyEquals(mod(g,2.0),0.0);a=0.0;c=k/2.0;aVertex=projPos.xy;if(nearlyEquals(mod(g,3.0),0.0)||nearlyEquals(mod(g,17.0),0.0)){alongNormal(offset,f,1.0,direction);}else if(nearlyEquals(mod(g,5.0),0.0)||nearlyEquals(mod(g,13.0),0.0)){alongNormal(offset,d,-1.0,direction);}else if(nearlyEquals(mod(g,23.0),0.0)){miterUp(offset,a,round,direction);}else if(nearlyEquals(mod(g,19.0),0.0)){degenerate=miterDown(offset,projPos,offsetMatrix,direction);}else if(nearlyEquals(mod(g,7.0),0.0)){squareCap(offset,a,round,f,1.0,direction);}else if(nearlyEquals(mod(g,11.0),0.0)){squareCap(offset,a,round,d,-1.0,direction);}if(!degenerate){vec4 offsets=offsetMatrix*vec4(offset,0.0,0.0);gl_Position=projPos+offsets;}else{gl_Position=vec4(offset,0.0,1.0);}}');// This file is automatically generated, do not edit
-var _ol_render_webgl_linestringreplay_defaultshader_Locations_=function(gl,program){/**
+/**
+ * @constructor
+ * @param {WebGLRenderingContext} gl GL.
+ * @param {WebGLProgram} program Program.
+ * @struct
+ */var _ol_render_webgl_linestringreplay_defaultshader_Locations_=function(gl,program){/**
    * @type {WebGLUniformLocation}
    */this.u_projectionMatrix=gl.getUniformLocation(program,_ol_.DEBUG_WEBGL?'u_projectionMatrix':'h');/**
    * @type {WebGLUniformLocation}
@@ -12623,7 +13692,13 @@ var _ol_render_webgl_linestringreplay_defaultshader_Locations_=function(gl,progr
    * @type {number}
    */this.a_nextPos=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_nextPos':'f');/**
    * @type {number}
-   */this.a_direction=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_direction':'g');};var _ol_render_webgl_LineStringReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);/**
+   */this.a_direction=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_direction':'g');};/**
+ * @constructor
+ * @extends {ol.render.webgl.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_LineStringReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);/**
    * @private
    * @type {ol.render.webgl.linestringreplay.defaultshader.Locations}
    */this.defaultLocations_=null;/**
@@ -12729,7 +13804,12 @@ gl.depthMask(tmpDepthMask);gl.depthFunc(tmpDepthFunc);}};/**
  * @private
  */_ol_render_webgl_LineStringReplay_.Instruction_={ROUND:2,BEGIN_LINE:3,END_LINE:5,BEGIN_LINE_CAP:7,END_LINE_CAP:11,BEVEL_FIRST:13,BEVEL_SECOND:17,MITER_BOTTOM:19,MITER_TOP:23};// This file is automatically generated, do not edit
 var _ol_render_webgl_polygonreplay_defaultshader_={};_ol_render_webgl_polygonreplay_defaultshader_.fragment=new _ol_webgl_Fragment_(_ol_.DEBUG_WEBGL?'precision mediump float;\n\n\n\nuniform vec4 u_color;\nuniform float u_opacity;\n\nvoid main(void) {\n  gl_FragColor = u_color;\n  float alpha = u_color.a * u_opacity;\n  if (alpha == 0.0) {\n    discard;\n  }\n  gl_FragColor.a = alpha;\n}\n':'precision mediump float;uniform vec4 e;uniform float f;void main(void){gl_FragColor=e;float alpha=e.a*f;if(alpha==0.0){discard;}gl_FragColor.a=alpha;}');_ol_render_webgl_polygonreplay_defaultshader_.vertex=new _ol_webgl_Vertex_(_ol_.DEBUG_WEBGL?'\n\nattribute vec2 a_position;\n\nuniform mat4 u_projectionMatrix;\nuniform mat4 u_offsetScaleMatrix;\nuniform mat4 u_offsetRotateMatrix;\n\nvoid main(void) {\n  gl_Position = u_projectionMatrix * vec4(a_position, 0.0, 1.0);\n}\n\n\n':'attribute vec2 a;uniform mat4 b;uniform mat4 c;uniform mat4 d;void main(void){gl_Position=b*vec4(a,0.0,1.0);}');// This file is automatically generated, do not edit
-var _ol_render_webgl_polygonreplay_defaultshader_Locations_=function(gl,program){/**
+/**
+ * @constructor
+ * @param {WebGLRenderingContext} gl GL.
+ * @param {WebGLProgram} program Program.
+ * @struct
+ */var _ol_render_webgl_polygonreplay_defaultshader_Locations_=function(gl,program){/**
    * @type {WebGLUniformLocation}
    */this.u_projectionMatrix=gl.getUniformLocation(program,_ol_.DEBUG_WEBGL?'u_projectionMatrix':'b');/**
    * @type {WebGLUniformLocation}
@@ -12810,7 +13890,13 @@ var next=head.next;item.prev=head;item.next=next;head.next=item;if(next){next.pr
  * Returns the current length of the list.
  *
  * @return {number} Length.
- */_ol_structs_LinkedList_.prototype.getLength=function(){return this.length_;};var _ol_render_webgl_PolygonReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);this.lineStringReplay=new _ol_render_webgl_LineStringReplay_(tolerance,maxExtent);/**
+ */_ol_structs_LinkedList_.prototype.getLength=function(){return this.length_;};/**
+ * @constructor
+ * @extends {ol.render.webgl.Replay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_PolygonReplay_=function(tolerance,maxExtent){_ol_render_webgl_Replay_.call(this,tolerance,maxExtent);this.lineStringReplay=new _ol_render_webgl_LineStringReplay_(tolerance,maxExtent);/**
    * @private
    * @type {ol.render.webgl.polygonreplay.defaultshader.Locations}
    */this.defaultLocations_=null;/**
@@ -12991,7 +14077,23 @@ gl.depthMask(tmpDepthMask);gl.depthFunc(tmpDepthFunc);}};/**
  */_ol_render_webgl_PolygonReplay_.prototype.setFillStyle_=function(gl,color){gl.uniform4fv(this.defaultLocations_.u_color,color);};/**
  * @inheritDoc
  */_ol_render_webgl_PolygonReplay_.prototype.setFillStrokeStyle=function(fillStyle,strokeStyle){var fillStyleColor=fillStyle?fillStyle.getColor():[0,0,0,0];if(!(fillStyleColor instanceof CanvasGradient)&&!(fillStyleColor instanceof CanvasPattern)){fillStyleColor=_ol_color_.asArray(fillStyleColor).map(function(c,i){return i!=3?c/255:c;})||_ol_render_webgl_.defaultFillStyle;}else{fillStyleColor=_ol_render_webgl_.defaultFillStyle;}if(!this.state_.fillColor||!_ol_array_.equals(fillStyleColor,this.state_.fillColor)){this.state_.fillColor=fillStyleColor;this.state_.changed=true;this.styles_.push(fillStyleColor);}//Provide a null stroke style, if no strokeStyle is provided. Required for the draw interaction to work.
-if(strokeStyle){this.lineStringReplay.setFillStrokeStyle(null,strokeStyle);}else{var nullStrokeStyle=new _ol_style_Stroke_({color:[0,0,0,0],lineWidth:0});this.lineStringReplay.setFillStrokeStyle(null,nullStrokeStyle);}};var _ol_style_Atlas_=function(size,space){/**
+if(strokeStyle){this.lineStringReplay.setFillStrokeStyle(null,strokeStyle);}else{var nullStrokeStyle=new _ol_style_Stroke_({color:[0,0,0,0],lineWidth:0});this.lineStringReplay.setFillStrokeStyle(null,nullStrokeStyle);}};/**
+ * This class facilitates the creation of image atlases.
+ *
+ * Images added to an atlas will be rendered onto a single
+ * atlas canvas. The distribution of images on the canvas is
+ * managed with the bin packing algorithm described in:
+ * http://www.blackpawn.com/texts/lightmaps/
+ *
+ * @constructor
+ * @struct
+ * @param {number} size The size in pixels of the sprite image.
+ * @param {number} space The space in pixels between images.
+ *    Because texture coordinates are float values, the edges of
+ *    images might not be completely correct (in a way that the
+ *    edges overlap when being rendered). To avoid this we add a
+ *    padding around each image.
+ */var _ol_style_Atlas_=function(size,space){/**
    * @private
    * @type {number}
    */this.space_=space;/**
@@ -13042,7 +14144,23 @@ newBlock2={x:block.x,y:block.y+height,width:block.width,height:block.height-heig
  * @param {number} index The index of the block to remove.
  * @param {ol.AtlasBlock} newBlock1 The 1st block to add.
  * @param {ol.AtlasBlock} newBlock2 The 2nd block to add.
- */_ol_style_Atlas_.prototype.updateBlocks_=function(index,newBlock1,newBlock2){var args=[index,1];if(newBlock1.width>0&&newBlock1.height>0){args.push(newBlock1);}if(newBlock2.width>0&&newBlock2.height>0){args.push(newBlock2);}this.emptyBlocks_.splice.apply(this.emptyBlocks_,args);};var _ol_style_AtlasManager_=function(opt_options){var options=opt_options||{};/**
+ */_ol_style_Atlas_.prototype.updateBlocks_=function(index,newBlock1,newBlock2){var args=[index,1];if(newBlock1.width>0&&newBlock1.height>0){args.push(newBlock1);}if(newBlock2.width>0&&newBlock2.height>0){args.push(newBlock2);}this.emptyBlocks_.splice.apply(this.emptyBlocks_,args);};/**
+ * Manages the creation of image atlases.
+ *
+ * Images added to this manager will be inserted into an atlas, which
+ * will be used for rendering.
+ * The `size` given in the constructor is the size for the first
+ * atlas. After that, when new atlases are created, they will have
+ * twice the size as the latest atlas (until `maxSize` is reached).
+ *
+ * If an application uses many images or very large images, it is recommended
+ * to set a higher `size` value to avoid the creation of too many atlases.
+ *
+ * @constructor
+ * @struct
+ * @api
+ * @param {olx.style.AtlasManagerOptions=} opt_options Options.
+ */var _ol_style_AtlasManager_=function(opt_options){var options=opt_options||{};/**
    * The size in pixels of the latest atlas image.
    * @private
    * @type {number}
@@ -13120,7 +14238,13 @@ var renderHitCallback=opt_renderHitCallback!==undefined?opt_renderHitCallback:_o
  */_ol_style_AtlasManager_.prototype.add_=function(isHitAtlas,id,width,height,renderCallback,opt_this){var atlases=isHitAtlas?this.hitAtlases_:this.atlases_;var atlas,info,i,ii;for(i=0,ii=atlases.length;i<ii;++i){atlas=atlases[i];info=atlas.add(id,width,height,renderCallback,opt_this);if(info){return info;}else if(!info&&i===ii-1){// the entry could not be added to one of the existing atlases,
 // create a new atlas that is twice as big and try to add to this one.
 var size;if(isHitAtlas){size=Math.min(this.currentHitSize_*2,this.maxSize_);this.currentHitSize_=size;}else{size=Math.min(this.currentSize_*2,this.maxSize_);this.currentSize_=size;}atlas=new _ol_style_Atlas_(size,this.space_);atlases.push(atlas);// run the loop another time
-++ii;}}return null;};var _ol_render_webgl_TextReplay_=function(tolerance,maxExtent){_ol_render_webgl_TextureReplay_.call(this,tolerance,maxExtent);/**
+++ii;}}return null;};/**
+ * @constructor
+ * @extends {ol.render.webgl.TextureReplay}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @struct
+ */var _ol_render_webgl_TextReplay_=function(tolerance,maxExtent){_ol_render_webgl_TextureReplay_.call(this,tolerance,maxExtent);/**
    * @private
    * @type {Array.<HTMLCanvasElement>}
    */this.images_=[];/**
@@ -13202,7 +14326,14 @@ var i,ii;var hash='';for(i=0,ii=params.length;i<ii;++i){hash+=params[i];}return 
  * @inheritDoc
  */_ol_render_webgl_TextReplay_.prototype.getTextures=function(opt_all){return this.textures_;};/**
  * @inheritDoc
- */_ol_render_webgl_TextReplay_.prototype.getHitDetectionTextures=function(){return this.textures_;};var _ol_render_webgl_ReplayGroup_=function(tolerance,maxExtent,opt_renderBuffer){_ol_render_ReplayGroup_.call(this);/**
+ */_ol_render_webgl_TextReplay_.prototype.getHitDetectionTextures=function(){return this.textures_;};/**
+ * @constructor
+ * @extends {ol.render.ReplayGroup}
+ * @param {number} tolerance Tolerance.
+ * @param {ol.Extent} maxExtent Max extent.
+ * @param {number=} opt_renderBuffer Render buffer.
+ * @struct
+ */var _ol_render_webgl_ReplayGroup_=function(tolerance,maxExtent,opt_renderBuffer){_ol_render_ReplayGroup_.call(this);/**
    * @type {ol.Extent}
    * @private
    */this.maxExtent_=maxExtent;/**
@@ -13299,7 +14430,18 @@ hitExtent=_ol_extent_.buffer(_ol_extent_.createOrUpdateFromCoordinate(coordinate
  * @type {Object.<ol.render.ReplayType,
  *                function(new: ol.render.webgl.Replay, number,
  *                ol.Extent)>}
- */_ol_render_webgl_ReplayGroup_.BATCH_CONSTRUCTORS_={'Circle':_ol_render_webgl_CircleReplay_,'Image':_ol_render_webgl_ImageReplay_,'LineString':_ol_render_webgl_LineStringReplay_,'Polygon':_ol_render_webgl_PolygonReplay_,'Text':_ol_render_webgl_TextReplay_};var _ol_render_webgl_Immediate_=function(context,center,resolution,rotation,size,extent,pixelRatio){_ol_render_VectorContext_.call(this);/**
+ */_ol_render_webgl_ReplayGroup_.BATCH_CONSTRUCTORS_={'Circle':_ol_render_webgl_CircleReplay_,'Image':_ol_render_webgl_ImageReplay_,'LineString':_ol_render_webgl_LineStringReplay_,'Polygon':_ol_render_webgl_PolygonReplay_,'Text':_ol_render_webgl_TextReplay_};/**
+ * @constructor
+ * @extends {ol.render.VectorContext}
+ * @param {ol.webgl.Context} context Context.
+ * @param {ol.Coordinate} center Center.
+ * @param {number} resolution Resolution.
+ * @param {number} rotation Rotation.
+ * @param {ol.Size} size Size.
+ * @param {ol.Extent} extent Extent.
+ * @param {number} pixelRatio Pixel ratio.
+ * @struct
+ */var _ol_render_webgl_Immediate_=function(context,center,resolution,rotation,size,extent,pixelRatio){_ol_render_VectorContext_.call(this);/**
    * @private
    */this.context_=context;/**
    * @private
@@ -13373,7 +14515,12 @@ var opacity=1;var skippedFeatures={};var featureCallback;var oneByOne=false;repl
  * @inheritDoc
  */_ol_render_webgl_Immediate_.prototype.setTextStyle=function(textStyle){this.textStyle_=textStyle;};// This file is automatically generated, do not edit
 var _ol_renderer_webgl_defaultmapshader_={};_ol_renderer_webgl_defaultmapshader_.fragment=new _ol_webgl_Fragment_(_ol_.DEBUG_WEBGL?'precision mediump float;\nvarying vec2 v_texCoord;\n\n\nuniform float u_opacity;\nuniform sampler2D u_texture;\n\nvoid main(void) {\n  vec4 texColor = texture2D(u_texture, v_texCoord);\n  gl_FragColor.rgb = texColor.rgb;\n  gl_FragColor.a = texColor.a * u_opacity;\n}\n':'precision mediump float;varying vec2 a;uniform float f;uniform sampler2D g;void main(void){vec4 texColor=texture2D(g,a);gl_FragColor.rgb=texColor.rgb;gl_FragColor.a=texColor.a*f;}');_ol_renderer_webgl_defaultmapshader_.vertex=new _ol_webgl_Vertex_(_ol_.DEBUG_WEBGL?'varying vec2 v_texCoord;\n\n\nattribute vec2 a_position;\nattribute vec2 a_texCoord;\n\nuniform mat4 u_texCoordMatrix;\nuniform mat4 u_projectionMatrix;\n\nvoid main(void) {\n  gl_Position = u_projectionMatrix * vec4(a_position, 0., 1.);\n  v_texCoord = (u_texCoordMatrix * vec4(a_texCoord, 0., 1.)).st;\n}\n\n\n':'varying vec2 a;attribute vec2 b;attribute vec2 c;uniform mat4 d;uniform mat4 e;void main(void){gl_Position=e*vec4(b,0.,1.);a=(d*vec4(c,0.,1.)).st;}');// This file is automatically generated, do not edit
-var _ol_renderer_webgl_defaultmapshader_Locations_=function(gl,program){/**
+/**
+ * @constructor
+ * @param {WebGLRenderingContext} gl GL.
+ * @param {WebGLProgram} program Program.
+ * @struct
+ */var _ol_renderer_webgl_defaultmapshader_Locations_=function(gl,program){/**
    * @type {WebGLUniformLocation}
    */this.u_texCoordMatrix=gl.getUniformLocation(program,_ol_.DEBUG_WEBGL?'u_texCoordMatrix':'d');/**
    * @type {WebGLUniformLocation}
@@ -13385,7 +14532,13 @@ var _ol_renderer_webgl_defaultmapshader_Locations_=function(gl,program){/**
    * @type {number}
    */this.a_position=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_position':'b');/**
    * @type {number}
-   */this.a_texCoord=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_texCoord':'c');};var _ol_renderer_webgl_Layer_=function(mapRenderer,layer){_ol_renderer_Layer_.call(this,layer);/**
+   */this.a_texCoord=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_texCoord':'c');};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.renderer.Layer}
+ * @param {ol.renderer.webgl.Map} mapRenderer Map renderer.
+ * @param {ol.layer.Layer} layer Layer.
+ */var _ol_renderer_webgl_Layer_=function(mapRenderer,layer){_ol_renderer_Layer_.call(this,layer);/**
    * @protected
    * @type {ol.renderer.webgl.Map}
    */this.mapRenderer=mapRenderer;/**
@@ -13452,7 +14605,16 @@ var _ol_renderer_webgl_defaultmapshader_Locations_=function(gl,program){/**
  * @param {S} thisArg Value to use as `this` when executing `callback`.
  * @return {T|undefined} Callback result.
  * @template S,T,U
- */_ol_renderer_webgl_Layer_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg){};var _ol_ImageBase_=function(extent,resolution,pixelRatio,state,attributions){_ol_events_EventTarget_.call(this);/**
+ */_ol_renderer_webgl_Layer_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg){};/**
+ * @constructor
+ * @abstract
+ * @extends {ol.events.EventTarget}
+ * @param {ol.Extent} extent Extent.
+ * @param {number|undefined} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.ImageState} state State.
+ * @param {Array.<ol.Attribution>} attributions Attributions.
+ */var _ol_ImageBase_=function(extent,resolution,pixelRatio,state,attributions){_ol_events_EventTarget_.call(this);/**
    * @private
    * @type {Array.<ol.Attribution>}
    */this.attributions_=attributions;/**
@@ -13485,7 +14647,17 @@ var _ol_renderer_webgl_defaultmapshader_Locations_=function(gl,program){/**
  */_ol_ImageBase_.prototype.getState=function(){return this.state;};/**
  * Load not yet loaded URI.
  * @abstract
- */_ol_ImageBase_.prototype.load=function(){};var _ol_ImageCanvas_=function(extent,resolution,pixelRatio,attributions,canvas,opt_loader){/**
+ */_ol_ImageBase_.prototype.load=function(){};/**
+ * @constructor
+ * @extends {ol.ImageBase}
+ * @param {ol.Extent} extent Extent.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {Array.<ol.Attribution>} attributions Attributions.
+ * @param {HTMLCanvasElement} canvas Canvas.
+ * @param {ol.ImageCanvasLoader=} opt_loader Optional loader function to
+ *     support asynchronous canvas drawing.
+ */var _ol_ImageCanvas_=function(extent,resolution,pixelRatio,attributions,canvas,opt_loader){/**
    * Optional canvas loader function.
    * @type {?ol.ImageCanvasLoader}
    * @private
@@ -13570,7 +14742,18 @@ var sourceExtent=sourceProj.getExtent();if(!sourceExtent||_ol_extent_.containsCo
      */var source=triangle.source,target=triangle.target;var x0=source[0][0],y0=source[0][1],x1=source[1][0],y1=source[1][1],x2=source[2][0],y2=source[2][1];var u0=(target[0][0]-targetTopLeft[0])/targetResolution,v0=-(target[0][1]-targetTopLeft[1])/targetResolution;var u1=(target[1][0]-targetTopLeft[0])/targetResolution,v1=-(target[1][1]-targetTopLeft[1])/targetResolution;var u2=(target[2][0]-targetTopLeft[0])/targetResolution,v2=-(target[2][1]-targetTopLeft[1])/targetResolution;// Shift all the source points to improve numerical stability
 // of all the subsequent calculations. The [x0, y0] is used here.
 // This is also used to simplify the linear system.
-var sourceNumericalShiftX=x0,sourceNumericalShiftY=y0;x0=0;y0=0;x1-=sourceNumericalShiftX;y1-=sourceNumericalShiftY;x2-=sourceNumericalShiftX;y2-=sourceNumericalShiftY;var augmentedMatrix=[[x1,y1,0,0,u1-u0],[x2,y2,0,0,u2-u0],[0,0,x1,y1,v1-v0],[0,0,x2,y2,v2-v0]];var affineCoefs=_ol_math_.solveLinearSystem(augmentedMatrix);if(!affineCoefs){return;}context.save();context.beginPath();var centroidX=(u0+u1+u2)/3,centroidY=(v0+v1+v2)/3;var p0=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u0,v0);var p1=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u1,v1);var p2=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u2,v2);context.moveTo(p1[0],p1[1]);context.lineTo(p0[0],p0[1]);context.lineTo(p2[0],p2[1]);context.clip();context.transform(affineCoefs[0],affineCoefs[2],affineCoefs[1],affineCoefs[3],u0,v0);context.translate(sourceDataExtent[0]-sourceNumericalShiftX,sourceDataExtent[3]-sourceNumericalShiftY);context.scale(sourceResolution/pixelRatio,-sourceResolution/pixelRatio);context.drawImage(stitchContext.canvas,0,0);context.restore();});if(opt_renderEdges){context.save();context.strokeStyle='black';context.lineWidth=1;triangulation.getTriangles().forEach(function(triangle,i,arr){var target=triangle.target;var u0=(target[0][0]-targetTopLeft[0])/targetResolution,v0=-(target[0][1]-targetTopLeft[1])/targetResolution;var u1=(target[1][0]-targetTopLeft[0])/targetResolution,v1=-(target[1][1]-targetTopLeft[1])/targetResolution;var u2=(target[2][0]-targetTopLeft[0])/targetResolution,v2=-(target[2][1]-targetTopLeft[1])/targetResolution;context.beginPath();context.moveTo(u1,v1);context.lineTo(u0,v0);context.lineTo(u2,v2);context.closePath();context.stroke();});context.restore();}return context.canvas;};var _ol_reproj_Triangulation_=function(sourceProj,targetProj,targetExtent,maxSourceExtent,errorThreshold){/**
+var sourceNumericalShiftX=x0,sourceNumericalShiftY=y0;x0=0;y0=0;x1-=sourceNumericalShiftX;y1-=sourceNumericalShiftY;x2-=sourceNumericalShiftX;y2-=sourceNumericalShiftY;var augmentedMatrix=[[x1,y1,0,0,u1-u0],[x2,y2,0,0,u2-u0],[0,0,x1,y1,v1-v0],[0,0,x2,y2,v2-v0]];var affineCoefs=_ol_math_.solveLinearSystem(augmentedMatrix);if(!affineCoefs){return;}context.save();context.beginPath();var centroidX=(u0+u1+u2)/3,centroidY=(v0+v1+v2)/3;var p0=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u0,v0);var p1=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u1,v1);var p2=_ol_reproj_.enlargeClipPoint_(centroidX,centroidY,u2,v2);context.moveTo(p1[0],p1[1]);context.lineTo(p0[0],p0[1]);context.lineTo(p2[0],p2[1]);context.clip();context.transform(affineCoefs[0],affineCoefs[2],affineCoefs[1],affineCoefs[3],u0,v0);context.translate(sourceDataExtent[0]-sourceNumericalShiftX,sourceDataExtent[3]-sourceNumericalShiftY);context.scale(sourceResolution/pixelRatio,-sourceResolution/pixelRatio);context.drawImage(stitchContext.canvas,0,0);context.restore();});if(opt_renderEdges){context.save();context.strokeStyle='black';context.lineWidth=1;triangulation.getTriangles().forEach(function(triangle,i,arr){var target=triangle.target;var u0=(target[0][0]-targetTopLeft[0])/targetResolution,v0=-(target[0][1]-targetTopLeft[1])/targetResolution;var u1=(target[1][0]-targetTopLeft[0])/targetResolution,v1=-(target[1][1]-targetTopLeft[1])/targetResolution;var u2=(target[2][0]-targetTopLeft[0])/targetResolution,v2=-(target[2][1]-targetTopLeft[1])/targetResolution;context.beginPath();context.moveTo(u1,v1);context.lineTo(u0,v0);context.lineTo(u2,v2);context.closePath();context.stroke();});context.restore();}return context.canvas;};/**
+ * @classdesc
+ * Class containing triangulation of the given target extent.
+ * Used for determining source data and the reprojection itself.
+ *
+ * @param {ol.proj.Projection} sourceProj Source projection.
+ * @param {ol.proj.Projection} targetProj Target projection.
+ * @param {ol.Extent} targetExtent Target extent to triangulate.
+ * @param {ol.Extent} maxSourceExtent Maximal source extent that can be used.
+ * @param {number} errorThreshold Acceptable error (in source units).
+ * @constructor
+ */var _ol_reproj_Triangulation_=function(sourceProj,targetProj,targetExtent,maxSourceExtent,errorThreshold){/**
    * @type {ol.proj.Projection}
    * @private
    */this.sourceProj_=sourceProj;/**
@@ -13642,7 +14825,21 @@ var ab=[(a[0]+b[0])/2,(a[1]+b[1])/2];var abSrc=this.transformInv_(ab);var cd=[(c
  * @return {ol.Extent} Calculated extent.
  */_ol_reproj_Triangulation_.prototype.calculateSourceExtent=function(){var extent=_ol_extent_.createEmpty();this.triangles_.forEach(function(triangle,i,arr){var src=triangle.source;_ol_extent_.extendCoordinate(extent,src[0]);_ol_extent_.extendCoordinate(extent,src[1]);_ol_extent_.extendCoordinate(extent,src[2]);});return extent;};/**
  * @return {Array.<ol.ReprojTriangle>} Array of the calculated triangles.
- */_ol_reproj_Triangulation_.prototype.getTriangles=function(){return this.triangles_;};var _ol_reproj_Image_=function(sourceProj,targetProj,targetExtent,targetResolution,pixelRatio,getImageFunction){/**
+ */_ol_reproj_Triangulation_.prototype.getTriangles=function(){return this.triangles_;};/**
+ * @classdesc
+ * Class encapsulating single reprojected image.
+ * See {@link ol.source.Image}.
+ *
+ * @constructor
+ * @extends {ol.ImageBase}
+ * @param {ol.proj.Projection} sourceProj Source projection (of the data).
+ * @param {ol.proj.Projection} targetProj Target projection.
+ * @param {ol.Extent} targetExtent Target extent.
+ * @param {number} targetResolution Target resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.ReprojImageFunctionType} getImageFunction
+ *     Function returning source images (extent, resolution, pixelRatio).
+ */var _ol_reproj_Image_=function(sourceProj,targetProj,targetExtent,targetResolution,pixelRatio,getImageFunction){/**
    * @private
    * @type {ol.proj.Projection}
    */this.targetProj_=targetProj;/**
@@ -13681,7 +14878,18 @@ var ab=[(a[0]+b[0])/2,(a[1]+b[1])/2];var abSrc=this.transformInv_(ab);var cd=[(c
  * @inheritDoc
  */_ol_reproj_Image_.prototype.load=function(){if(this.state==_ol_ImageState_.IDLE){this.state=_ol_ImageState_.LOADING;this.changed();var sourceState=this.sourceImage_.getState();if(sourceState==_ol_ImageState_.LOADED||sourceState==_ol_ImageState_.ERROR){this.reproject_();}else{this.sourceListenerKey_=_ol_events_.listen(this.sourceImage_,_ol_events_EventType_.CHANGE,function(e){var sourceState=this.sourceImage_.getState();if(sourceState==_ol_ImageState_.LOADED||sourceState==_ol_ImageState_.ERROR){this.unlistenSource_();this.reproject_();}},this);this.sourceImage_.load();}}};/**
  * @private
- */_ol_reproj_Image_.prototype.unlistenSource_=function(){_ol_events_.unlistenByKey(/** @type {!ol.EventsKey} */this.sourceListenerKey_);this.sourceListenerKey_=null;};var _ol_source_Image_=function(options){_ol_source_Source_.call(this,{attributions:options.attributions,extent:options.extent,logo:options.logo,projection:options.projection,state:options.state});/**
+ */_ol_reproj_Image_.prototype.unlistenSource_=function(){_ol_events_.unlistenByKey(/** @type {!ol.EventsKey} */this.sourceListenerKey_);this.sourceListenerKey_=null;};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Base class for sources providing a single image.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.source.Source}
+ * @param {ol.SourceImageOptions} options Single image source options.
+ * @api
+ */var _ol_source_Image_=function(options){_ol_source_Source_.call(this,{attributions:options.attributions,extent:options.extent,logo:options.logo,projection:options.projection,state:options.state});/**
    * @private
    * @type {Array.<number>}
    */this.resolutions_=options.resolutions!==undefined?options.resolutions:null;/**
@@ -13750,7 +14958,15 @@ var ab=[(a[0]+b[0])/2,(a[1]+b[1])/2];var abSrc=this.transformInv_(ab);var cd=[(c
    * Triggered if image loading results in an error.
    * @event ol.source.Image.Event#imageloaderror
    * @api
-   */IMAGELOADERROR:'imageloaderror'};var _ol_source_ImageCanvas_=function(options){_ol_source_Image_.call(this,{attributions:options.attributions,logo:options.logo,projection:options.projection,resolutions:options.resolutions,state:options.state});/**
+   */IMAGELOADERROR:'imageloaderror'};/**
+ * @classdesc
+ * Base class for image sources where a canvas element is the image.
+ *
+ * @constructor
+ * @extends {ol.source.Image}
+ * @param {olx.source.ImageCanvasOptions} options Constructor options.
+ * @api
+ */var _ol_source_ImageCanvas_=function(options){_ol_source_Image_.call(this,{attributions:options.attributions,logo:options.logo,projection:options.projection,resolutions:options.resolutions,state:options.state});/**
    * @private
    * @type {ol.CanvasFunctionType}
    */this.canvasFunction_=options.canvasFunction;/**
@@ -13764,7 +14980,23 @@ var ab=[(a[0]+b[0])/2,(a[1]+b[1])/2];var abSrc=this.transformInv_(ab);var cd=[(c
    * @type {number}
    */this.ratio_=options.ratio!==undefined?options.ratio:1.5;};_ol_.inherits(_ol_source_ImageCanvas_,_ol_source_Image_);/**
  * @inheritDoc
- */_ol_source_ImageCanvas_.prototype.getImageInternal=function(extent,resolution,pixelRatio,projection){resolution=this.findNearestResolution(resolution);var canvas=this.canvas_;if(canvas&&this.renderedRevision_==this.getRevision()&&canvas.getResolution()==resolution&&canvas.getPixelRatio()==pixelRatio&&_ol_extent_.containsExtent(canvas.getExtent(),extent)){return canvas;}extent=extent.slice();_ol_extent_.scaleFromCenter(extent,this.ratio_);var width=_ol_extent_.getWidth(extent)/resolution;var height=_ol_extent_.getHeight(extent)/resolution;var size=[width*pixelRatio,height*pixelRatio];var canvasElement=this.canvasFunction_(extent,resolution,pixelRatio,size,projection);if(canvasElement){canvas=new _ol_ImageCanvas_(extent,resolution,pixelRatio,this.getAttributions(),canvasElement);}this.canvas_=canvas;this.renderedRevision_=this.getRevision();return canvas;};var _ol_source_ImageVector_=function(options){/**
+ */_ol_source_ImageCanvas_.prototype.getImageInternal=function(extent,resolution,pixelRatio,projection){resolution=this.findNearestResolution(resolution);var canvas=this.canvas_;if(canvas&&this.renderedRevision_==this.getRevision()&&canvas.getResolution()==resolution&&canvas.getPixelRatio()==pixelRatio&&_ol_extent_.containsExtent(canvas.getExtent(),extent)){return canvas;}extent=extent.slice();_ol_extent_.scaleFromCenter(extent,this.ratio_);var width=_ol_extent_.getWidth(extent)/resolution;var height=_ol_extent_.getHeight(extent)/resolution;var size=[width*pixelRatio,height*pixelRatio];var canvasElement=this.canvasFunction_(extent,resolution,pixelRatio,size,projection);if(canvasElement){canvas=new _ol_ImageCanvas_(extent,resolution,pixelRatio,this.getAttributions(),canvasElement);}this.canvas_=canvas;this.renderedRevision_=this.getRevision();return canvas;};/**
+ * @classdesc
+ * An image source whose images are canvas elements into which vector features
+ * read from a vector source (`ol.source.Vector`) are drawn. An
+ * `ol.source.ImageVector` object is to be used as the `source` of an image
+ * layer (`ol.layer.Image`). Image layers are rotated, scaled, and translated,
+ * as opposed to being re-rendered, during animations and interactions. So, like
+ * any other image layer, an image layer configured with an
+ * `ol.source.ImageVector` will exhibit this behaviour. This is in contrast to a
+ * vector layer, where vector features are re-drawn during animations and
+ * interactions.
+ *
+ * @constructor
+ * @extends {ol.source.ImageCanvas}
+ * @param {olx.source.ImageVectorOptions} options Options.
+ * @api
+ */var _ol_source_ImageVector_=function(options){/**
    * @private
    * @type {ol.source.Vector}
    */this.source_=options.source;/**
@@ -13851,7 +15083,13 @@ this.setState(this.source_.getState());};/**
  * @param {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction|undefined}
  *     style Layer style.
  * @api
- */_ol_source_ImageVector_.prototype.setStyle=function(style){this.style_=style!==undefined?style:_ol_style_Style_$1.defaultFunction;this.styleFunction_=!style?undefined:_ol_style_Style_$1.createFunction(this.style_);this.changed();};var _ol_renderer_webgl_ImageLayer_=function(mapRenderer,imageLayer){_ol_renderer_webgl_Layer_.call(this,mapRenderer,imageLayer);/**
+ */_ol_source_ImageVector_.prototype.setStyle=function(style){this.style_=style!==undefined?style:_ol_style_Style_$1.defaultFunction;this.styleFunction_=!style?undefined:_ol_style_Style_$1.createFunction(this.style_);this.changed();};/**
+ * @constructor
+ * @extends {ol.renderer.webgl.Layer}
+ * @param {ol.renderer.webgl.Map} mapRenderer Map renderer.
+ * @param {ol.layer.Image} imageLayer Tile layer.
+ * @api
+ */var _ol_renderer_webgl_ImageLayer_=function(mapRenderer,imageLayer){_ol_renderer_webgl_Layer_.call(this,mapRenderer,imageLayer);/**
    * The last rendered image.
    * @private
    * @type {?ol.ImageBase}
@@ -13918,7 +15156,13 @@ var mapCoordTransform=_ol_transform_.create();_ol_transform_.translate(mapCoordT
 // shader for drawing
 var projectionMatrixInv=_ol_transform_.invert(this.projectionMatrix.slice());// the third matrix scales to the image dimensions and flips the y-axis again
 var transform=_ol_transform_.create();_ol_transform_.translate(transform,0,imageSize[1]);_ol_transform_.scale(transform,1,-1);_ol_transform_.scale(transform,imageSize[0]/2,imageSize[1]/2);_ol_transform_.translate(transform,1,1);_ol_transform_.multiply(transform,projectionMatrixInv);_ol_transform_.multiply(transform,mapCoordTransform);return transform;};// FIXME check against gl.getParameter(webgl.MAX_TEXTURE_SIZE)
-var _ol_renderer_webgl_Map_=function(container,map){_ol_renderer_Map_.call(this,container,map);/**
+/**
+ * @constructor
+ * @extends {ol.renderer.Map}
+ * @param {Element} container Container.
+ * @param {ol.PluggableMap} map Map.
+ * @api
+ */var _ol_renderer_webgl_Map_=function(container,map){_ol_renderer_Map_.call(this,container,map);/**
    * @private
    * @type {HTMLCanvasElement}
    */this.canvas_=/** @type {HTMLCanvasElement} */document.createElement('CANVAS');this.canvas_.style.width='100%';this.canvas_.style.height='100%';this.canvas_.style.display='block';this.canvas_.className=_ol_css_.CLASS_UNSELECTABLE;container.insertBefore(this.canvas_,container.childNodes[0]||null);/**
@@ -14019,7 +15263,12 @@ var _ol_renderer_webgl_Map_=function(container,map){_ol_renderer_Map_.call(this,
  * @inheritDoc
  */_ol_renderer_webgl_Map_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg,layerFilter,thisArg2){if(this.getGL().isContextLost()){return false;}var viewState=frameState.viewState;var result;var layerStates=frameState.layerStatesArray;var numLayers=layerStates.length;var i;for(i=numLayers-1;i>=0;--i){var layerState=layerStates[i];var layer=layerState.layer;if(_ol_layer_Layer_.visibleAtResolution(layerState,viewState.resolution)&&layerFilter.call(thisArg,layer)){var layerRenderer=/** @type {ol.renderer.webgl.Layer} */this.getLayerRenderer(layer);result=layerRenderer.forEachLayerAtPixel(pixel,frameState,callback,thisArg);if(result){return result;}}}return undefined;};// This file is automatically generated, do not edit
 var _ol_renderer_webgl_tilelayershader_={};_ol_renderer_webgl_tilelayershader_.fragment=new _ol_webgl_Fragment_(_ol_.DEBUG_WEBGL?'precision mediump float;\nvarying vec2 v_texCoord;\n\n\nuniform sampler2D u_texture;\n\nvoid main(void) {\n  gl_FragColor = texture2D(u_texture, v_texCoord);\n}\n':'precision mediump float;varying vec2 a;uniform sampler2D e;void main(void){gl_FragColor=texture2D(e,a);}');_ol_renderer_webgl_tilelayershader_.vertex=new _ol_webgl_Vertex_(_ol_.DEBUG_WEBGL?'varying vec2 v_texCoord;\n\n\nattribute vec2 a_position;\nattribute vec2 a_texCoord;\nuniform vec4 u_tileOffset;\n\nvoid main(void) {\n  gl_Position = vec4(a_position * u_tileOffset.xy + u_tileOffset.zw, 0., 1.);\n  v_texCoord = a_texCoord;\n}\n\n\n':'varying vec2 a;attribute vec2 b;attribute vec2 c;uniform vec4 d;void main(void){gl_Position=vec4(b*d.xy+d.zw,0.,1.);a=c;}');// This file is automatically generated, do not edit
-var _ol_renderer_webgl_tilelayershader_Locations_=function(gl,program){/**
+/**
+ * @constructor
+ * @param {WebGLRenderingContext} gl GL.
+ * @param {WebGLProgram} program Program.
+ * @struct
+ */var _ol_renderer_webgl_tilelayershader_Locations_=function(gl,program){/**
    * @type {WebGLUniformLocation}
    */this.u_tileOffset=gl.getUniformLocation(program,_ol_.DEBUG_WEBGL?'u_tileOffset':'d');/**
    * @type {WebGLUniformLocation}
@@ -14029,7 +15278,13 @@ var _ol_renderer_webgl_tilelayershader_Locations_=function(gl,program){/**
    * @type {number}
    */this.a_texCoord=gl.getAttribLocation(program,_ol_.DEBUG_WEBGL?'a_texCoord':'c');};// FIXME large resolutions lead to too large framebuffers :-(
 // FIXME animated shaders! check in redraw
-var _ol_renderer_webgl_TileLayer_=function(mapRenderer,tileLayer){_ol_renderer_webgl_Layer_.call(this,mapRenderer,tileLayer);/**
+/**
+ * @constructor
+ * @extends {ol.renderer.webgl.Layer}
+ * @param {ol.renderer.webgl.Map} mapRenderer Map renderer.
+ * @param {ol.layer.Tile} tileLayer Tile layer.
+ * @api
+ */var _ol_renderer_webgl_TileLayer_=function(mapRenderer,tileLayer){_ol_renderer_webgl_Layer_.call(this,mapRenderer,tileLayer);/**
    * @private
    * @type {ol.webgl.Fragment}
    */this.fragmentShader_=_ol_renderer_webgl_tilelayershader_.fragment;/**
@@ -14082,7 +15337,13 @@ tileExtent=tileGrid.getTileCoordExtent(tile.tileCoord,tmpExtent);if(!_ol_extent_
        * @param {ol.Tile} tile Tile.
        */function(tile){if(tile.getState()==_ol_TileState_.LOADED&&!mapRenderer.isTileTextureLoaded(tile)&&!tileTextureQueue.isKeyQueued(tile.getKey())){tileTextureQueue.enqueue([tile,tileGrid.getTileCoordCenter(tile.tileCoord),tileGrid.getResolution(tile.tileCoord[0]),tilePixelSize,tileGutter*pixelRatio]);}},this);this.scheduleExpireCache(frameState,tileSource);this.updateLogos(frameState,tileSource);var texCoordMatrix=this.texCoordMatrix;_ol_transform_.reset(texCoordMatrix);_ol_transform_.translate(texCoordMatrix,(Math.round(center[0]/tileResolution)*tileResolution-framebufferExtent[0])/(framebufferExtent[2]-framebufferExtent[0]),(Math.round(center[1]/tileResolution)*tileResolution-framebufferExtent[1])/(framebufferExtent[3]-framebufferExtent[1]));if(viewState.rotation!==0){_ol_transform_.rotate(texCoordMatrix,viewState.rotation);}_ol_transform_.scale(texCoordMatrix,frameState.size[0]*viewState.resolution/(framebufferExtent[2]-framebufferExtent[0]),frameState.size[1]*viewState.resolution/(framebufferExtent[3]-framebufferExtent[1]));_ol_transform_.translate(texCoordMatrix,-0.5,-0.5);return true;};/**
  * @inheritDoc
- */_ol_renderer_webgl_TileLayer_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg){if(!this.framebuffer){return undefined;}var pixelOnMapScaled=[pixel[0]/frameState.size[0],(frameState.size[1]-pixel[1])/frameState.size[1]];var pixelOnFrameBufferScaled=_ol_transform_.apply(this.texCoordMatrix,pixelOnMapScaled.slice());var pixelOnFrameBuffer=[pixelOnFrameBufferScaled[0]*this.framebufferDimension,pixelOnFrameBufferScaled[1]*this.framebufferDimension];var gl=this.mapRenderer.getContext().getGL();gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer);var imageData=new Uint8Array(4);gl.readPixels(pixelOnFrameBuffer[0],pixelOnFrameBuffer[1],1,1,gl.RGBA,gl.UNSIGNED_BYTE,imageData);if(imageData[3]>0){return callback.call(thisArg,this.getLayer(),imageData);}else{return undefined;}};var _ol_renderer_webgl_VectorLayer_=function(mapRenderer,vectorLayer){_ol_renderer_webgl_Layer_.call(this,mapRenderer,vectorLayer);/**
+ */_ol_renderer_webgl_TileLayer_.prototype.forEachLayerAtPixel=function(pixel,frameState,callback,thisArg){if(!this.framebuffer){return undefined;}var pixelOnMapScaled=[pixel[0]/frameState.size[0],(frameState.size[1]-pixel[1])/frameState.size[1]];var pixelOnFrameBufferScaled=_ol_transform_.apply(this.texCoordMatrix,pixelOnMapScaled.slice());var pixelOnFrameBuffer=[pixelOnFrameBufferScaled[0]*this.framebufferDimension,pixelOnFrameBufferScaled[1]*this.framebufferDimension];var gl=this.mapRenderer.getContext().getGL();gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer);var imageData=new Uint8Array(4);gl.readPixels(pixelOnFrameBuffer[0],pixelOnFrameBuffer[1],1,1,gl.RGBA,gl.UNSIGNED_BYTE,imageData);if(imageData[3]>0){return callback.call(thisArg,this.getLayer(),imageData);}else{return undefined;}};/**
+ * @constructor
+ * @extends {ol.renderer.webgl.Layer}
+ * @param {ol.renderer.webgl.Map} mapRenderer Map renderer.
+ * @param {ol.layer.Vector} vectorLayer Vector layer.
+ * @api
+ */var _ol_renderer_webgl_VectorLayer_=function(mapRenderer,vectorLayer){_ol_renderer_webgl_Layer_.call(this,mapRenderer,vectorLayer);/**
    * @private
    * @type {boolean}
    */this.dirty_=false;/**
@@ -14193,7 +15454,17 @@ tileExtent=tileGrid.getTileCoordExtent(tile.tileCoord,tmpExtent);if(!_ol_extent_
  * @fires ol.render.Event#postcompose
  * @fires ol.render.Event#precompose
  * @api
- */var _ol_Map_=function(options){options=_ol_obj_.assign({},options);if(!options.controls){options.controls=_ol_control_.defaults();}if(!options.interactions){options.interactions=_ol_interaction_.defaults();}_ol_PluggableMap_.call(this,options);};_ol_.inherits(_ol_Map_,_ol_PluggableMap_);var _ol_Tile_=function(tileCoord,state,opt_options){_ol_events_EventTarget_.call(this);var options=opt_options?opt_options:{};/**
+ */var _ol_Map_=function(options){options=_ol_obj_.assign({},options);if(!options.controls){options.controls=_ol_control_.defaults();}if(!options.interactions){options.interactions=_ol_interaction_.defaults();}_ol_PluggableMap_.call(this,options);};_ol_.inherits(_ol_Map_,_ol_PluggableMap_);/**
+ * @classdesc
+ * Base class for tiles.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.events.EventTarget}
+ * @param {ol.TileCoord} tileCoord Tile coordinate.
+ * @param {ol.TileState} state State.
+ * @param {olx.TileOptions=} opt_options Tile options.
+ */var _ol_Tile_=function(tileCoord,state,opt_options){_ol_events_EventTarget_.call(this);var options=opt_options?opt_options:{};/**
    * @type {ol.TileCoord}
    */this.tileCoord=tileCoord;/**
    * @protected
@@ -14269,7 +15540,16 @@ if(delta>=this.transition_){return 1;}return _ol_easing_.easeIn(delta/this.trans
  */_ol_Tile_.prototype.inTransition=function(id){if(!this.transition_){return false;}return this.transitionStarts_[id]!==-1;};/**
  * Mark a transition as complete.
  * @param {number} id An id for the renderer.
- */_ol_Tile_.prototype.endTransition=function(id){if(this.transition_){this.transitionStarts_[id]=-1;}};var _ol_ImageTile_=function(tileCoord,state,src,crossOrigin,tileLoadFunction,opt_options){_ol_Tile_.call(this,tileCoord,state,opt_options);/**
+ */_ol_Tile_.prototype.endTransition=function(id){if(this.transition_){this.transitionStarts_[id]=-1;}};/**
+ * @constructor
+ * @extends {ol.Tile}
+ * @param {ol.TileCoord} tileCoord Tile coordinate.
+ * @param {ol.TileState} state State.
+ * @param {string} src Image source URI.
+ * @param {?string} crossOrigin Cross origin.
+ * @param {ol.TileLoadFunctionType} tileLoadFunction Tile load function.
+ * @param {olx.TileOptions=} opt_options Tile options.
+ */var _ol_ImageTile_=function(tileCoord,state,src,crossOrigin,tileLoadFunction,opt_options){_ol_Tile_.call(this,tileCoord,state,opt_options);/**
    * Image URI
    *
    * @private
@@ -14309,11 +15589,35 @@ if(delta>=this.transition_){return 1;}return _ol_easing_.easeIn(delta/this.trans
  */_ol_ImageTile_.prototype.unlistenImage_=function(){this.imageListenerKeys_.forEach(_ol_events_.unlistenByKey);this.imageListenerKeys_=null;};/**
  * Data URI for a blank image.
  * @type {string}
- */_ol_ImageTile_.blankImageUrl=function(){var ctx=_ol_dom_.createCanvasContext2D(1,1);ctx.fillStyle='rgba(0,0,0,0)';ctx.fillRect(0,0,1,1);return ctx.canvas.toDataURL('image/png');}();var _ol_TileCache_=function(opt_highWaterMark){_ol_structs_LRUCache_.call(this,opt_highWaterMark);};_ol_.inherits(_ol_TileCache_,_ol_structs_LRUCache_);/**
+ */_ol_ImageTile_.blankImageUrl=function(){var ctx=_ol_dom_.createCanvasContext2D(1,1);ctx.fillStyle='rgba(0,0,0,0)';ctx.fillRect(0,0,1,1);return ctx.canvas.toDataURL('image/png');}();/**
+ * @constructor
+ * @extends {ol.structs.LRUCache.<ol.Tile>}
+ * @param {number=} opt_highWaterMark High water mark.
+ * @struct
+ */var _ol_TileCache_=function(opt_highWaterMark){_ol_structs_LRUCache_.call(this,opt_highWaterMark);};_ol_.inherits(_ol_TileCache_,_ol_structs_LRUCache_);/**
  * @param {Object.<string, ol.TileRange>} usedTiles Used tiles.
  */_ol_TileCache_.prototype.expireCache=function(usedTiles){var tile,zKey;while(this.canExpireCache()){tile=this.peekLast();zKey=tile.tileCoord[0].toString();if(zKey in usedTiles&&usedTiles[zKey].contains(tile.tileCoord)){break;}else{this.pop().dispose();}}};/**
  * Prune all tiles from the cache that don't have the same z as the newest tile.
- */_ol_TileCache_.prototype.pruneExceptNewestZ=function(){if(this.getCount()===0){return;}var key=this.peekFirstKey();var tileCoord=_ol_tilecoord_.fromKey(key);var z=tileCoord[0];this.forEach(function(tile){if(tile.tileCoord[0]!==z){this.remove(_ol_tilecoord_.getKey(tile.tileCoord));tile.dispose();}},this);};var _ol_reproj_Tile_=function(sourceProj,sourceTileGrid,targetProj,targetTileGrid,tileCoord,wrappedTileCoord,pixelRatio,gutter,getTileFunction,opt_errorThreshold,opt_renderEdges){_ol_Tile_.call(this,tileCoord,_ol_TileState_.IDLE);/**
+ */_ol_TileCache_.prototype.pruneExceptNewestZ=function(){if(this.getCount()===0){return;}var key=this.peekFirstKey();var tileCoord=_ol_tilecoord_.fromKey(key);var z=tileCoord[0];this.forEach(function(tile){if(tile.tileCoord[0]!==z){this.remove(_ol_tilecoord_.getKey(tile.tileCoord));tile.dispose();}},this);};/**
+ * @classdesc
+ * Class encapsulating single reprojected tile.
+ * See {@link ol.source.TileImage}.
+ *
+ * @constructor
+ * @extends {ol.Tile}
+ * @param {ol.proj.Projection} sourceProj Source projection.
+ * @param {ol.tilegrid.TileGrid} sourceTileGrid Source tile grid.
+ * @param {ol.proj.Projection} targetProj Target projection.
+ * @param {ol.tilegrid.TileGrid} targetTileGrid Target tile grid.
+ * @param {ol.TileCoord} tileCoord Coordinate of the tile.
+ * @param {ol.TileCoord} wrappedTileCoord Coordinate of the tile wrapped in X.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {number} gutter Gutter of the source tiles.
+ * @param {ol.ReprojTileFunctionType} getTileFunction
+ *     Function returning source tiles (z, x, y, pixelRatio).
+ * @param {number=} opt_errorThreshold Acceptable reprojection error (in px).
+ * @param {boolean=} opt_renderEdges Render reprojection edges.
+ */var _ol_reproj_Tile_=function(sourceProj,sourceTileGrid,targetProj,targetTileGrid,tileCoord,wrappedTileCoord,pixelRatio,gutter,getTileFunction,opt_errorThreshold,opt_renderEdges){_ol_Tile_.call(this,tileCoord,_ol_TileState_.IDLE);/**
    * @private
    * @type {boolean}
    */this.renderEdges_=opt_renderEdges!==undefined?opt_renderEdges:false;/**
@@ -14394,7 +15698,18 @@ var y=range.getHeight()+tileCoord[2];return y.toString();});}});};/**
  * @return {Array.<string>} Array of urls.
  */_ol_TileUrlFunction_.expandUrl=function(url){var urls=[];var match=/\{([a-z])-([a-z])\}/.exec(url);if(match){// char range
 var startCharCode=match[1].charCodeAt(0);var stopCharCode=match[2].charCodeAt(0);var charCode;for(charCode=startCharCode;charCode<=stopCharCode;++charCode){urls.push(url.replace(match[0],String.fromCharCode(charCode)));}return urls;}match=match=/\{(\d+)-(\d+)\}/.exec(url);if(match){// number range
-var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls.push(url.replace(match[0],i.toString()));}return urls;}urls.push(url);return urls;};var _ol_source_Tile_=function(options){_ol_source_Source_.call(this,{attributions:options.attributions,extent:options.extent,logo:options.logo,projection:options.projection,state:options.state,wrapX:options.wrapX});/**
+var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls.push(url.replace(match[0],i.toString()));}return urls;}urls.push(url);return urls;};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Base class for sources providing images divided into a tile grid.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.source.Source}
+ * @param {ol.SourceTileOptions} options Tile source options.
+ * @api
+ */var _ol_source_Tile_=function(options){_ol_source_Source_.call(this,{attributions:options.attributions,extent:options.extent,logo:options.logo,projection:options.projection,state:options.state,wrapX:options.wrapX});/**
    * @private
    * @type {boolean}
    */this.opaque_=options.opaque!==undefined?options.opaque:false;/**
@@ -14519,7 +15834,16 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
    * Triggered if tile loading results in an error.
    * @event ol.source.Tile.Event#tileloaderror
    * @api
-   */TILELOADERROR:'tileloaderror'};var _ol_source_UrlTile_=function(options){_ol_source_Tile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tilePixelRatio:options.tilePixelRatio,wrapX:options.wrapX,transition:options.transition});/**
+   */TILELOADERROR:'tileloaderror'};/**
+ * @classdesc
+ * Base class for sources providing tiles divided into a tile grid over http.
+ *
+ * @constructor
+ * @abstract
+ * @fires ol.source.Tile.Event
+ * @extends {ol.source.Tile}
+ * @param {ol.SourceUrlTileOptions} options Image tile options.
+ */var _ol_source_UrlTile_=function(options){_ol_source_Tile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tilePixelRatio:options.tilePixelRatio,wrapX:options.wrapX,transition:options.transition});/**
    * @protected
    * @type {ol.TileLoadFunctionType}
    */this.tileLoadFunction=options.tileLoadFunction;/**
@@ -14532,8 +15856,9 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
    * @private
    * @type {Object.<number, boolean>}
    */this.tileLoadingKeys_={};};_ol_.inherits(_ol_source_UrlTile_,_ol_source_Tile_);/**
- * @type {ol.TileUrlFunctionType|undefined}
- * @protected
+ * Return the tile load function of the source.
+ * @return {ol.TileLoadFunctionType} TileLoadFunction
+ * @api
  */_ol_source_UrlTile_.prototype.getTileLoadFunction=function(){return this.tileLoadFunction;};/**
  * Return the tile URL function of the source.
  * @return {ol.TileUrlFunctionType} TileUrlFunction
@@ -14567,7 +15892,16 @@ var stop=parseInt(match[2],10);for(var i=parseInt(match[1],10);i<=stop;i++){urls
  * @api
  */_ol_source_UrlTile_.prototype.setUrls=function(urls){this.urls=urls;var key=urls.join('\n');this.setTileUrlFunction(this.fixedTileUrlFunction?this.fixedTileUrlFunction.bind(this):_ol_TileUrlFunction_.createFromTemplates(urls,this.tileGrid),key);};/**
  * @inheritDoc
- */_ol_source_UrlTile_.prototype.useTile=function(z,x,y){var tileCoordKey=_ol_tilecoord_.getKeyZXY(z,x,y);if(this.tileCache.containsKey(tileCoordKey)){this.tileCache.get(tileCoordKey);}};var _ol_source_TileImage_=function(options){_ol_source_UrlTile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tileLoadFunction:options.tileLoadFunction?options.tileLoadFunction:_ol_source_TileImage_.defaultTileLoadFunction,tilePixelRatio:options.tilePixelRatio,tileUrlFunction:options.tileUrlFunction,url:options.url,urls:options.urls,wrapX:options.wrapX,transition:options.transition});/**
+ */_ol_source_UrlTile_.prototype.useTile=function(z,x,y){var tileCoordKey=_ol_tilecoord_.getKeyZXY(z,x,y);if(this.tileCache.containsKey(tileCoordKey)){this.tileCache.get(tileCoordKey);}};/**
+ * @classdesc
+ * Base class for sources providing images divided into a tile grid.
+ *
+ * @constructor
+ * @fires ol.source.Tile.Event
+ * @extends {ol.source.UrlTile}
+ * @param {olx.source.TileImageOptions} options Image tile options.
+ * @api
+ */var _ol_source_TileImage_=function(options){_ol_source_UrlTile_.call(this,{attributions:options.attributions,cacheSize:options.cacheSize,extent:options.extent,logo:options.logo,opaque:options.opaque,projection:options.projection,state:options.state,tileGrid:options.tileGrid,tileLoadFunction:options.tileLoadFunction?options.tileLoadFunction:_ol_source_TileImage_.defaultTileLoadFunction,tilePixelRatio:options.tilePixelRatio,tileUrlFunction:options.tileUrlFunction,url:options.url,urls:options.urls,wrapX:options.wrapX,transition:options.transition});/**
    * @protected
    * @type {?string}
    */this.crossOrigin=options.crossOrigin!==undefined?options.crossOrigin:null;/**
@@ -14645,7 +15979,20 @@ tile.interimTile=interimTile.interimTile;}else{tile.interimTile=interimTile;}til
  * @param {string} src Source.
  */_ol_source_TileImage_.defaultTileLoadFunction=function(imageTile,src){imageTile.getImage().src=src;};/**
  * @enum {string}
- */var _ol_layer_TileProperty_={PRELOAD:'preload',USE_INTERIM_TILES_ON_ERROR:'useInterimTilesOnError'};var _ol_layer_Tile_=function(opt_options){var options=opt_options?opt_options:{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.preload;delete baseOptions.useInterimTilesOnError;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);this.setPreload(options.preload!==undefined?options.preload:0);this.setUseInterimTilesOnError(options.useInterimTilesOnError!==undefined?options.useInterimTilesOnError:true);/**
+ */var _ol_layer_TileProperty_={PRELOAD:'preload',USE_INTERIM_TILES_ON_ERROR:'useInterimTilesOnError'};/**
+ * @classdesc
+ * For layer sources that provide pre-rendered, tiled images in grids that are
+ * organized by zoom levels for specific resolutions.
+ * Note that any property set in the options is set as a {@link ol.Object}
+ * property on the layer object; for example, setting `title: 'My Title'` in the
+ * options means that `title` is observable, and has get/set accessors.
+ *
+ * @constructor
+ * @extends {ol.layer.Layer}
+ * @fires ol.render.Event
+ * @param {olx.layer.TileOptions=} opt_options Tile layer options.
+ * @api
+ */var _ol_layer_Tile_=function(opt_options){var options=opt_options?opt_options:{};var baseOptions=_ol_obj_.assign({},options);delete baseOptions.preload;delete baseOptions.useInterimTilesOnError;_ol_layer_Layer_.call(this,/** @type {olx.layer.LayerOptions} */baseOptions);this.setPreload(options.preload!==undefined?options.preload:0);this.setUseInterimTilesOnError(options.useInterimTilesOnError!==undefined?options.useInterimTilesOnError:true);/**
    * The layer type.
    * @protected
    * @type {ol.LayerType}
@@ -14655,9 +16002,9 @@ tile.interimTile=interimTile.interimTile;}else{tile.interimTile=interimTile;}til
  * @observable
  * @api
  */_ol_layer_Tile_.prototype.getPreload=function(){return(/** @type {number} */this.get(_ol_layer_TileProperty_.PRELOAD));};/**
- * Return the associated {@link ol.source.Tile tilesource} of the layer.
- * @function
- * @return {ol.source.Tile} Source.
+ * Set the level as number to which we will preload tiles up to.
+ * @param {number} preload The level to preload tiles up to.
+ * @observable
  * @api
  */_ol_layer_Tile_.prototype.setPreload=function(preload){this.set(_ol_layer_TileProperty_.PRELOAD,preload);};/**
  * Whether we use interim tiles on error.
@@ -14669,7 +16016,19 @@ tile.interimTile=interimTile.interimTile;}else{tile.interimTile=interimTile;}til
  * @param {boolean} useInterimTilesOnError Use interim tiles on error.
  * @observable
  * @api
- */_ol_layer_Tile_.prototype.setUseInterimTilesOnError=function(useInterimTilesOnError){this.set(_ol_layer_TileProperty_.USE_INTERIM_TILES_ON_ERROR,useInterimTilesOnError);};var _ol_format_Feature_=function(){/**
+ */_ol_layer_Tile_.prototype.setUseInterimTilesOnError=function(useInterimTilesOnError){this.set(_ol_layer_TileProperty_.USE_INTERIM_TILES_ON_ERROR,useInterimTilesOnError);};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Base class for feature formats.
+ * {ol.format.Feature} subclasses provide the ability to decode and encode
+ * {@link ol.Feature} objects from a variety of commonly used geospatial
+ * file formats.  See the documentation for each format for more details.
+ *
+ * @constructor
+ * @abstract
+ * @api
+ */var _ol_format_Feature_=function(){/**
    * @protected
    * @type {ol.proj.Projection}
    */this.defaultDataProjection=null;/**
@@ -14758,7 +16117,16 @@ transformed=_ol_proj_.transformExtent(geometry,dataProjection,featureProjection)
 /**
      * @param {Array.<number>} coordinates Coordinates.
      * @return {Array.<number>} Transformed coordinates.
-     */var transform=function(coordinates){for(var i=0,ii=coordinates.length;i<ii;++i){coordinates[i]=Math.round(coordinates[i]*power)/power;}return coordinates;};if(transformed===geometry){transformed=transformed.clone();}transformed.applyTransform(transform);}return transformed;};var _ol_format_JSONFeature_=function(){_ol_format_Feature_.call(this);};_ol_.inherits(_ol_format_JSONFeature_,_ol_format_Feature_);/**
+     */var transform=function(coordinates){for(var i=0,ii=coordinates.length;i<ii;++i){coordinates[i]=Math.round(coordinates[i]*power)/power;}return coordinates;};if(transformed===geometry){transformed=transformed.clone();}transformed.applyTransform(transform);}return transformed;};/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Base class for JSON feature formats.
+ *
+ * @constructor
+ * @abstract
+ * @extends {ol.format.Feature}
+ */var _ol_format_JSONFeature_=function(){_ol_format_Feature_.call(this);};_ol_.inherits(_ol_format_JSONFeature_,_ol_format_Feature_);/**
  * @param {Document|Node|Object|string} source Source.
  * @private
  * @return {Object} Object.
@@ -14816,7 +16184,15 @@ transformed=_ol_proj_.transformExtent(geometry,dataProjection,featureProjection)
  * @param {ol.geom.Geometry} geometry Geometry.
  * @param {olx.format.WriteOptions=} opt_options Write options.
  * @return {Object} Object.
- */_ol_format_JSONFeature_.prototype.writeGeometryObject=function(geometry,opt_options){};var _ol_geom_GeometryCollection_=function(opt_geometries){_ol_geom_Geometry_.call(this);/**
+ */_ol_format_JSONFeature_.prototype.writeGeometryObject=function(geometry,opt_options){};/**
+ * @classdesc
+ * An array of {@link ol.geom.Geometry} objects.
+ *
+ * @constructor
+ * @extends {ol.geom.Geometry}
+ * @param {Array.<ol.geom.Geometry>=} opt_geometries Geometries.
+ * @api
+ */var _ol_geom_GeometryCollection_=function(opt_geometries){_ol_geom_Geometry_.call(this);/**
    * @private
    * @type {Array.<ol.geom.Geometry>}
    */this.geometries_=opt_geometries?opt_geometries:null;this.listenGeometriesChange_();};_ol_.inherits(_ol_geom_GeometryCollection_,_ol_geom_Geometry_);/**
@@ -14879,7 +16255,15 @@ transformed=_ol_proj_.transformExtent(geometry,dataProjection,featureProjection)
  * @inheritDoc
  */_ol_geom_GeometryCollection_.prototype.disposeInternal=function(){this.unlistenGeometriesChange_();_ol_geom_Geometry_.prototype.disposeInternal.call(this);};// TODO: serialize dataProjection as crs member when writing
 // see https://github.com/openlayers/openlayers/issues/2078
-var _ol_format_GeoJSON_=function(opt_options){var options=opt_options?opt_options:{};_ol_format_JSONFeature_.call(this);/**
+/**
+ * @classdesc
+ * Feature format for reading and writing data in the GeoJSON format.
+ *
+ * @constructor
+ * @extends {ol.format.JSONFeature}
+ * @param {olx.format.GeoJSONOptions=} opt_options Options.
+ * @api
+ */var _ol_format_GeoJSON_=function(opt_options){var options=opt_options?opt_options:{};_ol_format_JSONFeature_.call(this);/**
    * @inheritDoc
    */this.defaultDataProjection=_ol_proj_.get(options.defaultDataProjection?options.defaultDataProjection:'EPSG:4326');if(options.featureProjection){this.defaultFeatureProjection=_ol_proj_.get(options.featureProjection);}/**
    * Name of the geometry attribute for features.
@@ -14975,64 +16359,43 @@ var _ol_format_GeoJSON_=function(opt_options){var options=opt_options?opt_option
  * @private
  * @type {Object.<string, function(ol.geom.Geometry, olx.format.WriteOptions=): (GeoJSONGeometry|GeoJSONGeometryCollection)>}
  */_ol_format_GeoJSON_.GEOMETRY_WRITERS_={'Point':_ol_format_GeoJSON_.writePointGeometry_,'LineString':_ol_format_GeoJSON_.writeLineStringGeometry_,'Polygon':_ol_format_GeoJSON_.writePolygonGeometry_,'MultiPoint':_ol_format_GeoJSON_.writeMultiPointGeometry_,'MultiLineString':_ol_format_GeoJSON_.writeMultiLineStringGeometry_,'MultiPolygon':_ol_format_GeoJSON_.writeMultiPolygonGeometry_,'GeometryCollection':_ol_format_GeoJSON_.writeGeometryCollectionGeometry_,'Circle':_ol_format_GeoJSON_.writeEmptyGeometryCollectionGeometry_};/**
- * Read a feature from a GeoJSON Feature source.  Only works for Feature or
- * geometry types.  Use {@link ol.format.GeoJSON#readFeatures} to read
- * FeatureCollection source. If feature at source has an id, it will be used
- * as Feature id by calling {@link ol.Feature#setId} internally.
- *
- * @function
- * @param {Document|Node|Object|string} source Source.
- * @param {olx.format.ReadOptions=} opt_options Read options.
- * @return {ol.Feature} Feature.
- * @api
+ * @inheritDoc
  */_ol_format_GeoJSON_.prototype.readFeatureFromObject=function(object,opt_options){/**
    * @type {GeoJSONFeature}
    */var geoJSONFeature=null;if(object.type==='Feature'){geoJSONFeature=/** @type {GeoJSONFeature} */object;}else{geoJSONFeature=/** @type {GeoJSONFeature} */{type:'Feature',geometry:/** @type {GeoJSONGeometry|GeoJSONGeometryCollection} */object};}var geometry=_ol_format_GeoJSON_.readGeometry_(geoJSONFeature.geometry,opt_options);var feature=new _ol_Feature_();if(this.geometryName_){feature.setGeometryName(this.geometryName_);}feature.setGeometry(geometry);if(geoJSONFeature.id!==undefined){feature.setId(geoJSONFeature.id);}if(geoJSONFeature.properties){feature.setProperties(geoJSONFeature.properties);}return feature;};/**
  * @inheritDoc
  */_ol_format_GeoJSON_.prototype.readFeaturesFromObject=function(object,opt_options){var geoJSONObject=/** @type {GeoJSONObject} */object;/** @type {Array.<ol.Feature>} */var features=null;if(geoJSONObject.type==='FeatureCollection'){var geoJSONFeatureCollection=/** @type {GeoJSONFeatureCollection} */object;features=[];var geoJSONFeatures=geoJSONFeatureCollection.features;var i,ii;for(i=0,ii=geoJSONFeatures.length;i<ii;++i){features.push(this.readFeatureFromObject(geoJSONFeatures[i],opt_options));}}else{features=[this.readFeatureFromObject(object,opt_options)];}return features;};/**
- * Read a geometry from a GeoJSON source.
- *
- * @function
- * @param {Document|Node|Object|string} source Source.
- * @param {olx.format.ReadOptions=} opt_options Read options.
- * @return {ol.geom.Geometry} Geometry.
- * @api
+ * @inheritDoc
  */_ol_format_GeoJSON_.prototype.readGeometryFromObject=function(object,opt_options){return _ol_format_GeoJSON_.readGeometry_(/** @type {GeoJSONGeometry} */object,opt_options);};/**
- * Read the projection from a GeoJSON source.
- *
- * @function
- * @param {Document|Node|Object|string} source Source.
- * @return {ol.proj.Projection} Projection.
- * @api
+ * @inheritDoc
  */_ol_format_GeoJSON_.prototype.readProjectionFromObject=function(object){var geoJSONObject=/** @type {GeoJSONObject} */object;var crs=geoJSONObject.crs;var projection;if(crs){if(crs.type=='name'){projection=_ol_proj_.get(crs.properties.name);}else if(crs.type=='EPSG'){// 'EPSG' is not part of the GeoJSON specification, but is generated by
 // GeoServer.
 // TODO: remove this when http://jira.codehaus.org/browse/GEOS-5996
 // is fixed and widely deployed.
 projection=_ol_proj_.get('EPSG:'+crs.properties.code);}else{_ol_asserts_.assert(false,36);// Unknown SRS type
 }}else{projection=this.defaultDataProjection;}return(/** @type {ol.proj.Projection} */projection);};/**
- * Encode a feature as a GeoJSON Feature string.
+ * Encode a feature as a GeoJSON Feature object.
  *
- * @function
  * @param {ol.Feature} feature Feature.
  * @param {olx.format.WriteOptions=} opt_options Write options.
- * @return {string} GeoJSON.
+ * @return {GeoJSONFeature} Object.
  * @override
  * @api
  */_ol_format_GeoJSON_.prototype.writeFeatureObject=function(feature,opt_options){opt_options=this.adaptOptions(opt_options);var object=/** @type {GeoJSONFeature} */{'type':'Feature'};var id=feature.getId();if(id!==undefined){object.id=id;}var geometry=feature.getGeometry();if(geometry){object.geometry=_ol_format_GeoJSON_.writeGeometry_(geometry,opt_options);}else{object.geometry=null;}var properties=feature.getProperties();delete properties[feature.getGeometryName()];if(!_ol_obj_.isEmpty(properties)){object.properties=properties;}else{object.properties=null;}return object;};/**
- * Encode an array of features as GeoJSON.
+ * Encode an array of features as a GeoJSON object.
  *
- * @function
  * @param {Array.<ol.Feature>} features Features.
  * @param {olx.format.WriteOptions=} opt_options Write options.
- * @return {string} GeoJSON.
+ * @return {GeoJSONFeatureCollection} GeoJSON Object.
+ * @override
  * @api
  */_ol_format_GeoJSON_.prototype.writeFeaturesObject=function(features,opt_options){opt_options=this.adaptOptions(opt_options);var objects=[];var i,ii;for(i=0,ii=features.length;i<ii;++i){objects.push(this.writeFeatureObject(features[i],opt_options));}return(/** @type {GeoJSONFeatureCollection} */{type:'FeatureCollection',features:objects});};/**
- * Encode a geometry as a GeoJSON string.
+ * Encode a geometry as a GeoJSON object.
  *
- * @function
  * @param {ol.geom.Geometry} geometry Geometry.
  * @param {olx.format.WriteOptions=} opt_options Write options.
- * @return {string} GeoJSON.
+ * @return {GeoJSONGeometry|GeoJSONGeometryCollection} Object.
+ * @override
  * @api
  */_ol_format_GeoJSON_.prototype.writeGeometryObject=function(geometry,opt_options){return _ol_format_GeoJSON_.writeGeometry_(geometry,this.adaptOptions(opt_options));};function loadGeoJSON(map,layerDef,data,version){var layer;try{var source=new _ol_source_Vector_({url:'data/'+version+'/'+layerDef.filename,format:new _ol_format_GeoJSON_({defaultDataProjection:layerDef.projection||pixelProj})});layer=new _ol_layer_Vector_({title:layerDef.name,projection:layerDef.projection||pixelProj,source:source,visible:!!layerDef.visible,style:layerDef.style});}catch(e){}return layer;}function loadPolygon(map,layerDef,data,layer){var features=[];features=data.data[layerDef.id].map(function(obj){var points=obj.points;var ring=points.map(function(point){return _ol_proj_.transform([point.x,point.y],dotaProj,pixelProj);});ring.push(_ol_proj_.transform([points[0].x,points[0].y],dotaProj,pixelProj));var geom=new _ol_geom_Polygon_([ring]);var feature=new _ol_Feature_(geom);obj.id=layerDef.id;feature.set('dotaProps',obj,true);return feature;});var vectorSource=new _ol_source_Vector_({defaultDataProjection:'dota',features:features});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadJSON(map,layerDef,data,layer){var features=[];features=data.data[layerDef.id].map(function(point){var unitClass=point.subType?layerDef.id+'_'+point.subType:layerDef.id;var stats=data.stats[unitClass];var bounds=layerDef.id=="ent_dota_tree"?[64,64]:stats.bounds;if(bounds&&bounds[0]>0&&bounds[1]>0){var geom=new _ol_geom_Polygon_([[_ol_proj_.transform([point.x-bounds[0],point.y-bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x-bounds[0],point.y+bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x+bounds[0],point.y+bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x+bounds[0],point.y-bounds[1]],dotaProj,pixelProj),_ol_proj_.transform([point.x-bounds[0],point.y-bounds[1]],dotaProj,pixelProj)]]);}else{var geom=new _ol_geom_Point_(_ol_proj_.transform([point.x,point.y],dotaProj,pixelProj));}var feature=new _ol_Feature_(geom);point.id=layerDef.id;point.unitClass=unitClass;feature.set('dotaProps',point,true);return feature;});var vectorSource=new _ol_source_Vector_({defaultDataProjection:'dota',features:features});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadNeutralPullRange(InteractiveMap,layerDef,data,layer){/*var features = InteractiveMap.getMapLayerIndex().npc_dota_neutral_spawner.getSource().getFeatures();
     var circles = features.map(function (feature) {
@@ -15051,12 +16414,13 @@ projection=_ol_proj_.get('EPSG:'+crs.properties.code);}else{_ol_asserts_.assert(
         var circle = new Feature({geometry: geom, visible: false});
         circle.visible(false);
         return circle;
-    }));*/var vectorSource=new _ol_source_Vector_({defaultDataProjection:'pixel',features:[]});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadLayerGroupFromData(InteractiveMap,data,version,layersIndex,layerDefs){var layers=[];for(var i=0;i<layerDefs.length;i++){var layerDef=layerDefs[i];if(!data.data[layerDef.id]&&(layerDef.type!=='pullRange'&&layerDef.type!=='GeoJSON'||version=='688'))continue;var layer;switch(layerDef.type){case'GeoJSON':layer=loadGeoJSON(InteractiveMap.map,layerDef,layersIndex[layerDef.id],version);break;case'polygon':layer=loadPolygon(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;case'pullRange':layer=loadNeutralPullRange(InteractiveMap,layerDef,data,layersIndex[layerDef.id]);break;default:layer=loadJSON(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;}if(layer){layersIndex[layerDef.id]=layer;layers.push(layer);}}var layerGroup=new _ol_layer_Group_({title:'Layers',layers:new _ol_Collection_(layers)});return layerGroup;}function getJSON(path,callback){var retries=3;function makeReq(){var request=new XMLHttpRequest();request.open('GET',path,true);var err;request.onload=function(){if(request.status==200){console.log(request);console.log(request.status);try{var data=JSON.parse(request.responseText);}catch(e){err=e;}}else{err=new Error("Error loading json "+request.status);}callback(err,data);};request.onerror=function(){retries--;if(retries>0){setTimeout(function(){makeReq();},1000);}else{err=new Error("Error loading json "+request.status);callback(err);}};request.send();}makeReq();}var baseLayerDefinitions=[{id:'default',name:'Default',group:'707'},{id:'default',name:'Default',group:'706'},{id:'autumn',name:'Autumn',group:'706'},{id:'desert',name:'Desert',group:'706'},{id:'immortalgardens',name:'Immortal Gardens',group:'706'},{id:'journey',name:'New Journey',group:'706'},{id:'reef',name:'Reef\'s Edge',group:'706'},{id:'spring',name:'Spring',group:'706'},{id:'winter',name:'Winter',group:'706'},{id:'default',name:'Default',group:'700'},{id:'default',name:'Default',group:'688'}];var layerDefinitions=[{id:'path_corner',name:'Lanes',filename:'path_corner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.teamColor},{id:'npc_dota_spawner',name:'Lane Spawns',filename:'npc_dota_spawner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.creepSpawn},{id:'ent_fow_blocker_node',name:'Vision Blocker',filename:'ent_fow_blocker_node.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,0,255,0.3]}),stroke:new _ol_style_Stroke_({color:[0,0,255,0.8]})})},{id:'no_wards',name:'Invalid Wards',filename:'no_wards.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[255,0,0,0.3]}),stroke:new _ol_style_Stroke_({color:[255,0,0,0.8]})})},{id:'trigger_multiple',name:'Spawn Boxes',type:'polygon',group:'overlay',style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,255,125,0.3]}),stroke:new _ol_style_Stroke_({color:[0,255,125,0.8]})})},{id:'npc_dota_neutral_spawner',name:'Neutral Camps',group:'object',style:function(feature,resolution){return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)];}},{id:'ent_dota_tree',name:'Trees',group:'object',style:function(feature,resolution){if(feature.get('isCut')){return styles.tree.dead;}else{return styles.tree.alive;}},toggle:true},{id:'npc_dota_roshan_spawner',name:'Roshan',group:'object',style:styles.roshan},{id:'dota_item_rune_spawner_powerup',name:'Runes',group:'object',style:styles.rune},{id:'dota_item_rune_spawner_bounty',name:'Bounty Runes',group:'object',style:styles.bountyRune},{id:'ent_dota_fountain',name:'Fountain',group:'structure',style:styles.ent_dota_fountain,toggle:true},{id:'npc_dota_barracks',name:'Barracks',group:'structure',style:styles.npc_dota_barracks,toggle:true},{id:'npc_dota_filler',name:'Buildings',group:'structure',style:styles.npc_dota_filler,toggle:true},{id:'npc_dota_tower',name:'Towers',group:'structure',style:styles.npc_dota_tower,toggle:true},{id:'ent_dota_shop',name:'Shops',group:'structure',style:styles.ent_dota_shop},{id:'npc_dota_fort',name:'Ancients',group:'structure',style:styles.npc_dota_fort,toggle:true},{id:'npc_dota_healer',name:'Shrines',group:'structure',style:styles.npc_dota_healer,toggle:true},{id:'pullRange',name:'Pull Range',type:'pullRange',group:'overlay',style:styles.pullRange,visible:true}];function InteractiveMap(map_tile_path){var self=this;this.map_tile_path=map_tile_path;this.MODE='navigation';this.layerDefs=layerDefinitions;this.baseLayerDefs=baseLayerDefinitions;this.view=new _ol_View_({zoom:0,center:mapConstants.imgCenter,projection:pixelProj,resolutions:mapConstants.resolutions,extent:[0,0,mapConstants.map_w,mapConstants.map_h]});this.data={};this.layerIndex={};this.version='707';this.visionRadius=mapConstants.visionRadius.observer;this.movementSpeed=mapConstants.defaultMovementSpeed;this.isNight=false;this.isDarkness=false;this.layerFilters={marker:function(layer){var layerDef=layer.get('layerDef');return layer.getVisible()&&layerDef&&(layerDef.group=='structure'||layerDef.group=='object');}};this.map=new _ol_Map_({controls:_ol_control_.defaults({zoom:false,attribution:false,rotate:false}),interactions:_ol_interaction_.defaults({altShiftDragRotate:false,pinchRotate:false}),target:'map',view:this.view});this.highlightSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.highlightLayer=new _ol_layer_Vector_({source:this.highlightSource,style:styles.highlight});this.selectSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.selectLayer=new _ol_layer_Vector_({source:this.selectSource,style:styles.select});this.wardRangeSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.wardRangeLayer=new _ol_layer_Vector_({source:this.wardRangeSource});this.rangeSources={dayVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),nightVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),trueSight:new _ol_source_Vector_({defaultDataProjection:'pixel'}),attackRange:new _ol_source_Vector_({defaultDataProjection:'pixel'})};this.rangeLayers={dayVision:new _ol_layer_Vector_({source:this.rangeSources.dayVision,style:styles.dayVision}),nightVision:new _ol_layer_Vector_({source:this.rangeSources.nightVision,style:styles.nightVision}),trueSight:new _ol_layer_Vector_({source:this.rangeSources.trueSight,style:styles.trueSight}),attackRange:new _ol_layer_Vector_({source:this.rangeSources.attackRange,style:styles.attackRange})};// setup base layers
+    }));*/var vectorSource=new _ol_source_Vector_({defaultDataProjection:'pixel',features:[]});if(layer){layer.setSource(vectorSource);}else{layer=new _ol_layer_Vector_({title:layerDef.name,source:vectorSource,visible:!!layerDef.visible,style:layerDef.style});layer.set('layerId',layerDef.id,true);layer.set('layerDef',layerDef,true);layer.set('showInfo',false,true);}return layer;}function loadLayerGroupFromData(InteractiveMap,data,version,layersIndex,layerDefs){var layers=[];for(var i=0;i<layerDefs.length;i++){var layerDef=layerDefs[i];if(!data.data[layerDef.id]&&(layerDef.type!=='pullRange'&&layerDef.type!=='GeoJSON'||version=='688'))continue;var layer;switch(layerDef.type){case'GeoJSON':layer=loadGeoJSON(InteractiveMap.map,layerDef,layersIndex[layerDef.id],version);break;case'polygon':layer=loadPolygon(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;case'pullRange':layer=loadNeutralPullRange(InteractiveMap,layerDef,data,layersIndex[layerDef.id]);break;default:layer=loadJSON(InteractiveMap.map,layerDef,data,layersIndex[layerDef.id]);break;}if(layer){layersIndex[layerDef.id]=layer;layers.push(layer);}}var layerGroup=new _ol_layer_Group_({title:'Layers',layers:new _ol_Collection_(layers)});return layerGroup;}function getJSON(path,callback){var retries=3;function makeReq(){var request=new XMLHttpRequest();request.open('GET',path,true);var err;request.onload=function(){if(request.status==200){console.log(request);console.log(request.status);try{var data=JSON.parse(request.responseText);}catch(e){err=e;}}else{err=new Error("Error loading json "+request.status);}callback(err,data);};request.onerror=function(){retries--;if(retries>0){setTimeout(function(){makeReq();},1000);}else{err=new Error("Error loading json "+request.status);callback(err);}};request.send();}makeReq();}var baseLayerDefinitions=[{id:'default',name:'Default',group:'707'},{id:'default',name:'Default',group:'706'},{id:'autumn',name:'Autumn',group:'706'},{id:'desert',name:'Desert',group:'706'},{id:'immortalgardens',name:'Immortal Gardens',group:'706'},{id:'journey',name:'New Journey',group:'706'},{id:'reef',name:'Reef\'s Edge',group:'706'},{id:'spring',name:'Spring',group:'706'},{id:'winter',name:'Winter',group:'706'},{id:'default',name:'Default',group:'700'},{id:'default',name:'Default',group:'688'}];var layerDefinitions=[{id:'path_corner',name:'Lanes',filename:'path_corner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.teamColor},{id:'npc_dota_spawner',name:'Lane Spawns',filename:'npc_dota_spawner.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:styles.creepSpawn},{id:'ent_fow_blocker_node',name:'Vision Blocker',filename:'ent_fow_blocker_node.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,0,255,0.3]}),stroke:new _ol_style_Stroke_({color:[0,0,255,0.8]})})},{id:'no_wards',name:'Invalid Wards',filename:'no_wards.json',type:'GeoJSON',group:'overlay',projection:dotaProj,style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[255,0,0,0.3]}),stroke:new _ol_style_Stroke_({color:[255,0,0,0.8]})})},{id:'trigger_multiple',name:'Spawn Boxes',type:'polygon',group:'overlay',style:new _ol_style_Style_$1({fill:new _ol_style_Fill_({color:[0,255,125,0.3]}),stroke:new _ol_style_Stroke_({color:[0,255,125,0.8]})})},{id:'npc_dota_neutral_spawner',name:'Neutral Camps',group:'object',style:function(feature,resolution){return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)];}},{id:'ent_dota_tree',name:'Trees',group:'object',style:function(feature,resolution){if(feature.get('isCut')){return styles.tree.dead;}else{return styles.tree.alive;}},toggle:true},{id:'npc_dota_roshan_spawner',name:'Roshan',group:'object',style:styles.roshan},{id:'dota_item_rune_spawner_powerup',name:'Runes',group:'object',style:styles.rune},{id:'dota_item_rune_spawner_bounty',name:'Bounty Runes',group:'object',style:styles.bountyRune},{id:'ent_dota_fountain',name:'Fountain',group:'structure',style:styles.ent_dota_fountain,toggle:true},{id:'npc_dota_barracks',name:'Barracks',group:'structure',style:styles.npc_dota_barracks,toggle:true},{id:'npc_dota_filler',name:'Buildings',group:'structure',style:styles.npc_dota_filler,toggle:true},{id:'npc_dota_tower',name:'Towers',group:'structure',style:styles.npc_dota_tower,toggle:true},{id:'ent_dota_shop',name:'Shops',group:'structure',style:styles.ent_dota_shop},{id:'npc_dota_fort',name:'Ancients',group:'structure',style:styles.npc_dota_fort,toggle:true},{id:'npc_dota_healer',name:'Shrines',group:'structure',style:styles.npc_dota_healer,toggle:true},{id:'pullRange',name:'Pull Range',type:'pullRange',group:'overlay',style:styles.pullRange,visible:true}];//import proj from 'ol/proj';
+function InteractiveMap(map_tile_path){var self=this;this.map_tile_path=map_tile_path;this.MODE='navigation';this.layerDefs=layerDefinitions;this.baseLayerDefs=baseLayerDefinitions;this.view=new _ol_View_({zoom:0,center:mapConstants.imgCenter,projection:pixelProj,resolutions:mapConstants.resolutions,extent:[0,0,mapConstants.map_w,mapConstants.map_h]});this.data={};this.layerIndex={};this.version='707';this.visionRadius=mapConstants.visionRadius.observer;this.movementSpeed=mapConstants.defaultMovementSpeed;this.isNight=false;this.isDarkness=false;this.layerFilters={marker:function(layer){var layerDef=layer.get('layerDef');return layer.getVisible()&&layerDef&&(layerDef.group=='structure'||layerDef.group=='object');}};this.map=new _ol_Map_({controls:_ol_control_.defaults({zoom:false,attribution:false,rotate:false}),interactions:_ol_interaction_.defaults({altShiftDragRotate:false,pinchRotate:false}),target:'map',view:this.view});this.highlightSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.highlightLayer=new _ol_layer_Vector_({source:this.highlightSource,style:styles.highlight});this.selectSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.selectLayer=new _ol_layer_Vector_({source:this.selectSource,style:styles.select});this.wardRangeSource=new _ol_source_Vector_({defaultDataProjection:'pixel'});this.wardRangeLayer=new _ol_layer_Vector_({source:this.wardRangeSource});this.rangeSources={dayVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),nightVision:new _ol_source_Vector_({defaultDataProjection:'pixel'}),trueSight:new _ol_source_Vector_({defaultDataProjection:'pixel'}),attackRange:new _ol_source_Vector_({defaultDataProjection:'pixel'})};this.rangeLayers={dayVision:new _ol_layer_Vector_({source:this.rangeSources.dayVision,style:styles.dayVision}),nightVision:new _ol_layer_Vector_({source:this.rangeSources.nightVision,style:styles.nightVision}),trueSight:new _ol_layer_Vector_({source:this.rangeSources.trueSight,style:styles.trueSight}),attackRange:new _ol_layer_Vector_({source:this.rangeSources.attackRange,style:styles.attackRange})};// setup base layers
 this.baseLayers=this.baseLayerDefs.map(function(layerDef){var layer=new _ol_layer_Tile_({title:layerDef.name,type:'base',extent:pixelProj.getExtent(),//proj.pixel.getExtent()
 source:new _ol_source_TileImage_({tileGrid:new _ol_tilegrid_TileGrid_({origin:[0,mapConstants.map_h],resolutions:mapConstants.resolutions}),projection:pixelProj,url:self.map_tile_path+layerDef.group+'/'+layerDef.id+'/{z}/tile_{x}_{y}.jpg'}),visible:!!layerDef.visible});layer.set('layerId',layerDef.group+'-'+layerDef.id,true);layer.set('layerDef',layerDef,true);return layer;});this.baseLayerGroup=new _ol_layer_Group_({title:'Base Layers',layers:new _ol_Collection_(this.baseLayers)});}InteractiveMap.prototype.getMapData=function(version){return this.data[version||this.version]||{};};InteractiveMap.prototype.getData=function(version){return this.getMapData(version).data||{};};InteractiveMap.prototype.getOverlayData=function(version){return this.getData(version).data||{};};InteractiveMap.prototype.getStatData=function(version){return this.getData(version).stats||{};};InteractiveMap.prototype.getMapLayerIndex=function(version){version=version||this.version;if(!this.layerIndex[version])this.layerIndex[version]={};return this.layerIndex[version];};InteractiveMap.prototype.getMapDataPath=function(version){version=version||this.version;return'data/'+version+'/mapdata.json';};InteractiveMap.prototype.setMapLayers=function(version,callback){var self=this;this.getDataJSON(version,function(err,data){if(!err){var currentLayerGroup=self.map.getLayerGroup();currentLayerGroup.setVisible(false);self.map.setLayerGroup(data.layerGroup);self.map.getLayerGroup().setVisible(true);}if(callback)callback(err);});};InteractiveMap.prototype.getDataJSON=function(version,callback){var self=this;if(this.data[version]){callback(null,self.data[version]);}else{getJSON(self.getMapDataPath(version),function(err,data){if(!err){self.data[version]={data:data,layerGroup:new _ol_layer_Group_({title:version+' Layers',layers:new _ol_Collection_([self.baseLayerGroup,loadLayerGroupFromData(self,data,version,self.getMapLayerIndex(version),self.layerDefs)])})};}callback(err,self.data[version]);});}};InteractiveMap.prototype.panTo=function(coordinate,duration){if(duration==null)duration=1000;this.view.animate({center:coordinate,duration:1000});};InteractiveMap.prototype.checkAndHighlightWard=function(pixel){var self=this;var feature=this.map.forEachFeatureAtPixel(pixel,function(feature,layer){return feature;},{layerFilter:self.wardControl.layerFilter});this.highlightWard(feature);return feature;};InteractiveMap.prototype.highlightWard=function(feature){if(feature!==this.highlightedWard){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}if(feature){feature.setStyle(styles[feature.get('wardType')][this.MODE=='navigate'?'highlight':'remove']);}this.highlightedWard=feature;}};InteractiveMap.prototype.unhighlightWard=function(){if(this.highlightedWard){this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);}this.highlightedWard=null;};InteractiveMap.prototype.highlight=function(feature){if(feature!==this.highlightedFeature){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}if(feature){this.highlightSource.addFeature(feature);}this.highlightedFeature=feature;}};InteractiveMap.prototype.unhighlight=function(){if(this.highlightedFeature){this.highlightSource.removeFeature(this.highlightedFeature);}this.highlightedFeature=null;};InteractiveMap.prototype.toggle=function(feature){if(feature){if(feature.get("clicked")){this.deselect(feature);return false;}else{this.select(feature);return true;}}};InteractiveMap.prototype.select=function(feature){if(feature&&!feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.addFeature(feature);feature.set("clicked",true,true);}};InteractiveMap.prototype.deselectAll=function(){this.selectSource.getFeatures().forEach(function(feature){feature.set("clicked",false,true);});this.selectSource.clear();};InteractiveMap.prototype.deselect=function(feature){if(feature&&feature.get("clicked")){if(feature==this.highlightedFeature){this.unhighlight();}this.selectSource.removeFeature(feature);feature.set("clicked",false,true);}};InteractiveMap.prototype.hasVisionRadius=function(feature){return this.getFeatureVisionRadius(feature)!=null;};InteractiveMap.prototype.getFeatureVisionRadius=function(feature,dotaProps,unitClass,rangeType){dotaProps=dotaProps||feature.get('dotaProps');unitClass=unitClass||dotaProps.unitClass;var unitStats=this.getStatData()[unitClass]||{};var radius;if(unitClass=='observer'){radius=this.visionRadius||mapConstants.visionRadius[unitClass];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}}else if(unitClass=='sentry'){radius=mapConstants.visionRadius[unitClass];}else{if(rangeType&&!unitStats.hasOwnProperty(rangeType))return null;switch(rangeType){case'dayVision':case'nightVision':radius=unitStats[rangeType];if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}case'trueSight':case'attackRange':radius=unitStats[rangeType];break;default:if(this.isNight){radius=unitStats.nightVision;}else{radius=unitStats.dayVision;}if(this.isDarkness){radius=Math.min(mapConstants.visionRadius.darkness,radius);}break;}}return radius;};InteractiveMap.prototype.getRangeCircle=function(feature,coordinate,unitClass,rangeType,radius){var dotaProps=feature.get('dotaProps');var radius=radius||this.getFeatureVisionRadius(feature,dotaProps,unitClass,rangeType);if(radius==null)return null;if(!coordinate){coordinate=worldToLatLon([dotaProps.x,dotaProps.y]);}var circle=new _ol_Feature_(new _ol_geom_Circle_(coordinate,getScaledRadius(radius)));return circle;};var modeNotificationText={observer:"Ward Mode: Observer",sentry:"Ward Mode: Sentry",navigate:"Navigation Mode",line:"Measure Mode: Line",circle:"Measure Mode: Circle",treeEnable:"<span>Navigation Mode</span><span>Trees: On</span>",treeDisable:"<span>Navigation Mode</span><span>Trees: Off</span>",nightOn:"Nighttime Vision",nightOff:"Daytime Vision",darknessOn:"Darkness: On",darknessOff:"Darkness: Off"};var forEach=function(array,callback,scope){for(var i=0;i<array.length;i++){callback.call(scope,array[i],i);// passes back stuff we need
-}};var commonjsGlobal=typeof window!=='undefined'?window:typeof global!=='undefined'?global:typeof self!=='undefined'?self:{};function createCommonjsModule(fn,module){return module={exports:{}},fn(module,module.exports),module.exports;}var rollbar_umd_min$1=createCommonjsModule(function(module,exports){!function(t,e){module.exports=e();}(commonjsGlobal,function(){return function(t){function e(r){if(n[r])return n[r].exports;var o=n[r]={exports:{},id:r,loaded:!1};return t[r].call(o.exports,o,o.exports,e),o.loaded=!0,o.exports;}var n={};return e.m=t,e.c=n,e.p="",e(0);}([function(t,e,n){t.exports=n(1);},function(t,e,n){"use strict";var r=n(2),o=window&&window._rollbarConfig,i=o&&o.globalAlias||"Rollbar",a=window&&window[i]&&"function"==typeof window[i].shimId&&void 0!==window[i].shimId();if(window&&!window._rollbarStartTime&&(window._rollbarStartTime=new Date().getTime()),!a&&o){var s=new r(o);window[i]=s;}else window.rollbar=r,window._rollbarDidLoad=!0;t.exports=r;},function(t,e,n){"use strict";function r(t,e){this.options=c.extend(!0,_,t);var n=new l(this.options,h,d);this.client=e||new u(this.options,n,p,"browser"),i(this.client.notifier),a(this.client.queue),(this.options.captureUncaught||this.options.handleUncaughtExceptions)&&(f.captureUncaughtExceptions(window,this),f.wrapGlobals(window,this)),(this.options.captureUnhandledRejections||this.options.handleUnhandledRejections)&&f.captureUnhandledRejections(window,this),this.instrumenter=new b(this.options,this.client.telemeter,this,window,document),this.instrumenter.instrument();}function o(t){var e="Rollbar is not initialized";p.error(e),t&&t(new Error(e));}function i(t){t.addTransform(m.handleItemWithError).addTransform(m.ensureItemHasSomethingToSay).addTransform(m.addBaseInfo).addTransform(m.addRequestInfo(window)).addTransform(m.addClientInfo(window)).addTransform(m.addPluginInfo(window)).addTransform(m.addBody).addTransform(g.addMessageWithError).addTransform(g.addTelemetryData).addTransform(m.scrubPayload).addTransform(m.userTransform).addTransform(g.itemToPayload);}function a(t){t.addPredicate(v.checkIgnore).addPredicate(v.userCheckIgnore).addPredicate(v.urlIsNotBlacklisted).addPredicate(v.urlIsWhitelisted).addPredicate(v.messageIsIgnored);}function s(t){for(var e=0,n=t.length;e<n;++e)if(c.isFunction(t[e]))return t[e];}var u=n(3),c=n(6),l=n(11),p=n(13),f=n(16),h=n(17),d=n(18),m=n(19),g=n(23),v=n(24),y=n(20),b=n(25),w=null;r.init=function(t,e){return w?w.global(t).configure(t):w=new r(t,e);},r.prototype.global=function(t){return this.client.global(t),this;},r.global=function(t){return w?w.global(t):void o();},r.prototype.configure=function(t,e){var n=this.options,r={};return e&&(r={payload:e}),this.options=c.extend(!0,{},n,t,r),this.client.configure(t,e),this.instrumenter.configure(t),this;},r.configure=function(t,e){return w?w.configure(t,e):void o();},r.prototype.lastError=function(){return this.client.lastError;},r.lastError=function(){return w?w.lastError():void o();},r.prototype.log=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.log(t),{uuid:e};},r.log=function(){if(w)return w.log.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.debug=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.debug(t),{uuid:e};},r.debug=function(){if(w)return w.debug.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.info=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.info(t),{uuid:e};},r.info=function(){if(w)return w.info.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.warn=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warn(t),{uuid:e};},r.warn=function(){if(w)return w.warn.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.warning=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warning(t),{uuid:e};},r.warning=function(){if(w)return w.warning.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.error=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.error(t),{uuid:e};},r.error=function(){if(w)return w.error.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.critical=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.critical(t),{uuid:e};},r.critical=function(){if(w)return w.critical.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.handleUncaughtException=function(t,e,n,r,o,i){var a,s=c.makeUnhandledStackInfo(t,e,n,r,o,"onerror","uncaught exception",y);c.isError(o)?(a=this._createItem([t,o,i]),a._unhandledStackInfo=s):c.isError(e)?(a=this._createItem([t,e,i]),a._unhandledStackInfo=s):(a=this._createItem([t,i]),a.stackInfo=s),a.level=this.options.uncaughtErrorLevel,a._isUncaught=!0,this.client.log(a);},r.prototype.handleUnhandledRejection=function(t,e){var n="unhandled rejection was null or undefined!";n=t?t.message||String(t):n;var r,o=t&&t._rollbarContext||e&&e._rollbarContext;c.isError(t)?r=this._createItem([n,t,o]):(r=this._createItem([n,t,o]),r.stackInfo=c.makeUnhandledStackInfo(n,"",0,0,null,"unhandledrejection","",y)),r.level=this.options.uncaughtErrorLevel,r._isUncaught=!0,r._originalArgs=r._originalArgs||[],r._originalArgs.push(e),this.client.log(r);},r.prototype.wrap=function(t,e,n){try{var r;if(r=c.isFunction(e)?e:function(){return e||{};},!c.isFunction(t))return t;if(t._isWrap)return t;if(!t._rollbar_wrapped&&(t._rollbar_wrapped=function(){n&&c.isFunction(n)&&n.apply(this,arguments);try{return t.apply(this,arguments);}catch(n){var e=n;throw c.isType(e,"string")&&(e=new String(e)),e._rollbarContext=r()||{},e._rollbarContext._wrappedSource=t.toString(),window._rollbarWrappedError=e,e;}},t._rollbar_wrapped._isWrap=!0,t.hasOwnProperty))for(var o in t)t.hasOwnProperty(o)&&(t._rollbar_wrapped[o]=t[o]);return t._rollbar_wrapped;}catch(e){return t;}},r.wrap=function(t,e){return w?w.wrap(t,e):void o();},r.prototype.captureEvent=function(t,e){return this.client.captureEvent(t,e);},r.captureEvent=function(t,e){return w?w.captureEvent(t,e):void o();},r.prototype.captureDomContentLoaded=function(t,e){return e||(e=new Date()),this.client.captureDomContentLoaded(e);},r.prototype.captureLoad=function(t,e){return e||(e=new Date()),this.client.captureLoad(e);},r.prototype._createItem=function(t){return c.createItem(t,p,this);};var _={version:"2.3.1",scrubFields:["pw","pass","passwd","password","secret","confirm_password","confirmPassword","password_confirmation","passwordConfirmation","access_token","accessToken","secret_key","secretKey","secretToken"],logLevel:"debug",reportLevel:"debug",uncaughtErrorLevel:"error",endpoint:"api.rollbar.com/api/1/item/",verbose:!1,enabled:!0};t.exports=r;},function(t,e,n){"use strict";function r(t,e,n,o){this.options=u.extend(!0,{},t),this.logger=n,r.rateLimiter.configureGlobal(this.options),r.rateLimiter.setPlatformOptions(o,this.options),this.queue=new i(r.rateLimiter,e,n,this.options),this.notifier=new a(this.queue,this.options),this.telemeter=new s(this.options),this.lastError=null;}var o=n(4),i=n(5),a=n(9),s=n(10),u=n(6),c={maxItems:0,itemsPerMinute:60};r.rateLimiter=new o(c),r.prototype.global=function(t){return r.rateLimiter.configureGlobal(t),this;},r.prototype.configure=function(t,e){this.notifier&&this.notifier.configure(t),this.telemeter&&this.telemeter.configure(t);var n=this.options,r={};return e&&(r={payload:e}),this.options=u.extend(!0,{},n,t,r),this.global(this.options),this;},r.prototype.log=function(t){var e=this._defaultLogLevel();return this._log(e,t);},r.prototype.debug=function(t){this._log("debug",t);},r.prototype.info=function(t){this._log("info",t);},r.prototype.warn=function(t){this._log("warning",t);},r.prototype.warning=function(t){this._log("warning",t);},r.prototype.error=function(t){this._log("error",t);},r.prototype.critical=function(t){this._log("critical",t);},r.prototype.wait=function(t){this.queue.wait(t);},r.prototype.captureEvent=function(t,e){return this.telemeter.captureEvent(t,e);},r.prototype.captureDomContentLoaded=function(t){return this.telemeter.captureDomContentLoaded(t);},r.prototype.captureLoad=function(t){return this.telemeter.captureLoad(t);},r.prototype._log=function(t,e){if(!this._sameAsLastError(e))try{var n=null;e.callback&&(n=e.callback,delete e.callback),e.level=e.level||t,e.telemetryEvents=this.telemeter.copyEvents(),this.telemeter._captureRollbarItem(e),this.notifier.log(e,n);}catch(t){this.logger.error(t);}},r.prototype._defaultLogLevel=function(){return this.options.logLevel||"debug";},r.prototype._sameAsLastError=function(t){return!(!this.lastError||this.lastError!==t.err)||(this.lastError=t.err,!1);},t.exports=r;},function(t,e){"use strict";function n(t){this.startTime=new Date().getTime(),this.counter=0,this.perMinCounter=0,this.platform=null,this.platformOptions={},this.configureGlobal(t);}function r(t,e,n){return!t.ignoreRateLimit&&e>=1&&n>e;}function o(t,e,n,r,o){var a=null;return n&&(n=new Error(n)),n||r||(a=i(t,e,o)),{error:n,shouldSend:r,payload:a};}function i(t,e,n){var r=e.environment||e.payload&&e.payload.environment,o={body:{message:{body:"maxItems has been hit. Ignoring errors until reset.",extra:{maxItems:n}}},language:"javascript",environment:r,notifier:{version:e.notifier&&e.notifier.version||e.version}};return"browser"===t?(o.platform="browser",o.framework="browser-js",o.notifier.name="rollbar-browser-js"):"server"===t?(o.framework=e.framework||"node-js",o.notifier.name=e.notifier.name):"react-native"===t&&(o.framework=e.framework||"react-native",o.notifier.name=e.notifier.name),o;}n.globalSettings={startTime:new Date().getTime(),maxItems:void 0,itemsPerMinute:void 0},n.prototype.configureGlobal=function(t){void 0!==t.startTime&&(n.globalSettings.startTime=t.startTime),void 0!==t.maxItems&&(n.globalSettings.maxItems=t.maxItems),void 0!==t.itemsPerMinute&&(n.globalSettings.itemsPerMinute=t.itemsPerMinute);},n.prototype.shouldSend=function(t,e){e=e||new Date().getTime(),e-this.startTime>=6e4&&(this.startTime=e,this.perMinCounter=0);var i=n.globalSettings.maxItems,a=n.globalSettings.itemsPerMinute;if(r(t,i,this.counter))return o(this.platform,this.platformOptions,i+" max items reached",!1);if(r(t,a,this.perMinCounter))return o(this.platform,this.platformOptions,a+" items per minute reached",!1);this.counter++,this.perMinCounter++;var s=!r(t,i,this.counter);return s=s&&!r(t,a,this.perMinCounter),o(this.platform,this.platformOptions,null,s,i);},n.prototype.setPlatformOptions=function(t,e){this.platform=t,this.platformOptions=e;},t.exports=n;},function(t,e,n){"use strict";function r(t,e,n,r){this.rateLimiter=t,this.api=e,this.logger=n,this.options=r,this.predicates=[],this.pendingItems=[],this.pendingRequests=[],this.retryQueue=[],this.retryHandle=null,this.waitCallback=null,this.waitIntervalID=null;}var o=n(6);r.prototype.configure=function(t){this.api&&this.api.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},r.prototype.addPredicate=function(t){return o.isFunction(t)&&this.predicates.push(t),this;},r.prototype.addPendingItem=function(t){this.pendingItems.push(t);},r.prototype.removePendingItem=function(t){var e=this.pendingItems.indexOf(t);e!==-1&&this.pendingItems.splice(e,1);},r.prototype.addItem=function(t,e,n,r){e&&o.isFunction(e)||(e=function(){});var i=this._applyPredicates(t);if(i.stop)return this.removePendingItem(r),void e(i.err);this._maybeLog(t,n),this.removePendingItem(r),this.pendingRequests.push(t);try{this._makeApiRequest(t,function(n,r){this._dequeuePendingRequest(t),e(n,r);}.bind(this));}catch(n){this._dequeuePendingRequest(t),e(n);}},r.prototype.wait=function(t){o.isFunction(t)&&(this.waitCallback=t,this._maybeCallWait()||(this.waitIntervalID&&(this.waitIntervalID=clearInterval(this.waitIntervalID)),this.waitIntervalID=setInterval(function(){this._maybeCallWait();}.bind(this),500)));},r.prototype._applyPredicates=function(t){for(var e=null,n=0,r=this.predicates.length;n<r;n++)if(e=this.predicates[n](t,this.options),!e||void 0!==e.err)return{stop:!0,err:e.err};return{stop:!1,err:null};},r.prototype._makeApiRequest=function(t,e){var n=this.rateLimiter.shouldSend(t);n.shouldSend?this.api.postItem(t,function(n,r){n?this._maybeRetry(n,t,e):e(n,r);}.bind(this)):n.error?e(n.error):this.api.postItem(n.payload,e);};var i=["ECONNRESET","ENOTFOUND","ESOCKETTIMEDOUT","ETIMEDOUT","ECONNREFUSED","EHOSTUNREACH","EPIPE","EAI_AGAIN"];r.prototype._maybeRetry=function(t,e,n){var r=!1;if(this.options.retryInterval)for(var o=0,a=i.length;o<a;o++)if(t.code===i[o]){r=!0;break;}r?this._retryApiRequest(e,n):n(t);},r.prototype._retryApiRequest=function(t,e){this.retryQueue.push({item:t,callback:e}),this.retryHandle||(this.retryHandle=setInterval(function(){for(;this.retryQueue.length;){var t=this.retryQueue.shift();this._makeApiRequest(t.item,t.callback);}}.bind(this),this.options.retryInterval));},r.prototype._dequeuePendingRequest=function(t){var e=this.pendingRequests.indexOf(t);e!==-1&&(this.pendingRequests.splice(e,1),this._maybeCallWait());},r.prototype._maybeLog=function(t,e){if(this.logger&&this.options.verbose){var n=e;if(n=n||o.get(t,"body.trace.exception.message"),n=n||o.get(t,"body.trace_chain.0.exception.message"))return void this.logger.error(n);n=o.get(t,"body.message.body"),n&&this.logger.log(n);}},r.prototype._maybeCallWait=function(){return!(!o.isFunction(this.waitCallback)||0!==this.pendingItems.length||0!==this.pendingRequests.length)&&(this.waitIntervalID&&(this.waitIntervalID=clearInterval(this.waitIntervalID)),this.waitCallback(),!0);},t.exports=r;},function(t,e,n){"use strict";function r(){if(!A&&(A=!0,c(JSON)&&(s(JSON.stringify)&&(j.stringify=JSON.stringify),s(JSON.parse)&&(j.parse=JSON.parse)),!a(j.stringify)||!a(j.parse))){var t=n(8);t(j);}}function o(t,e){return e===i(t);}function i(t){var e=typeof t;return"object"!==e?e:t?t instanceof Error?"error":{}.toString.call(t).match(/\s([a-zA-Z]+)/)[1].toLowerCase():"null";}function a(t){return o(t,"function");}function s(t){var e=/[\\^$.*+?()[\]{}|]/g,n=Function.prototype.toString.call(Object.prototype.hasOwnProperty).replace(e,"\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g,"$1.*?"),r=RegExp("^"+n+"$");return u(t)&&r.test(t);}function u(t){var e=typeof t;return null!=t&&("object"==e||"function"==e);}function c(t){return!o(t,"undefined");}function l(t){var e=i(t);return"object"===e||"array"===e;}function p(t){return o(t,"error");}function f(t,e,n){var r,i,a,s=o(t,"object"),u=o(t,"array"),c=[];if(s&&n.indexOf(t)!==-1)return t;if(n.push(t),s)for(r in t)Object.prototype.hasOwnProperty.call(t,r)&&c.push(r);else if(u)for(a=0;a<t.length;++a)c.push(a);for(a=0;a<c.length;++a)r=c[a],i=t[r],t[r]=e(r,i,n);return t;}function h(){return"********";}function d(){var t=N(),e="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){var n=(t+16*Math.random())%16|0;return t=Math.floor(t/16),("x"===e?n:7&n|8).toString(16);});return e;}function m(t){var e=g(t);return""===e.anchor&&(e.source=e.source.replace("#","")),t=e.source.replace("?"+e.query,"");}function g(t){if(!o(t,"string"))throw new Error("received invalid input");for(var e=D,n=e.parser[e.strictMode?"strict":"loose"].exec(t),r={},i=e.key.length;i--;)r[e.key[i]]=n[i]||"";return r[e.q.name]={},r[e.key[12]].replace(e.q.parser,function(t,n,o){n&&(r[e.q.name][n]=o);}),r;}function v(t,e,n){n=n||{},n.access_token=t;var r,o=[];for(r in n)Object.prototype.hasOwnProperty.call(n,r)&&o.push([r,n[r]].join("="));var i="?"+o.sort().join("&");e=e||{},e.path=e.path||"";var a,s=e.path.indexOf("?"),u=e.path.indexOf("#");s!==-1&&(u===-1||u>s)?(a=e.path,e.path=a.substring(0,s)+i+"&"+a.substring(s+1)):u!==-1?(a=e.path,e.path=a.substring(0,u)+i+a.substring(u)):e.path=e.path+i;}function y(t,e){if(e=e||t.protocol,!e&&t.port&&(80===t.port?e="http:":443===t.port&&(e="https:")),e=e||"https:",!t.hostname)return null;var n=e+"//"+t.hostname;return t.port&&(n=n+":"+t.port),t.path&&(n+=t.path),n;}function b(t,e){var n,r;try{n=j.stringify(t);}catch(o){if(e&&a(e))try{n=e(t);}catch(t){r=t;}else r=o;}return{error:r,value:n};}function w(t){var e,n;try{e=j.parse(t);}catch(t){n=t;}return{error:n,value:e};}function _(t,e,n,r,o,i,a,s){var u={url:e||"",line:n,column:r};u.func=s.guessFunctionName(u.url,u.line),u.context=s.gatherContext(u.url,u.line);var c=document&&document.location&&document.location.href,l=window&&window.navigator&&window.navigator.userAgent;return{mode:i,message:o?String(o):t||a,url:c,stack:[u],useragent:l};}function x(t,e){return function(n,r){try{e(n,r);}catch(e){t.error(e);}};}function E(t,e,n,r,o){for(var a,s,u,c,l,p,f=[],h=0,m=t.length;h<m;++h){p=t[h];var g=i(p);switch(g){case"undefined":break;case"string":a?f.push(p):a=p;break;case"function":c=x(e,p);break;case"date":f.push(p);break;case"error":case"domexception":s?f.push(p):s=p;break;case"object":case"array":if(p instanceof Error||"undefined"!=typeof DOMException&&p instanceof DOMException){s?f.push(p):s=p;break;}if(r&&"object"===g&&!l){for(var v=0,y=r.length;v<y;++v)if(void 0!==p[r[v]]){l=p;break;}if(l)break;}u?f.push(p):u=p;break;default:if(p instanceof Error||"undefined"!=typeof DOMException&&p instanceof DOMException){s?f.push(p):s=p;break;}f.push(p);}}f.length>0&&(u=C(!0,{},u),u.extraArgs=f);var b={message:a,err:s,custom:u,timestamp:N(),callback:c,uuid:d()};return u&&void 0!==u.level&&(b.level=u.level,delete u.level),r&&l&&(b.request=l),o&&(b.lambdaContext=o),b._originalArgs=t,b;}function k(t,e){if(t){var n=e.split("."),r=t;try{for(var o=0,i=n.length;o<i;++o)r=r[n[o]];}catch(t){r=void 0;}return r;}}function I(t,e,n){if(t){var r=e.split("."),o=r.length;if(!(o<1)){if(1===o)return void(t[r[0]]=n);try{for(var i=t[r[0]]||{},a=i,s=1;s<o-1;s++)i[r[s]]=i[r[s]]||{},i=i[r[s]];i[r[o-1]]=n,t[r[0]]=a;}catch(t){return;}}}}function T(t,e){function n(t,e,n,r,o,i){return e+h(i);}function r(t){var e;if(o(t,"string"))for(e=0;e<u.length;++e)t=t.replace(u[e],n);return t;}function i(t,e){var n;for(n=0;n<s.length;++n)if(s[n].test(t)){e=h(e);break;}return e;}function a(t,e,n){var s=i(t,e);return s===e?o(e,"object")||o(e,"array")?f(e,a,n):r(s):s;}e=e||[];var s=S(e),u=O(e);return f(t,a,[]),t;}function S(t){for(var e,n=[],r=0;r<t.length;++r)e="\\[?(%5[bB])?"+t[r]+"\\[?(%5[bB])?\\]?(%5[dD])?",n.push(new RegExp(e,"i"));return n;}function O(t){for(var e,n=[],r=0;r<t.length;++r)e="\\[?(%5[bB])?"+t[r]+"\\[?(%5[bB])?\\]?(%5[dD])?",n.push(new RegExp("("+e+"=)([^&\\n]+)","igm"));return n;}function L(t){var e,n,r,o=[];for(e=0,n=t.length;e<n;e++)r=t[e],"object"==typeof r?(r=b(r),r=r.error||r.value,r.length>500&&(r=r.substr(0,500)+"...")):"undefined"==typeof r&&(r="undefined"),o.push(r);return o.join(" ");}function N(){return Date.now?+Date.now():+new Date();}var C=n(7),j={},A=!1;r();var R={debug:0,info:1,warning:2,error:3,critical:4},D={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}};t.exports={isType:o,typeName:i,isFunction:a,isNativeFunction:s,isIterable:l,isError:p,extend:C,traverse:f,redact:h,uuid4:d,LEVELS:R,sanitizeUrl:m,addParamsAndAccessTokenToPath:v,formatUrl:y,stringify:b,jsonParse:w,makeUnhandledStackInfo:_,createItem:E,get:k,set:I,scrub:T,formatArgsAsString:L,now:N};},function(t,e){"use strict";var n=Object.prototype.hasOwnProperty,r=Object.prototype.toString,o=function(t){return"function"==typeof Array.isArray?Array.isArray(t):"[object Array]"===r.call(t);},i=function(t){if(!t||"[object Object]"!==r.call(t))return!1;var e=n.call(t,"constructor"),o=t.constructor&&t.constructor.prototype&&n.call(t.constructor.prototype,"isPrototypeOf");if(t.constructor&&!e&&!o)return!1;var i;for(i in t);return"undefined"==typeof i||n.call(t,i);};t.exports=function t(){var e,n,r,a,s,u,c=arguments[0],l=1,p=arguments.length,f=!1;for("boolean"==typeof c?(f=c,c=arguments[1]||{},l=2):("object"!=typeof c&&"function"!=typeof c||null==c)&&(c={});l<p;++l)if(e=arguments[l],null!=e)for(n in e)r=c[n],a=e[n],c!==a&&(f&&a&&(i(a)||(s=o(a)))?(s?(s=!1,u=r&&o(r)?r:[]):u=r&&i(r)?r:{},c[n]=t(f,u,a)):"undefined"!=typeof a&&(c[n]=a));return c;};},function(t,e){var n=function(t){function e(t){return t<10?"0"+t:t;}function n(){return this.valueOf();}function r(t){return i.lastIndex=0,i.test(t)?'"'+t.replace(i,function(t){var e=u[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+t+'"';}function o(t,e){var n,i,u,l,p,f=a,h=e[t];switch(h&&"object"==typeof h&&"function"==typeof h.toJSON&&(h=h.toJSON(t)),"function"==typeof c&&(h=c.call(e,t,h)),typeof h){case"string":return r(h);case"number":return isFinite(h)?String(h):"null";case"boolean":case"null":return String(h);case"object":if(!h)return"null";if(a+=s,p=[],"[object Array]"===Object.prototype.toString.apply(h)){for(l=h.length,n=0;n<l;n+=1)p[n]=o(n,h)||"null";return u=0===p.length?"[]":a?"[\n"+a+p.join(",\n"+a)+"\n"+f+"]":"["+p.join(",")+"]",a=f,u;}if(c&&"object"==typeof c)for(l=c.length,n=0;n<l;n+=1)"string"==typeof c[n]&&(i=c[n],u=o(i,h),u&&p.push(r(i)+(a?": ":":")+u));else for(i in h)Object.prototype.hasOwnProperty.call(h,i)&&(u=o(i,h),u&&p.push(r(i)+(a?": ":":")+u));return u=0===p.length?"{}":a?"{\n"+a+p.join(",\n"+a)+"\n"+f+"}":"{"+p.join(",")+"}",a=f,u;}}var i=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+e(this.getUTCMonth()+1)+"-"+e(this.getUTCDate())+"T"+e(this.getUTCHours())+":"+e(this.getUTCMinutes())+":"+e(this.getUTCSeconds())+"Z":null;},Boolean.prototype.toJSON=n,Number.prototype.toJSON=n,String.prototype.toJSON=n);var a,s,u,c;"function"!=typeof t.stringify&&(u={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},t.stringify=function(t,e,n){var r;if(a="",s="","number"==typeof n)for(r=0;r<n;r+=1)s+=" ";else"string"==typeof n&&(s=n);if(c=e,e&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw new Error("JSON.stringify");return o("",{"":t});}),"function"!=typeof t.parse&&(t.parse=function(){function t(t){return t.replace(/\\(?:u(.{4})|([^u]))/g,function(t,e,n){return e?String.fromCharCode(parseInt(e,16)):a[n];});}var e,n,r,o,i,a={"\\":"\\",'"':'"',"/":"/",t:"\t",n:"\n",r:"\r",f:"\f",b:"\b"},s={go:function(){e="ok";},firstokey:function(){o=i,e="colon";},okey:function(){o=i,e="colon";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},u={go:function(){e="ok";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},c={"{":{go:function(){n.push({state:"ok"}),r={},e="firstokey";},ovalue:function(){n.push({container:r,state:"ocomma",key:o}),r={},e="firstokey";},firstavalue:function(){n.push({container:r,state:"acomma"}),r={},e="firstokey";},avalue:function(){n.push({container:r,state:"acomma"}),r={},e="firstokey";}},"}":{firstokey:function(){var t=n.pop();i=r,r=t.container,o=t.key,e=t.state;},ocomma:function(){var t=n.pop();r[o]=i,i=r,r=t.container,o=t.key,e=t.state;}},"[":{go:function(){n.push({state:"ok"}),r=[],e="firstavalue";},ovalue:function(){n.push({container:r,state:"ocomma",key:o}),r=[],e="firstavalue";},firstavalue:function(){n.push({container:r,state:"acomma"}),r=[],e="firstavalue";},avalue:function(){n.push({container:r,state:"acomma"}),r=[],e="firstavalue";}},"]":{firstavalue:function(){var t=n.pop();i=r,r=t.container,o=t.key,e=t.state;},acomma:function(){var t=n.pop();r.push(i),i=r,r=t.container,o=t.key,e=t.state;}},":":{colon:function(){if(Object.hasOwnProperty.call(r,o))throw new SyntaxError("Duplicate key '"+o+'"');e="ovalue";}},",":{ocomma:function(){r[o]=i,e="okey";},acomma:function(){r.push(i),e="avalue";}},true:{go:function(){i=!0,e="ok";},ovalue:function(){i=!0,e="ocomma";},firstavalue:function(){i=!0,e="acomma";},avalue:function(){i=!0,e="acomma";}},false:{go:function(){i=!1,e="ok";},ovalue:function(){i=!1,e="ocomma";},firstavalue:function(){i=!1,e="acomma";},avalue:function(){i=!1,e="acomma";}},null:{go:function(){i=null,e="ok";},ovalue:function(){i=null,e="ocomma";},firstavalue:function(){i=null,e="acomma";},avalue:function(){i=null,e="acomma";}}};return function(r,o){var a,l=/^[\u0020\t\n\r]*(?:([,:\[\]{}]|true|false|null)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)|"((?:[^\r\n\t\\\"]|\\(?:["\\\/trnfb]|u[0-9a-fA-F]{4}))*)")/;e="go",n=[];try{for(;;){if(a=l.exec(r),!a)break;a[1]?c[a[1]][e]():a[2]?(i=+a[2],u[e]()):(i=t(a[3]),s[e]()),r=r.slice(a[0].length);}}catch(t){e=t;}if("ok"!==e||/[^\u0020\t\n\r]/.test(r))throw e instanceof SyntaxError?e:new SyntaxError("JSON");return"function"==typeof o?function t(e,n){var r,a,s=e[n];if(s&&"object"==typeof s)for(r in i)Object.prototype.hasOwnProperty.call(s,r)&&(a=t(s,r),void 0!==a?s[r]=a:delete s[r]);return o.call(e,n,s);}({"":i},""):i;};}());};t.exports=n;},function(t,e,n){"use strict";function r(t,e){this.queue=t,this.options=e,this.transforms=[];}var o=n(6);r.prototype.configure=function(t){this.queue&&this.queue.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},r.prototype.addTransform=function(t){return o.isFunction(t)&&this.transforms.push(t),this;},r.prototype.log=function(t,e){if(e&&o.isFunction(e)||(e=function(){}),!this.options.enabled)return e(new Error("Rollbar is not enabled"));this.queue.addPendingItem(t);var n=t.err;this._applyTransforms(t,function(r,o){return r?(this.queue.removePendingItem(t),e(r,null)):void this.queue.addItem(o,e,n,t);}.bind(this));},r.prototype._applyTransforms=function(t,e){var n=-1,r=this.transforms.length,o=this.transforms,i=this.options,a=function(t,s){return t?void e(t,null):(n++,n===r?void e(null,s):void o[n](s,i,a));};a(null,t);},t.exports=r;},function(t,e,n){"use strict";function r(t){this.queue=[],this.options=i.extend(!0,{},t);var e=this.options.maxTelemetryEvents||a;this.maxQueueSize=Math.max(0,Math.min(e,a));}function o(t,e){if(e)return e;var n={error:"error",manual:"info"};return n[t]||"info";}var i=n(6),a=100;r.prototype.configure=function(t){var e=this.options;this.options=i.extend(!0,{},e,t);var n=this.options.maxTelemetryEvents||a,r=Math.max(0,Math.min(n,a)),o=0;this.maxQueueSize>r&&(o=this.maxQueueSize-r),this.maxQueueSize=r,this.queue.splice(0,o);},r.prototype.copyEvents=function(){return Array.prototype.slice.call(this.queue,0);},r.prototype.capture=function(t,e,n,r,a){var s={level:o(t,n),type:t,timestamp_ms:a||i.now(),body:e,source:"client"};return r&&(s.uuid=r),this.push(s),s;},r.prototype.captureEvent=function(t,e,n){return this.capture("manual",t,e,n);},r.prototype.captureError=function(t,e,n,r){var o={message:t.message||String(t)};return t.stack&&(o.stack=t.stack),this.capture("error",o,e,n,r);},r.prototype.captureLog=function(t,e,n,r){return this.capture("log",{message:t},e,n,r);},r.prototype.captureNetwork=function(t,e,n){e=e||"xhr",t.subtype=t.subtype||e;var r=this.levelFromStatus(t.status_code);return this.capture("network",t,r,n);},r.prototype.levelFromStatus=function(t){return t>=200&&t<400?"info":0===t||t>=400?"error":"info";},r.prototype.captureDom=function(t,e,n,r,o){var i={subtype:t,element:e};return void 0!==n&&(i.value=n),void 0!==r&&(i.checked=r),this.capture("dom",i,"info",o);},r.prototype.captureNavigation=function(t,e,n){return this.capture("navigation",{from:t,to:e},"info",n);},r.prototype.captureDomContentLoaded=function(t){return this.capture("navigation",{subtype:"DOMContentLoaded"},"info",void 0,t&&t.getTime());},r.prototype.captureLoad=function(t){return this.capture("navigation",{subtype:"load"},"info",void 0,t&&t.getTime());},r.prototype.captureConnectivityChange=function(t,e){return this.captureNetwork({change:t},"connectivity",e);},r.prototype._captureRollbarItem=function(t){return t.err?this.captureError(t.err,t.level,t.uuid,t.timestamp):t.message?this.captureLog(t.message,t.level,t.uuid,t.timestamp):t.custom?this.capture("log",t.custom,t.level,t.uuid,t.timestamp):void 0;},r.prototype.push=function(t){this.queue.push(t),this.queue.length>this.maxQueueSize&&this.queue.shift();},t.exports=r;},function(t,e,n){"use strict";function r(t,e,n,r){this.options=t,this.transport=e,this.url=n,this.jsonBackup=r,this.accessToken=t.accessToken,this.transportOptions=o(t,n);}function o(t,e){return a.getTransportFromOptions(t,s,e);}var i=n(6),a=n(12),s={hostname:"api.rollbar.com",path:"/api/1/item/",search:null,version:"1",protocol:"https:",port:443};r.prototype.postItem=function(t,e){var n=a.transportOptions(this.transportOptions,"POST"),r=a.buildPayload(this.accessToken,t,this.jsonBackup);this.transport.post(this.accessToken,n,r,e);},r.prototype.configure=function(t){var e=this.oldOptions;return this.options=i.extend(!0,{},e,t),this.transportOptions=o(this.options,this.url),void 0!==this.options.accessToken&&(this.accessToken=this.options.accessToken),this;},t.exports=r;},function(t,e,n){"use strict";function r(t,e,n){if(s.isType(e.context,"object")){var r=s.stringify(e.context,n);r.error?e.context="Error: could not serialize 'context'":e.context=r.value||"",e.context.length>255&&(e.context=e.context.substr(0,255));}return{access_token:t,data:e};}function o(t,e,n){var r=e.hostname,o=e.protocol,i=e.port,a=e.path,s=e.search,u=t.proxy;if(t.endpoint){var c=n.parse(t.endpoint);r=c.hostname,o=c.protocol,i=c.port,a=c.pathname,s=c.search;}return{hostname:r,protocol:o,port:i,path:a,search:s,proxy:u};}function i(t,e){var n=t.protocol||"https:",r=t.port||("http:"===n?80:"https:"===n?443:void 0),o=t.hostname,i=t.path;return t.search&&(i+=t.search),t.proxy&&(i=n+"//"+o+i,o=t.proxy.host||t.proxy.hostname,r=t.proxy.port,n=t.proxy.protocol||n),{protocol:n,hostname:o,path:i,port:r,method:e};}function a(t,e){var n=/\/$/.test(t),r=/^\//.test(e);return n&&r?e=e.substring(1):n||r||(e="/"+e),t+e;}var s=n(6);t.exports={buildPayload:r,getTransportFromOptions:o,transportOptions:i,appendPathToPath:a};},function(t,e,n){"use strict";function r(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.error(s.formatArgsAsString(t)):console.error.apply(console,t);}function o(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.info(s.formatArgsAsString(t)):console.info.apply(console,t);}function i(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.log(s.formatArgsAsString(t)):console.log.apply(console,t);}n(14);var a=n(15),s=n(6);t.exports={error:r,info:o,log:i};},function(t,e){!function(t){"use strict";t.console||(t.console={});for(var e,n,r=t.console,o=function(){},i=["memory"],a="assert,clear,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn".split(",");e=i.pop();)r[e]||(r[e]={});for(;n=a.pop();)r[n]||(r[n]=o);}("undefined"==typeof window?this:window);},function(t,e){"use strict";function n(){var t;if(!document)return t;for(var e=3,n=document.createElement("div"),r=n.getElementsByTagName("i");n.innerHTML="<!--[if gt IE "+ ++e+"]><i></i><![endif]-->",r[0];);return e>4?e:t;}var r={ieVersion:n};t.exports=r;},function(t,e){"use strict";function n(t,e,n){if(t){var o;"function"==typeof e._rollbarOldOnError?o=e._rollbarOldOnError:t.onerror&&!t.onerror.belongsToShim&&(o=t.onerror,e._rollbarOldOnError=o);var i=function(){var n=Array.prototype.slice.call(arguments,0);r(t,e,o,n);};i.belongsToShim=n,t.onerror=i;}}function r(t,e,n,r){t._rollbarWrappedError&&(r[4]||(r[4]=t._rollbarWrappedError),r[5]||(r[5]=t._rollbarWrappedError._rollbarContext),t._rollbarWrappedError=null),e.handleUncaughtException.apply(e,r),n&&n.apply(t,r);}function o(t,e,n){if(t){"function"==typeof t._rollbarURH&&t._rollbarURH.belongsToShim&&t.removeEventListener("unhandledrejection",t._rollbarURH);var r=function(t){var n=t.reason,r=t.promise,o=t.detail;!n&&o&&(n=o.reason,r=o.promise),e&&e.handleUnhandledRejection&&e.handleUnhandledRejection(n,r);};r.belongsToShim=n,t._rollbarURH=r,t.addEventListener("unhandledrejection",r);}}function i(t,e,n){if(t){var r,o,i="EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");for(r=0;r<i.length;++r)o=i[r],t[o]&&t[o].prototype&&a(e,t[o].prototype,n);}}function a(t,e,n){if(e.hasOwnProperty&&e.hasOwnProperty("addEventListener")){for(var r=e.addEventListener;r._rollbarOldAdd&&r.belongsToShim;)r=r._rollbarOldAdd;var o=function(e,n,o){r.call(this,e,t.wrap(n),o);};o._rollbarOldAdd=r,o.belongsToShim=n,e.addEventListener=o;for(var i=e.removeEventListener;i._rollbarOldRemove&&i.belongsToShim;)i=i._rollbarOldRemove;var a=function(t,e,n){i.call(this,t,e&&e._rollbar_wrapped||e,n);};a._rollbarOldRemove=i,a.belongsToShim=n,e.removeEventListener=a;}}t.exports={captureUncaughtExceptions:n,captureUnhandledRejections:o,wrapGlobals:i};},function(t,e,n){"use strict";function r(t,e,n,r,o){r&&l.isFunction(r)||(r=function(){}),l.addParamsAndAccessTokenToPath(t,e,n);var a="GET",s=l.formatUrl(e);i(t,s,a,null,r,o);}function o(t,e,n,r,o){if(r&&l.isFunction(r)||(r=function(){}),!n)return r(new Error("Cannot send empty request"));var a=l.stringify(n);if(a.error)return r(a.error);var s=a.value,u="POST",c=l.formatUrl(e);i(t,c,u,s,r,o);}function i(t,e,n,r,o,i){var f;if(f=i?i():a(),!f)return o(new Error("No way to send a request"));try{try{var h=function(){try{if(h&&4===f.readyState){h=void 0;var t=l.jsonParse(f.responseText);if(s(f))return void o(t.error,t.value);if(u(f)){if(403===f.status){var e=t.value&&t.value.message;p.error(e);}o(new Error(String(f.status)));}else{var n="XHR response had no status code (likely connection failure)";o(c(n));}}}catch(t){var r;r=t&&t.stack?t:new Error(t),o(r);}};f.open(n,e,!0),f.setRequestHeader&&(f.setRequestHeader("Content-Type","application/json"),f.setRequestHeader("X-Rollbar-Access-Token",t)),f.onreadystatechange=h,f.send(r);}catch(t){if("undefined"!=typeof XDomainRequest){if(!window||!window.location)return o(new Error("No window available during request, unknown environment"));"http:"===window.location.href.substring(0,5)&&"https"===e.substring(0,5)&&(e="http"+e.substring(5));var d=new XDomainRequest();d.onprogress=function(){},d.ontimeout=function(){var t="Request timed out",e="ETIMEDOUT";o(c(t,e));},d.onerror=function(){o(new Error("Error during request"));},d.onload=function(){var t=l.jsonParse(d.responseText);o(t.error,t.value);},d.open(n,e,!0),d.send(r);}else o(new Error("Cannot find a method to transport a request"));}}catch(t){o(t);}}function a(){var t,e,n=[function(){return new XMLHttpRequest();},function(){return new ActiveXObject("Msxml2.XMLHTTP");},function(){return new ActiveXObject("Msxml3.XMLHTTP");},function(){return new ActiveXObject("Microsoft.XMLHTTP");}],r=n.length;for(e=0;e<r;e++)try{t=n[e]();break;}catch(t){}return t;}function s(t){return t&&t.status&&200===t.status;}function u(t){return t&&l.isType(t.status,"number")&&t.status>=400&&t.status<600;}function c(t,e){var n=new Error(t);return n.code=e||"ENOTFOUND",n;}var l=n(6),p=n(13);t.exports={get:r,post:o};},function(t,e){"use strict";function n(t){var e,n,r={protocol:null,auth:null,host:null,path:null,hash:null,href:t,hostname:null,port:null,pathname:null,search:null,query:null};if(e=t.indexOf("//"),e!==-1?(r.protocol=t.substring(0,e),n=e+2):n=0,e=t.indexOf("@",n),e!==-1&&(r.auth=t.substring(n,e),n=e+1),e=t.indexOf("/",n),e===-1){if(e=t.indexOf("?",n),e===-1)return e=t.indexOf("#",n),e===-1?r.host=t.substring(n):(r.host=t.substring(n,e),r.hash=t.substring(e)),r.hostname=r.host.split(":")[0],r.port=r.host.split(":")[1],r.port&&(r.port=parseInt(r.port,10)),r;r.host=t.substring(n,e),r.hostname=r.host.split(":")[0],r.port=r.host.split(":")[1],r.port&&(r.port=parseInt(r.port,10)),n=e;}else r.host=t.substring(n,e),r.hostname=r.host.split(":")[0],r.port=r.host.split(":")[1],r.port&&(r.port=parseInt(r.port,10)),n=e;if(e=t.indexOf("#",n),e===-1?r.path=t.substring(n):(r.path=t.substring(n,e),r.hash=t.substring(e)),r.path){var o=r.path.split("?");r.pathname=o[0],r.query=o[1],r.search=r.query?"?"+r.query:null;}return r;}t.exports={parse:n};},function(t,e,n){"use strict";function r(t,e,n){if(t.data=t.data||{},t.err)try{t.stackInfo=t.err._savedStackTrace||m.parse(t.err);}catch(e){g.error("Error while parsing the error object.",e),t.message=t.err.message||t.err.description||t.message||String(t.err),delete t.err;}n(null,t);}function o(t,e,n){t.message||t.stackInfo||t.custom||n(new Error("No message, stack info, or custom data"),null),n(null,t);}function i(t,e,n){var r=e.payload&&e.payload.environment||e.environment;t.data=d.extend(!0,{},t.data,{environment:r,level:t.level,endpoint:e.endpoint,platform:"browser",framework:"browser-js",language:"javascript",server:{},uuid:t.uuid,notifier:{name:"rollbar-browser-js",version:e.version}}),n(null,t);}function a(t){return function(e,n,r){return t&&t.location?(d.set(e,"data.request",{url:t.location.href,query_string:t.location.search,user_ip:"$remote_ip"}),void r(null,e)):r(null,e);};}function s(t){return function(e,n,r){return t?(d.set(e,"data.client",{runtime_ms:e.timestamp-t._rollbarStartTime,timestamp:Math.round(e.timestamp/1e3),javascript:{browser:t.navigator.userAgent,language:t.navigator.language,cookie_enabled:t.navigator.cookieEnabled,screen:{width:t.screen.width,height:t.screen.height}}}),void r(null,e)):r(null,e);};}function u(t){return function(e,n,r){if(!t||!t.navigator)return r(null,e);for(var o,i=[],a=t.navigator.plugins||[],s=0,u=a.length;s<u;++s)o=a[s],i.push({name:o.name,description:o.description});d.set(e,"data.client.javascript.plugins",i),r(null,e);};}function c(t,e,n){t.stackInfo?p(t,e,n):l(t,e,n);}function l(t,e,n){var r=t.message,o=t.custom;if(!r)if(o){var i=e.scrubFields,a=d.stringify(d.scrub(o,i));r=a.error||a.value||"";}else r="";var s={body:r};o&&(s.extra=d.extend(!0,{},o)),d.set(t,"data.body",{message:s}),n(null,t);}function p(t,e,n){var r=t.data.description,o=t.stackInfo,i=t.custom,a=m.guessErrorClass(o.message),s=o.name||a[0],u=a[1],c={exception:{class:s,message:u}};r&&(c.exception.description=r);var p=o.stack;if(p&&0===p.length&&t._unhandledStackInfo&&t._unhandledStackInfo.stack&&(p=t._unhandledStackInfo.stack),p){var f,h,g,v,y,b,w,_;for(c.frames=[],w=0;w<p.length;++w)f=p[w],h={filename:f.url?d.sanitizeUrl(f.url):"(unknown)",lineno:f.line||null,method:f.func&&"?"!==f.func?f.func:"[anonymous]",colno:f.column},h.method&&h.method.endsWith&&h.method.endsWith("_rollbar_wrapped")||(g=v=y=null,b=f.context?f.context.length:0,b&&(_=Math.floor(b/2),v=f.context.slice(0,_),g=f.context[_],y=f.context.slice(_)),g&&(h.code=g),(v||y)&&(h.context={},v&&v.length&&(h.context.pre=v),y&&y.length&&(h.context.post=y)),f.args&&(h.args=f.args),c.frames.push(h));c.frames.reverse(),i&&(c.extra=d.extend(!0,{},i)),d.set(t,"data.body",{trace:c}),n(null,t);}else t.message=s+": "+u,l(t,e,n);}function f(t,e,n){var r=e.scrubFields;d.scrub(t.data,r),n(null,t);}function h(t,e,n){var r=d.extend(!0,{},t);try{d.isFunction(e.transform)&&e.transform(r.data);}catch(r){return e.transform=null,g.error("Error while calling custom transform() function. Removing custom transform().",r),void n(null,t);}n(null,r);}var d=n(6),m=n(20),g=n(13);t.exports={handleItemWithError:r,ensureItemHasSomethingToSay:o,addBaseInfo:i,addRequestInfo:a,addClientInfo:s,addPluginInfo:u,addBody:c,scrubPayload:f,userTransform:h};},function(t,e,n){"use strict";function r(){return l;}function o(){return null;}function i(t){var e={};return e._stackFrame=t,e.url=t.fileName,e.line=t.lineNumber,e.func=t.functionName,e.column=t.columnNumber,e.args=t.args,e.context=o(e.url,e.line),e;}function a(t){function e(){var e=[];try{e=c.parse(t);}catch(t){e=[];}for(var n=[],r=0;r<e.length;r++)n.push(new i(e[r]));return n;}return{stack:e(),message:t.message,name:t.name};}function s(t){return new a(t);}function u(t){if(!t)return["Unknown error. There was no error message to display.",""];var e=t.match(p),n="(unknown)";return e&&(n=e[e.length-1],t=t.replace((e[e.length-2]||"")+n+":",""),t=t.replace(/(^[\s]+|[\s]+$)/g,"")),[n,t];}var c=n(21),l="?",p=new RegExp("^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ");t.exports={guessFunctionName:r,guessErrorClass:u,gatherContext:o,parse:s,Stack:a,Frame:i};},function(t,e,n){var r,o,i;!function(a,s){"use strict";o=[n(22)],r=s,i="function"==typeof r?r.apply(e,o):r,!(void 0!==i&&(t.exports=i));}(this,function(t){"use strict";function e(t,e,n){if("function"==typeof Array.prototype.map)return t.map(e,n);for(var r=new Array(t.length),o=0;o<t.length;o++)r[o]=e.call(n,t[o]);return r;}function n(t,e,n){if("function"==typeof Array.prototype.filter)return t.filter(e,n);for(var r=[],o=0;o<t.length;o++)e.call(n,t[o])&&r.push(t[o]);return r;}var r=/(^|@)\S+\:\d+/,o=/^\s*at .*(\S+\:\d+|\(native\))/m,i=/^(eval@)?(\[native code\])?$/;return{parse:function(t){if("undefined"!=typeof t.stacktrace||"undefined"!=typeof t["opera#sourceloc"])return this.parseOpera(t);if(t.stack&&t.stack.match(o))return this.parseV8OrIE(t);if(t.stack)return this.parseFFOrSafari(t);throw new Error("Cannot parse given Error object");},extractLocation:function(t){if(t.indexOf(":")===-1)return[t];var e=t.replace(/[\(\)\s]/g,"").split(":"),n=e.pop(),r=e[e.length-1];if(!isNaN(parseFloat(r))&&isFinite(r)){var o=e.pop();return[e.join(":"),o,n];}return[e.join(":"),n,void 0];},parseV8OrIE:function(r){var i=n(r.stack.split("\n"),function(t){return!!t.match(o);},this);return e(i,function(e){e.indexOf("(eval ")>-1&&(e=e.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var n=e.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),r=this.extractLocation(n.pop()),o=n.join(" ")||void 0,i="eval"===r[0]?void 0:r[0];return new t(o,void 0,i,r[1],r[2],e);},this);},parseFFOrSafari:function(r){var o=n(r.stack.split("\n"),function(t){return!t.match(i);},this);return e(o,function(e){if(e.indexOf(" > eval")>-1&&(e=e.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),e.indexOf("@")===-1&&e.indexOf(":")===-1)return new t(e);var n=e.split("@"),r=this.extractLocation(n.pop()),o=n.shift()||void 0;return new t(o,void 0,r[0],r[1],r[2],e);},this);},parseOpera:function(t){return!t.stacktrace||t.message.indexOf("\n")>-1&&t.message.split("\n").length>t.stacktrace.split("\n").length?this.parseOpera9(t):t.stack?this.parseOpera11(t):this.parseOpera10(t);},parseOpera9:function(e){for(var n=/Line (\d+).*script (?:in )?(\S+)/i,r=e.message.split("\n"),o=[],i=2,a=r.length;i<a;i+=2){var s=n.exec(r[i]);s&&o.push(new t(void 0,void 0,s[2],s[1],void 0,r[i]));}return o;},parseOpera10:function(e){for(var n=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,r=e.stacktrace.split("\n"),o=[],i=0,a=r.length;i<a;i+=2){var s=n.exec(r[i]);s&&o.push(new t(s[3]||void 0,void 0,s[2],s[1],void 0,r[i]));}return o;},parseOpera11:function(o){var i=n(o.stack.split("\n"),function(t){return!!t.match(r)&&!t.match(/^Error created at/);},this);return e(i,function(e){var n,r=e.split("@"),o=this.extractLocation(r.pop()),i=r.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(n=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===n||"[arguments not available]"===n?void 0:n.split(",");return new t(a,s,o[0],o[1],o[2],e);},this);}};});},function(t,e,n){var r,o,i;!function(n,a){"use strict";o=[],r=a,i="function"==typeof r?r.apply(e,o):r,!(void 0!==i&&(t.exports=i));}(this,function(){"use strict";function t(t){return!isNaN(parseFloat(t))&&isFinite(t);}function e(t,e,n,r,o,i){void 0!==t&&this.setFunctionName(t),void 0!==e&&this.setArgs(e),void 0!==n&&this.setFileName(n),void 0!==r&&this.setLineNumber(r),void 0!==o&&this.setColumnNumber(o),void 0!==i&&this.setSource(i);}return e.prototype={getFunctionName:function(){return this.functionName;},setFunctionName:function(t){this.functionName=String(t);},getArgs:function(){return this.args;},setArgs:function(t){if("[object Array]"!==Object.prototype.toString.call(t))throw new TypeError("Args must be an Array");this.args=t;},getFileName:function(){return this.fileName;},setFileName:function(t){this.fileName=String(t);},getLineNumber:function(){return this.lineNumber;},setLineNumber:function(e){if(!t(e))throw new TypeError("Line Number must be a Number");this.lineNumber=Number(e);},getColumnNumber:function(){return this.columnNumber;},setColumnNumber:function(e){if(!t(e))throw new TypeError("Column Number must be a Number");this.columnNumber=Number(e);},getSource:function(){return this.source;},setSource:function(t){this.source=String(t);},toString:function(){var e=this.getFunctionName()||"{anonymous}",n="("+(this.getArgs()||[]).join(",")+")",r=this.getFileName()?"@"+this.getFileName():"",o=t(this.getLineNumber())?":"+this.getLineNumber():"",i=t(this.getColumnNumber())?":"+this.getColumnNumber():"";return e+n+r+o+i;}},e;});},function(t,e,n){"use strict";function r(t,e,n){var r=e.payload||{};r.body&&delete r.body;var o=a.extend(!0,{},t.data,r);t._isUncaught&&(o._isUncaught=!0),t._originalArgs&&(o._originalArgs=t._originalArgs),n(null,o);}function o(t,e,n){t.telemetryEvents&&a.set(t,"data.body.telemetry",t.telemetryEvents),n(null,t);}function i(t,e,n){if(!t.message)return void n(null,t);var r="data.body.trace_chain.0",o=a.get(t,r);if(o||(r="data.body.trace",o=a.get(t,r)),o){if(!o.exception||!o.exception.description)return a.set(t,r+".exception.description",t.message),void n(null,t);var i=a.get(t,r+".extra")||{},s=a.extend(!0,{},i,{message:t.message});a.set(t,r+".extra",s);}n(null,t);}var a=n(6);t.exports={itemToPayload:r,addTelemetryData:o,addMessageWithError:i};},function(t,e,n){"use strict";function r(t,e){var n=t.level,r=c.LEVELS[n]||0,o=c.LEVELS[e.reportLevel]||0;return!(r<o)&&(!c.get(e,"plugins.jquery.ignoreAjaxErrors")||!c.get(t,"body.message.extra.isAjax"));}function o(t,e){var n=!!t._isUncaught;delete t._isUncaught;var r=t._originalArgs;delete t._originalArgs;try{if(c.isFunction(e.checkIgnore)&&e.checkIgnore(n,r,t))return!1;}catch(t){e.checkIgnore=null,l.error("Error while calling custom checkIgnore(), removing",t);}return!0;}function i(t,e){return!s(t,e,"blacklist");}function a(t,e){return s(t,e,"whitelist");}function s(t,e,n){var r=!1;"blacklist"===n&&(r=!0);var o,i,a,s,u,p,f,h,d,m;try{if(o=r?e.hostBlackList:e.hostWhiteList,f=o&&o.length,i=c.get(t,"body.trace"),!o||0===f)return!r;if(!i||!i.frames)return!r;for(u=i.frames.length,d=0;d<u;d++){if(a=i.frames[d],s=a.filename,!c.isType(s,"string"))return!r;for(m=0;m<f;m++)if(p=o[m],h=new RegExp(p),h.test(s))return!0;}}catch(t){r?e.hostBlackList=null:e.hostWhiteList=null;var g=r?"hostBlackList":"hostWhiteList";return l.error("Error while reading your configuration's "+g+" option. Removing custom "+g+".",t),!r;}return!1;}function u(t,e){var n,r,o,i,a,s,u,p,f;try{if(a=!1,o=e.ignoredMessages,!o||0===o.length)return!0;if(u=t.body,p=c.get(u,"trace.exception.message"),f=c.get(u,"message.body"),n=p||f,!n)return!0;for(i=o.length,r=0;r<i&&(s=new RegExp(o[r],"gi"),!(a=s.test(n)));r++);}catch(t){e.ignoredMessages=null,l.error("Error while reading your configuration's ignoredMessages option. Removing custom ignoredMessages.");}return!a;}var c=n(6),l=n(13);t.exports={checkIgnore:r,userCheckIgnore:o,urlIsNotBlacklisted:i,urlIsWhitelisted:a,messageIsIgnored:u};},function(t,e,n){"use strict";function r(t,e,n,r,o){var i=t[e];t[e]=n(i),r&&r[o].push([t,e,i]);}function o(t,e){for(var n;t[e].length;)n=t[e].shift(),n[0][n[1]]=n[2];}function i(t,e,n,r,o){var i=t.autoInstrument;t.enabled===!1||i===!1?this.autoInstrument={}:(a.isType(i,"object")||(i=c),this.autoInstrument=a.extend(!0,{},c,i)),this.scrubTelemetryInputs=!!t.scrubTelemetryInputs,this.telemetryScrubber=t.telemetryScrubber,this.telemeter=e,this.rollbar=n,this._window=r||{},this._document=o||{},this.replacements={network:[],log:[],navigation:[],connectivity:[]},this.eventRemovers={dom:[],connectivity:[]},this._location=this._window.location,this._lastHref=this._location&&this._location.href;}var a=n(6),s=n(18),u=n(26),c={network:!0,log:!0,dom:!0,navigation:!0,connectivity:!0};i.prototype.configure=function(t){var e=t.autoInstrument,n=a.extend(!0,{},this.autoInstrument);t.enabled===!1||e===!1?this.autoInstrument={}:(a.isType(e,"object")||(e=c),this.autoInstrument=a.extend(!0,{},c,e)),this.instrument(n),void 0!==t.scrubTelemetryInputs&&(this.scrubTelemetryInputs=!!t.scrubTelemetryInputs),void 0!==t.telemetryScrubber&&(this.telemetryScrubber=t.telemetryScrubber);},i.prototype.instrument=function(t){!this.autoInstrument.network||t&&t.network?!this.autoInstrument.network&&t&&t.network&&this.deinstrumentNetwork():this.instrumentNetwork(),!this.autoInstrument.log||t&&t.log?!this.autoInstrument.log&&t&&t.log&&this.deinstrumentConsole():this.instrumentConsole(),!this.autoInstrument.dom||t&&t.dom?!this.autoInstrument.dom&&t&&t.dom&&this.deinstrumentDom():this.instrumentDom(),!this.autoInstrument.navigation||t&&t.navigation?!this.autoInstrument.navigation&&t&&t.navigation&&this.deinstrumentNavigation():this.instrumentNavigation(),!this.autoInstrument.connectivity||t&&t.connectivity?!this.autoInstrument.connectivity&&t&&t.connectivity&&this.deinstrumentConnectivity():this.instrumentConnectivity();},i.prototype.deinstrumentNetwork=function(){o(this.replacements,"network");},i.prototype.instrumentNetwork=function(){function t(t,n){t in n&&a.isFunction(n[t])&&r(n,t,function(t){return e.rollbar.wrap(t);});}var e=this;if("XMLHttpRequest"in this._window){var n=this._window.XMLHttpRequest.prototype;r(n,"open",function(t){return function(e,n){return a.isType(n,"string")&&(this.__rollbar_xhr={method:e,url:n,status_code:null,start_time_ms:a.now(),end_time_ms:null}),t.apply(this,arguments);};},this.replacements,"network"),r(n,"send",function(n){return function(o){function i(){if(s.__rollbar_xhr&&(1===s.readyState||4===s.readyState)){null===s.__rollbar_xhr.status_code&&(s.__rollbar_xhr.status_code=0,s.__rollbar_event=e.telemeter.captureNetwork(s.__rollbar_xhr,"xhr")),1===s.readyState?s.__rollbar_xhr.start_time_ms=a.now():s.__rollbar_xhr.end_time_ms=a.now();try{var t=s.status;t=1223===t?204:t,s.__rollbar_xhr.status_code=t,s.__rollbar_event.level=e.telemeter.levelFromStatus(t);}catch(t){}}}var s=this;return t("onload",s),t("onerror",s),t("onprogress",s),"onreadystatechange"in s&&a.isFunction(s.onreadystatechange)?r(s,"onreadystatechange",function(t){return e.rollbar.wrap(t,void 0,i);}):s.onreadystatechange=i,n.apply(this,arguments);};},this.replacements,"network");}"fetch"in this._window&&r(this._window,"fetch",function(t){return function(n,r){for(var o=new Array(arguments.length),i=0,s=o.length;i<s;i++)o[i]=arguments[i];var u,c=o[0],l="GET";a.isType(c,"string")?u=c:(u=c.url,c.method&&(l=c.method)),o[1]&&o[1].method&&(l=o[1].method);var p={method:l,url:u,status_code:null,start_time_ms:a.now(),end_time_ms:null};return e.telemeter.captureNetwork(p,"fetch"),t.apply(this,o).then(function(t){return p.end_time_ms=a.now(),p.status_code=t.status,t;});};},this.replacements,"network");},i.prototype.deinstrumentConsole=function(){if("console"in this._window&&this._window.console.log)for(var t;this.replacements.log.length;)t=this.replacements.log.shift(),this._window.console[t[0]]=t[1];},i.prototype.instrumentConsole=function(){function t(t){var r=n[t],o=n,i="warn"===t?"warning":t;n[t]=function(){var t=Array.prototype.slice.call(arguments),n=a.formatArgsAsString(t);e.telemeter.captureLog(n,i),r&&Function.prototype.apply.call(r,o,t);},e.replacements.log.push([t,r]);}if("console"in this._window&&this._window.console.log)for(var e=this,n=this._window.console,r=["debug","info","warn","error","log"],o=0,i=r.length;o<i;o++)t(r[o]);},i.prototype.deinstrumentDom=function(){("addEventListener"in this._window||"attachEvent"in this._window)&&this.removeListeners("dom");},i.prototype.instrumentDom=function(){if("addEventListener"in this._window||"attachEvent"in this._window){var t=this.handleClick.bind(this),e=this.handleBlur.bind(this);this.addListener("dom",this._window,"click","onclick",t,!0),this.addListener("dom",this._window,"blur","onfocusout",e,!0);}},i.prototype.handleClick=function(t){try{var e=u.getElementFromEvent(t,this._document),n=e&&e.tagName,r=u.isDescribedElement(e,"a")||u.isDescribedElement(e,"button");n&&(r||u.isDescribedElement(e,"input",["button","submit"]))?this.captureDomEvent("click",e):u.isDescribedElement(e,"input",["checkbox","radio"])&&this.captureDomEvent("input",e,e.value,e.checked);}catch(t){}},i.prototype.handleBlur=function(t){try{var e=u.getElementFromEvent(t,this._document);e&&e.tagName&&(u.isDescribedElement(e,"textarea")?this.captureDomEvent("input",e,e.value):u.isDescribedElement(e,"select")&&e.options&&e.options.length?this.handleSelectInputChanged(e):u.isDescribedElement(e,"input")&&!u.isDescribedElement(e,"input",["button","submit","hidden","checkbox","radio"])&&this.captureDomEvent("input",e,e.value));}catch(t){}},i.prototype.handleSelectInputChanged=function(t){if(t.multiple)for(var e=0;e<t.options.length;e++)t.options[e].selected&&this.captureDomEvent("input",t,t.options[e].value);else t.selectedIndex>=0&&t.options[t.selectedIndex]&&this.captureDomEvent("input",t,t.options[t.selectedIndex].value);},i.prototype.captureDomEvent=function(t,e,n,r){if(void 0!==n)if(this.scrubTelemetryInputs||"password"===u.getElementType(e))n="[scrubbed]";else if(this.telemetryScrubber){var o=u.describeElement(e);this.telemetryScrubber(o)&&(n="[scrubbed]");}var i=u.elementArrayToString(u.treeToArray(e));this.telemeter.captureDom(t,i,n,r);},i.prototype.deinstrumentNavigation=function(){var t=this._window.chrome,e=t&&t.app&&t.app.runtime,n=!e&&this._window.history&&this._window.history.pushState;n&&o(this.replacements,"navigation");},i.prototype.instrumentNavigation=function(){var t=this._window.chrome,e=t&&t.app&&t.app.runtime,n=!e&&this._window.history&&this._window.history.pushState;if(n){var o=this;r(this._window,"onpopstate",function(t){return function(){var e=o._location.href;o.handleUrlChange(o._lastHref,e),t&&t.apply(this,arguments);};},this.replacements,"navigation"),r(this._window.history,"pushState",function(t){return function(){var e=arguments.length>2?arguments[2]:void 0;return e&&o.handleUrlChange(o._lastHref,e+""),t.apply(this,arguments);};},this.replacements,"navigation");}},i.prototype.handleUrlChange=function(t,e){var n=s.parse(this._location.href),r=s.parse(e),o=s.parse(t);this._lastHref=e,n.protocol===r.protocol&&n.host===r.host&&(e=r.path+(r.hash||"")),n.protocol===o.protocol&&n.host===o.host&&(t=o.path+(o.hash||"")),this.telemeter.captureNavigation(t,e);},i.prototype.deinstrumentConnectivity=function(){("addEventListener"in this._window||"body"in this._document)&&(this._window.addEventListener?this.removeListeners("connectivity"):o(this.replacements,"connectivity"));},i.prototype.instrumentConnectivity=function(){if("addEventListener"in this._window||"body"in this._document)if(this._window.addEventListener)this.addListener("connectivity",this._window,"online",void 0,function(){this.telemeter.captureConnectivityChange("online");}.bind(this),!0),this.addListener("connectivity",this._window,"offline",void 0,function(){this.telemeter.captureConnectivityChange("offline");}.bind(this),!0);else{var t=this;r(this._document.body,"ononline",function(e){return function(){t.telemeter.captureConnectivityChange("online"),e&&e.apply(this,arguments);};},this.replacements,"connectivity"),r(this._document.body,"onoffline",function(e){return function(){t.telemeter.captureConnectivityChange("offline"),e&&e.apply(this,arguments);};},this.replacements,"connectivity");}},i.prototype.addListener=function(t,e,n,r,o,i){e.addEventListener?(e.addEventListener(n,o,i),this.eventRemovers[t].push(function(){e.removeEventListener(n,o,i);})):r&&(e.attachEvent(r,o),this.eventRemovers[t].push(function(){e.detachEvent(r,o);}));},i.prototype.removeListeners=function(t){for(var e;this.eventRemovers[t].length;)(e=this.eventRemovers[t].shift())();},t.exports=i;},function(t,e){"use strict";function n(t){return(t.getAttribute("type")||"").toLowerCase();}function r(t,e,r){if(t.tagName.toLowerCase()!==e.toLowerCase())return!1;if(!r)return!0;t=n(t);for(var o=0;o<r.length;o++)if(r[o]===t)return!0;return!1;}function o(t,e){return t.target?t.target:e&&e.elementFromPoint?e.elementFromPoint(t.clientX,t.clientY):void 0;}function i(t){for(var e,n=5,r=[],o=0;t&&o<n&&(e=u(t),"html"!==e.tagName);o++)r.unshift(e),t=t.parentNode;return r;}function a(t){for(var e,n,r=80,o=" > ",i=o.length,a=[],u=0,c=t.length-1;c>=0;c--){if(e=s(t[c]),n=u+a.length*i+e.length,c<t.length-1&&n>=r+3){a.unshift("...");break;}a.unshift(e),u+=e.length;}return a.join(o);}function s(t){if(!t||!t.tagName)return"";var e=[t.tagName];t.id&&e.push("#"+t.id),t.classes&&e.push("."+t.classes.join("."));for(var n=0;n<t.attributes.length;n++)e.push("["+t.attributes[n].key+'="'+t.attributes[n].value+'"]');return e.join("");}function u(t){if(!t||!t.tagName)return null;var e,n,r,o,i={};i.tagName=t.tagName.toLowerCase(),t.id&&(i.id=t.id),e=t.className,e&&"string"==typeof e&&(i.classes=e.split(/\s+/));var a=["type","name","title","alt"];for(i.attributes=[],o=0;o<a.length;o++)n=a[o],r=t.getAttribute(n),r&&i.attributes.push({key:n,value:r});return i;}t.exports={describeElement:u,descriptionToString:s,elementArrayToString:a,treeToArray:i,getElementFromEvent:o,isDescribedElement:r,getElementType:n};}]);});});var rollbarConfig={accessToken:"fe7cf327f2b24bb8991e252239f6200f",captureUncaught:true,ignoredMessages:["Error:  DOM Exception 18","SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.","SecurityError:  An attempt was made to break through the security policy of the user agent.","Script error."],payload:{environment:"development",client:{javascript:{source_map_enabled:true,code_version:"c4bc70e83a5f25194d7ae969ce8384b653ba3a25",// Optionally have Rollbar guess which frames the error was thrown from
+}};var commonjsGlobal=typeof window!=='undefined'?window:typeof global!=='undefined'?global:typeof self!=='undefined'?self:{};function createCommonjsModule(fn,module){return module={exports:{}},fn(module,module.exports),module.exports;}var rollbar_umd_min$1=createCommonjsModule(function(module,exports){!function(t,e){module.exports=e();}(commonjsGlobal,function(){return function(t){function e(r){if(n[r])return n[r].exports;var o=n[r]={exports:{},id:r,loaded:!1};return t[r].call(o.exports,o,o.exports,e),o.loaded=!0,o.exports;}var n={};return e.m=t,e.c=n,e.p="",e(0);}([function(t,e,n){t.exports=n(1);},function(t,e,n){"use strict";var r=n(2),o=window&&window._rollbarConfig,i=o&&o.globalAlias||"Rollbar",a=window&&window[i]&&"function"==typeof window[i].shimId&&void 0!==window[i].shimId();if(window&&!window._rollbarStartTime&&(window._rollbarStartTime=new Date().getTime()),!a&&o){var s=new r(o);window[i]=s;}else window.rollbar=r,window._rollbarDidLoad=!0;t.exports=r;},function(t,e,n){"use strict";function r(t,e){this.options=c.extend(!0,_,t);var n=new l(this.options,h,d);this.client=e||new u(this.options,n,p,"browser"),i(this.client.notifier),a(this.client.queue),(this.options.captureUncaught||this.options.handleUncaughtExceptions)&&(f.captureUncaughtExceptions(window,this),f.wrapGlobals(window,this)),(this.options.captureUnhandledRejections||this.options.handleUnhandledRejections)&&f.captureUnhandledRejections(window,this),this.instrumenter=new b(this.options,this.client.telemeter,this,window,document),this.instrumenter.instrument();}function o(t){var e="Rollbar is not initialized";p.error(e),t&&t(new Error(e));}function i(t){t.addTransform(m.handleItemWithError).addTransform(m.ensureItemHasSomethingToSay).addTransform(m.addBaseInfo).addTransform(m.addRequestInfo(window)).addTransform(m.addClientInfo(window)).addTransform(m.addPluginInfo(window)).addTransform(m.addBody).addTransform(g.addMessageWithError).addTransform(g.addTelemetryData).addTransform(m.scrubPayload).addTransform(m.userTransform).addTransform(g.itemToPayload);}function a(t){t.addPredicate(v.checkIgnore).addPredicate(v.userCheckIgnore).addPredicate(v.urlIsNotBlacklisted).addPredicate(v.urlIsWhitelisted).addPredicate(v.messageIsIgnored);}function s(t){for(var e=0,n=t.length;e<n;++e)if(c.isFunction(t[e]))return t[e];}var u=n(3),c=n(6),l=n(11),p=n(13),f=n(16),h=n(17),d=n(18),m=n(19),g=n(23),v=n(24),y=n(20),b=n(25),w=null;r.init=function(t,e){return w?w.global(t).configure(t):w=new r(t,e);},r.prototype.global=function(t){return this.client.global(t),this;},r.global=function(t){return w?w.global(t):void o();},r.prototype.configure=function(t,e){var n=this.options,r={};return e&&(r={payload:e}),this.options=c.extend(!0,{},n,t,r),this.client.configure(t,e),this.instrumenter.configure(t),this;},r.configure=function(t,e){return w?w.configure(t,e):void o();},r.prototype.lastError=function(){return this.client.lastError;},r.lastError=function(){return w?w.lastError():void o();},r.prototype.log=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.log(t),{uuid:e};},r.log=function(){if(w)return w.log.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.debug=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.debug(t),{uuid:e};},r.debug=function(){if(w)return w.debug.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.info=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.info(t),{uuid:e};},r.info=function(){if(w)return w.info.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.warn=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warn(t),{uuid:e};},r.warn=function(){if(w)return w.warn.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.warning=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.warning(t),{uuid:e};},r.warning=function(){if(w)return w.warning.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.error=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.error(t),{uuid:e};},r.error=function(){if(w)return w.error.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.critical=function(){var t=this._createItem(arguments),e=t.uuid;return this.client.critical(t),{uuid:e};},r.critical=function(){if(w)return w.critical.apply(w,arguments);var t=s(arguments);o(t);},r.prototype.handleUncaughtException=function(t,e,n,r,o,i){var a,s=c.makeUnhandledStackInfo(t,e,n,r,o,"onerror","uncaught exception",y);c.isError(o)?(a=this._createItem([t,o,i]),a._unhandledStackInfo=s):c.isError(e)?(a=this._createItem([t,e,i]),a._unhandledStackInfo=s):(a=this._createItem([t,i]),a.stackInfo=s),a.level=this.options.uncaughtErrorLevel,a._isUncaught=!0,this.client.log(a);},r.prototype.handleUnhandledRejection=function(t,e){var n="unhandled rejection was null or undefined!";n=t?t.message||String(t):n;var r,o=t&&t._rollbarContext||e&&e._rollbarContext;c.isError(t)?r=this._createItem([n,t,o]):(r=this._createItem([n,t,o]),r.stackInfo=c.makeUnhandledStackInfo(n,"",0,0,null,"unhandledrejection","",y)),r.level=this.options.uncaughtErrorLevel,r._isUncaught=!0,r._originalArgs=r._originalArgs||[],r._originalArgs.push(e),this.client.log(r);},r.prototype.wrap=function(t,e,n){try{var r;if(r=c.isFunction(e)?e:function(){return e||{};},!c.isFunction(t))return t;if(t._isWrap)return t;if(!t._rollbar_wrapped&&(t._rollbar_wrapped=function(){n&&c.isFunction(n)&&n.apply(this,arguments);try{return t.apply(this,arguments);}catch(n){var e=n;throw c.isType(e,"string")&&(e=new String(e)),e._rollbarContext=r()||{},e._rollbarContext._wrappedSource=t.toString(),window._rollbarWrappedError=e,e;}},t._rollbar_wrapped._isWrap=!0,t.hasOwnProperty))for(var o in t)t.hasOwnProperty(o)&&(t._rollbar_wrapped[o]=t[o]);return t._rollbar_wrapped;}catch(e){return t;}},r.wrap=function(t,e){return w?w.wrap(t,e):void o();},r.prototype.captureEvent=function(t,e){return this.client.captureEvent(t,e);},r.captureEvent=function(t,e){return w?w.captureEvent(t,e):void o();},r.prototype.captureDomContentLoaded=function(t,e){return e||(e=new Date()),this.client.captureDomContentLoaded(e);},r.prototype.captureLoad=function(t,e){return e||(e=new Date()),this.client.captureLoad(e);},r.prototype._createItem=function(t){return c.createItem(t,p,this);};var _={version:"2.3.1",scrubFields:["pw","pass","passwd","password","secret","confirm_password","confirmPassword","password_confirmation","passwordConfirmation","access_token","accessToken","secret_key","secretKey","secretToken"],logLevel:"debug",reportLevel:"debug",uncaughtErrorLevel:"error",endpoint:"api.rollbar.com/api/1/item/",verbose:!1,enabled:!0};t.exports=r;},function(t,e,n){"use strict";function r(t,e,n,o){this.options=u.extend(!0,{},t),this.logger=n,r.rateLimiter.configureGlobal(this.options),r.rateLimiter.setPlatformOptions(o,this.options),this.queue=new i(r.rateLimiter,e,n,this.options),this.notifier=new a(this.queue,this.options),this.telemeter=new s(this.options),this.lastError=null;}var o=n(4),i=n(5),a=n(9),s=n(10),u=n(6),c={maxItems:0,itemsPerMinute:60};r.rateLimiter=new o(c),r.prototype.global=function(t){return r.rateLimiter.configureGlobal(t),this;},r.prototype.configure=function(t,e){this.notifier&&this.notifier.configure(t),this.telemeter&&this.telemeter.configure(t);var n=this.options,r={};return e&&(r={payload:e}),this.options=u.extend(!0,{},n,t,r),this.global(this.options),this;},r.prototype.log=function(t){var e=this._defaultLogLevel();return this._log(e,t);},r.prototype.debug=function(t){this._log("debug",t);},r.prototype.info=function(t){this._log("info",t);},r.prototype.warn=function(t){this._log("warning",t);},r.prototype.warning=function(t){this._log("warning",t);},r.prototype.error=function(t){this._log("error",t);},r.prototype.critical=function(t){this._log("critical",t);},r.prototype.wait=function(t){this.queue.wait(t);},r.prototype.captureEvent=function(t,e){return this.telemeter.captureEvent(t,e);},r.prototype.captureDomContentLoaded=function(t){return this.telemeter.captureDomContentLoaded(t);},r.prototype.captureLoad=function(t){return this.telemeter.captureLoad(t);},r.prototype._log=function(t,e){if(!this._sameAsLastError(e))try{var n=null;e.callback&&(n=e.callback,delete e.callback),e.level=e.level||t,e.telemetryEvents=this.telemeter.copyEvents(),this.telemeter._captureRollbarItem(e),this.notifier.log(e,n);}catch(t){this.logger.error(t);}},r.prototype._defaultLogLevel=function(){return this.options.logLevel||"debug";},r.prototype._sameAsLastError=function(t){return!(!this.lastError||this.lastError!==t.err)||(this.lastError=t.err,!1);},t.exports=r;},function(t,e){"use strict";function n(t){this.startTime=new Date().getTime(),this.counter=0,this.perMinCounter=0,this.platform=null,this.platformOptions={},this.configureGlobal(t);}function r(t,e,n){return!t.ignoreRateLimit&&e>=1&&n>e;}function o(t,e,n,r,o){var a=null;return n&&(n=new Error(n)),n||r||(a=i(t,e,o)),{error:n,shouldSend:r,payload:a};}function i(t,e,n){var r=e.environment||e.payload&&e.payload.environment,o={body:{message:{body:"maxItems has been hit. Ignoring errors until reset.",extra:{maxItems:n}}},language:"javascript",environment:r,notifier:{version:e.notifier&&e.notifier.version||e.version}};return"browser"===t?(o.platform="browser",o.framework="browser-js",o.notifier.name="rollbar-browser-js"):"server"===t?(o.framework=e.framework||"node-js",o.notifier.name=e.notifier.name):"react-native"===t&&(o.framework=e.framework||"react-native",o.notifier.name=e.notifier.name),o;}n.globalSettings={startTime:new Date().getTime(),maxItems:void 0,itemsPerMinute:void 0},n.prototype.configureGlobal=function(t){void 0!==t.startTime&&(n.globalSettings.startTime=t.startTime),void 0!==t.maxItems&&(n.globalSettings.maxItems=t.maxItems),void 0!==t.itemsPerMinute&&(n.globalSettings.itemsPerMinute=t.itemsPerMinute);},n.prototype.shouldSend=function(t,e){e=e||new Date().getTime(),e-this.startTime>=6e4&&(this.startTime=e,this.perMinCounter=0);var i=n.globalSettings.maxItems,a=n.globalSettings.itemsPerMinute;if(r(t,i,this.counter))return o(this.platform,this.platformOptions,i+" max items reached",!1);if(r(t,a,this.perMinCounter))return o(this.platform,this.platformOptions,a+" items per minute reached",!1);this.counter++,this.perMinCounter++;var s=!r(t,i,this.counter);return s=s&&!r(t,a,this.perMinCounter),o(this.platform,this.platformOptions,null,s,i);},n.prototype.setPlatformOptions=function(t,e){this.platform=t,this.platformOptions=e;},t.exports=n;},function(t,e,n){"use strict";function r(t,e,n,r){this.rateLimiter=t,this.api=e,this.logger=n,this.options=r,this.predicates=[],this.pendingItems=[],this.pendingRequests=[],this.retryQueue=[],this.retryHandle=null,this.waitCallback=null,this.waitIntervalID=null;}var o=n(6);r.prototype.configure=function(t){this.api&&this.api.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},r.prototype.addPredicate=function(t){return o.isFunction(t)&&this.predicates.push(t),this;},r.prototype.addPendingItem=function(t){this.pendingItems.push(t);},r.prototype.removePendingItem=function(t){var e=this.pendingItems.indexOf(t);e!==-1&&this.pendingItems.splice(e,1);},r.prototype.addItem=function(t,e,n,r){e&&o.isFunction(e)||(e=function(){});var i=this._applyPredicates(t);if(i.stop)return this.removePendingItem(r),void e(i.err);this._maybeLog(t,n),this.removePendingItem(r),this.pendingRequests.push(t);try{this._makeApiRequest(t,function(n,r){this._dequeuePendingRequest(t),e(n,r);}.bind(this));}catch(n){this._dequeuePendingRequest(t),e(n);}},r.prototype.wait=function(t){o.isFunction(t)&&(this.waitCallback=t,this._maybeCallWait()||(this.waitIntervalID&&(this.waitIntervalID=clearInterval(this.waitIntervalID)),this.waitIntervalID=setInterval(function(){this._maybeCallWait();}.bind(this),500)));},r.prototype._applyPredicates=function(t){for(var e=null,n=0,r=this.predicates.length;n<r;n++)if(e=this.predicates[n](t,this.options),!e||void 0!==e.err)return{stop:!0,err:e.err};return{stop:!1,err:null};},r.prototype._makeApiRequest=function(t,e){var n=this.rateLimiter.shouldSend(t);n.shouldSend?this.api.postItem(t,function(n,r){n?this._maybeRetry(n,t,e):e(n,r);}.bind(this)):n.error?e(n.error):this.api.postItem(n.payload,e);};var i=["ECONNRESET","ENOTFOUND","ESOCKETTIMEDOUT","ETIMEDOUT","ECONNREFUSED","EHOSTUNREACH","EPIPE","EAI_AGAIN"];r.prototype._maybeRetry=function(t,e,n){var r=!1;if(this.options.retryInterval)for(var o=0,a=i.length;o<a;o++)if(t.code===i[o]){r=!0;break;}r?this._retryApiRequest(e,n):n(t);},r.prototype._retryApiRequest=function(t,e){this.retryQueue.push({item:t,callback:e}),this.retryHandle||(this.retryHandle=setInterval(function(){for(;this.retryQueue.length;){var t=this.retryQueue.shift();this._makeApiRequest(t.item,t.callback);}}.bind(this),this.options.retryInterval));},r.prototype._dequeuePendingRequest=function(t){var e=this.pendingRequests.indexOf(t);e!==-1&&(this.pendingRequests.splice(e,1),this._maybeCallWait());},r.prototype._maybeLog=function(t,e){if(this.logger&&this.options.verbose){var n=e;if(n=n||o.get(t,"body.trace.exception.message"),n=n||o.get(t,"body.trace_chain.0.exception.message"))return void this.logger.error(n);n=o.get(t,"body.message.body"),n&&this.logger.log(n);}},r.prototype._maybeCallWait=function(){return!(!o.isFunction(this.waitCallback)||0!==this.pendingItems.length||0!==this.pendingRequests.length)&&(this.waitIntervalID&&(this.waitIntervalID=clearInterval(this.waitIntervalID)),this.waitCallback(),!0);},t.exports=r;},function(t,e,n){"use strict";function r(){if(!A&&(A=!0,c(JSON)&&(s(JSON.stringify)&&(j.stringify=JSON.stringify),s(JSON.parse)&&(j.parse=JSON.parse)),!a(j.stringify)||!a(j.parse))){var t=n(8);t(j);}}function o(t,e){return e===i(t);}function i(t){var e=typeof t;return"object"!==e?e:t?t instanceof Error?"error":{}.toString.call(t).match(/\s([a-zA-Z]+)/)[1].toLowerCase():"null";}function a(t){return o(t,"function");}function s(t){var e=/[\\^$.*+?()[\]{}|]/g,n=Function.prototype.toString.call(Object.prototype.hasOwnProperty).replace(e,"\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g,"$1.*?"),r=RegExp("^"+n+"$");return u(t)&&r.test(t);}function u(t){var e=typeof t;return null!=t&&("object"==e||"function"==e);}function c(t){return!o(t,"undefined");}function l(t){var e=i(t);return"object"===e||"array"===e;}function p(t){return o(t,"error");}function f(t,e,n){var r,i,a,s=o(t,"object"),u=o(t,"array"),c=[];if(s&&n.indexOf(t)!==-1)return t;if(n.push(t),s)for(r in t)Object.prototype.hasOwnProperty.call(t,r)&&c.push(r);else if(u)for(a=0;a<t.length;++a)c.push(a);for(a=0;a<c.length;++a)r=c[a],i=t[r],t[r]=e(r,i,n);return t;}function h(){return"********";}function d(){var t=N(),e="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){var n=(t+16*Math.random())%16|0;return t=Math.floor(t/16),("x"===e?n:7&n|8).toString(16);});return e;}function m(t){var e=g(t);return""===e.anchor&&(e.source=e.source.replace("#","")),t=e.source.replace("?"+e.query,"");}function g(t){if(!o(t,"string"))throw new Error("received invalid input");for(var e=D,n=e.parser[e.strictMode?"strict":"loose"].exec(t),r={},i=e.key.length;i--;)r[e.key[i]]=n[i]||"";return r[e.q.name]={},r[e.key[12]].replace(e.q.parser,function(t,n,o){n&&(r[e.q.name][n]=o);}),r;}function v(t,e,n){n=n||{},n.access_token=t;var r,o=[];for(r in n)Object.prototype.hasOwnProperty.call(n,r)&&o.push([r,n[r]].join("="));var i="?"+o.sort().join("&");e=e||{},e.path=e.path||"";var a,s=e.path.indexOf("?"),u=e.path.indexOf("#");s!==-1&&(u===-1||u>s)?(a=e.path,e.path=a.substring(0,s)+i+"&"+a.substring(s+1)):u!==-1?(a=e.path,e.path=a.substring(0,u)+i+a.substring(u)):e.path=e.path+i;}function y(t,e){if(e=e||t.protocol,!e&&t.port&&(80===t.port?e="http:":443===t.port&&(e="https:")),e=e||"https:",!t.hostname)return null;var n=e+"//"+t.hostname;return t.port&&(n=n+":"+t.port),t.path&&(n+=t.path),n;}function b(t,e){var n,r;try{n=j.stringify(t);}catch(o){if(e&&a(e))try{n=e(t);}catch(t){r=t;}else r=o;}return{error:r,value:n};}function w(t){var e,n;try{e=j.parse(t);}catch(t){n=t;}return{error:n,value:e};}function _(t,e,n,r,o,i,a,s){var u={url:e||"",line:n,column:r};u.func=s.guessFunctionName(u.url,u.line),u.context=s.gatherContext(u.url,u.line);var c=document&&document.location&&document.location.href,l=window&&window.navigator&&window.navigator.userAgent;return{mode:i,message:o?String(o):t||a,url:c,stack:[u],useragent:l};}function x(t,e){return function(n,r){try{e(n,r);}catch(e){t.error(e);}};}function E(t,e,n,r,o){for(var a,s,u,c,l,p,f=[],h=0,m=t.length;h<m;++h){p=t[h];var g=i(p);switch(g){case"undefined":break;case"string":a?f.push(p):a=p;break;case"function":c=x(e,p);break;case"date":f.push(p);break;case"error":case"domexception":s?f.push(p):s=p;break;case"object":case"array":if(p instanceof Error||"undefined"!=typeof DOMException&&p instanceof DOMException){s?f.push(p):s=p;break;}if(r&&"object"===g&&!l){for(var v=0,y=r.length;v<y;++v)if(void 0!==p[r[v]]){l=p;break;}if(l)break;}u?f.push(p):u=p;break;default:if(p instanceof Error||"undefined"!=typeof DOMException&&p instanceof DOMException){s?f.push(p):s=p;break;}f.push(p);}}f.length>0&&(u=C(!0,{},u),u.extraArgs=f);var b={message:a,err:s,custom:u,timestamp:N(),callback:c,uuid:d()};return u&&void 0!==u.level&&(b.level=u.level,delete u.level),r&&l&&(b.request=l),o&&(b.lambdaContext=o),b._originalArgs=t,b;}function k(t,e){if(t){var n=e.split("."),r=t;try{for(var o=0,i=n.length;o<i;++o)r=r[n[o]];}catch(t){r=void 0;}return r;}}function I(t,e,n){if(t){var r=e.split("."),o=r.length;if(!(o<1)){if(1===o)return void(t[r[0]]=n);try{for(var i=t[r[0]]||{},a=i,s=1;s<o-1;s++)i[r[s]]=i[r[s]]||{},i=i[r[s]];i[r[o-1]]=n,t[r[0]]=a;}catch(t){return;}}}}function T(t,e){function n(t,e,n,r,o,i){return e+h(i);}function r(t){var e;if(o(t,"string"))for(e=0;e<u.length;++e)t=t.replace(u[e],n);return t;}function i(t,e){var n;for(n=0;n<s.length;++n)if(s[n].test(t)){e=h(e);break;}return e;}function a(t,e,n){var s=i(t,e);return s===e?o(e,"object")||o(e,"array")?f(e,a,n):r(s):s;}e=e||[];var s=S(e),u=O(e);return f(t,a,[]),t;}function S(t){for(var e,n=[],r=0;r<t.length;++r)e="\\[?(%5[bB])?"+t[r]+"\\[?(%5[bB])?\\]?(%5[dD])?",n.push(new RegExp(e,"i"));return n;}function O(t){for(var e,n=[],r=0;r<t.length;++r)e="\\[?(%5[bB])?"+t[r]+"\\[?(%5[bB])?\\]?(%5[dD])?",n.push(new RegExp("("+e+"=)([^&\\n]+)","igm"));return n;}function L(t){var e,n,r,o=[];for(e=0,n=t.length;e<n;e++)r=t[e],"object"==typeof r?(r=b(r),r=r.error||r.value,r.length>500&&(r=r.substr(0,500)+"...")):"undefined"==typeof r&&(r="undefined"),o.push(r);return o.join(" ");}function N(){return Date.now?+Date.now():+new Date();}var C=n(7),j={},A=!1;r();var R={debug:0,info:1,warning:2,error:3,critical:4},D={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}};t.exports={isType:o,typeName:i,isFunction:a,isNativeFunction:s,isIterable:l,isError:p,extend:C,traverse:f,redact:h,uuid4:d,LEVELS:R,sanitizeUrl:m,addParamsAndAccessTokenToPath:v,formatUrl:y,stringify:b,jsonParse:w,makeUnhandledStackInfo:_,createItem:E,get:k,set:I,scrub:T,formatArgsAsString:L,now:N};},function(t,e){"use strict";var n=Object.prototype.hasOwnProperty,r=Object.prototype.toString,o=function(t){return"function"==typeof Array.isArray?Array.isArray(t):"[object Array]"===r.call(t);},i=function(t){if(!t||"[object Object]"!==r.call(t))return!1;var e=n.call(t,"constructor"),o=t.constructor&&t.constructor.prototype&&n.call(t.constructor.prototype,"isPrototypeOf");if(t.constructor&&!e&&!o)return!1;var i;for(i in t);return"undefined"==typeof i||n.call(t,i);};t.exports=function t(){var e,n,r,a,s,u,c=arguments[0],l=1,p=arguments.length,f=!1;for("boolean"==typeof c?(f=c,c=arguments[1]||{},l=2):("object"!=typeof c&&"function"!=typeof c||null==c)&&(c={});l<p;++l)if(e=arguments[l],null!=e)for(n in e)r=c[n],a=e[n],c!==a&&(f&&a&&(i(a)||(s=o(a)))?(s?(s=!1,u=r&&o(r)?r:[]):u=r&&i(r)?r:{},c[n]=t(f,u,a)):"undefined"!=typeof a&&(c[n]=a));return c;};},function(t,e){var n=function(t){function e(t){return t<10?"0"+t:t;}function n(){return this.valueOf();}function r(t){return i.lastIndex=0,i.test(t)?'"'+t.replace(i,function(t){var e=u[t];return"string"==typeof e?e:"\\u"+("0000"+t.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+t+'"';}function o(t,e){var n,i,u,l,p,f=a,h=e[t];switch(h&&"object"==typeof h&&"function"==typeof h.toJSON&&(h=h.toJSON(t)),"function"==typeof c&&(h=c.call(e,t,h)),typeof h){case"string":return r(h);case"number":return isFinite(h)?String(h):"null";case"boolean":case"null":return String(h);case"object":if(!h)return"null";if(a+=s,p=[],"[object Array]"===Object.prototype.toString.apply(h)){for(l=h.length,n=0;n<l;n+=1)p[n]=o(n,h)||"null";return u=0===p.length?"[]":a?"[\n"+a+p.join(",\n"+a)+"\n"+f+"]":"["+p.join(",")+"]",a=f,u;}if(c&&"object"==typeof c)for(l=c.length,n=0;n<l;n+=1)"string"==typeof c[n]&&(i=c[n],u=o(i,h),u&&p.push(r(i)+(a?": ":":")+u));else for(i in h)Object.prototype.hasOwnProperty.call(h,i)&&(u=o(i,h),u&&p.push(r(i)+(a?": ":":")+u));return u=0===p.length?"{}":a?"{\n"+a+p.join(",\n"+a)+"\n"+f+"}":"{"+p.join(",")+"}",a=f,u;}}var i=/[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;"function"!=typeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+e(this.getUTCMonth()+1)+"-"+e(this.getUTCDate())+"T"+e(this.getUTCHours())+":"+e(this.getUTCMinutes())+":"+e(this.getUTCSeconds())+"Z":null;},Boolean.prototype.toJSON=n,Number.prototype.toJSON=n,String.prototype.toJSON=n);var a,s,u,c;"function"!=typeof t.stringify&&(u={"\b":"\\b","\t":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},t.stringify=function(t,e,n){var r;if(a="",s="","number"==typeof n)for(r=0;r<n;r+=1)s+=" ";else"string"==typeof n&&(s=n);if(c=e,e&&"function"!=typeof e&&("object"!=typeof e||"number"!=typeof e.length))throw new Error("JSON.stringify");return o("",{"":t});}),"function"!=typeof t.parse&&(t.parse=function(){function t(t){return t.replace(/\\(?:u(.{4})|([^u]))/g,function(t,e,n){return e?String.fromCharCode(parseInt(e,16)):a[n];});}var e,n,r,o,i,a={"\\":"\\",'"':'"',"/":"/",t:"\t",n:"\n",r:"\r",f:"\f",b:"\b"},s={go:function(){e="ok";},firstokey:function(){o=i,e="colon";},okey:function(){o=i,e="colon";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},u={go:function(){e="ok";},ovalue:function(){e="ocomma";},firstavalue:function(){e="acomma";},avalue:function(){e="acomma";}},c={"{":{go:function(){n.push({state:"ok"}),r={},e="firstokey";},ovalue:function(){n.push({container:r,state:"ocomma",key:o}),r={},e="firstokey";},firstavalue:function(){n.push({container:r,state:"acomma"}),r={},e="firstokey";},avalue:function(){n.push({container:r,state:"acomma"}),r={},e="firstokey";}},"}":{firstokey:function(){var t=n.pop();i=r,r=t.container,o=t.key,e=t.state;},ocomma:function(){var t=n.pop();r[o]=i,i=r,r=t.container,o=t.key,e=t.state;}},"[":{go:function(){n.push({state:"ok"}),r=[],e="firstavalue";},ovalue:function(){n.push({container:r,state:"ocomma",key:o}),r=[],e="firstavalue";},firstavalue:function(){n.push({container:r,state:"acomma"}),r=[],e="firstavalue";},avalue:function(){n.push({container:r,state:"acomma"}),r=[],e="firstavalue";}},"]":{firstavalue:function(){var t=n.pop();i=r,r=t.container,o=t.key,e=t.state;},acomma:function(){var t=n.pop();r.push(i),i=r,r=t.container,o=t.key,e=t.state;}},":":{colon:function(){if(Object.hasOwnProperty.call(r,o))throw new SyntaxError("Duplicate key '"+o+'"');e="ovalue";}},",":{ocomma:function(){r[o]=i,e="okey";},acomma:function(){r.push(i),e="avalue";}},true:{go:function(){i=!0,e="ok";},ovalue:function(){i=!0,e="ocomma";},firstavalue:function(){i=!0,e="acomma";},avalue:function(){i=!0,e="acomma";}},false:{go:function(){i=!1,e="ok";},ovalue:function(){i=!1,e="ocomma";},firstavalue:function(){i=!1,e="acomma";},avalue:function(){i=!1,e="acomma";}},null:{go:function(){i=null,e="ok";},ovalue:function(){i=null,e="ocomma";},firstavalue:function(){i=null,e="acomma";},avalue:function(){i=null,e="acomma";}}};return function(r,o){var a,l=/^[\u0020\t\n\r]*(?:([,:\[\]{}]|true|false|null)|(-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)|"((?:[^\r\n\t\\\"]|\\(?:["\\\/trnfb]|u[0-9a-fA-F]{4}))*)")/;e="go",n=[];try{for(;;){if(a=l.exec(r),!a)break;a[1]?c[a[1]][e]():a[2]?(i=+a[2],u[e]()):(i=t(a[3]),s[e]()),r=r.slice(a[0].length);}}catch(t){e=t;}if("ok"!==e||/[^\u0020\t\n\r]/.test(r))throw e instanceof SyntaxError?e:new SyntaxError("JSON");return"function"==typeof o?function t(e,n){var r,a,s=e[n];if(s&&"object"==typeof s)for(r in i)Object.prototype.hasOwnProperty.call(s,r)&&(a=t(s,r),void 0!==a?s[r]=a:delete s[r]);return o.call(e,n,s);}({"":i},""):i;};}());};t.exports=n;},function(t,e,n){"use strict";function r(t,e){this.queue=t,this.options=e,this.transforms=[];}var o=n(6);r.prototype.configure=function(t){this.queue&&this.queue.configure(t);var e=this.options;return this.options=o.extend(!0,{},e,t),this;},r.prototype.addTransform=function(t){return o.isFunction(t)&&this.transforms.push(t),this;},r.prototype.log=function(t,e){if(e&&o.isFunction(e)||(e=function(){}),!this.options.enabled)return e(new Error("Rollbar is not enabled"));this.queue.addPendingItem(t);var n=t.err;this._applyTransforms(t,function(r,o){return r?(this.queue.removePendingItem(t),e(r,null)):void this.queue.addItem(o,e,n,t);}.bind(this));},r.prototype._applyTransforms=function(t,e){var n=-1,r=this.transforms.length,o=this.transforms,i=this.options,a=function(t,s){return t?void e(t,null):(n++,n===r?void e(null,s):void o[n](s,i,a));};a(null,t);},t.exports=r;},function(t,e,n){"use strict";function r(t){this.queue=[],this.options=i.extend(!0,{},t);var e=this.options.maxTelemetryEvents||a;this.maxQueueSize=Math.max(0,Math.min(e,a));}function o(t,e){if(e)return e;var n={error:"error",manual:"info"};return n[t]||"info";}var i=n(6),a=100;r.prototype.configure=function(t){var e=this.options;this.options=i.extend(!0,{},e,t);var n=this.options.maxTelemetryEvents||a,r=Math.max(0,Math.min(n,a)),o=0;this.maxQueueSize>r&&(o=this.maxQueueSize-r),this.maxQueueSize=r,this.queue.splice(0,o);},r.prototype.copyEvents=function(){return Array.prototype.slice.call(this.queue,0);},r.prototype.capture=function(t,e,n,r,a){var s={level:o(t,n),type:t,timestamp_ms:a||i.now(),body:e,source:"client"};return r&&(s.uuid=r),this.push(s),s;},r.prototype.captureEvent=function(t,e,n){return this.capture("manual",t,e,n);},r.prototype.captureError=function(t,e,n,r){var o={message:t.message||String(t)};return t.stack&&(o.stack=t.stack),this.capture("error",o,e,n,r);},r.prototype.captureLog=function(t,e,n,r){return this.capture("log",{message:t},e,n,r);},r.prototype.captureNetwork=function(t,e,n){e=e||"xhr",t.subtype=t.subtype||e;var r=this.levelFromStatus(t.status_code);return this.capture("network",t,r,n);},r.prototype.levelFromStatus=function(t){return t>=200&&t<400?"info":0===t||t>=400?"error":"info";},r.prototype.captureDom=function(t,e,n,r,o){var i={subtype:t,element:e};return void 0!==n&&(i.value=n),void 0!==r&&(i.checked=r),this.capture("dom",i,"info",o);},r.prototype.captureNavigation=function(t,e,n){return this.capture("navigation",{from:t,to:e},"info",n);},r.prototype.captureDomContentLoaded=function(t){return this.capture("navigation",{subtype:"DOMContentLoaded"},"info",void 0,t&&t.getTime());},r.prototype.captureLoad=function(t){return this.capture("navigation",{subtype:"load"},"info",void 0,t&&t.getTime());},r.prototype.captureConnectivityChange=function(t,e){return this.captureNetwork({change:t},"connectivity",e);},r.prototype._captureRollbarItem=function(t){return t.err?this.captureError(t.err,t.level,t.uuid,t.timestamp):t.message?this.captureLog(t.message,t.level,t.uuid,t.timestamp):t.custom?this.capture("log",t.custom,t.level,t.uuid,t.timestamp):void 0;},r.prototype.push=function(t){this.queue.push(t),this.queue.length>this.maxQueueSize&&this.queue.shift();},t.exports=r;},function(t,e,n){"use strict";function r(t,e,n,r){this.options=t,this.transport=e,this.url=n,this.jsonBackup=r,this.accessToken=t.accessToken,this.transportOptions=o(t,n);}function o(t,e){return a.getTransportFromOptions(t,s,e);}var i=n(6),a=n(12),s={hostname:"api.rollbar.com",path:"/api/1/item/",search:null,version:"1",protocol:"https:",port:443};r.prototype.postItem=function(t,e){var n=a.transportOptions(this.transportOptions,"POST"),r=a.buildPayload(this.accessToken,t,this.jsonBackup);this.transport.post(this.accessToken,n,r,e);},r.prototype.configure=function(t){var e=this.oldOptions;return this.options=i.extend(!0,{},e,t),this.transportOptions=o(this.options,this.url),void 0!==this.options.accessToken&&(this.accessToken=this.options.accessToken),this;},t.exports=r;},function(t,e,n){"use strict";function r(t,e,n){if(s.isType(e.context,"object")){var r=s.stringify(e.context,n);r.error?e.context="Error: could not serialize 'context'":e.context=r.value||"",e.context.length>255&&(e.context=e.context.substr(0,255));}return{access_token:t,data:e};}function o(t,e,n){var r=e.hostname,o=e.protocol,i=e.port,a=e.path,s=e.search,u=t.proxy;if(t.endpoint){var c=n.parse(t.endpoint);r=c.hostname,o=c.protocol,i=c.port,a=c.pathname,s=c.search;}return{hostname:r,protocol:o,port:i,path:a,search:s,proxy:u};}function i(t,e){var n=t.protocol||"https:",r=t.port||("http:"===n?80:"https:"===n?443:void 0),o=t.hostname,i=t.path;return t.search&&(i+=t.search),t.proxy&&(i=n+"//"+o+i,o=t.proxy.host||t.proxy.hostname,r=t.proxy.port,n=t.proxy.protocol||n),{protocol:n,hostname:o,path:i,port:r,method:e};}function a(t,e){var n=/\/$/.test(t),r=/^\//.test(e);return n&&r?e=e.substring(1):n||r||(e="/"+e),t+e;}var s=n(6);t.exports={buildPayload:r,getTransportFromOptions:o,transportOptions:i,appendPathToPath:a};},function(t,e,n){"use strict";function r(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.error(s.formatArgsAsString(t)):console.error.apply(console,t);}function o(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.info(s.formatArgsAsString(t)):console.info.apply(console,t);}function i(){var t=Array.prototype.slice.call(arguments,0);t.unshift("Rollbar:"),a.ieVersion()<=8?console.log(s.formatArgsAsString(t)):console.log.apply(console,t);}n(14);var a=n(15),s=n(6);t.exports={error:r,info:o,log:i};},function(t,e){!function(t){"use strict";t.console||(t.console={});for(var e,n,r=t.console,o=function(){},i=["memory"],a="assert,clear,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn".split(",");e=i.pop();)r[e]||(r[e]={});for(;n=a.pop();)r[n]||(r[n]=o);}("undefined"==typeof window?this:window);},function(t,e){"use strict";function n(){var t;if(!document)return t;for(var e=3,n=document.createElement("div"),r=n.getElementsByTagName("i");n.innerHTML="<!--[if gt IE "+ ++e+"]><i></i><![endif]-->",r[0];);return e>4?e:t;}var r={ieVersion:n};t.exports=r;},function(t,e){"use strict";function n(t,e,n){if(t){var o;"function"==typeof e._rollbarOldOnError?o=e._rollbarOldOnError:t.onerror&&!t.onerror.belongsToShim&&(o=t.onerror,e._rollbarOldOnError=o);var i=function(){var n=Array.prototype.slice.call(arguments,0);r(t,e,o,n);};i.belongsToShim=n,t.onerror=i;}}function r(t,e,n,r){t._rollbarWrappedError&&(r[4]||(r[4]=t._rollbarWrappedError),r[5]||(r[5]=t._rollbarWrappedError._rollbarContext),t._rollbarWrappedError=null),e.handleUncaughtException.apply(e,r),n&&n.apply(t,r);}function o(t,e,n){if(t){"function"==typeof t._rollbarURH&&t._rollbarURH.belongsToShim&&t.removeEventListener("unhandledrejection",t._rollbarURH);var r=function(t){var n=t.reason,r=t.promise,o=t.detail;!n&&o&&(n=o.reason,r=o.promise),e&&e.handleUnhandledRejection&&e.handleUnhandledRejection(n,r);};r.belongsToShim=n,t._rollbarURH=r,t.addEventListener("unhandledrejection",r);}}function i(t,e,n){if(t){var r,o,i="EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");for(r=0;r<i.length;++r)o=i[r],t[o]&&t[o].prototype&&a(e,t[o].prototype,n);}}function a(t,e,n){if(e.hasOwnProperty&&e.hasOwnProperty("addEventListener")){for(var r=e.addEventListener;r._rollbarOldAdd&&r.belongsToShim;)r=r._rollbarOldAdd;var o=function(e,n,o){r.call(this,e,t.wrap(n),o);};o._rollbarOldAdd=r,o.belongsToShim=n,e.addEventListener=o;for(var i=e.removeEventListener;i._rollbarOldRemove&&i.belongsToShim;)i=i._rollbarOldRemove;var a=function(t,e,n){i.call(this,t,e&&e._rollbar_wrapped||e,n);};a._rollbarOldRemove=i,a.belongsToShim=n,e.removeEventListener=a;}}t.exports={captureUncaughtExceptions:n,captureUnhandledRejections:o,wrapGlobals:i};},function(t,e,n){"use strict";function r(t,e,n,r,o){r&&l.isFunction(r)||(r=function(){}),l.addParamsAndAccessTokenToPath(t,e,n);var a="GET",s=l.formatUrl(e);i(t,s,a,null,r,o);}function o(t,e,n,r,o){if(r&&l.isFunction(r)||(r=function(){}),!n)return r(new Error("Cannot send empty request"));var a=l.stringify(n);if(a.error)return r(a.error);var s=a.value,u="POST",c=l.formatUrl(e);i(t,c,u,s,r,o);}function i(t,e,n,r,o,i){var f;if(f=i?i():a(),!f)return o(new Error("No way to send a request"));try{try{var h=function(){try{if(h&&4===f.readyState){h=void 0;var t=l.jsonParse(f.responseText);if(s(f))return void o(t.error,t.value);if(u(f)){if(403===f.status){var e=t.value&&t.value.message;p.error(e);}o(new Error(String(f.status)));}else{var n="XHR response had no status code (likely connection failure)";o(c(n));}}}catch(t){var r;r=t&&t.stack?t:new Error(t),o(r);}};f.open(n,e,!0),f.setRequestHeader&&(f.setRequestHeader("Content-Type","application/json"),f.setRequestHeader("X-Rollbar-Access-Token",t)),f.onreadystatechange=h,f.send(r);}catch(t){if("undefined"!=typeof XDomainRequest){if(!window||!window.location)return o(new Error("No window available during request, unknown environment"));"http:"===window.location.href.substring(0,5)&&"https"===e.substring(0,5)&&(e="http"+e.substring(5));var d=new XDomainRequest();d.onprogress=function(){},d.ontimeout=function(){var t="Request timed out",e="ETIMEDOUT";o(c(t,e));},d.onerror=function(){o(new Error("Error during request"));},d.onload=function(){var t=l.jsonParse(d.responseText);o(t.error,t.value);},d.open(n,e,!0),d.send(r);}else o(new Error("Cannot find a method to transport a request"));}}catch(t){o(t);}}function a(){var t,e,n=[function(){return new XMLHttpRequest();},function(){return new ActiveXObject("Msxml2.XMLHTTP");},function(){return new ActiveXObject("Msxml3.XMLHTTP");},function(){return new ActiveXObject("Microsoft.XMLHTTP");}],r=n.length;for(e=0;e<r;e++)try{t=n[e]();break;}catch(t){}return t;}function s(t){return t&&t.status&&200===t.status;}function u(t){return t&&l.isType(t.status,"number")&&t.status>=400&&t.status<600;}function c(t,e){var n=new Error(t);return n.code=e||"ENOTFOUND",n;}var l=n(6),p=n(13);t.exports={get:r,post:o};},function(t,e){"use strict";function n(t){var e,n,r={protocol:null,auth:null,host:null,path:null,hash:null,href:t,hostname:null,port:null,pathname:null,search:null,query:null};if(e=t.indexOf("//"),e!==-1?(r.protocol=t.substring(0,e),n=e+2):n=0,e=t.indexOf("@",n),e!==-1&&(r.auth=t.substring(n,e),n=e+1),e=t.indexOf("/",n),e===-1){if(e=t.indexOf("?",n),e===-1)return e=t.indexOf("#",n),e===-1?r.host=t.substring(n):(r.host=t.substring(n,e),r.hash=t.substring(e)),r.hostname=r.host.split(":")[0],r.port=r.host.split(":")[1],r.port&&(r.port=parseInt(r.port,10)),r;r.host=t.substring(n,e),r.hostname=r.host.split(":")[0],r.port=r.host.split(":")[1],r.port&&(r.port=parseInt(r.port,10)),n=e;}else r.host=t.substring(n,e),r.hostname=r.host.split(":")[0],r.port=r.host.split(":")[1],r.port&&(r.port=parseInt(r.port,10)),n=e;if(e=t.indexOf("#",n),e===-1?r.path=t.substring(n):(r.path=t.substring(n,e),r.hash=t.substring(e)),r.path){var o=r.path.split("?");r.pathname=o[0],r.query=o[1],r.search=r.query?"?"+r.query:null;}return r;}t.exports={parse:n};},function(t,e,n){"use strict";function r(t,e,n){if(t.data=t.data||{},t.err)try{t.stackInfo=t.err._savedStackTrace||m.parse(t.err);}catch(e){g.error("Error while parsing the error object.",e),t.message=t.err.message||t.err.description||t.message||String(t.err),delete t.err;}n(null,t);}function o(t,e,n){t.message||t.stackInfo||t.custom||n(new Error("No message, stack info, or custom data"),null),n(null,t);}function i(t,e,n){var r=e.payload&&e.payload.environment||e.environment;t.data=d.extend(!0,{},t.data,{environment:r,level:t.level,endpoint:e.endpoint,platform:"browser",framework:"browser-js",language:"javascript",server:{},uuid:t.uuid,notifier:{name:"rollbar-browser-js",version:e.version}}),n(null,t);}function a(t){return function(e,n,r){return t&&t.location?(d.set(e,"data.request",{url:t.location.href,query_string:t.location.search,user_ip:"$remote_ip"}),void r(null,e)):r(null,e);};}function s(t){return function(e,n,r){return t?(d.set(e,"data.client",{runtime_ms:e.timestamp-t._rollbarStartTime,timestamp:Math.round(e.timestamp/1e3),javascript:{browser:t.navigator.userAgent,language:t.navigator.language,cookie_enabled:t.navigator.cookieEnabled,screen:{width:t.screen.width,height:t.screen.height}}}),void r(null,e)):r(null,e);};}function u(t){return function(e,n,r){if(!t||!t.navigator)return r(null,e);for(var o,i=[],a=t.navigator.plugins||[],s=0,u=a.length;s<u;++s)o=a[s],i.push({name:o.name,description:o.description});d.set(e,"data.client.javascript.plugins",i),r(null,e);};}function c(t,e,n){t.stackInfo?p(t,e,n):l(t,e,n);}function l(t,e,n){var r=t.message,o=t.custom;if(!r)if(o){var i=e.scrubFields,a=d.stringify(d.scrub(o,i));r=a.error||a.value||"";}else r="";var s={body:r};o&&(s.extra=d.extend(!0,{},o)),d.set(t,"data.body",{message:s}),n(null,t);}function p(t,e,n){var r=t.data.description,o=t.stackInfo,i=t.custom,a=m.guessErrorClass(o.message),s=o.name||a[0],u=a[1],c={exception:{class:s,message:u}};r&&(c.exception.description=r);var p=o.stack;if(p&&0===p.length&&t._unhandledStackInfo&&t._unhandledStackInfo.stack&&(p=t._unhandledStackInfo.stack),p){var f,h,g,v,y,b,w,_;for(c.frames=[],w=0;w<p.length;++w)f=p[w],h={filename:f.url?d.sanitizeUrl(f.url):"(unknown)",lineno:f.line||null,method:f.func&&"?"!==f.func?f.func:"[anonymous]",colno:f.column},h.method&&h.method.endsWith&&h.method.endsWith("_rollbar_wrapped")||(g=v=y=null,b=f.context?f.context.length:0,b&&(_=Math.floor(b/2),v=f.context.slice(0,_),g=f.context[_],y=f.context.slice(_)),g&&(h.code=g),(v||y)&&(h.context={},v&&v.length&&(h.context.pre=v),y&&y.length&&(h.context.post=y)),f.args&&(h.args=f.args),c.frames.push(h));c.frames.reverse(),i&&(c.extra=d.extend(!0,{},i)),d.set(t,"data.body",{trace:c}),n(null,t);}else t.message=s+": "+u,l(t,e,n);}function f(t,e,n){var r=e.scrubFields;d.scrub(t.data,r),n(null,t);}function h(t,e,n){var r=d.extend(!0,{},t);try{d.isFunction(e.transform)&&e.transform(r.data);}catch(r){return e.transform=null,g.error("Error while calling custom transform() function. Removing custom transform().",r),void n(null,t);}n(null,r);}var d=n(6),m=n(20),g=n(13);t.exports={handleItemWithError:r,ensureItemHasSomethingToSay:o,addBaseInfo:i,addRequestInfo:a,addClientInfo:s,addPluginInfo:u,addBody:c,scrubPayload:f,userTransform:h};},function(t,e,n){"use strict";function r(){return l;}function o(){return null;}function i(t){var e={};return e._stackFrame=t,e.url=t.fileName,e.line=t.lineNumber,e.func=t.functionName,e.column=t.columnNumber,e.args=t.args,e.context=o(e.url,e.line),e;}function a(t){function e(){var e=[];try{e=c.parse(t);}catch(t){e=[];}for(var n=[],r=0;r<e.length;r++)n.push(new i(e[r]));return n;}return{stack:e(),message:t.message,name:t.name};}function s(t){return new a(t);}function u(t){if(!t)return["Unknown error. There was no error message to display.",""];var e=t.match(p),n="(unknown)";return e&&(n=e[e.length-1],t=t.replace((e[e.length-2]||"")+n+":",""),t=t.replace(/(^[\s]+|[\s]+$)/g,"")),[n,t];}var c=n(21),l="?",p=new RegExp("^(([a-zA-Z0-9-_$ ]*): *)?(Uncaught )?([a-zA-Z0-9-_$ ]*): ");t.exports={guessFunctionName:r,guessErrorClass:u,gatherContext:o,parse:s,Stack:a,Frame:i};},function(t,e,n){var r,o,i;!function(a,s){"use strict";o=[n(22)],r=s,i="function"==typeof r?r.apply(e,o):r,!(void 0!==i&&(t.exports=i));}(this,function(t){"use strict";function e(t,e,n){if("function"==typeof Array.prototype.map)return t.map(e,n);for(var r=new Array(t.length),o=0;o<t.length;o++)r[o]=e.call(n,t[o]);return r;}function n(t,e,n){if("function"==typeof Array.prototype.filter)return t.filter(e,n);for(var r=[],o=0;o<t.length;o++)e.call(n,t[o])&&r.push(t[o]);return r;}var r=/(^|@)\S+\:\d+/,o=/^\s*at .*(\S+\:\d+|\(native\))/m,i=/^(eval@)?(\[native code\])?$/;return{parse:function(t){if("undefined"!=typeof t.stacktrace||"undefined"!=typeof t["opera#sourceloc"])return this.parseOpera(t);if(t.stack&&t.stack.match(o))return this.parseV8OrIE(t);if(t.stack)return this.parseFFOrSafari(t);throw new Error("Cannot parse given Error object");},extractLocation:function(t){if(t.indexOf(":")===-1)return[t];var e=t.replace(/[\(\)\s]/g,"").split(":"),n=e.pop(),r=e[e.length-1];if(!isNaN(parseFloat(r))&&isFinite(r)){var o=e.pop();return[e.join(":"),o,n];}return[e.join(":"),n,void 0];},parseV8OrIE:function(r){var i=n(r.stack.split("\n"),function(t){return!!t.match(o);},this);return e(i,function(e){e.indexOf("(eval ")>-1&&(e=e.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var n=e.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),r=this.extractLocation(n.pop()),o=n.join(" ")||void 0,i="eval"===r[0]?void 0:r[0];return new t(o,void 0,i,r[1],r[2],e);},this);},parseFFOrSafari:function(r){var o=n(r.stack.split("\n"),function(t){return!t.match(i);},this);return e(o,function(e){if(e.indexOf(" > eval")>-1&&(e=e.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),e.indexOf("@")===-1&&e.indexOf(":")===-1)return new t(e);var n=e.split("@"),r=this.extractLocation(n.pop()),o=n.shift()||void 0;return new t(o,void 0,r[0],r[1],r[2],e);},this);},parseOpera:function(t){return!t.stacktrace||t.message.indexOf("\n")>-1&&t.message.split("\n").length>t.stacktrace.split("\n").length?this.parseOpera9(t):t.stack?this.parseOpera11(t):this.parseOpera10(t);},parseOpera9:function(e){for(var n=/Line (\d+).*script (?:in )?(\S+)/i,r=e.message.split("\n"),o=[],i=2,a=r.length;i<a;i+=2){var s=n.exec(r[i]);s&&o.push(new t(void 0,void 0,s[2],s[1],void 0,r[i]));}return o;},parseOpera10:function(e){for(var n=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,r=e.stacktrace.split("\n"),o=[],i=0,a=r.length;i<a;i+=2){var s=n.exec(r[i]);s&&o.push(new t(s[3]||void 0,void 0,s[2],s[1],void 0,r[i]));}return o;},parseOpera11:function(o){var i=n(o.stack.split("\n"),function(t){return!!t.match(r)&&!t.match(/^Error created at/);},this);return e(i,function(e){var n,r=e.split("@"),o=this.extractLocation(r.pop()),i=r.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(n=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===n||"[arguments not available]"===n?void 0:n.split(",");return new t(a,s,o[0],o[1],o[2],e);},this);}};});},function(t,e,n){var r,o,i;!function(n,a){"use strict";o=[],r=a,i="function"==typeof r?r.apply(e,o):r,!(void 0!==i&&(t.exports=i));}(this,function(){"use strict";function t(t){return!isNaN(parseFloat(t))&&isFinite(t);}function e(t,e,n,r,o,i){void 0!==t&&this.setFunctionName(t),void 0!==e&&this.setArgs(e),void 0!==n&&this.setFileName(n),void 0!==r&&this.setLineNumber(r),void 0!==o&&this.setColumnNumber(o),void 0!==i&&this.setSource(i);}return e.prototype={getFunctionName:function(){return this.functionName;},setFunctionName:function(t){this.functionName=String(t);},getArgs:function(){return this.args;},setArgs:function(t){if("[object Array]"!==Object.prototype.toString.call(t))throw new TypeError("Args must be an Array");this.args=t;},getFileName:function(){return this.fileName;},setFileName:function(t){this.fileName=String(t);},getLineNumber:function(){return this.lineNumber;},setLineNumber:function(e){if(!t(e))throw new TypeError("Line Number must be a Number");this.lineNumber=Number(e);},getColumnNumber:function(){return this.columnNumber;},setColumnNumber:function(e){if(!t(e))throw new TypeError("Column Number must be a Number");this.columnNumber=Number(e);},getSource:function(){return this.source;},setSource:function(t){this.source=String(t);},toString:function(){var e=this.getFunctionName()||"{anonymous}",n="("+(this.getArgs()||[]).join(",")+")",r=this.getFileName()?"@"+this.getFileName():"",o=t(this.getLineNumber())?":"+this.getLineNumber():"",i=t(this.getColumnNumber())?":"+this.getColumnNumber():"";return e+n+r+o+i;}},e;});},function(t,e,n){"use strict";function r(t,e,n){var r=e.payload||{};r.body&&delete r.body;var o=a.extend(!0,{},t.data,r);t._isUncaught&&(o._isUncaught=!0),t._originalArgs&&(o._originalArgs=t._originalArgs),n(null,o);}function o(t,e,n){t.telemetryEvents&&a.set(t,"data.body.telemetry",t.telemetryEvents),n(null,t);}function i(t,e,n){if(!t.message)return void n(null,t);var r="data.body.trace_chain.0",o=a.get(t,r);if(o||(r="data.body.trace",o=a.get(t,r)),o){if(!o.exception||!o.exception.description)return a.set(t,r+".exception.description",t.message),void n(null,t);var i=a.get(t,r+".extra")||{},s=a.extend(!0,{},i,{message:t.message});a.set(t,r+".extra",s);}n(null,t);}var a=n(6);t.exports={itemToPayload:r,addTelemetryData:o,addMessageWithError:i};},function(t,e,n){"use strict";function r(t,e){var n=t.level,r=c.LEVELS[n]||0,o=c.LEVELS[e.reportLevel]||0;return!(r<o)&&(!c.get(e,"plugins.jquery.ignoreAjaxErrors")||!c.get(t,"body.message.extra.isAjax"));}function o(t,e){var n=!!t._isUncaught;delete t._isUncaught;var r=t._originalArgs;delete t._originalArgs;try{if(c.isFunction(e.checkIgnore)&&e.checkIgnore(n,r,t))return!1;}catch(t){e.checkIgnore=null,l.error("Error while calling custom checkIgnore(), removing",t);}return!0;}function i(t,e){return!s(t,e,"blacklist");}function a(t,e){return s(t,e,"whitelist");}function s(t,e,n){var r=!1;"blacklist"===n&&(r=!0);var o,i,a,s,u,p,f,h,d,m;try{if(o=r?e.hostBlackList:e.hostWhiteList,f=o&&o.length,i=c.get(t,"body.trace"),!o||0===f)return!r;if(!i||!i.frames)return!r;for(u=i.frames.length,d=0;d<u;d++){if(a=i.frames[d],s=a.filename,!c.isType(s,"string"))return!r;for(m=0;m<f;m++)if(p=o[m],h=new RegExp(p),h.test(s))return!0;}}catch(t){r?e.hostBlackList=null:e.hostWhiteList=null;var g=r?"hostBlackList":"hostWhiteList";return l.error("Error while reading your configuration's "+g+" option. Removing custom "+g+".",t),!r;}return!1;}function u(t,e){var n,r,o,i,a,s,u,p,f;try{if(a=!1,o=e.ignoredMessages,!o||0===o.length)return!0;if(u=t.body,p=c.get(u,"trace.exception.message"),f=c.get(u,"message.body"),n=p||f,!n)return!0;for(i=o.length,r=0;r<i&&(s=new RegExp(o[r],"gi"),!(a=s.test(n)));r++);}catch(t){e.ignoredMessages=null,l.error("Error while reading your configuration's ignoredMessages option. Removing custom ignoredMessages.");}return!a;}var c=n(6),l=n(13);t.exports={checkIgnore:r,userCheckIgnore:o,urlIsNotBlacklisted:i,urlIsWhitelisted:a,messageIsIgnored:u};},function(t,e,n){"use strict";function r(t,e,n,r,o){var i=t[e];t[e]=n(i),r&&r[o].push([t,e,i]);}function o(t,e){for(var n;t[e].length;)n=t[e].shift(),n[0][n[1]]=n[2];}function i(t,e,n,r,o){var i=t.autoInstrument;t.enabled===!1||i===!1?this.autoInstrument={}:(a.isType(i,"object")||(i=c),this.autoInstrument=a.extend(!0,{},c,i)),this.scrubTelemetryInputs=!!t.scrubTelemetryInputs,this.telemetryScrubber=t.telemetryScrubber,this.telemeter=e,this.rollbar=n,this._window=r||{},this._document=o||{},this.replacements={network:[],log:[],navigation:[],connectivity:[]},this.eventRemovers={dom:[],connectivity:[]},this._location=this._window.location,this._lastHref=this._location&&this._location.href;}var a=n(6),s=n(18),u=n(26),c={network:!0,log:!0,dom:!0,navigation:!0,connectivity:!0};i.prototype.configure=function(t){var e=t.autoInstrument,n=a.extend(!0,{},this.autoInstrument);t.enabled===!1||e===!1?this.autoInstrument={}:(a.isType(e,"object")||(e=c),this.autoInstrument=a.extend(!0,{},c,e)),this.instrument(n),void 0!==t.scrubTelemetryInputs&&(this.scrubTelemetryInputs=!!t.scrubTelemetryInputs),void 0!==t.telemetryScrubber&&(this.telemetryScrubber=t.telemetryScrubber);},i.prototype.instrument=function(t){!this.autoInstrument.network||t&&t.network?!this.autoInstrument.network&&t&&t.network&&this.deinstrumentNetwork():this.instrumentNetwork(),!this.autoInstrument.log||t&&t.log?!this.autoInstrument.log&&t&&t.log&&this.deinstrumentConsole():this.instrumentConsole(),!this.autoInstrument.dom||t&&t.dom?!this.autoInstrument.dom&&t&&t.dom&&this.deinstrumentDom():this.instrumentDom(),!this.autoInstrument.navigation||t&&t.navigation?!this.autoInstrument.navigation&&t&&t.navigation&&this.deinstrumentNavigation():this.instrumentNavigation(),!this.autoInstrument.connectivity||t&&t.connectivity?!this.autoInstrument.connectivity&&t&&t.connectivity&&this.deinstrumentConnectivity():this.instrumentConnectivity();},i.prototype.deinstrumentNetwork=function(){o(this.replacements,"network");},i.prototype.instrumentNetwork=function(){function t(t,n){t in n&&a.isFunction(n[t])&&r(n,t,function(t){return e.rollbar.wrap(t);});}var e=this;if("XMLHttpRequest"in this._window){var n=this._window.XMLHttpRequest.prototype;r(n,"open",function(t){return function(e,n){return a.isType(n,"string")&&(this.__rollbar_xhr={method:e,url:n,status_code:null,start_time_ms:a.now(),end_time_ms:null}),t.apply(this,arguments);};},this.replacements,"network"),r(n,"send",function(n){return function(o){function i(){if(s.__rollbar_xhr&&(1===s.readyState||4===s.readyState)){null===s.__rollbar_xhr.status_code&&(s.__rollbar_xhr.status_code=0,s.__rollbar_event=e.telemeter.captureNetwork(s.__rollbar_xhr,"xhr")),1===s.readyState?s.__rollbar_xhr.start_time_ms=a.now():s.__rollbar_xhr.end_time_ms=a.now();try{var t=s.status;t=1223===t?204:t,s.__rollbar_xhr.status_code=t,s.__rollbar_event.level=e.telemeter.levelFromStatus(t);}catch(t){}}}var s=this;return t("onload",s),t("onerror",s),t("onprogress",s),"onreadystatechange"in s&&a.isFunction(s.onreadystatechange)?r(s,"onreadystatechange",function(t){return e.rollbar.wrap(t,void 0,i);}):s.onreadystatechange=i,n.apply(this,arguments);};},this.replacements,"network");}"fetch"in this._window&&r(this._window,"fetch",function(t){return function(n,r){for(var o=new Array(arguments.length),i=0,s=o.length;i<s;i++)o[i]=arguments[i];var u,c=o[0],l="GET";a.isType(c,"string")?u=c:(u=c.url,c.method&&(l=c.method)),o[1]&&o[1].method&&(l=o[1].method);var p={method:l,url:u,status_code:null,start_time_ms:a.now(),end_time_ms:null};return e.telemeter.captureNetwork(p,"fetch"),t.apply(this,o).then(function(t){return p.end_time_ms=a.now(),p.status_code=t.status,t;});};},this.replacements,"network");},i.prototype.deinstrumentConsole=function(){if("console"in this._window&&this._window.console.log)for(var t;this.replacements.log.length;)t=this.replacements.log.shift(),this._window.console[t[0]]=t[1];},i.prototype.instrumentConsole=function(){function t(t){var r=n[t],o=n,i="warn"===t?"warning":t;n[t]=function(){var t=Array.prototype.slice.call(arguments),n=a.formatArgsAsString(t);e.telemeter.captureLog(n,i),r&&Function.prototype.apply.call(r,o,t);},e.replacements.log.push([t,r]);}if("console"in this._window&&this._window.console.log)for(var e=this,n=this._window.console,r=["debug","info","warn","error","log"],o=0,i=r.length;o<i;o++)t(r[o]);},i.prototype.deinstrumentDom=function(){("addEventListener"in this._window||"attachEvent"in this._window)&&this.removeListeners("dom");},i.prototype.instrumentDom=function(){if("addEventListener"in this._window||"attachEvent"in this._window){var t=this.handleClick.bind(this),e=this.handleBlur.bind(this);this.addListener("dom",this._window,"click","onclick",t,!0),this.addListener("dom",this._window,"blur","onfocusout",e,!0);}},i.prototype.handleClick=function(t){try{var e=u.getElementFromEvent(t,this._document),n=e&&e.tagName,r=u.isDescribedElement(e,"a")||u.isDescribedElement(e,"button");n&&(r||u.isDescribedElement(e,"input",["button","submit"]))?this.captureDomEvent("click",e):u.isDescribedElement(e,"input",["checkbox","radio"])&&this.captureDomEvent("input",e,e.value,e.checked);}catch(t){}},i.prototype.handleBlur=function(t){try{var e=u.getElementFromEvent(t,this._document);e&&e.tagName&&(u.isDescribedElement(e,"textarea")?this.captureDomEvent("input",e,e.value):u.isDescribedElement(e,"select")&&e.options&&e.options.length?this.handleSelectInputChanged(e):u.isDescribedElement(e,"input")&&!u.isDescribedElement(e,"input",["button","submit","hidden","checkbox","radio"])&&this.captureDomEvent("input",e,e.value));}catch(t){}},i.prototype.handleSelectInputChanged=function(t){if(t.multiple)for(var e=0;e<t.options.length;e++)t.options[e].selected&&this.captureDomEvent("input",t,t.options[e].value);else t.selectedIndex>=0&&t.options[t.selectedIndex]&&this.captureDomEvent("input",t,t.options[t.selectedIndex].value);},i.prototype.captureDomEvent=function(t,e,n,r){if(void 0!==n)if(this.scrubTelemetryInputs||"password"===u.getElementType(e))n="[scrubbed]";else if(this.telemetryScrubber){var o=u.describeElement(e);this.telemetryScrubber(o)&&(n="[scrubbed]");}var i=u.elementArrayToString(u.treeToArray(e));this.telemeter.captureDom(t,i,n,r);},i.prototype.deinstrumentNavigation=function(){var t=this._window.chrome,e=t&&t.app&&t.app.runtime,n=!e&&this._window.history&&this._window.history.pushState;n&&o(this.replacements,"navigation");},i.prototype.instrumentNavigation=function(){var t=this._window.chrome,e=t&&t.app&&t.app.runtime,n=!e&&this._window.history&&this._window.history.pushState;if(n){var o=this;r(this._window,"onpopstate",function(t){return function(){var e=o._location.href;o.handleUrlChange(o._lastHref,e),t&&t.apply(this,arguments);};},this.replacements,"navigation"),r(this._window.history,"pushState",function(t){return function(){var e=arguments.length>2?arguments[2]:void 0;return e&&o.handleUrlChange(o._lastHref,e+""),t.apply(this,arguments);};},this.replacements,"navigation");}},i.prototype.handleUrlChange=function(t,e){var n=s.parse(this._location.href),r=s.parse(e),o=s.parse(t);this._lastHref=e,n.protocol===r.protocol&&n.host===r.host&&(e=r.path+(r.hash||"")),n.protocol===o.protocol&&n.host===o.host&&(t=o.path+(o.hash||"")),this.telemeter.captureNavigation(t,e);},i.prototype.deinstrumentConnectivity=function(){("addEventListener"in this._window||"body"in this._document)&&(this._window.addEventListener?this.removeListeners("connectivity"):o(this.replacements,"connectivity"));},i.prototype.instrumentConnectivity=function(){if("addEventListener"in this._window||"body"in this._document)if(this._window.addEventListener)this.addListener("connectivity",this._window,"online",void 0,function(){this.telemeter.captureConnectivityChange("online");}.bind(this),!0),this.addListener("connectivity",this._window,"offline",void 0,function(){this.telemeter.captureConnectivityChange("offline");}.bind(this),!0);else{var t=this;r(this._document.body,"ononline",function(e){return function(){t.telemeter.captureConnectivityChange("online"),e&&e.apply(this,arguments);};},this.replacements,"connectivity"),r(this._document.body,"onoffline",function(e){return function(){t.telemeter.captureConnectivityChange("offline"),e&&e.apply(this,arguments);};},this.replacements,"connectivity");}},i.prototype.addListener=function(t,e,n,r,o,i){e.addEventListener?(e.addEventListener(n,o,i),this.eventRemovers[t].push(function(){e.removeEventListener(n,o,i);})):r&&(e.attachEvent(r,o),this.eventRemovers[t].push(function(){e.detachEvent(r,o);}));},i.prototype.removeListeners=function(t){for(var e;this.eventRemovers[t].length;)(e=this.eventRemovers[t].shift())();},t.exports=i;},function(t,e){"use strict";function n(t){return(t.getAttribute("type")||"").toLowerCase();}function r(t,e,r){if(t.tagName.toLowerCase()!==e.toLowerCase())return!1;if(!r)return!0;t=n(t);for(var o=0;o<r.length;o++)if(r[o]===t)return!0;return!1;}function o(t,e){return t.target?t.target:e&&e.elementFromPoint?e.elementFromPoint(t.clientX,t.clientY):void 0;}function i(t){for(var e,n=5,r=[],o=0;t&&o<n&&(e=u(t),"html"!==e.tagName);o++)r.unshift(e),t=t.parentNode;return r;}function a(t){for(var e,n,r=80,o=" > ",i=o.length,a=[],u=0,c=t.length-1;c>=0;c--){if(e=s(t[c]),n=u+a.length*i+e.length,c<t.length-1&&n>=r+3){a.unshift("...");break;}a.unshift(e),u+=e.length;}return a.join(o);}function s(t){if(!t||!t.tagName)return"";var e=[t.tagName];t.id&&e.push("#"+t.id),t.classes&&e.push("."+t.classes.join("."));for(var n=0;n<t.attributes.length;n++)e.push("["+t.attributes[n].key+'="'+t.attributes[n].value+'"]');return e.join("");}function u(t){if(!t||!t.tagName)return null;var e,n,r,o,i={};i.tagName=t.tagName.toLowerCase(),t.id&&(i.id=t.id),e=t.className,e&&"string"==typeof e&&(i.classes=e.split(/\s+/));var a=["type","name","title","alt"];for(i.attributes=[],o=0;o<a.length;o++)n=a[o],r=t.getAttribute(n),r&&i.attributes.push({key:n,value:r});return i;}t.exports={describeElement:u,descriptionToString:s,elementArrayToString:a,treeToArray:i,getElementFromEvent:o,isDescribedElement:r,getElementType:n};}]);});});var rollbarConfig={accessToken:"fe7cf327f2b24bb8991e252239f6200f",captureUncaught:true,ignoredMessages:["Error:  DOM Exception 18","SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.","SecurityError:  An attempt was made to break through the security policy of the user agent.","Script error."],payload:{environment:"development",client:{javascript:{source_map_enabled:true,code_version:"52e2baa2c2dd68f8c32696f9267d30f34ef73e82",// Optionally have Rollbar guess which frames the error was thrown from
 // when the browser does not provide line and column numbers.
-guess_uncaught_frames:true}}}};var rollbar$$1=new rollbar_umd_min$1(rollbarConfig);function ModalControl(id,openBtnId,closeBtnId){this.modal=document.getElementById(id);this.openBtn=document.getElementById(openBtnId);this.closeBtn=document.getElementById(closeBtnId);this.openHandler=this.open.bind(this);this.closeHandler=this.close.bind(this);this.openBtn.addEventListener('click',this.openHandler,false);this.closeBtn.addEventListener('click',this.closeHandler,false);window.addEventListener('click',this.closeHandler,false);}ModalControl.prototype.open=function(){this.modal.classList.add('modal-open');this.modal.classList.remove('modal-close');};ModalControl.prototype.close=function(event){if(event.target==this.modal||event.target==this.closeBtn){this.modal.classList.add('modal-close');this.modal.classList.remove('modal-open');}};var VisionSimulation=require("dota-vision-simulation");var worlddata=require("dota-vision-simulation/src/worlddata.json");var aboutModal=new ModalControl('about','about-open','about-close');var helpModal=new ModalControl('help','help-open','help-close');var buildDate="2017-11-07 12:55:40 UTC";document.getElementById('buildDate').innerHTML=buildDate;var releaseTag="4.5.0";document.getElementById('releaseTag').innerHTML=releaseTag;function App(map_tile_path,vision_data_image_path){var InteractiveMap$$1=new InteractiveMap(map_tile_path);InteractiveMap$$1.toggleLayerMenuOption=function(layerId,state){var element=document.querySelector('input[data-layer-id="'+layerId+'"]');if(state!=null)element.checked=state;updateLayerAndQueryString(element,layerId);};InteractiveMap$$1.vs=new VisionSimulation(worlddata,vision_data_image_path,initialize);InteractiveMap$$1.menuControl=new MenuControl(InteractiveMap$$1);InteractiveMap$$1.menuControl.initialize(layerToggleHandler,baseLayerToggleHandler);InteractiveMap$$1.infoControl=new InfoControl(InteractiveMap$$1);InteractiveMap$$1.infoControl.initialize('info');InteractiveMap$$1.notificationControl=new NotificationControl();InteractiveMap$$1.notificationControl.initialize('notification');InteractiveMap$$1.visionControl=new VisionControl(InteractiveMap$$1);InteractiveMap$$1.wardControl=new WardControl(InteractiveMap$$1);InteractiveMap$$1.treeControl=new TreeControl(InteractiveMap$$1);InteractiveMap$$1.cursorControl=new CursorControl(InteractiveMap$$1);InteractiveMap$$1.coordinateControl=new CoordinateControl(InteractiveMap$$1,'coordinates');InteractiveMap$$1.measureControl=new MeasureControl(InteractiveMap$$1);InteractiveMap$$1.creepControl=new CreepControl(InteractiveMap$$1);InteractiveMap$$1.creepControl.initialize('timer');//var DrawCurveControl = require('./controls/drawCurve');
+guess_uncaught_frames:true}}}};var rollbar$$1=new rollbar_umd_min$1(rollbarConfig);function ModalControl(id,openBtnId,closeBtnId){this.modal=document.getElementById(id);this.openBtn=document.getElementById(openBtnId);this.closeBtn=document.getElementById(closeBtnId);this.openHandler=this.open.bind(this);this.closeHandler=this.close.bind(this);this.openBtn.addEventListener('click',this.openHandler,false);this.closeBtn.addEventListener('click',this.closeHandler,false);window.addEventListener('click',this.closeHandler,false);}ModalControl.prototype.open=function(){this.modal.classList.add('modal-open');this.modal.classList.remove('modal-close');};ModalControl.prototype.close=function(event){if(event.target==this.modal||event.target==this.closeBtn){this.modal.classList.add('modal-close');this.modal.classList.remove('modal-open');}};var VisionSimulation=require("dota-vision-simulation");var worlddata=require("dota-vision-simulation/src/worlddata.json");var aboutModal=new ModalControl('about','about-open','about-close');var helpModal=new ModalControl('help','help-open','help-close');var buildDate="2017-11-08 14:08:42 UTC";document.getElementById('buildDate').innerHTML=buildDate;var releaseTag="4.6.0";document.getElementById('releaseTag').innerHTML=releaseTag;function App(map_tile_path,vision_data_image_path){var InteractiveMap$$1=new InteractiveMap(map_tile_path);InteractiveMap$$1.toggleLayerMenuOption=function(layerId,state){var element=document.querySelector('input[data-layer-id="'+layerId+'"]');if(state!=null)element.checked=state;updateLayerAndQueryString(element,layerId);};InteractiveMap$$1.vs=new VisionSimulation(worlddata,vision_data_image_path,initialize);InteractiveMap$$1.menuControl=new MenuControl(InteractiveMap$$1);InteractiveMap$$1.menuControl.initialize(layerToggleHandler,baseLayerToggleHandler);InteractiveMap$$1.infoControl=new InfoControl(InteractiveMap$$1);InteractiveMap$$1.infoControl.initialize('info');InteractiveMap$$1.notificationControl=new NotificationControl();InteractiveMap$$1.notificationControl.initialize('notification');InteractiveMap$$1.visionControl=new VisionControl(InteractiveMap$$1);InteractiveMap$$1.wardControl=new WardControl(InteractiveMap$$1);InteractiveMap$$1.treeControl=new TreeControl(InteractiveMap$$1);InteractiveMap$$1.cursorControl=new CursorControl(InteractiveMap$$1);InteractiveMap$$1.coordinateControl=new CoordinateControl(InteractiveMap$$1,'coordinates');InteractiveMap$$1.measureControl=new MeasureControl(InteractiveMap$$1);InteractiveMap$$1.creepControl=new CreepControl(InteractiveMap$$1);InteractiveMap$$1.creepControl.initialize('timer');//var DrawCurveControl = require('./controls/drawCurve');
 //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
 function changeMode(mode){switch(mode){case'observer':case'sentry':document.querySelector('input[name="ward-type"][value="'+mode+'"]').checked=true;case'ward':document.querySelector('input[name="mode"][value="ward"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="ward-type"]:checked').value;document.getElementById('btn-ward').setAttribute('ward-type',InteractiveMap$$1.MODE);document.getElementById('btn-ward').classList.add('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.activate();InteractiveMap$$1.infoControl.deactivate();break;case'line':case'circle':document.querySelector('input[name="measure-type"][value="'+mode+'"]').checked=true;case'measure':document.querySelector('input[name="mode"][value="measure"]').checked=true;InteractiveMap$$1.MODE=document.querySelector('input[name="measure-type"]:checked').value;document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.remove('active');document.getElementById('btn-measure').classList.add('active');document.getElementById('btn-measure').setAttribute('measure-type',InteractiveMap$$1.MODE);setQueryString('mode',InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.change(InteractiveMap$$1.MODE);InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.deactivate();break;default:document.querySelector('input[name="mode"][value="navigate"]').checked=true;InteractiveMap$$1.MODE=mode||"navigate";document.getElementById('btn-ward').classList.remove('active');document.getElementById('btn-tree').classList.add('active');document.getElementById('btn-measure').classList.remove('active');setQueryString('mode',InteractiveMap$$1.MODE=='navigate'?null:InteractiveMap$$1.MODE);InteractiveMap$$1.measureControl.deactivate();InteractiveMap$$1.wardControl.deactivate();InteractiveMap$$1.infoControl.activate();break;}InteractiveMap$$1.notificationControl.show(modeNotificationText[InteractiveMap$$1.MODE]);}function updateLayerAndQueryString(element,layerId){layerId=layerId||element.getAttribute('data-layer-id');var layer=InteractiveMap$$1.getMapLayerIndex()[layerId];if(layer){layer.setVisible(element.checked);var param=layer.get("title").replace(/ /g,'');setQueryString(param,element.checked?true:null);if(layerId=='ent_dota_tree'){document.getElementById('btn-tree').setAttribute('trees-enabled',element.checked?"yes":"no");}}}function layerToggleHandler(){updateLayerAndQueryString(this);}function baseLayerToggleHandler(){var layerId=this.getAttribute('data-layer-id');InteractiveMap$$1.baseLayers.forEach(function(layer){layer.setVisible(layer.get('layerId')===layerId);});setQueryString('BaseLayer',layerId);}// updates element visibility based on map layer index
 // updates layer visibility based on element state
