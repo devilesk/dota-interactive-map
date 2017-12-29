@@ -70,7 +70,7 @@ MenuPanel.prototype.createMenuPanelItem = function (InteractiveMap, layerDef, ha
     
     if (layerDef.toggle) {
         function toggleHandler() {
-            var layer = InteractiveMap.getMapLayerIndex()[layerDef.id];
+            var layer = InteractiveMap.getMapLayer(layerDef.id);
             if (layerDef.id == 'ent_dota_tree') {
                 InteractiveMap.treeControl.toggleAllTrees(this.checked);
             }

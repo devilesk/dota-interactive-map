@@ -112,7 +112,7 @@ function App(map_tile_path, vision_data_image_path) {
 
     function updateLayerAndQueryString(element, layerId) {
         layerId = layerId || element.getAttribute('data-layer-id');
-        var layer = InteractiveMap.getMapLayerIndex()[layerId];
+        var layer = InteractiveMap.getMapLayer(layerId);
         if (layer) {
             layer.setVisible(element.checked);
             var param = layer.get("title").replace(/ /g, '');
@@ -141,8 +141,7 @@ function App(map_tile_path, vision_data_image_path) {
         forEach(document.querySelectorAll('.data-layer > input'), function (element) {
             var label = element.nextSibling;
             var layerId = element.getAttribute('data-layer-id');
-            var layerIndex = InteractiveMap.getMapLayerIndex();
-            var layer = layerIndex[layerId];
+            var layer = InteractiveMap.getMapLayer(layerId);
             if (!layer) {
                 label.style.display = "none";
             }

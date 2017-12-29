@@ -76,19 +76,22 @@ CreepControl.prototype.faster = function () {
 }
 
 CreepControl.prototype.updatePlayback = function (oldVal, newVal) {
-    var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
-    var elapsedTime = this.currentTime - this.startTime;
-    var adjustedElapsedTime = elapsedTime * oldVal / newVal;
-    this.startTime = this.currentTime - adjustedElapsedTime;
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i];
-        var waveTimes = feature.get('waveTimes');
-        if (waveTimes) {
-            var j = waveTimes.length;
-            while (j--) {
-                var elapsedTime = this.currentTime - waveTimes[j];
-                var adjustedElapsedTime = elapsedTime * oldVal / newVal;
-                waveTimes[j] = this.currentTime - adjustedElapsedTime;
+    var layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+    if (layer) {
+        var features = layer.getSource().getFeatures();
+        var elapsedTime = this.currentTime - this.startTime;
+        var adjustedElapsedTime = elapsedTime * oldVal / newVal;
+        this.startTime = this.currentTime - adjustedElapsedTime;
+        for (var i = 0; i < features.length; i++) {
+            var feature = features[i];
+            var waveTimes = feature.get('waveTimes');
+            if (waveTimes) {
+                var j = waveTimes.length;
+                while (j--) {
+                    var elapsedTime = this.currentTime - waveTimes[j];
+                    var adjustedElapsedTime = elapsedTime * oldVal / newVal;
+                    waveTimes[j] = this.currentTime - adjustedElapsedTime;
+                }
             }
         }
     }
@@ -105,10 +108,13 @@ CreepControl.prototype.start = function () {
 CreepControl.prototype.stop = function () {
     Observable.unByKey(this.postComposeListener);
     this.postComposeListener = null;
-    var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i];
-        feature.set('waveTimes', null, true);
+    var layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+    if (layer) {
+        var features = layer.getSource().getFeatures();
+        for (var i = 0; i < features.length; i++) {
+            var feature = features[i];
+            feature.set('waveTimes', null, true);
+        }
     }
     this.startTime = null;
     if (!this.paused) this.playPause();
@@ -194,8 +200,10 @@ CreepControl.prototype.animateCreeps = function (event) {
     var vectorContext = event.vectorContext;
     var frameState = event.frameState;
     this.currentTime = frameState.time;
-    var features = this.InteractiveMap.getMapLayerIndex()['npc_dota_spawner'].getSource().getFeatures();
-    var pathLayer = this.InteractiveMap.getMapLayerIndex()['path_corner'];
+    var layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+    var pathLayer = this.InteractiveMap.getMapLayer('path_corner');
+    if (!layer || !pathLayer) return;
+    var features = layer.getSource().getFeatures();
     if (!this.startTime) this.startTime = this.currentTime;
     if (this.paused) {
         if (this.pauseTime == null) this.pauseTime = frameState.time;

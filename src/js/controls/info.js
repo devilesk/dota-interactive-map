@@ -167,12 +167,12 @@ InfoControl.prototype.unhighlight = function (feature) {
             if (dotaProps.id == 'npc_dota_neutral_spawner') {
                 var pullRange = highlightedFeature.get('pullRange');
                 if (pullRange) {
-                    this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(pullRange);
+                    this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(pullRange);
                     highlightedFeature.set("pullRange", null, true);
                 }
                 var guardRange = highlightedFeature.get('guardRange');
                 if (guardRange) {
-                    this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().removeFeature(guardRange);
+                    this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(guardRange);
                     highlightedFeature.set("guardRange", null, true);
                 }
             }
@@ -189,7 +189,7 @@ InfoControl.prototype.highlight = function (feature) {
             if (!feature.get('pullRange')) {
                 var circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
                 feature.set("guardRange", circle, true);
-                this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
+                this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
                 
                 var center = worldToLatLon([dotaProps.x, dotaProps.y]);
                 var pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
@@ -199,7 +199,7 @@ InfoControl.prototype.highlight = function (feature) {
                 geom.appendLinearRing(new LinearRing(pullMinCoords));
                 var circle = new Feature(geom);
                 feature.set("pullRange", circle, true);
-                this.InteractiveMap.getMapLayerIndex()['pullRange'].getSource().addFeature(circle);
+                this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
             }
         }
     }

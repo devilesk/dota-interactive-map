@@ -159,6 +159,10 @@ InteractiveMap.prototype.getMapLayerIndex = function (version) {
     return this.layerIndex[version];
 }
 
+InteractiveMap.prototype.getMapLayer = function (layerId, version) {
+    return this.getMapLayerIndex(version)[layerId];
+}
+
 InteractiveMap.prototype.getMapDataPath = function (version) {
     version = version || this.version;
     return 'data/' + version + '/mapdata.json';

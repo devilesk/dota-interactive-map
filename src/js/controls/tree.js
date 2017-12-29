@@ -8,7 +8,7 @@ function TreeControl(InteractiveMap) {
 TreeControl.prototype.updateQueryString = function () {
     var self = this;
     var keys = ['cut_trees', 'uncut_trees'];
-    var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
     var source = layer.getSource();
     var features = source.getFeatures();
     var values = features.filter(function (feature) {
@@ -24,7 +24,7 @@ TreeControl.prototype.updateQueryString = function () {
 
 TreeControl.prototype.parseQueryString = function () {
     var self = this;
-    var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
     var source = layer.getSource();
     var features = source.getFeatures();
     var treeMap = {};
@@ -66,7 +66,7 @@ TreeControl.prototype.toggleTree = function (feature, dotaProps, bSkipQueryStrin
 TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
     var self = this;
     this.allTreesCutState = state;
-    var layer = this.InteractiveMap.getMapLayerIndex()['ent_dota_tree'];
+    var layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
     var source = layer.getSource();
     var features = source.getFeatures();
     features.forEach(function (feature) {
