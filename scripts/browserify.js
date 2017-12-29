@@ -72,13 +72,14 @@ b.transform(babelify, {
     plugins: ["transform-es2015-modules-commonjs"],
     compact: true
 });
+
 b.transform('browserify-replace', {
     replace: [
-        { from: /#build_date/, to: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' UTC' },
-        { from: /#release_tag/, to: releaseVersion },
-        { from: /#code_version/, to: git.long() },
-        { from: /#rollbar_client_token/, to: config.rollbar.client_token || "" },
-        { from: /#rollbar_environment/, to: env }
+        { from: /#build_date/g, to: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' UTC' },
+        { from: /#release_tag/g, to: releaseVersion },
+        { from: /#code_version/g, to: git.long() },
+        { from: /#rollbar_client_token/g, to: config.rollbar.client_token || "" },
+        { from: /#rollbar_environment/g, to: env }
     ]
 });
 if (bWatch) b.on('update', bundle);
