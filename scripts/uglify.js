@@ -9,7 +9,9 @@ var srcMap = root + 'bundle-' + git.short() + '.js.map';
 var dstMap = 'bundle-' + git.short() + '.min.js.map';
 var dstMapfile = root + dstMap;
 
-var result = UglifyJS.minify(src, {
+var code = fs.readFileSync(src, "utf8");
+
+var result = UglifyJS.minify(code, {
     inSourceMap: srcMap,
     outSourceMap: dstMapfile,
     sourceMapUrl: dstMap,
