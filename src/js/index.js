@@ -32,6 +32,8 @@ document.getElementById('buildDate').innerHTML = buildDate;
 var releaseTag = "#release_tag";
 document.getElementById('releaseTag').innerHTML = releaseTag;
 
+var codeVersion = "#code_version";
+document.getElementById('codeVersion').innerHTML = codeVersion;
 
 function App(map_tile_path, vision_data_image_path) {
     var InteractiveMap = new InteractiveMapConstructor(map_tile_path);
