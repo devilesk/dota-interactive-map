@@ -3,6 +3,27 @@ import Observable from 'ol/observable';
 import mapConstants from './../mapConstants';
 import styles from './../styleDefinitions';
 
+var laneData = {
+    700: {
+        npc_dota_spawner_good_bot: [1.25, 10],
+        npc_dota_spawner_bad_bot: [0.75, 22],
+        npc_dota_spawner_good_top: [0.75, 2],
+        npc_dota_spawner_bad_top: [1.25, 2]
+    },
+    706: {
+        npc_dota_spawner_good_bot: [1.3, 16],
+        npc_dota_spawner_bad_bot: [0.65, 22],
+        npc_dota_spawner_good_top: [1.3, 8],
+        npc_dota_spawner_bad_top: [0.65, 8]
+    },
+    707: {
+        npc_dota_spawner_good_bot: [1.3, 4],
+        npc_dota_spawner_bad_bot: [0.65, 6],
+        npc_dota_spawner_good_top: [1.3, 2],
+        npc_dota_spawner_bad_top: [0.65, 2]
+    }
+}
+
 function CreepControl(InteractiveMap) {
     this.InteractiveMap = InteractiveMap;
     this.postComposeListener = null;
@@ -153,41 +174,23 @@ function getDistance(speed, elapsedTime) {
     return speed * elapsedTime / 1000 * mapConstants.scale;
 }
 
-function getElapsedDistance(id, elapsedTime, playbackSpeed, bNoAdjust) {
+function getElapsedDistance(version, id, elapsedTime, playbackSpeed, bNoAdjust) {
     elapsedTime = elapsedTime * playbackSpeed;
     var base = mapConstants.creepBaseMovementSpeed;
     if (bNoAdjust) return getDistance(base, elapsedTime);
+
     switch (id) {
         case 'npc_dota_spawner_good_bot':
-            if (elapsedTime < 10000) {
-                return getDistance(base * 1.25, elapsedTime);
-            }
-            else {
-                return getDistance(base * 1.25, 10000) + getDistance(base, elapsedTime - 10000);
-            }
-        break;
         case 'npc_dota_spawner_bad_top':
-            if (elapsedTime < 2000) {
-                return getDistance(base * 1.25, elapsedTime);
-            }
-            else {
-                return getDistance(base * 1.25, 2000) + getDistance(base, elapsedTime - 2000);
-            }
-        break;
         case 'npc_dota_spawner_good_top':
-            if (elapsedTime < 2000) {
-                return getDistance(base * 0.75, elapsedTime);
-            }
-            else {
-                return getDistance(base * 0.75, 2000) + getDistance(base, elapsedTime - 2000);
-            }
-        break;
         case 'npc_dota_spawner_bad_bot':
-            if (elapsedTime < 22000) {
-                return getDistance(base * 0.75, elapsedTime);
+            var boostMultiplier = laneData[version][id][0];
+            var boostDuration = laneData[version][id][1] * 1000;
+            if (elapsedTime < boostDuration) {
+                return getDistance(base * boostMultiplier, elapsedTime);
             }
             else {
-                return getDistance(base * 0.75, 22000) + getDistance(base, elapsedTime - 22000);
+                return getDistance(base * boostMultiplier, boostDuration) + getDistance(base, elapsedTime - boostDuration);
             }
         break;
         default:
@@ -250,7 +253,7 @@ CreepControl.prototype.animateCreeps = function (event) {
             var pathLength = path.getLength();
             var coords = path.getCoordinates();
             var elapsedTime = this.currentTime - waveTimes[j];
-            var elapsedDistance = getElapsedDistance(id, elapsedTime, this.playbackSpeed);
+            var elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
             var elapsedFraction = Math.max(0, elapsedDistance / pathLength);
             if (elapsedFraction >= 1) {
                 var endPoint = coords[coords.length - 1];
