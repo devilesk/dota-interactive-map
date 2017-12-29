@@ -1,6 +1,7 @@
 var fs = require('fs');
 var git = require('git-rev-sync');
 var browserify = require('browserify');
+var babelify = require("babelify");
 var watchify = require('watchify');
 var exorcist = require('exorcist');
 var UglifyJS = require("uglify-js");
@@ -41,24 +42,36 @@ var opts = {
 if (bWatch) opts.plugin = [watchify];
 
 function bundle() {
+    console.time("bundle");
     b.bundle()
      .on('error', console.error)
      .pipe(exorcist(mapfile))
-     .pipe(fs.createWriteStream(dst));
+     .pipe(fs.createWriteStream(dst))
+     .on('finish', function () {
+        console.log('bundled', dst);
+        console.timeEnd("bundle");
+     });
+    console.log('bundling', dst);
 }
     
 var b = browserify(opts);
-b.transform('rollupify', {
-    config: {
-        plugins: [
-            resolve({
-                browser: true
-            }),
-            commonjs()
-        ]
-    }
+if (env == 'production') {
+    console.log('rollupify');
+    b.transform('rollupify', {
+        config: {
+            plugins: [
+                resolve({
+                    browser: true
+                }),
+                commonjs()
+            ]
+        }
+    });
+}
+b.transform(babelify, {
+    plugins: ["transform-es2015-modules-commonjs"],
+    compact: true
 });
-b.transform("babelify", {plugins: ["transform-es2015-modules-commonjs"]});
 b.transform('browserify-replace', {
     replace: [
         { from: /#build_date/, to: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' UTC' },

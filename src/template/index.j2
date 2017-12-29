@@ -237,7 +237,7 @@
         {{ super() }}
         <!-- @if NODE_ENV!='production' -->
         <script src="bundle.js"></script>
-        <script>InteractiveMap("tiles/", "img/map_data_707.png")</script>
+        <script>InteractiveMap.default("tiles/", "img/map_data_707.png")</script>
         <!-- @endif -->
         <!-- @if NODE_ENV='production' !>
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
