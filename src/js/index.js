@@ -306,7 +306,10 @@ function App(map_tile_path, vision_data_image_path) {
             var self = this;
             InteractiveMap.setMapLayers(this.value, function (err) {
                 if (!err) {
+                    InteractiveMap.creepControl.deactivate();
                     InteractiveMap.version = self.value;
+                    document.getElementById('creepControl').disabled = !InteractiveMap.getMapLayer('npc_dota_spawner');
+                    document.getElementById('creepControl').checked = false;
                 }
                 else {
                     self.value = InteractiveMap.version;
@@ -323,7 +326,6 @@ function App(map_tile_path, vision_data_image_path) {
             InteractiveMap.view.animate({zoom: InteractiveMap.view.getZoom() - 1});
         });
 
-            
         document.getElementById('reset').addEventListener('click', function () {
             if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
             setDefaults();

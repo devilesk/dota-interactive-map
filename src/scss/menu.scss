@@ -110,6 +110,15 @@
                 }
             }
             
+            &:disabled + .checkbox {
+                cursor: not-allowed;
+                opacity: 0.5;
+
+                &:hover {
+                    color: $text-color;
+                }
+            }
+            
             &[name="base-type"]:checked + .checkbox {
                 background-color: $bg-color;
                 color: $hover-text-color;
