@@ -10,11 +10,13 @@ var dstMap = 'bundle-' + git.short() + '.min.js.map';
 var dstMapfile = root + dstMap;
 
 var code = fs.readFileSync(src, "utf8");
+var codeMap = fs.readFileSync(srcMap, "utf8");
 
 var result = UglifyJS.minify(code, {
-    inSourceMap: srcMap,
-    outSourceMap: dstMapfile,
-    sourceMapUrl: dstMap,
+    sourceMap: {
+        content: codeMap,
+        url: dstMap
+    },
     compress: {drop_console: true}
 });
 
