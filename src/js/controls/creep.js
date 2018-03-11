@@ -21,6 +21,12 @@ var laneData = {
         npc_dota_spawner_bad_bot: [0.65, 6],
         npc_dota_spawner_good_top: [1.3, 2],
         npc_dota_spawner_bad_top: [0.65, 2]
+    },
+    709: {
+        npc_dota_spawner_good_bot: [1.3, 4],
+        npc_dota_spawner_bad_bot: [0.65, 6],
+        npc_dota_spawner_good_top: [1.3, 2],
+        npc_dota_spawner_bad_top: [0.65, 2]
     }
 }
 

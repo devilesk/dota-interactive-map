@@ -2,6 +2,11 @@ var baseLayerDefinitions = [
     {
         id: 'default',
         name: 'Default',
+        group: '709'
+    },
+    {
+        id: 'default',
+        name: 'Default',
         group: '707'
     },
     {

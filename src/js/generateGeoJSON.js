@@ -4,7 +4,7 @@ var union = require("@turf/union");
 import { worldToLatLon } from "./conversion";
 import fs from 'fs';
 
-var vs = new VisionSimulation(worlddata, "www/img/map_data_707.png", onReady);
+var vs = new VisionSimulation(worlddata, "www/img/map_data_709.png", onReady);
 
 function onReady() {
     var t1 = Date.now();

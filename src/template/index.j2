@@ -91,6 +91,7 @@
                 <div class="menu-item">
                     <label class="select-label" for="version-select">Version</label><!--
                      --><select id="version-select">
+                        <option value="709">7.09</option>
                         <option value="707">7.07</option>
                         <option value="706">7.06</option>
                         <option value="700">7.00</option>
@@ -169,7 +170,12 @@
                         <label for="base-menu-toggle" class="root checkbox inverse">Base Layers</label>
                         <div id="base-menu" class="menu-item-group sub-menu"><!--
                          --><div class="menu-item">
-                                <input type="radio" name="base-type" value="707" id="base-707-option" checked />
+                                <input type="radio" name="base-type" value="709" id="base-709-option" checked />
+                                <label for="base-709-option" class="checkbox">7.09</label>
+                                <div id="base-709-menu" class="menu-item-group sub-menu"></div>
+                            </div><!--
+                         --><div class="menu-item">
+                                <input type="radio" name="base-type" value="707" id="base-707-option" />
                                 <label for="base-707-option" class="checkbox">7.07</label>
                                 <div id="base-707-menu" class="menu-item-group sub-menu"></div>
                             </div><!--
@@ -238,7 +244,7 @@
         {{ super() }}
         <!-- @if NODE_ENV!='production' -->
         <script src="bundle.js"></script>
-        <script>InteractiveMap.default("tiles/", "img/map_data_707.png")</script>
+        <script>InteractiveMap.default("tiles/", "img/map_data_709.png")</script>
         <!-- @endif -->
         <!-- @if NODE_ENV='production' !>
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>

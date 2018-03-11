@@ -36,7 +36,7 @@ function InteractiveMap(map_tile_path) {
     });
     this.data = {};
     this.layerIndex = {};
-    this.version = '707';
+    this.version = '709';
     this.visionRadius = mapConstants.visionRadius.observer;
     this.movementSpeed = mapConstants.defaultMovementSpeed;
     this.isNight = false;
