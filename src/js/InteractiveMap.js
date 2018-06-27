@@ -21,7 +21,7 @@ import {getScaledRadius, worldToLatLon} from './conversion';
 import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
 
-function InteractiveMap(map_tile_path) {
+function InteractiveMap(map_tile_path, version) {
     var self = this;
     this.map_tile_path = map_tile_path;
     this.MODE = 'navigation';
@@ -36,7 +36,7 @@ function InteractiveMap(map_tile_path) {
     });
     this.data = {};
     this.layerIndex = {};
-    this.version = '715';
+    this.version = version;
     this.visionRadius = mapConstants.visionRadius.observer;
     this.movementSpeed = mapConstants.defaultMovementSpeed;
     this.isNight = false;

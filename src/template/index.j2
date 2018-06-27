@@ -250,11 +250,11 @@
         {{ super() }}
         <!-- @if NODE_ENV!='production' -->
         <script src="bundle.js"></script>
-        <script>InteractiveMap.default("tiles/", "img/map_data_715.png")</script>
+        <script>InteractiveMap.default("tiles/", "img/map_data_715.png", "715")</script>
         <!-- @endif -->
         <!-- @if NODE_ENV='production' !>
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
-        <script>InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>")</script>
+        <script>InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>", "<!-- @echo map_data_version !>")</script>
         <!-- @endif -->
     {% endblock js %}
 {% endblock body %}

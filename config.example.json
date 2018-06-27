@@ -13,5 +13,6 @@
     },
     "google_analytics": "",
     "map_data_path": "tiles/",
+    "map_data_version": "715",
     "vision_data_image_path": "img/map_data.png"
 }
