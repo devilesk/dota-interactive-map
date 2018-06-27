@@ -9,7 +9,7 @@ import Observable from 'ol/observable';
 import styles from './../styleDefinitions';
 
 function MeasureControl(InteractiveMap) {
-    var self = this;
+    const self = this;
     this.InteractiveMap = InteractiveMap;
     this.map = InteractiveMap.map;
     this.info = InteractiveMap.infoControl;
@@ -25,57 +25,57 @@ function MeasureControl(InteractiveMap) {
      * Currently drawn feature.
      * @type {ol.Feature}
      */
-    var sketch;
+    let sketch;
 
     /**
      * The help tooltip element.
      * @type {Element}
      */
-    var helpTooltipElement;
+    let helpTooltipElement;
 
     /**
      * Overlay to show the help messages.
      * @type {ol.Overlay}
      */
-    var helpTooltip;
+    let helpTooltip;
 
     /**
      * The measure tooltip element.
      * @type {Element}
      */
-    var measureTooltipElement;
+    let measureTooltipElement;
 
     /**
      * Overlay to show the measurement.
      * @type {ol.Overlay}
      */
-    var measureTooltip;
+    let measureTooltip;
     
     /**
      * Message to show when the user is drawing a polygon.
      * @type {string}
      */
-    var continuePolygonMsg = 'Click to continue drawing the polygon';
+    const continuePolygonMsg = 'Click to continue drawing the polygon';
     
     /**
      * Message to show when the user is drawing a line.
      * @type {string}
      */
-    var continueLineMsg = 'Click to continue drawing the line';
+    const continueLineMsg = 'Click to continue drawing the line';
     
     /**
      * Handle pointer move.
      * @param {ol.MapBrowserEvent} evt The event.
      */
-    var pointerMoveHandler = function(evt) {
+    const pointerMoveHandler = function(evt) {
         if (evt.dragging) {
             return;
         }
         /** @type {string} */
-        var helpMsg = 'Click to start drawing';
+        let helpMsg = 'Click to start drawing';
 
         if (sketch) {
-            var geom = (sketch.getGeometry());
+            const geom = (sketch.getGeometry());
             if (geom instanceof Polygon) {
                 helpMsg = continuePolygonMsg;
             } else if (geom instanceof LineString) {
@@ -89,14 +89,14 @@ function MeasureControl(InteractiveMap) {
         helpTooltipElement.classList.remove('hidden');
     };
     
-    var pointerMoveListener;
-    var mouseOutHandler = function() {
+    let pointerMoveListener;
+    const mouseOutHandler = function() {
         helpTooltipElement.classList.add('hidden');
     };
 
     this.type = 'line';
 
-    var draw; // global so we can remove it later
+    let draw; // global so we can remove it later
 
 
     /**
@@ -104,17 +104,15 @@ function MeasureControl(InteractiveMap) {
      * @param {ol.geom.LineString} line The line.
      * @return {string} The formatted length.
      */
-    var formatLength = function(line) {
-        var length = Math.round(line.getLength());
-        var output;
-        output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / self.InteractiveMap.movementSpeed).toFixed(2) + 's at ' + self.InteractiveMap.movementSpeed + 'ms';
+    const formatLength = function(line) {
+        const length = Math.round(line.getLength());
+        const output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / self.InteractiveMap.movementSpeed).toFixed(2) + 's at ' + self.InteractiveMap.movementSpeed + 'ms';
         return output;
     };
     
-    var formatRadius = function(circle) {
-        var length = Math.round(circle.getRadius());
-        var output;
-        output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
+    const formatRadius = function(circle) {
+        const length = Math.round(circle.getRadius());
+        const output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
         return output;
     };
 
@@ -124,21 +122,16 @@ function MeasureControl(InteractiveMap) {
      * @param {ol.geom.Polygon} polygon The polygon.
      * @return {string} Formatted area.
      */
-    var formatArea = function(polygon) {
-        var area = polygon.getArea();
-        var output;
-        if (area > 10000) {
-            output = (Math.round(area / 1000000 * 100) / 100) +
-                ' ' + 'km<sup>2</sup>';
-        } else {
-            output = (Math.round(area * 100) / 100) +
-                ' ' + 'm<sup>2</sup>';
-        }
+    const formatArea = function(polygon) {
+        const area = polygon.getArea();
+        const output = area > 10000
+            ? (Math.round(area / 1000000 * 100) / 100) + ' ' + 'km<sup>2</sup>'
+            : (Math.round(area * 100) / 100) + ' ' + 'm<sup>2</sup>';
         return output;
     };
-    var self = this;
+
     function addInteraction() {
-        var type = (self.type == 'circle' ? 'Circle' : 'LineString');
+        const type = (self.type == 'circle' ? 'Circle' : 'LineString');
         draw = new Draw({
             source: self.source,
             type: /** @type {ol.geom.GeometryType} */ (type),
@@ -149,7 +142,7 @@ function MeasureControl(InteractiveMap) {
         //createMeasureTooltip();
         createHelpTooltip();
 
-        var listener;
+        let listener;
         draw.on('drawstart',
             function(evt) {
                 self.source.clear(true);
@@ -158,11 +151,11 @@ function MeasureControl(InteractiveMap) {
                 // set sketch
                 sketch = evt.feature;
                 /** @type {ol.Coordinate|undefined} */
-                var tooltipCoord = evt.coordinate;
+                let tooltipCoord = evt.coordinate;
 
                 listener = sketch.getGeometry().on('change', function(evt) {
-                    var geom = evt.target;
-                    var output;
+                    const geom = evt.target;
+                    let output;
                     if (geom instanceof Circle) {
                         output = formatRadius(geom);
                         tooltipCoord = geom.getLastCoordinate();

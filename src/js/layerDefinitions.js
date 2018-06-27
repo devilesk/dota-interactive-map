@@ -4,7 +4,7 @@ import Stroke from 'ol/style/stroke';
 import styles from './styleDefinitions';
 import { dotaProj } from './projections';
 
-var layerDefinitions = [
+const layerDefinitions = [
     {
         id: 'path_corner',
         name: 'Lanes',

@@ -7,12 +7,12 @@ import Feature from 'ol/feature';
 import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversion';
 import getLightUnion from './../getLightUnion';
 import styles from './../styleDefinitions';
-var bezier = require("@turf/bezier");
+import bezier from '@turf/bezier';
 
 function DrawCurveControl(InteractiveMap) {
-    var self = this;
+    const self = this;
     this.InteractiveMap = InteractiveMap;
-    var map = InteractiveMap.map;
+    const map = InteractiveMap.map;
     this.source = new SourceVector({
         defaultDataProjection : 'pixel'
     });
@@ -21,14 +21,14 @@ function DrawCurveControl(InteractiveMap) {
         style: styles.visionSimulation
     });
     map.addLayer(this.layer);
-    var format = new GeoJSON();
-    var sketch;
+    const format = new GeoJSON();
+    let sketch;
     geometryFunction = function(coordinates, geometry) {
         if (!geometry) {
             geometry = new LineString(null);
         }
 
-        var line = {
+        const line = {
             "type": "Feature",
             "properties": {},
             "geometry": {
@@ -36,7 +36,7 @@ function DrawCurveControl(InteractiveMap) {
                 "coordinates": coordinates
             }
         };
-        var curved = bezier(line);
+        const curved = bezier(line);
         geometry.setCoordinates(curved["geometry"]["coordinates"]);
         sketch = geometry.simplify(10);
         return sketch;
@@ -47,11 +47,11 @@ function DrawCurveControl(InteractiveMap) {
         type: 'LineString',
         geometryFunction: geometryFunction
     });
-    var self;
+    
     draw.on('drawend',
         function() {
             console.log('drawend', sketch);
-            var feature = new Feature({geometry: sketch});
+            const feature = new Feature({geometry: sketch});
             console.log(JSON.stringify(format.writeFeatureObject(feature)));
             self.InteractiveMap.wardRangeSource.addFeature(feature);
             sketch = null;

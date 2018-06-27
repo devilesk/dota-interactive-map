@@ -3,13 +3,13 @@ import Projection from 'ol/proj/projection';
 import {latLonToWorld, worldToLatLon} from './conversion';
 import mapConstants from './mapConstants';
 
-var pixelProj = new Projection({
+const pixelProj = new Projection({
     code: 'pixel',
     units: 'pixels',
     extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
 });
 
-var dotaProj = new Projection({
+const dotaProj = new Projection({
     code: 'dota',
     extent: [-8288, -8288, 8288, 8288],
     units: 'units'

@@ -6,7 +6,7 @@ import Icon from 'ol/style/icon';
 import Circle from 'ol/style/circle';
 import getFeatureCenter from './util/getFeatureCenter';
 
-var defaultStyle = new Style({
+const defaultStyle = new Style({
     fill: new Fill({
         color: 'rgba(255,255,255,0.4)'
     }),
@@ -16,7 +16,7 @@ var defaultStyle = new Style({
     })
 });
 
-var styles = {
+const styles = {
     creepSpawn: new Style({
         image: new RegularShape({
             points: 6,

@@ -3,7 +3,7 @@ import coordinate from 'ol/coordinate';
 import { dotaProj } from '../projections';
 
 function CoordinateControl(InteractiveMap, elementId) {
-    var self = this;
+    const self = this;
     this.InteractiveMap = InteractiveMap;
     this.mousePosition = new MousePosition({
         coordinateFormat: coordinate.createStringXY(),

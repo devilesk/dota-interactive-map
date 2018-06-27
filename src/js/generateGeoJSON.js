@@ -1,13 +1,13 @@
-var VisionSimulation = require("dota-vision-simulation");
-var worlddata = require("dota-vision-simulation/src/worlddata.json");
-var union = require("@turf/union");
+import VisionSimulation from "dota-vision-simulation";
+import worlddata from "dota-vision-simulation/src/worlddata.json";
+import union from "@turf/union";
 import { worldToLatLon } from "./conversion";
 import fs from 'fs';
 
-var vs = new VisionSimulation(worlddata, "www/img/map_data_715.png", onReady);
+const vs = new VisionSimulation(worlddata, "www/img/map_data_715.png", onReady);
 
 function onReady() {
-    var t1 = Date.now();
+    let t1 = Date.now();
     generateGeoJSON(vs, [vs.gridnav, vs.tools_no_wards], 'no_wards.json');
     console.log('no_wards.json', Date.now() - t1 + 'ms');
     t1 = Date.now();
@@ -16,14 +16,14 @@ function onReady() {
 }
 
 function generateGeoJSON(vs, grids, dst) {
-    var result = null;
+    let result = null;
     grids.forEach(function (data, index) {
-        var total = Object.keys(data).length;
-        var count = 0;
-        for (var i in data) {
-            var pt = vs.key2pt(i);
-            var worldXY = vs.GridXYtoWorldXY(pt.x, pt.y)
-            var poly = {
+        const total = Object.keys(data).length;
+        let count = 0;
+        for (let i in data) {
+            const pt = vs.key2pt(i);
+            const worldXY = vs.GridXYtoWorldXY(pt.x, pt.y)
+            const poly = {
                 "type": "Feature",
                 "geometry": {
                     "type": "Polygon",
@@ -54,13 +54,13 @@ function generateGeoJSON(vs, grids, dst) {
 }
 
 function transformData(data) {
-    for (var i = 0; i < data.geometry.coordinates.length; i++) {
-        var polygons = data.geometry.coordinates[i];
-        for (var j = 0; j < polygons.length; j++) {
-            var polygon = polygons[j];
-            for (var k = 0; k < polygon.length; k++) {
-                var point = polygon[k];
-                var latlon = worldToLatLon(point[0], point[1]);
+    for (let i = 0; i < data.geometry.coordinates.length; i++) {
+        const polygons = data.geometry.coordinates[i];
+        for (let j = 0; j < polygons.length; j++) {
+            const polygon = polygons[j];
+            for (let k = 0; k < polygon.length; k++) {
+                const point = polygon[k];
+                const latlon = worldToLatLon(point[0], point[1]);
                 point[0] = Math.round(latlon.x);
                 point[1] = Math.round(latlon.y);
             }

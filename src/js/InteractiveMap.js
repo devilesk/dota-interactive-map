@@ -22,7 +22,7 @@ import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
 
 function InteractiveMap(map_tile_path, version) {
-    var self = this;
+    const self = this;
     this.map_tile_path = map_tile_path;
     this.MODE = 'navigation';
     this.layerDefs = layerDefinitions;
@@ -43,7 +43,7 @@ function InteractiveMap(map_tile_path, version) {
     this.isDarkness = false;
     this.layerFilters = {
         marker: function(layer) {
-            var layerDef = layer.get('layerDef');
+            const layerDef = layer.get('layerDef');
             return layer.getVisible() && layerDef && (layerDef.group == 'structure' || layerDef.group == 'object');
         }
     };
@@ -112,7 +112,7 @@ function InteractiveMap(map_tile_path, version) {
 
     // setup base layers
     this.baseLayers = this.baseLayerDefs.map(function (layerDef) {
-        var layer = new LayerTile({
+        const layer = new LayerTile({
             title: layerDef.name,
             type: 'base',
             extent: pixelProj.getExtent(), //proj.pixel.getExtent()
@@ -169,10 +169,10 @@ InteractiveMap.prototype.getMapDataPath = function (version) {
 }
 
 InteractiveMap.prototype.setMapLayers = function (version, callback) {
-    var self = this;
+    const self = this;
     this.getDataJSON(version, function (err, data) {
         if (!err) {
-            var currentLayerGroup = self.map.getLayerGroup();
+            const currentLayerGroup = self.map.getLayerGroup();
             currentLayerGroup.setVisible(false);
             self.map.setLayerGroup(data.layerGroup);
             self.map.getLayerGroup().setVisible(true);
@@ -182,7 +182,7 @@ InteractiveMap.prototype.setMapLayers = function (version, callback) {
 }
 
 InteractiveMap.prototype.getDataJSON = function (version, callback) {
-    var self = this;
+    const self = this;
     if (this.data[version]) {
         callback(null, self.data[version]);
     }
@@ -214,8 +214,8 @@ InteractiveMap.prototype.panTo = function (coordinate, duration) {
 }
 
 InteractiveMap.prototype.checkAndHighlightWard = function (pixel) {
-    var self = this;
-    var feature = this.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+    const self = this;
+    const feature = this.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
         return feature;
     }, {
         layerFilter: self.wardControl.layerFilter
@@ -309,8 +309,8 @@ InteractiveMap.prototype.hasVisionRadius = function (feature) {
 InteractiveMap.prototype.getFeatureVisionRadius = function (feature, dotaProps, unitClass, rangeType) {
     dotaProps = dotaProps || feature.get('dotaProps');
     unitClass = unitClass || dotaProps.unitClass;
-    var unitStats = this.getStatData()[unitClass] || {};
-    var radius;
+    const unitStats = this.getStatData()[unitClass] || {};
+    let radius;
     if (unitClass == 'observer') {
         radius = this.visionRadius || mapConstants.visionRadius[unitClass];
         if (this.isDarkness) {
@@ -351,13 +351,13 @@ InteractiveMap.prototype.getFeatureVisionRadius = function (feature, dotaProps, 
 }
 
 InteractiveMap.prototype.getRangeCircle = function (feature, coordinate, unitClass, rangeType, radius) {
-    var dotaProps = feature.get('dotaProps');
-    var radius = radius || this.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
+    const dotaProps = feature.get('dotaProps');
+    radius = radius || this.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
     if (radius == null) return null;
     if (!coordinate) {
         coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);
     }
-    var circle = new Feature(new Circle(coordinate, getScaledRadius(radius)));
+    const circle = new Feature(new Circle(coordinate, getScaledRadius(radius)));
     return circle;
 }
 

@@ -1,17 +1,18 @@
 function getJSON(path, callback) {
-    var retries = 3;
+    let retries = 3;
     
     function makeReq() {
-        var request = new XMLHttpRequest();
+        const request = new XMLHttpRequest();
 
         request.open('GET', path, true);
-        var err;
+        let err;
         request.onload = function() {
+            let data;
             if (request.status == 200) {
                 console.log(request);
                 console.log(request.status);
                 try {
-                    var data = JSON.parse(request.responseText);
+                    data = JSON.parse(request.responseText);
                 }
                 catch (e) {
                     err = e;

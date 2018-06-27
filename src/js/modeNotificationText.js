@@ -1,4 +1,4 @@
-var modeNotificationText = {
+const modeNotificationText = {
     observer: "Ward Mode: Observer",
     sentry: "Ward Mode: Sentry",
     navigate: "Navigation Mode",

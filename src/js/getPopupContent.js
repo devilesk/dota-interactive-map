@@ -1,6 +1,6 @@
 import capitalize from './util/capitalize';
 
-var unitNames = {
+const unitNames = {
     npc_dota_roshan_spawner: "Roshan",
     dota_item_rune_spawner_powerup: "Rune",
     dota_item_rune_spawner_bounty: "Bounty Rune",
@@ -22,13 +22,13 @@ function getUnitName(unitType, unitSubType) {
     return (unitSubType ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' ' : '') + unitNames[unitType];
 }
     
-var pullTypes = ['Normal', 'Fast', 'Slow'];
-var neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
+const pullTypes = ['Normal', 'Fast', 'Slow'];
+const neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
 function getPopupContent(stats, feature) {
-    var dotaProps = feature.get('dotaProps');
-    var unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
-    var unitStats = stats[unitClass];
-    var htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
+    const dotaProps = feature.get('dotaProps');
+    const unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
+    const unitStats = stats[unitClass];
+    let htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
     if (dotaProps.pullType != null) {
         htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
     }

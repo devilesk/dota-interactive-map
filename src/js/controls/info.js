@@ -9,7 +9,7 @@ import { worldToLatLon } from './../conversion';
 import createCirclePointCoords from './../util/createCirclePointCoords';
 
 function InfoControl(InteractiveMap) {
-    var self = this;
+    const self = this;
     this.InteractiveMap = InteractiveMap;
     //this.highlight = null;
     this.lastPointerMoveTime = Date.now();
@@ -20,10 +20,10 @@ function InfoControl(InteractiveMap) {
             return;
         }
 
-        var pixel = self.InteractiveMap.map.getEventPixel(evt.originalEvent);
+        const pixel = self.InteractiveMap.map.getEventPixel(evt.originalEvent);
         
         // if mouse over a building feature, show info and highlight
-        var feature = self.InteractiveMap.map.forEachFeatureAtPixel(pixel, function(feature) {
+        let feature = self.InteractiveMap.map.forEachFeatureAtPixel(pixel, function(feature) {
             return feature;
         }, {
             layerFilter: self.InteractiveMap.layerFilters.marker
@@ -38,7 +38,7 @@ function InfoControl(InteractiveMap) {
             self.close(false);
     
             // if mouse over a ward feature, highlight
-            var feature = self.InteractiveMap.checkAndHighlightWard(pixel);
+            feature = self.InteractiveMap.checkAndHighlightWard(pixel);
             
             if (feature) {
                 self.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'));
@@ -53,7 +53,7 @@ function InfoControl(InteractiveMap) {
     
     this.clickHandler = function (evt) {
         self.unhighlight();
-        var feature = self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+        let feature = self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
             return feature;
         }, {
             layerFilter: self.InteractiveMap.layerFilters.marker
@@ -61,7 +61,7 @@ function InfoControl(InteractiveMap) {
         if (feature) {
             if (!feature.get("clicked")) {
                 self.InteractiveMap.deselectAll();
-                var dotaProps = feature.get('dotaProps');
+                const dotaProps = feature.get('dotaProps');
                 if (feature.get('dotaProps').id == "ent_dota_tree") {
                     self.InteractiveMap.treeControl.toggleTree(feature, dotaProps);
                 }
@@ -78,10 +78,10 @@ function InfoControl(InteractiveMap) {
         }
         else {
             // if clicked a ward feature, highlight
-            var feature = self.InteractiveMap.checkAndHighlightWard(evt.pixel);
+            feature = self.InteractiveMap.checkAndHighlightWard(evt.pixel);
             
             if (feature) {
-                var visionFeature = feature.get('visionFeature');
+                const visionFeature = feature.get('visionFeature');
                 if (visionFeature) {
                     self.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'), true);
                 }
@@ -143,7 +143,7 @@ InfoControl.prototype.close = function (bOverrideActive) {
 }
 
 InfoControl.prototype.initialize = function (id) {
-    var self = this;
+    const self = this;
     this.id = id;
     this.info = document.getElementById(id);
     this.infoContent = document.querySelector('#' + id + ' .message-content');
@@ -160,17 +160,17 @@ InfoControl.prototype.displayFeatureInfo = function (feature, bClicked) {
 };
 
 InfoControl.prototype.unhighlight = function (feature) {
-    var highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
+    const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
     if (highlightedFeature && !highlightedFeature.get("clicked")) {
-        var dotaProps = highlightedFeature.get('dotaProps');
+        const dotaProps = highlightedFeature.get('dotaProps');
         if (dotaProps) {
             if (dotaProps.id == 'npc_dota_neutral_spawner') {
-                var pullRange = highlightedFeature.get('pullRange');
+                const pullRange = highlightedFeature.get('pullRange');
                 if (pullRange) {
                     this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(pullRange);
                     highlightedFeature.set("pullRange", null, true);
                 }
-                var guardRange = highlightedFeature.get('guardRange');
+                const guardRange = highlightedFeature.get('guardRange');
                 if (guardRange) {
                     this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(guardRange);
                     highlightedFeature.set("guardRange", null, true);
@@ -183,21 +183,21 @@ InfoControl.prototype.unhighlight = function (feature) {
 
 InfoControl.prototype.highlight = function (feature) {
     this.unhighlight();
-    var dotaProps = feature.get('dotaProps');
+    const dotaProps = feature.get('dotaProps');
     if (dotaProps) {
         if (dotaProps.id == 'npc_dota_neutral_spawner') {
             if (!feature.get('pullRange')) {
-                var circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
+                let circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
                 feature.set("guardRange", circle, true);
                 this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
                 
-                var center = worldToLatLon([dotaProps.x, dotaProps.y]);
-                var pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
-                var pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
-                var pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
-                var geom = new Polygon([pullMaxCoords]);
+                const center = worldToLatLon([dotaProps.x, dotaProps.y]);
+                const pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
+                const pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
+                const pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
+                const geom = new Polygon([pullMaxCoords]);
                 geom.appendLinearRing(new LinearRing(pullMinCoords));
-                var circle = new Feature(geom);
+                circle = new Feature(geom);
                 feature.set("pullRange", circle, true);
                 this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
             }

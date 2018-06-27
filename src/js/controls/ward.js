@@ -9,7 +9,7 @@ import { latLonToWorld, worldToLatLon } from './../conversion';
 import { setQueryString, getParameterByName } from './../util/queryString';
 
 function WardControl(InteractiveMap, throttleTime) {
-    var self = this;
+    const self = this;
     this.InteractiveMap = InteractiveMap;
     this.source = new SourceVector({
         defaultDataProjection : 'pixel'
@@ -32,11 +32,11 @@ function WardControl(InteractiveMap, throttleTime) {
             return;
         }
         
-        var pixel = self.InteractiveMap.map.getEventPixel(evt.originalEvent);
+        const pixel = self.InteractiveMap.map.getEventPixel(evt.originalEvent);
         
         // if mouse over a building feature, show info and highlight
-        var bBuildingHover = false;
-        var feature = self.InteractiveMap.map.forEachFeatureAtPixel(pixel, function(feature) {
+        let bBuildingHover = false;
+        let feature = self.InteractiveMap.map.forEachFeatureAtPixel(pixel, function(feature) {
             return feature;
         }, {
             layerFilter: self.InteractiveMap.layerFilters.marker
@@ -50,7 +50,7 @@ function WardControl(InteractiveMap, throttleTime) {
         }
         else {
             // if mouse over a ward feature, highlight
-            var feature = InteractiveMap.checkAndHighlightWard(pixel);
+            feature = InteractiveMap.checkAndHighlightWard(pixel);
 
             // no highlighted feature so unhighlight current feature
             if (!feature) {
@@ -66,16 +66,17 @@ function WardControl(InteractiveMap, throttleTime) {
             return;
         }
         self.lastPointerMoveTime = Date.now();
+        let hoverFeature;
         if (bBuildingHover) {
             if (!feature.get('visionFeature')) {
-                var hoverFeature = self.InteractiveMap.visionControl.getVisionFeature(feature);
+                hoverFeature = self.InteractiveMap.visionControl.getVisionFeature(feature);
             }
             else {
                 self.InteractiveMap.cursorControl.source.clear(true);
             }
         }
         else {
-            var hoverFeature = self.InteractiveMap.visionControl.getVisionFeature(null, evt.coordinate, self.InteractiveMap.visionRadius);
+            hoverFeature = self.InteractiveMap.visionControl.getVisionFeature(null, evt.coordinate, self.InteractiveMap.visionRadius);
         }
         if (hoverFeature) {
             self.InteractiveMap.cursorControl.source.clear(true);
@@ -93,7 +94,7 @@ function WardControl(InteractiveMap, throttleTime) {
     
     this.clickHandler = function (evt) {
         self.unhighlight();
-        var feature = self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+        let feature = self.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
             return feature;
         }, {
             layerFilter: self.InteractiveMap.layerFilters.marker
@@ -137,9 +138,9 @@ WardControl.prototype.toggleAll = function (layer, state) {
 }
 
 WardControl.prototype.showAll = function (layer) {
-    var self = this;
-    var source = layer.getSource();
-    var features = source.getFeatures();
+    const self = this;
+    const source = layer.getSource();
+    const features = source.getFeatures();
     features.forEach(function (feature) {
         self.InteractiveMap.select(feature);
         self.highlight(feature);
@@ -147,9 +148,9 @@ WardControl.prototype.showAll = function (layer) {
 }
 
 WardControl.prototype.hideAll = function (layer) {
-    var self = this;
-    var source = layer.getSource();
-    var features = source.getFeatures();
+    const self = this;
+    const source = layer.getSource();
+    const features = source.getFeatures();
     features.forEach(function (feature) {
         self.InteractiveMap.deselect(feature);
         self.unhighlight(feature);
@@ -157,12 +158,12 @@ WardControl.prototype.hideAll = function (layer) {
 }
 
 WardControl.prototype.showVisibilityInfo = function (visionFeature, bClicked) {
-    var info = this.InteractiveMap.infoControl;
-    var vs = this.InteractiveMap.vs;
-    var lightArea = vs.lightArea;
-    var area = vs.area;
+    const info = this.InteractiveMap.infoControl;
+    const vs = this.InteractiveMap.vs;
+    let lightArea = vs.lightArea;
+    let area = vs.area;
     if (visionFeature) {
-        var visionData = visionFeature.get('visionData');
+        const visionData = visionFeature.get('visionData');
         if (visionData) {
             lightArea = visionData.lightArea;
             area = visionData.area;
@@ -200,9 +201,9 @@ WardControl.prototype.deactivate = function () {
 }
 
 WardControl.prototype.parseQueryString = function () {
-    var self = this;
+    const self = this;
     ['observer', 'sentry'].forEach(function (wardType) {
-        var values = getParameterByName(wardType);
+        let values = getParameterByName(wardType);
         if (values) {
             values = values.split(';');
             values.forEach(function (worldXY) {
@@ -210,7 +211,7 @@ WardControl.prototype.parseQueryString = function () {
                 if (worldXY.length == 2) {
                     worldXY = worldXY.map(parseFloat);
                     if (!worldXY.some(isNaN)) {
-                        var coordinate = worldToLatLon(worldXY);
+                        const coordinate = worldToLatLon(worldXY);
                         self.addWard(coordinate, wardType, true);
                     }
                 }
@@ -221,14 +222,14 @@ WardControl.prototype.parseQueryString = function () {
 }
 
 WardControl.prototype.updateQueryString = function (wardType) {
-    var values = Object.keys(this.placedWardCoordinates[wardType]).join(';');
+    const values = Object.keys(this.placedWardCoordinates[wardType]).join(';');
     setQueryString(wardType, values || null);
 }
 
 WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryStringUpdate) {
     if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
-    var geom = new Point(coordinate);
-    var feature = new Feature(geom);
+    const geom = new Point(coordinate);
+    const feature = new Feature(geom);
     feature.set('wardType', wardType, true);
     feature.setStyle(styles[wardType].normal);
     this.source.addFeature(feature);
@@ -238,29 +239,29 @@ WardControl.prototype.addWard = function (coordinate, wardType, bSkipQueryString
         }
     }
     
-    var circle = this.InteractiveMap.getRangeCircle(feature, coordinate, wardType);
+    const circle = this.InteractiveMap.getRangeCircle(feature, coordinate, wardType);
     if (circle) {
         circle.setStyle(wardType == 'observer' ? styles.dayVision : styles.trueSight);
         feature.set('wardRange', circle, true);
         this.InteractiveMap.wardRangeSource.addFeature(circle);
     }
-    var worldXY = latLonToWorld(coordinate).map(Math.round).join(',');
+    const worldXY = latLonToWorld(coordinate).map(Math.round).join(',');
     this.placedWardCoordinates[wardType][worldXY] = true;
     if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
 
 WardControl.prototype.updateAllWardVision = function () {
-    var self = this;
+    const self = this;
     this.source.forEachFeature(function (f) {
-        var wardType = f.get('wardType');
-        var coordinate = f.getGeometry().getCoordinates();
+        const wardType = f.get('wardType');
+        const coordinate = f.getGeometry().getCoordinates();
         self.InteractiveMap.visionControl.setVisionFeature(f, coordinate, wardType);
     });
 }
 
 WardControl.prototype.clearWards = function () {
-    var self = this;
-    var features = this.source.getFeatures();
+    const self = this;
+    const features = this.source.getFeatures();
     features.forEach(function (feature) {
         self.removeWard(feature, true);
     });
@@ -269,8 +270,8 @@ WardControl.prototype.clearWards = function () {
 }
 
 WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
-    var self = this;
-    var wardRange = feature.get('wardRange');
+    const self = this;
+    const wardRange = feature.get('wardRange');
     if (wardRange) {
         // loop to check that feature exists before trying to remove
         this.InteractiveMap.wardRangeSource.forEachFeature(function (f) {
@@ -283,8 +284,8 @@ WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
     });
     this.InteractiveMap.visionControl.removeVisionFeature(feature);
     
-    var worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
-    var wardType = feature.get('wardType');
+    const worldXY = latLonToWorld(feature.getGeometry().getCoordinates()).map(Math.round).join(',');
+    const wardType = feature.get('wardType');
     delete this.placedWardCoordinates[wardType][worldXY];
     if (!bSkipQueryStringUpdate) this.updateQueryString(wardType);
 }
@@ -292,14 +293,14 @@ WardControl.prototype.removeWard = function (feature, bSkipQueryStringUpdate) {
 WardControl.prototype.highlight = function (feature) {
     this.InteractiveMap.cursorControl.source.clear(true);
     this.unhighlight();
-    var visionFeature = this.InteractiveMap.visionControl.setVisionFeature(feature);
+    const visionFeature = this.InteractiveMap.visionControl.setVisionFeature(feature);
     this.addRangeCircles(feature);
     this.InteractiveMap.highlight(feature);
     return visionFeature;
 }
 
 WardControl.prototype.unhighlight = function (feature) {
-    var highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
+    const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
     if (highlightedFeature && !highlightedFeature.get("clicked")) {
         this.InteractiveMap.visionControl.removeVisionFeature(highlightedFeature);
         this.removeRangeCircles(highlightedFeature);
@@ -323,7 +324,7 @@ WardControl.prototype.removeRangeCircles = function (feature) {
 
 WardControl.prototype.addRangeCircle = function (feature, rangeType) {
     if (!feature.get(rangeType)) {
-        var circle = this.InteractiveMap.getRangeCircle(feature, null, null, rangeType);
+        const circle = this.InteractiveMap.getRangeCircle(feature, null, null, rangeType);
         if (circle) {
             feature.set(rangeType, circle, true);
             this.InteractiveMap.rangeSources[rangeType].addFeature(circle);
@@ -332,7 +333,7 @@ WardControl.prototype.addRangeCircle = function (feature, rangeType) {
 }
 
 WardControl.prototype.removeRangeCircle = function (feature, rangeType) {
-    var circle = feature.get(rangeType);
+    const circle = feature.get(rangeType);
     if (circle) {
         feature.set(rangeType, null, true);
         this.InteractiveMap.rangeSources[rangeType].removeFeature(circle);

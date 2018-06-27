@@ -6,15 +6,15 @@ function TreeControl(InteractiveMap) {
 }
 
 TreeControl.prototype.updateQueryString = function () {
-    var self = this;
-    var keys = ['cut_trees', 'uncut_trees'];
-    var layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
-    var source = layer.getSource();
-    var features = source.getFeatures();
-    var values = features.filter(function (feature) {
+    const self = this;
+    const keys = ['cut_trees', 'uncut_trees'];
+    const layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
+    const source = layer.getSource();
+    const features = source.getFeatures();
+    const values = features.filter(function (feature) {
         return !!feature.get('isCut') != self.allTreesCutState;
     }).map(function (feature) {
-        var dotaProps = feature.get('dotaProps');
+        const dotaProps = feature.get('dotaProps');
         return dotaProps.x + ',' + dotaProps.y;
     }).join(';');
     setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
@@ -23,23 +23,23 @@ TreeControl.prototype.updateQueryString = function () {
 }
 
 TreeControl.prototype.parseQueryString = function () {
-    var self = this;
-    var layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
-    var source = layer.getSource();
-    var features = source.getFeatures();
-    var treeMap = {};
+    const self = this;
+    const layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
+    const source = layer.getSource();
+    const features = source.getFeatures();
+    const treeMap = {};
     features.forEach(function (feature) {
-        var dotaProps = feature.get('dotaProps');
-        var worldXY = dotaProps.x + ',' + dotaProps.y;
+        const dotaProps = feature.get('dotaProps');
+        const worldXY = dotaProps.x + ',' + dotaProps.y;
         treeMap[worldXY] = feature;
     });
     ['uncut_trees', 'cut_trees'].forEach(function (treeCutState, index) {
-        var values = getParameterByName(treeCutState);
+        let values = getParameterByName(treeCutState);
         if (values) {
             self.toggleAllTrees(!index, true);
             values = values.split(';');
             values.forEach(function (worldXY) {
-                var feature = treeMap[worldXY];
+                const feature = treeMap[worldXY];
                 if (feature) {
                     if (!!feature.get('isCut') == !index) {
                         self.toggleTree(feature, feature.get('dotaProps'), true, true);
@@ -54,8 +54,8 @@ TreeControl.prototype.parseQueryString = function () {
 }
 
 TreeControl.prototype.toggleTree = function (feature, dotaProps, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
-    var self = this;
-    var gridXY = this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
+    const self = this;
+    const gridXY = this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
     this.InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
     feature.set('isCut', !feature.get('isCut'));
     if (!bSkipQueryStringUpdate) this.updateQueryString();
@@ -64,11 +64,11 @@ TreeControl.prototype.toggleTree = function (feature, dotaProps, bSkipQueryStrin
 }
 
 TreeControl.prototype.toggleAllTrees = function (state, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
-    var self = this;
+    const self = this;
     this.allTreesCutState = state;
-    var layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
-    var source = layer.getSource();
-    var features = source.getFeatures();
+    const layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
+    const source = layer.getSource();
+    const features = source.getFeatures();
     features.forEach(function (feature) {
         if (!!feature.get('isCut') != state) {
             self.toggleTree(feature, feature.get('dotaProps'), true, true);

@@ -1,9 +1,9 @@
 import extent from 'ol/extent';
 import Point from 'ol/geom/point';
 
-var getFeatureCenter = function(feature) {
-    var ext = feature.getGeometry().getExtent();
-    var center = extent.getCenter(ext);
+const getFeatureCenter = function(feature) {
+    const ext = feature.getGeometry().getExtent();
+    const center = extent.getCenter(ext);
     return new Point(center);
 };
 

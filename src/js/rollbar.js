@@ -1,6 +1,6 @@
 import Rollbar from 'rollbar';
 
-var rollbarConfig = {
+const rollbarConfig = {
     accessToken: "#rollbar_client_token",
     captureUncaught: true,
     ignoredMessages: [
@@ -23,6 +23,6 @@ var rollbarConfig = {
     }
 };
 
-var rollbar = new Rollbar(rollbarConfig);
+const rollbar = new Rollbar(rollbarConfig);
 
 export default rollbar;

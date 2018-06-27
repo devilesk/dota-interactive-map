@@ -3,7 +3,7 @@ import Observable from 'ol/observable';
 import mapConstants from './../mapConstants';
 import styles from './../styleDefinitions';
 
-var laneData = {
+const laneData = {
     700: {
         npc_dota_spawner_good_bot: [1.25, 10],
         npc_dota_spawner_bad_bot: [0.75, 22],
@@ -67,7 +67,7 @@ CreepControl.prototype.close = function () {
 }
 
 CreepControl.prototype.initialize = function (id) {
-    var self = this;
+    const self = this;
     this.id = id;
     this.info = document.getElementById(id);
     this.infoContent = document.querySelector('#timer-time');
@@ -97,32 +97,32 @@ CreepControl.prototype.initialize = function (id) {
 }
 
 CreepControl.prototype.slower = function () {
-    var oldVal = this.playbackSpeed;
+    const oldVal = this.playbackSpeed;
     this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
     this.updatePlayback(oldVal, this.playbackSpeed);
 }
 
 CreepControl.prototype.faster = function () {
-    var oldVal = this.playbackSpeed;
+    const oldVal = this.playbackSpeed;
     this.playbackSpeed += 1;
     this.updatePlayback(oldVal, this.playbackSpeed);
 }
 
 CreepControl.prototype.updatePlayback = function (oldVal, newVal) {
-    var layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+    const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
     if (layer) {
-        var features = layer.getSource().getFeatures();
-        var elapsedTime = this.currentTime - this.startTime;
-        var adjustedElapsedTime = elapsedTime * oldVal / newVal;
+        const features = layer.getSource().getFeatures();
+        let elapsedTime = this.currentTime - this.startTime;
+        let adjustedElapsedTime = elapsedTime * oldVal / newVal;
         this.startTime = this.currentTime - adjustedElapsedTime;
-        for (var i = 0; i < features.length; i++) {
-            var feature = features[i];
-            var waveTimes = feature.get('waveTimes');
+        for (let i = 0; i < features.length; i++) {
+            const feature = features[i];
+            const waveTimes = feature.get('waveTimes');
             if (waveTimes) {
-                var j = waveTimes.length;
+                let j = waveTimes.length;
                 while (j--) {
-                    var elapsedTime = this.currentTime - waveTimes[j];
-                    var adjustedElapsedTime = elapsedTime * oldVal / newVal;
+                    elapsedTime = this.currentTime - waveTimes[j];
+                    adjustedElapsedTime = elapsedTime * oldVal / newVal;
                     waveTimes[j] = this.currentTime - adjustedElapsedTime;
                 }
             }
@@ -141,11 +141,11 @@ CreepControl.prototype.start = function () {
 CreepControl.prototype.stop = function () {
     Observable.unByKey(this.postComposeListener);
     this.postComposeListener = null;
-    var layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+    const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
     if (layer) {
-        var features = layer.getSource().getFeatures();
-        for (var i = 0; i < features.length; i++) {
-            var feature = features[i];
+        const features = layer.getSource().getFeatures();
+        for (let i = 0; i < features.length; i++) {
+            const feature = features[i];
             feature.set('waveTimes', null, true);
         }
     }
@@ -188,7 +188,7 @@ function getDistance(speed, elapsedTime) {
 
 function getElapsedDistance(version, id, elapsedTime, playbackSpeed, bNoAdjust) {
     elapsedTime = elapsedTime * playbackSpeed;
-    var base = mapConstants.creepBaseMovementSpeed;
+    const base = mapConstants.creepBaseMovementSpeed;
     if (bNoAdjust) return getDistance(base, elapsedTime);
 
     switch (id) {
@@ -196,8 +196,8 @@ function getElapsedDistance(version, id, elapsedTime, playbackSpeed, bNoAdjust) 
         case 'npc_dota_spawner_bad_top':
         case 'npc_dota_spawner_good_top':
         case 'npc_dota_spawner_bad_bot':
-            var boostMultiplier = laneData[version][id][0];
-            var boostDuration = laneData[version][id][1] * 1000;
+            const boostMultiplier = laneData[version][id][0];
+            const boostDuration = laneData[version][id][1] * 1000;
             if (elapsedTime < boostDuration) {
                 return getDistance(base * boostMultiplier, elapsedTime);
             }
@@ -212,13 +212,13 @@ function getElapsedDistance(version, id, elapsedTime, playbackSpeed, bNoAdjust) 
 }
 
 CreepControl.prototype.animateCreeps = function (event) {
-    var vectorContext = event.vectorContext;
-    var frameState = event.frameState;
+    const vectorContext = event.vectorContext;
+    const frameState = event.frameState;
     this.currentTime = frameState.time;
-    var layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-    var pathLayer = this.InteractiveMap.getMapLayer('path_corner');
+    const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+    const pathLayer = this.InteractiveMap.getMapLayer('path_corner');
     if (!layer || !pathLayer) return;
-    var features = layer.getSource().getFeatures();
+    const features = layer.getSource().getFeatures();
     if (!this.startTime) this.startTime = this.currentTime;
     if (this.paused) {
         if (this.pauseTime == null) this.pauseTime = frameState.time;
@@ -226,11 +226,11 @@ CreepControl.prototype.animateCreeps = function (event) {
     }
     else {
         if (this.pauseTime != null) {
-            for (var i = 0; i < features.length; i++) {
-                var feature = features[i];
-                var waveTimes = feature.get('waveTimes');
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const waveTimes = feature.get('waveTimes');
                 if (waveTimes) {
-                    var j = waveTimes.length;
+                    let j = waveTimes.length;
                     while (j--) {
                         waveTimes[j] += (this.currentTime - this.pauseTime);
                     }
@@ -240,11 +240,11 @@ CreepControl.prototype.animateCreeps = function (event) {
             this.pauseTime = null;
         }
     }
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i];
-        var id = feature.getId();
-        var pathFeature = pathLayer.getSource().getFeatureById(id);
-        var waveTimes = feature.get('waveTimes');
+    for (let i = 0; i < features.length; i++) {
+        const feature = features[i];
+        const id = feature.getId();
+        const pathFeature = pathLayer.getSource().getFeatureById(id);
+        const waveTimes = feature.get('waveTimes');
         if (!waveTimes) {
             waveTimes = [this.currentTime];
             feature.set('waveTimes', waveTimes, true);
@@ -252,35 +252,37 @@ CreepControl.prototype.animateCreeps = function (event) {
         if (this.currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
             waveTimes.push(this.currentTime);
         }
-        var j = waveTimes.length;
+        let j = waveTimes.length;
         while (j--) {                
-            var path = feature.get('path');
+            let path = feature.get('path');
+            let coords;
             if (!path) {
-                var path = pathFeature.getGeometry().clone();
-                var coords = path.getCoordinates();
+                path = pathFeature.getGeometry().clone();
+                coords = path.getCoordinates();
                 coords[0] = feature.getGeometry().getCoordinates();
                 path.setCoordinates(coords);
                 feature.set('path', path, true);
             }
-            var pathLength = path.getLength();
-            var coords = path.getCoordinates();
-            var elapsedTime = this.currentTime - waveTimes[j];
-            var elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
-            var elapsedFraction = Math.max(0, elapsedDistance / pathLength);
+            const pathLength = path.getLength();
+            coords = path.getCoordinates();
+            const elapsedTime = this.currentTime - waveTimes[j];
+            const elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
+            const elapsedFraction = Math.max(0, elapsedDistance / pathLength);
+            let endPoint;
             if (elapsedFraction >= 1) {
-                var endPoint = coords[coords.length - 1];
+                endPoint = coords[coords.length - 1];
                 waveTimes.splice(j, 1);
             }
             else {
-                var endPoint = path.getCoordinateAt(elapsedFraction);
+                endPoint = path.getCoordinateAt(elapsedFraction);
             }
 
-            var point = new Circle(endPoint);
+            const point = new Circle(endPoint);
             vectorContext.setStyle(styles.creepColor(feature));
             vectorContext.drawCircle(point);
         }
     }
-    var timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
+    let timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
     if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x'
     this.setContent(timeText);
     frameState.animate = true;

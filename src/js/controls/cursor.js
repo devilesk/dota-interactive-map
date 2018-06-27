@@ -3,7 +3,7 @@ import LayerVector from 'ol/layer/vector';
 import styles from './../styleDefinitions';
 
 function CursorControl(InteractiveMap) {
-    var self = this;
+    const self = this;
     this.InteractiveMap = InteractiveMap;
     this.source = new SourceVector({
         defaultDataProjection : 'pixel'

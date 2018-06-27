@@ -23,22 +23,22 @@ import forEach from './util/forEach';
 import rollbar from './rollbar';
 
 import ModalControl from './controls/modal';
-var aboutModal = new ModalControl('about', 'about-open', 'about-close');
-var helpModal = new ModalControl('help', 'help-open', 'help-close');
+const aboutModal = new ModalControl('about', 'about-open', 'about-close');
+const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-var buildDate = "#build_date";
+const buildDate = "#build_date";
 document.getElementById('buildDate').innerHTML = buildDate;
 
-var releaseTag = "#release_tag";
+const releaseTag = "#release_tag";
 document.getElementById('releaseTag').innerHTML = releaseTag;
 
-var codeVersion = "#code_version";
+const codeVersion = "#code_version";
 document.getElementById('codeVersion').innerHTML = codeVersion;
 
 function App(map_tile_path, vision_data_image_path, version) {
-    var InteractiveMap = new InteractiveMapConstructor(map_tile_path, version);
+    const InteractiveMap = new InteractiveMapConstructor(map_tile_path, version);
     InteractiveMap.toggleLayerMenuOption = function(layerId, state) {
-        var element = document.querySelector('input[data-layer-id="' + layerId + '"]');
+        const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
         if (state != null) element.checked = state;
         updateLayerAndQueryString(element, layerId);
     }
@@ -109,10 +109,10 @@ function App(map_tile_path, vision_data_image_path, version) {
 
     function updateLayerAndQueryString(element, layerId) {
         layerId = layerId || element.getAttribute('data-layer-id');
-        var layer = InteractiveMap.getMapLayer(layerId);
+        const layer = InteractiveMap.getMapLayer(layerId);
         if (layer) {
             layer.setVisible(element.checked);
-            var param = layer.get("title").replace(/ /g, '');
+            const param = layer.get("title").replace(/ /g, '');
             setQueryString(param, element.checked ? true : null);
             if (layerId == 'ent_dota_tree') {
                 document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
@@ -125,7 +125,7 @@ function App(map_tile_path, vision_data_image_path, version) {
     }
     
     function baseLayerToggleHandler() {
-        var layerId = this.getAttribute('data-layer-id');
+        const layerId = this.getAttribute('data-layer-id');
         InteractiveMap.baseLayers.forEach(function (layer) {
             layer.setVisible(layer.get('layerId') === layerId);
         });
@@ -136,9 +136,9 @@ function App(map_tile_path, vision_data_image_path, version) {
     // updates layer visibility based on element state
     function updateOverlayMenu() {
         forEach(document.querySelectorAll('.data-layer > input'), function (element) {
-            var label = element.nextSibling;
-            var layerId = element.getAttribute('data-layer-id');
-            var layer = InteractiveMap.getMapLayer(layerId);
+            const label = element.nextSibling;
+            const layerId = element.getAttribute('data-layer-id');
+            const layer = InteractiveMap.getMapLayer(layerId);
             if (!layer) {
                 label.style.display = "none";
             }
@@ -150,25 +150,25 @@ function App(map_tile_path, vision_data_image_path, version) {
     }
 
     function setDefaults() {
-        var x = getParameterByName('x');
-        var y = getParameterByName('y');
-        var zoom = getParameterByName('zoom');
+        const x = getParameterByName('x');
+        const y = getParameterByName('y');
+        const zoom = getParameterByName('zoom');
         if (zoom) {
             InteractiveMap.view.setZoom(zoom);
         }
         if (x && y) {
-            var coordinate = proj.transform([x, y], dotaProj, pixelProj);
+            const coordinate = proj.transform([x, y], dotaProj, pixelProj);
             if (extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
                 InteractiveMap.panTo(coordinate);
             }
         }
         
         document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
-        var mode = getParameterByName('mode');
+        const mode = getParameterByName('mode');
         changeMode(mode);
 
-        var baseLayerName = getParameterByName('BaseLayer');
-        var element;
+        const baseLayerName = getParameterByName('BaseLayer');
+        let element;
         if (baseLayerName) {
             element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
             if (element) {
@@ -183,8 +183,8 @@ function App(map_tile_path, vision_data_image_path, version) {
         }
         
         InteractiveMap.layerDefs.forEach(function (layerDef) {
-            var param = layerDef.name.replace(/ /g, '');
-            var value = getParameterByName(param);
+            const param = layerDef.name.replace(/ /g, '');
+            const value = getParameterByName(param);
             if (value && value !== "false") {
                 layerDef.visible = true;
                 document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
@@ -200,11 +200,11 @@ function App(map_tile_path, vision_data_image_path, version) {
     }
 
     function onMoveEnd(evt) {
-        var map = evt.map;
-        var ext = map.getView().calculateExtent(map.getSize());
-        var center = extent.getCenter(ext);
-        var worldXY = proj.transform(center, pixelProj, dotaProj);
-        var coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
+        const map = evt.map;
+        const ext = map.getView().calculateExtent(map.getSize());
+        const center = extent.getCenter(ext);
+        const worldXY = proj.transform(center, pixelProj, dotaProj);
+        const coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
         setQueryString('x', coordinate[0]);
         setQueryString('y', coordinate[1]);
         setQueryString('zoom', Math.round(InteractiveMap.view.getZoom()));
@@ -300,7 +300,7 @@ function App(map_tile_path, vision_data_image_path, version) {
         });
             
         document.getElementById('version-select').addEventListener('change', function () {
-            var self = this;
+            const self = this;
             InteractiveMap.setMapLayers(this.value, function (err) {
                 if (!err) {
                     InteractiveMap.creepControl.deactivate();

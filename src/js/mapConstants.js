@@ -1,4 +1,4 @@
-var mapConstants = {
+const mapConstants = {
     map_w: 16384,
     map_h: 16384,
     map_x_boundaries: [-8507.4, 9515],

@@ -2,7 +2,7 @@ function escapeRegex(string) {
     return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
 }
 
-var trim = function trim(str, characters, flags) {
+const trim = function trim(str, characters, flags) {
     flags = flags || "g";
     if (typeof str !== "string" || typeof characters !== "string" || typeof flags !== "string") {
         throw new TypeError("argument must be string");

@@ -9,7 +9,7 @@ NotificationControl.prototype.show = function (message) {
     this.info.classList.remove('slideUp');
     this.info.classList.add('slideDown');
     clearTimeout(this.timer);
-    var self = this;
+    const self = this;
     this.timer = setTimeout(function () {
         self.info.classList.add('slideUp');
         self.info.classList.remove('slideDown');
@@ -31,7 +31,7 @@ NotificationControl.prototype.close = function () {
 }
 
 NotificationControl.prototype.initialize = function (id) {
-    var self = this;
+    const self = this;
     this.id = id;
     this.info = document.getElementById(id);
     this.infoContent = document.querySelector('#' + id + ' .message-content');

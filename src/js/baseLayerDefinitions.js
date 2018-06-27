@@ -1,4 +1,4 @@
-var baseLayerDefinitions = [
+const baseLayerDefinitions = [
     {
         id: 'default',
         name: 'Default',
