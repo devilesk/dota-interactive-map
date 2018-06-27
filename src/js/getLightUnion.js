@@ -1,4 +1,4 @@
-var VisionSimulation = require("dota-vision-simulation");
+import VisionSimulation from "dota-vision-simulation";
 var key2pt = VisionSimulation.prototype.key2pt;
 var xy2key = VisionSimulation.prototype.xy2key;
 var xy2pt = VisionSimulation.prototype.xy2pt;

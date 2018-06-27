@@ -1,5 +1,5 @@
-var VisionSimulation = require("dota-vision-simulation");
-var worlddata = require("dota-vision-simulation/src/worlddata.json");
+import VisionSimulation from 'dota-vision-simulation';
+import worlddata from 'dota-vision-simulation/src/worlddata.json';
 import { setQueryString, getParameterByName } from './util/queryString';
 import proj from 'ol/proj';
 import extent from 'ol/extent';
@@ -58,9 +58,6 @@ function App(map_tile_path, vision_data_image_path, version) {
     InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
     InteractiveMap.creepControl = new CreepControl(InteractiveMap);
     InteractiveMap.creepControl.initialize('timer');
-
-    //var DrawCurveControl = require('./controls/drawCurve');
-    //InteractiveMap.drawCurveControl = new DrawCurveControl(InteractiveMap);
     
     function changeMode(mode) {
         switch (mode) {
