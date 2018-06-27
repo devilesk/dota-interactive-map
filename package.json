@@ -1,6 +1,6 @@
 {
   "name": "dota-interactive-map",
-  "version": "4.12.0",
+  "version": "4.12.1",
   "description": "Interactive Dota 2 Map",
   "main": "src/js/index.js",
   "private": true,
