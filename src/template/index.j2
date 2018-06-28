@@ -249,12 +249,13 @@
     {% block js %}
         {{ super() }}
         <!-- @if NODE_ENV!='production' -->
+        <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
         <script src="bundle.js"></script>
-        <script>InteractiveMap.default("tiles/", "img/map_data_715.png", "715")</script>
+        <script>new InteractiveMap("tiles/", "img/map_data_715.png", "715")</script>
         <!-- @endif -->
         <!-- @if NODE_ENV='production' !>
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
-        <script>InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>", "<!-- @echo map_data_version !>")</script>
+        <script>new InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>", "<!-- @echo map_data_version !>")</script>
         <!-- @endif -->
     {% endblock js %}
 {% endblock body %}
