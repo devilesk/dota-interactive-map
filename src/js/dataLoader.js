@@ -9,7 +9,7 @@ import LayerGroup from 'ol/layer/group';
 import Collection from 'ol/collection';
 import { dotaProj, pixelProj } from './projections';
 
-function loadGeoJSON(map, layerDef, data, version) {
+const loadGeoJSON = (map, layerDef, data, version) => {
     try {
         const source = new SourceVector({
             url: 'data/' + version + '/' + layerDef.filename,
@@ -28,12 +28,10 @@ function loadGeoJSON(map, layerDef, data, version) {
     }
 }
 
-function loadPolygon(map, layerDef, data, layer) {
-    const features = data.data[layerDef.id].map(function (obj) {
+const loadPolygon = (map, layerDef, data, layer) => {
+    const features = data.data[layerDef.id].map(obj => {
         const points = obj.points;
-        const ring = points.map(function (point) {
-            return proj.transform([point.x, point.y], dotaProj, pixelProj)
-        });
+        const ring = points.map(point => proj.transform([point.x, point.y], dotaProj, pixelProj));
         ring.push(proj.transform([points[0].x, points[0].y], dotaProj, pixelProj))
         const geom = new Polygon([ring]);
         const feature = new Feature(geom);
@@ -65,8 +63,8 @@ function loadPolygon(map, layerDef, data, layer) {
     return layer;
 }
 
-function loadJSON(map, layerDef, data, layer) {
-    const features = data.data[layerDef.id].map(function (point) {
+const loadJSON = (map, layerDef, data, layer) => {
+    const features = data.data[layerDef.id].map(point => {
         const unitClass = point.subType ? layerDef.id + '_' + point.subType : layerDef.id;
         const stats = data.stats[unitClass];
         const bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
@@ -112,7 +110,7 @@ function loadJSON(map, layerDef, data, layer) {
     return layer;
 }
 
-function loadNeutralPullRange(InteractiveMap, layerDef, data, layer) {
+const loadNeutralPullRange = (InteractiveMap, layerDef, data, layer) => {
     const vectorSource = new SourceVector({
         defaultDataProjection : 'pixel',
         features: []
@@ -136,7 +134,7 @@ function loadNeutralPullRange(InteractiveMap, layerDef, data, layer) {
     return layer;
 }
 
-function loadLayerGroupFromData(InteractiveMap, data, version, layersIndex, layerDefs) {
+const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
     const layers = [];
     for (let i = 0; i < layerDefs.length; i++) {
         const layerDef = layerDefs[i];

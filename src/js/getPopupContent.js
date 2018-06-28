@@ -18,13 +18,14 @@ const unitNames = {
     sentry: "Sentry Ward"
 };
     
-function getUnitName(unitType, unitSubType) {
-    return (unitSubType ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' ' : '') + unitNames[unitType];
-}
+const getUnitName = (unitType, unitSubType) => (unitSubType
+                                                ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' '
+                                                : '') + unitNames[unitType];
     
 const pullTypes = ['Normal', 'Fast', 'Slow'];
 const neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
-function getPopupContent(stats, feature) {
+
+const getPopupContent = (stats, feature) => {
     const dotaProps = feature.get('dotaProps');
     const unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
     const unitStats = stats[unitClass];

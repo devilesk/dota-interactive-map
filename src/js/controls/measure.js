@@ -8,242 +8,230 @@ import Overlay from 'ol/overlay';
 import Observable from 'ol/observable';
 import styles from './../styleDefinitions';
 
-function MeasureControl(InteractiveMap) {
-    const self = this;
-    this.InteractiveMap = InteractiveMap;
-    this.map = InteractiveMap.map;
-    this.info = InteractiveMap.infoControl;
-    this.source = new SourceVector({
-        defaultDataProjection : 'pixel'
-    });
-    
-    this.layer =  new LayerVector({
-        source: this.source
-    });
+/**
+ * Format area output.
+ * @param {ol.geom.Polygon} polygon The polygon.
+ * @return {string} Formatted area.
+ */
+const formatArea = polygon => {
+    const area = polygon.getArea();
+    const output = area > 10000
+        ? (Math.round(area / 1000000 * 100) / 100) + ' ' + 'km<sup>2</sup>'
+        : (Math.round(area * 100) / 100) + ' ' + 'm<sup>2</sup>';
+    return output;
+};
 
-    /**
-     * Currently drawn feature.
-     * @type {ol.Feature}
-     */
-    let sketch;
+const formatRadius = circle => {
+    const length = Math.round(circle.getRadius());
+    const output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
+    return output;
+};
 
-    /**
-     * The help tooltip element.
-     * @type {Element}
-     */
-    let helpTooltipElement;
-
-    /**
-     * Overlay to show the help messages.
-     * @type {ol.Overlay}
-     */
-    let helpTooltip;
-
-    /**
-     * The measure tooltip element.
-     * @type {Element}
-     */
-    let measureTooltipElement;
-
-    /**
-     * Overlay to show the measurement.
-     * @type {ol.Overlay}
-     */
-    let measureTooltip;
-    
-    /**
-     * Message to show when the user is drawing a polygon.
-     * @type {string}
-     */
-    const continuePolygonMsg = 'Click to continue drawing the polygon';
-    
-    /**
-     * Message to show when the user is drawing a line.
-     * @type {string}
-     */
-    const continueLineMsg = 'Click to continue drawing the line';
-    
-    /**
-     * Handle pointer move.
-     * @param {ol.MapBrowserEvent} evt The event.
-     */
-    const pointerMoveHandler = function(evt) {
-        if (evt.dragging) {
-            return;
-        }
-        /** @type {string} */
-        let helpMsg = 'Click to start drawing';
-
-        if (sketch) {
-            const geom = (sketch.getGeometry());
-            if (geom instanceof Polygon) {
-                helpMsg = continuePolygonMsg;
-            } else if (geom instanceof LineString) {
-                helpMsg = continueLineMsg;
-            }
-        }
-
-        helpTooltipElement.innerHTML = helpMsg;
-        helpTooltip.setPosition(evt.coordinate);
-
-        helpTooltipElement.classList.remove('hidden');
-    };
-    
-    let pointerMoveListener;
-    const mouseOutHandler = function() {
-        helpTooltipElement.classList.add('hidden');
-    };
-
-    this.type = 'line';
-
-    let draw; // global so we can remove it later
-
-
-    /**
-     * Format length output.
-     * @param {ol.geom.LineString} line The line.
-     * @return {string} The formatted length.
-     */
-    const formatLength = function(line) {
-        const length = Math.round(line.getLength());
-        const output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / self.InteractiveMap.movementSpeed).toFixed(2) + 's at ' + self.InteractiveMap.movementSpeed + 'ms';
-        return output;
-    };
-    
-    const formatRadius = function(circle) {
-        const length = Math.round(circle.getRadius());
-        const output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
-        return output;
-    };
-
-
-    /**
-     * Format area output.
-     * @param {ol.geom.Polygon} polygon The polygon.
-     * @return {string} Formatted area.
-     */
-    const formatArea = function(polygon) {
-        const area = polygon.getArea();
-        const output = area > 10000
-            ? (Math.round(area / 1000000 * 100) / 100) + ' ' + 'km<sup>2</sup>'
-            : (Math.round(area * 100) / 100) + ' ' + 'm<sup>2</sup>';
-        return output;
-    };
-
-    function addInteraction() {
-        const type = (self.type == 'circle' ? 'Circle' : 'LineString');
-        draw = new Draw({
-            source: self.source,
-            type: /** @type {ol.geom.GeometryType} */ (type),
-            style: styles.measure
+/**
+ * Format length output.
+ * @param {ol.geom.LineString} line The line.
+ * @return {string} The formatted length.
+ */
+const formatLength = (InteractiveMap, line) => {
+    const length = Math.round(line.getLength());
+    const output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / InteractiveMap.movementSpeed).toFixed(2) + 's at ' + InteractiveMap.movementSpeed + 'ms';
+    return output;
+};
+        
+class MeasureControl {
+    constructor(InteractiveMap) {
+        this.InteractiveMap = InteractiveMap;
+        this.map = InteractiveMap.map;
+        this.info = InteractiveMap.infoControl;
+        this.source = new SourceVector({
+            defaultDataProjection : 'pixel'
         });
-        self.map.addInteraction(draw);
-
-        //createMeasureTooltip();
-        createHelpTooltip();
-
-        let listener;
-        draw.on('drawstart',
-            function(evt) {
-                self.source.clear(true);
-                self.info.setContent("");
-                self.info.close(true);
-                // set sketch
-                sketch = evt.feature;
-                /** @type {ol.Coordinate|undefined} */
-                let tooltipCoord = evt.coordinate;
-
-                listener = sketch.getGeometry().on('change', function(evt) {
-                    const geom = evt.target;
-                    let output;
-                    if (geom instanceof Circle) {
-                        output = formatRadius(geom);
-                        tooltipCoord = geom.getLastCoordinate();
-                    } else if (geom instanceof LineString) {
-                        output = formatLength(geom);
-                        tooltipCoord = geom.getLastCoordinate();
-                    }
-                    self.info.setContent(output);
-                    self.info.open(true);
-                    //measureTooltipElement.innerHTML = output;
-                    //measureTooltip.setPosition(tooltipCoord);
-                });
-            }, self);
-
-        draw.on('drawend',
-            function() {
-                //measureTooltipElement.className = 'tooltip tooltip-static';
-                //measureTooltip.setOffset([0, -7]);
-                // unset sketch
-                sketch = null;
-                // unset tooltip so that a new one can be created
-                //measureTooltipElement = null;
-                //createMeasureTooltip();
-                Observable.unByKey(listener);
-            }, self);
-    }
-
-
-    /**
-     * Creates a new help tooltip
-     */
-    function createHelpTooltip() {
-        if (helpTooltipElement) {
-            helpTooltipElement.parentNode.removeChild(helpTooltipElement);
-        }
-        helpTooltipElement = document.createElement('div');
-        helpTooltipElement.className = 'tooltip hidden';
-        helpTooltip = new Overlay({
-            element: helpTooltipElement,
-            offset: [15, 0],
-            positioning: 'center-left'
+        
+        this.layer =  new LayerVector({
+            source: this.source
         });
-        self.map.addOverlay(helpTooltip);
-    }
 
+        /**
+         * Currently drawn feature.
+         * @type {ol.Feature}
+         */
+        this.sketch = null;
+
+        /**
+         * The help tooltip element.
+         * @type {Element}
+         */
+        this.helpTooltipElement = null;
+
+        /**
+         * Overlay to show the help messages.
+         * @type {ol.Overlay}
+         */
+        this.helpTooltip = null;
+
+        /**
+         * The measure tooltip element.
+         * @type {Element}
+         */
+        this.measureTooltipElement = null;
+
+        /**
+         * Overlay to show the measurement.
+         * @type {ol.Overlay}
+         */
+        this.measureTooltip = null;
+        
+        /**
+         * Message to show when the user is drawing a polygon.
+         * @type {string}
+         */
+        this.continuePolygonMsg = 'Click to continue drawing the polygon';
+        
+        /**
+         * Message to show when the user is drawing a line.
+         * @type {string}
+         */
+        this.continueLineMsg = 'Click to continue drawing the line';
+        
+        /**
+         * Handle pointer move.
+         * @param {ol.MapBrowserEvent} evt The event.
+         */
+        
+        this.pointerMoveListener = null;
+        
+        this.mouseOutHandler = () => this.helpTooltipElement.classList.add('hidden');
+
+        this.type = 'line';
+
+        this.draw = null; // global so we can remove it later
+
+        this.active = false;
+
+    }
 
     /**
      * Creates a new measure tooltip
      */
-    function createMeasureTooltip() {
-        if (measureTooltipElement) {
-            measureTooltipElement.parentNode.removeChild(measureTooltipElement);
+    createMeasureTooltip() {
+        if (this.measureTooltipElement) {
+            this.measureTooltipElement.parentNode.removeChild(this.measureTooltipElement);
         }
-        measureTooltipElement = document.createElement('div');
-        measureTooltipElement.className = 'tooltip tooltip-measure';
-        measureTooltip = new Overlay({
-            element: measureTooltipElement,
+        this.measureTooltipElement = document.createElement('div');
+        this.measureTooltipElement.className = 'tooltip tooltip-measure';
+        this.measureTooltip = new Overlay({
+            element: this.measureTooltipElement,
             offset: [0, -15],
             positioning: 'bottom-center'
         });
-        self.map.addOverlay(measureTooltip);
+        this.map.addOverlay(this.measureTooltip);
     }
+        
+    /**
+     * Creates a new help tooltip
+     */
+    createHelpTooltip() {
+        if (this.helpTooltipElement) {
+            this.helpTooltipElement.parentNode.removeChild(this.helpTooltipElement);
+        }
+        this.helpTooltipElement = document.createElement('div');
+        this.helpTooltipElement.className = 'tooltip hidden';
+        this.helpTooltip = new Overlay({
+            element: this.helpTooltipElement,
+            offset: [15, 0],
+            positioning: 'center-left'
+        });
+        this.map.addOverlay(this.helpTooltip);
+    }
+    
+    addInteraction() {
+        const type = (this.type == 'circle' ? 'Circle' : 'LineString');
+        this.draw = new Draw({
+            source: this.source,
+            type: /** @type {ol.geom.GeometryType} */ (type),
+            style: styles.measure
+        });
+        this.map.addInteraction(this.draw);
 
-    this.change = function (type) {
-        self.type = type;
-        Observable.unByKey(pointerMoveListener);
-        self.map.getViewport().removeEventListener('mouseout', mouseOutHandler);
-        self.map.removeInteraction(draw);
-        self.source.clear(true);
-        addInteraction.call(this);
+        this.createHelpTooltip();
+
+        let listener;
+        this.draw.on('drawstart', evt => {
+            this.source.clear(true);
+            this.info.setContent("");
+            this.info.close(true);
+            // set sketch
+            this.sketch = evt.feature;
+            /** @type {ol.Coordinate|undefined} */
+            let tooltipCoord = evt.coordinate;
+
+            listener = this.sketch.getGeometry().on('change', evt => {
+                const geom = evt.target;
+                let output;
+                if (geom instanceof Circle) {
+                    output = formatRadius(geom);
+                    tooltipCoord = geom.getLastCoordinate();
+                } else if (geom instanceof LineString) {
+                    output = formatLength(this.InteractiveMap, geom);
+                    tooltipCoord = geom.getLastCoordinate();
+                }
+                this.info.setContent(output);
+                this.info.open(true);
+            });
+        });
+
+        this.draw.on('drawend', () => {
+            // unset sketch
+            this.sketch = null;
+            // unset tooltip so that a new one can be created
+            Observable.unByKey(listener);
+        });
+    }
+    
+    change(type) {
+        this.type = type;
+        Observable.unByKey(this.pointerMoveListener);
+        this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
+        this.map.removeInteraction(this.draw);
+        this.source.clear(true);
+        this.addInteraction();
         this.active = true;
     }
     
-    this.active = false;
-    this.activate = function () {
+    activate() {
         if (!this.active) {
-            pointerMoveListener = self.map.on('pointermove', pointerMoveHandler);
-            self.map.getViewport().addEventListener('mouseout', mouseOutHandler);
-            addInteraction();
+            this.pointerMoveListener = this.map.on('pointermove', evt => {
+                if (evt.dragging) {
+                    return;
+                }
+                /** @type {string} */
+                let helpMsg = 'Click to start drawing';
+
+                if (this.sketch) {
+                    const geom = (this.sketch.getGeometry());
+                    if (geom instanceof Polygon) {
+                        helpMsg = this.continuePolygonMsg;
+                    } else if (geom instanceof LineString) {
+                        helpMsg = this.continueLineMsg;
+                    }
+                }
+
+                this.helpTooltipElement.innerHTML = helpMsg;
+                this.helpTooltip.setPosition(evt.coordinate);
+
+                this.helpTooltipElement.classList.remove('hidden');
+            });
+            this.map.getViewport().addEventListener('mouseout', this.mouseOutHandler);
+            this.addInteraction();
         }
         this.active = true;
     }
     
-    this.deactivate = function () {
-        Observable.unByKey(pointerMoveListener);
-        self.map.getViewport().removeEventListener('mouseout', mouseOutHandler);
-        self.map.removeInteraction(draw);
-        self.source.clear(true);
+    deactivate() {
+        Observable.unByKey(this.pointerMoveListener);
+        this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
+        this.map.removeInteraction(this.draw);
+        this.source.clear(true);
         this.active = false;
     }
 }

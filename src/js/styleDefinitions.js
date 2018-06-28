@@ -372,7 +372,7 @@ const styles = {
     }),
 }
 
-styles.teamColor = function (feature, resolution) {
+styles.teamColor = (feature, resolution) => {
     if (feature.getId().indexOf('_bad_') == -1) {
         return styles.radiant;
     }
@@ -381,7 +381,7 @@ styles.teamColor = function (feature, resolution) {
     }
 }
 
-styles.creepColor = function (feature, resolution) {
+styles.creepColor = (feature, resolution) => {
     if (feature.getId().indexOf('_bad_') == -1) {
         return styles.radiantCreep;
     }

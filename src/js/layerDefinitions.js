@@ -61,22 +61,13 @@ const layerDefinitions = [
         id: 'npc_dota_neutral_spawner',
         name: 'Neutral Camps',
         group: 'object',
-        style: function (feature, resolution) {
-            return styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
-        }
+        style: (feature, resolution) => styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
     },
     {
         id: 'ent_dota_tree',
         name: 'Trees',
         group: 'object',
-        style:  function (feature, resolution) {
-            if (feature.get('isCut')) {
-                return styles.tree.dead;
-            }
-            else {
-                return styles.tree.alive;
-            }
-        },
+        style: (feature, resolution) => feature.get('isCut') ? styles.tree.dead : styles.tree.alive,
         toggle: true
     },
     {

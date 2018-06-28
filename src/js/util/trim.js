@@ -1,8 +1,6 @@
-function escapeRegex(string) {
-    return string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
-}
+const escapeRegex = string => string.replace(/[\[\](){}?*+\^$\\.|\-]/g, "\\$&");
 
-const trim = function trim(str, characters, flags) {
+const trim = (str, characters, flags) => {
     flags = flags || "g";
     if (typeof str !== "string" || typeof characters !== "string" || typeof flags !== "string") {
         throw new TypeError("argument must be string");

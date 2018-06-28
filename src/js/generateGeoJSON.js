@@ -4,20 +4,18 @@ import union from "@turf/union";
 import { worldToLatLon } from "./conversion";
 import fs from 'fs';
 
-const vs = new VisionSimulation(worlddata, "www/img/map_data_715.png", onReady);
-
-function onReady() {
+const vs = new VisionSimulation(worlddata, "www/img/map_data_715.png", () => {
     let t1 = Date.now();
     generateGeoJSON(vs, [vs.gridnav, vs.tools_no_wards], 'no_wards.json');
     console.log('no_wards.json', Date.now() - t1 + 'ms');
     t1 = Date.now();
     generateGeoJSON(vs, [vs.ent_fow_blocker_node], 'ent_fow_blocker_node.json');
     console.log('ent_fow_blocker_node.json', Date.now() - t1 + 'ms');
-}
+});
 
-function generateGeoJSON(vs, grids, dst) {
+const generateGeoJSON = (vs, grids, dst) => {
     let result = null;
-    grids.forEach(function (data, index) {
+    grids.forEach((data, index) => {
         const total = Object.keys(data).length;
         let count = 0;
         for (let i in data) {
@@ -50,10 +48,10 @@ function generateGeoJSON(vs, grids, dst) {
     });
     //transformData(result);
     
-    fs.writeFile(dst, JSON.stringify(result), function (err) {});
+    fs.writeFile(dst, JSON.stringify(result), err => {});
 }
 
-function transformData(data) {
+const transformData = data => {
     for (let i = 0; i < data.geometry.coordinates.length; i++) {
         const polygons = data.geometry.coordinates[i];
         for (let j = 0; j < polygons.length; j++) {

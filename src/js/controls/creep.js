@@ -36,157 +36,9 @@ const laneData = {
     }
 }
 
-function CreepControl(InteractiveMap) {
-    this.InteractiveMap = InteractiveMap;
-    this.postComposeListener = null;
-    this.postComposeHandler = this.animateCreeps.bind(this);
-    this.playbackSpeed = 1;
-    this.paused = true;
-    this.pauseTime = null;
-    this.title = 'Lane Animation';
-}
+const getDistance = (speed, elapsedTime) => speed * elapsedTime / 1000 * mapConstants.scale;
 
-CreepControl.prototype.show = function (message) {
-    this.setContent(message);
-    this.info.classList.remove('slideUp');
-    this.info.classList.add('slideDown');
-}
-
-CreepControl.prototype.setContent = function (html) {
-    this.infoContent.innerHTML = html;
-}
-
-CreepControl.prototype.open = function () {
-    this.info.classList.add('slideDown');
-    this.info.classList.remove('slideUp');
-}
-
-CreepControl.prototype.close = function () {
-    this.info.classList.add('slideUp');
-    this.info.classList.remove('slideDown');
-}
-
-CreepControl.prototype.initialize = function (id) {
-    const self = this;
-    this.id = id;
-    this.info = document.getElementById(id);
-    this.infoContent = document.querySelector('#timer-time');
-    this.playPauseBtn = document.querySelector('#timer-playPause');
-    this.playPauseHandler = function (evt) {
-        self.playPause.call(self, true);
-    }
-    this.playPauseBtn.addEventListener('click', this.playPauseHandler, false);
-    
-    this.stopBtn = document.querySelector('#timer-stop');
-    this.stopHandler = function (evt) {
-        self.stop.call(self, true);
-    }
-    this.stopBtn.addEventListener('click', this.stopHandler, false);
-    
-    this.fasterBtn = document.querySelector('#timer-faster');
-    this.fasterHandler = function (evt) {
-        self.faster.call(self, true);
-    }
-    this.fasterBtn.addEventListener('click', this.fasterHandler, false);
-    
-    this.slowerBtn = document.querySelector('#timer-slower');
-    this.slowerHandler = function (evt) {
-        self.slower.call(self, true);
-    }
-    this.slowerBtn.addEventListener('click', this.slowerHandler, false);
-}
-
-CreepControl.prototype.slower = function () {
-    const oldVal = this.playbackSpeed;
-    this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
-    this.updatePlayback(oldVal, this.playbackSpeed);
-}
-
-CreepControl.prototype.faster = function () {
-    const oldVal = this.playbackSpeed;
-    this.playbackSpeed += 1;
-    this.updatePlayback(oldVal, this.playbackSpeed);
-}
-
-CreepControl.prototype.updatePlayback = function (oldVal, newVal) {
-    const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-    if (layer) {
-        const features = layer.getSource().getFeatures();
-        let elapsedTime = this.currentTime - this.startTime;
-        let adjustedElapsedTime = elapsedTime * oldVal / newVal;
-        this.startTime = this.currentTime - adjustedElapsedTime;
-        for (let i = 0; i < features.length; i++) {
-            const feature = features[i];
-            const waveTimes = feature.get('waveTimes');
-            if (waveTimes) {
-                let j = waveTimes.length;
-                while (j--) {
-                    elapsedTime = this.currentTime - waveTimes[j];
-                    adjustedElapsedTime = elapsedTime * oldVal / newVal;
-                    waveTimes[j] = this.currentTime - adjustedElapsedTime;
-                }
-            }
-        }
-    }
-}
-
-CreepControl.prototype.start = function () {
-    if (!this.postComposeListener) {
-        this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
-    }
-    if (this.paused) this.playPause();
-    this.InteractiveMap.map.render();
-}
-
-CreepControl.prototype.stop = function () {
-    Observable.unByKey(this.postComposeListener);
-    this.postComposeListener = null;
-    const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-    if (layer) {
-        const features = layer.getSource().getFeatures();
-        for (let i = 0; i < features.length; i++) {
-            const feature = features[i];
-            feature.set('waveTimes', null, true);
-        }
-    }
-    this.startTime = null;
-    if (!this.paused) this.playPause();
-    this.pauseTime = null;
-    this.InteractiveMap.map.render();
-    this.setContent(this.title);
-}
-
-CreepControl.prototype.playPause = function () {
-    this.paused = !this.paused;
-    if (this.paused) {
-        this.playPauseBtn.classList.add('icon-play');
-        this.playPauseBtn.classList.remove('icon-pause');
-    }
-    else {
-        this.playPauseBtn.classList.add('icon-pause');
-        this.playPauseBtn.classList.remove('icon-play');
-        this.start();
-    }
-}
-
-CreepControl.prototype.activate = function () {
-    this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', true);
-    this.InteractiveMap.toggleLayerMenuOption('path_corner', true);
-    this.show(this.title);
-}
-
-CreepControl.prototype.deactivate = function () {
-    this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', false);
-    this.InteractiveMap.toggleLayerMenuOption('path_corner', false);
-    this.stop();
-    this.close();
-}
-
-function getDistance(speed, elapsedTime) {
-    return speed * elapsedTime / 1000 * mapConstants.scale;
-}
-
-function getElapsedDistance(version, id, elapsedTime, playbackSpeed, bNoAdjust) {
+const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) => {
     elapsedTime = elapsedTime * playbackSpeed;
     const base = mapConstants.creepBaseMovementSpeed;
     if (bNoAdjust) return getDistance(base, elapsedTime);
@@ -211,81 +63,216 @@ function getElapsedDistance(version, id, elapsedTime, playbackSpeed, bNoAdjust) 
     }
 }
 
-CreepControl.prototype.animateCreeps = function (event) {
-    const vectorContext = event.vectorContext;
-    const frameState = event.frameState;
-    this.currentTime = frameState.time;
-    const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-    const pathLayer = this.InteractiveMap.getMapLayer('path_corner');
-    if (!layer || !pathLayer) return;
-    const features = layer.getSource().getFeatures();
-    if (!this.startTime) this.startTime = this.currentTime;
-    if (this.paused) {
-        if (this.pauseTime == null) this.pauseTime = frameState.time;
-        this.currentTime = this.pauseTime;
+class CreepControl {
+    constructor(InteractiveMap) {
+        this.InteractiveMap = InteractiveMap;
+        this.postComposeListener = null;
+        this.postComposeHandler = this.animateCreeps.bind(this);
+        this.playbackSpeed = 1;
+        this.paused = true;
+        this.pauseTime = null;
+        this.title = 'Lane Animation';
     }
-    else {
-        if (this.pauseTime != null) {
+    
+    show(message) {
+        this.setContent(message);
+        this.info.classList.remove('slideUp');
+        this.info.classList.add('slideDown');
+    }
+    
+    setContent(html) {
+        this.infoContent.innerHTML = html;
+    }
+    
+    open() {
+        this.info.classList.add('slideDown');
+        this.info.classList.remove('slideUp');
+    }
+    
+    close() {
+        this.info.classList.add('slideUp');
+        this.info.classList.remove('slideDown');
+    }
+    
+    initialize(id) {
+        this.id = id;
+        this.info = document.getElementById(id);
+        this.infoContent = document.querySelector('#timer-time');
+        this.playPauseBtn = document.querySelector('#timer-playPause');
+        this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
+        
+        this.stopBtn = document.querySelector('#timer-stop');
+        this.stopBtn.addEventListener('click', () => this.stop(true), false);
+        
+        this.fasterBtn = document.querySelector('#timer-faster');
+        this.fasterBtn.addEventListener('click', () => this.faster(true), false);
+        
+        this.slowerBtn = document.querySelector('#timer-slower');
+        this.slowerBtn.addEventListener('click', () => this.slower(true), false);
+    }
+    
+    slower() {
+        const oldVal = this.playbackSpeed;
+        this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
+        this.updatePlayback(oldVal, this.playbackSpeed);
+    }
+
+    faster() {
+        const oldVal = this.playbackSpeed;
+        this.playbackSpeed += 1;
+        this.updatePlayback(oldVal, this.playbackSpeed);
+    }
+
+    updatePlayback(oldVal, newVal) {
+        const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+        if (layer) {
+            const features = layer.getSource().getFeatures();
+            let elapsedTime = this.currentTime - this.startTime;
+            let adjustedElapsedTime = elapsedTime * oldVal / newVal;
+            this.startTime = this.currentTime - adjustedElapsedTime;
             for (let i = 0; i < features.length; i++) {
                 const feature = features[i];
                 const waveTimes = feature.get('waveTimes');
                 if (waveTimes) {
                     let j = waveTimes.length;
                     while (j--) {
-                        waveTimes[j] += (this.currentTime - this.pauseTime);
+                        elapsedTime = this.currentTime - waveTimes[j];
+                        adjustedElapsedTime = elapsedTime * oldVal / newVal;
+                        waveTimes[j] = this.currentTime - adjustedElapsedTime;
                     }
                 }
             }
-            this.startTime += (this.currentTime - this.pauseTime);
-            this.pauseTime = null;
         }
     }
-    for (let i = 0; i < features.length; i++) {
-        const feature = features[i];
-        const id = feature.getId();
-        const pathFeature = pathLayer.getSource().getFeatureById(id);
-        const waveTimes = feature.get('waveTimes');
-        if (!waveTimes) {
-            waveTimes = [this.currentTime];
-            feature.set('waveTimes', waveTimes, true);
-        }
-        if (this.currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
-            waveTimes.push(this.currentTime);
-        }
-        let j = waveTimes.length;
-        while (j--) {                
-            let path = feature.get('path');
-            let coords;
-            if (!path) {
-                path = pathFeature.getGeometry().clone();
-                coords = path.getCoordinates();
-                coords[0] = feature.getGeometry().getCoordinates();
-                path.setCoordinates(coords);
-                feature.set('path', path, true);
-            }
-            const pathLength = path.getLength();
-            coords = path.getCoordinates();
-            const elapsedTime = this.currentTime - waveTimes[j];
-            const elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
-            const elapsedFraction = Math.max(0, elapsedDistance / pathLength);
-            let endPoint;
-            if (elapsedFraction >= 1) {
-                endPoint = coords[coords.length - 1];
-                waveTimes.splice(j, 1);
-            }
-            else {
-                endPoint = path.getCoordinateAt(elapsedFraction);
-            }
 
-            const point = new Circle(endPoint);
-            vectorContext.setStyle(styles.creepColor(feature));
-            vectorContext.drawCircle(point);
+    start() {
+        if (!this.postComposeListener) {
+            this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
+        }
+        if (this.paused) this.playPause();
+        this.InteractiveMap.map.render();
+    }
+
+    stop() {
+        Observable.unByKey(this.postComposeListener);
+        this.postComposeListener = null;
+        const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+        if (layer) {
+            const features = layer.getSource().getFeatures();
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                feature.set('waveTimes', null, true);
+            }
+        }
+        this.startTime = null;
+        if (!this.paused) this.playPause();
+        this.pauseTime = null;
+        this.InteractiveMap.map.render();
+        this.setContent(this.title);
+    }
+
+    playPause() {
+        this.paused = !this.paused;
+        if (this.paused) {
+            this.playPauseBtn.classList.add('icon-play');
+            this.playPauseBtn.classList.remove('icon-pause');
+        }
+        else {
+            this.playPauseBtn.classList.add('icon-pause');
+            this.playPauseBtn.classList.remove('icon-play');
+            this.start();
         }
     }
-    let timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
-    if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x'
-    this.setContent(timeText);
-    frameState.animate = true;
+
+    activate() {
+        this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', true);
+        this.InteractiveMap.toggleLayerMenuOption('path_corner', true);
+        this.show(this.title);
+    }
+
+    deactivate() {
+        this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', false);
+        this.InteractiveMap.toggleLayerMenuOption('path_corner', false);
+        this.stop();
+        this.close();
+    }
+
+    animateCreeps(event) {
+        const vectorContext = event.vectorContext;
+        const frameState = event.frameState;
+        this.currentTime = frameState.time;
+        const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+        const pathLayer = this.InteractiveMap.getMapLayer('path_corner');
+        if (!layer || !pathLayer) return;
+        const features = layer.getSource().getFeatures();
+        if (!this.startTime) this.startTime = this.currentTime;
+        if (this.paused) {
+            if (this.pauseTime == null) this.pauseTime = frameState.time;
+            this.currentTime = this.pauseTime;
+        }
+        else {
+            if (this.pauseTime != null) {
+                for (let i = 0; i < features.length; i++) {
+                    const feature = features[i];
+                    const waveTimes = feature.get('waveTimes');
+                    if (waveTimes) {
+                        let j = waveTimes.length;
+                        while (j--) {
+                            waveTimes[j] += (this.currentTime - this.pauseTime);
+                        }
+                    }
+                }
+                this.startTime += (this.currentTime - this.pauseTime);
+                this.pauseTime = null;
+            }
+        }
+        for (let i = 0; i < features.length; i++) {
+            const feature = features[i];
+            const id = feature.getId();
+            const pathFeature = pathLayer.getSource().getFeatureById(id);
+            let waveTimes = feature.get('waveTimes');
+            if (!waveTimes) {
+                waveTimes = [this.currentTime];
+                feature.set('waveTimes', waveTimes, true);
+            }
+            if (this.currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
+                waveTimes.push(this.currentTime);
+            }
+            let j = waveTimes.length;
+            while (j--) {                
+                let path = feature.get('path');
+                let coords;
+                if (!path) {
+                    path = pathFeature.getGeometry().clone();
+                    coords = path.getCoordinates();
+                    coords[0] = feature.getGeometry().getCoordinates();
+                    path.setCoordinates(coords);
+                    feature.set('path', path, true);
+                }
+                const pathLength = path.getLength();
+                coords = path.getCoordinates();
+                const elapsedTime = this.currentTime - waveTimes[j];
+                const elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
+                const elapsedFraction = Math.max(0, elapsedDistance / pathLength);
+                let endPoint;
+                if (elapsedFraction >= 1) {
+                    endPoint = coords[coords.length - 1];
+                    waveTimes.splice(j, 1);
+                }
+                else {
+                    endPoint = path.getCoordinateAt(elapsedFraction);
+                }
+
+                const point = new Circle(endPoint);
+                vectorContext.setStyle(styles.creepColor(feature));
+                vectorContext.drawCircle(point);
+            }
+        }
+        let timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
+        if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x'
+        this.setContent(timeText);
+        frameState.animate = true;
+    }
 }
 
 export default CreepControl;

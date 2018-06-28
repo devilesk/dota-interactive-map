@@ -3,7 +3,7 @@ const key2pt = VisionSimulation.prototype.key2pt;
 const xy2key = VisionSimulation.prototype.xy2key;
 const xy2pt = VisionSimulation.prototype.xy2pt;
 
-function processNeighbors(grid, lights, components, key, index) {
+const processNeighbors = (grid, lights, components, key, index) => {
     const pt = key2pt(key);
     const dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
     for (let i = 0; i < dirs.length; i++) {
@@ -17,7 +17,7 @@ function processNeighbors(grid, lights, components, key, index) {
     }
 }
 
-function getLightUnion(grid, lights) {
+const getLightUnion = (grid, lights) => {
     const components = {};
     let index = 1;
     for (let key in lights) {
@@ -35,7 +35,7 @@ function getLightUnion(grid, lights) {
     return outlines;
 }
 
-function isSideFree(grid, components, pt, dir) {
+const isSideFree = (grid, components, pt, dir) => {
     const aX = pt.x+dir[0];
     const aY = pt.y+dir[1];
     if (!grid[aX] || !grid[aX][aY]) return true;
@@ -43,7 +43,7 @@ function isSideFree(grid, components, pt, dir) {
     return !components[keyAdj];
 }
 
-function notSurrounded(grid, components, pt) {
+const notSurrounded = (grid, components, pt) => {
     for (let i = 0; i < 8; i+=2) {
         const aX = pt.x+Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));
         const aY = pt.y+Math.round(Math.sin(2 * Math.PI - Math.PI/4 * i));
@@ -54,11 +54,9 @@ function notSurrounded(grid, components, pt) {
     return null;
 }
 
-function mod(n, m) {
-    return ((n % m) + m) % m;
-}
+const mod = (n, m) => ((n % m) + m) % m;
 
-function getOutline(grid, components, index) {
+const getOutline = (grid, components, index) => {
     const outlinePoints = [];
     let startKey;
     let dir = null;
@@ -79,7 +77,7 @@ function getOutline(grid, components, index) {
     return outlinePoints;
 }
 
-function checkAdj(grid, components, pt, key, dir, i, adjDir) {
+const checkAdj = (grid, components, pt, key, dir, i, adjDir) => {
     const aX = pt.x+dir[0];
     const aY = pt.y+dir[1];
     if (!grid[aX] || !grid[aX][aY]) return;
@@ -92,7 +90,7 @@ function checkAdj(grid, components, pt, key, dir, i, adjDir) {
     }
 }
 
-function processNext(grid, components, key, i) {
+const processNext = (grid, components, key, i) => {
     const pt = key2pt(key);
 
     const x = Math.round(Math.cos(2 * Math.PI - Math.PI/4 * i));

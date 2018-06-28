@@ -1,12 +1,12 @@
-function getJSON(path, callback) {
+const getJSON = (path, callback) => {
     let retries = 3;
     
-    function makeReq() {
+    const makeReq = () => {
         const request = new XMLHttpRequest();
 
         request.open('GET', path, true);
         let err;
-        request.onload = function() {
+        request.onload = () => {
             let data;
             if (request.status == 200) {
                 console.log(request);
@@ -23,12 +23,10 @@ function getJSON(path, callback) {
             }
             callback(err, data);
         };
-        request.onerror = function() {
+        request.onerror = () => {
             retries--;
             if (retries > 0) {
-                setTimeout(function () {
-                    makeReq();
-                }, 1000);
+                setTimeout(makeReq, 1000);
             }
             else {
                 err = new Error("Error loading json " + request.status);
