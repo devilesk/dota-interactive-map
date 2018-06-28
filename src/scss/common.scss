@@ -30,7 +30,7 @@ select:hover {
     line-height: 50px;
     
     &:hover {
-        @include transform(scale(0.9));
+        @include transform(scale(0.95));
     }
 }
 

@@ -27,11 +27,11 @@ select:hover {
   text-align: center;
   line-height: 50px; }
   .btn:hover, .btn-close:hover, .btn-open:hover, .btn-back:hover, .btn-tool:hover {
-    -moz-transform: scale(0.9);
-    -o-transform: scale(0.9);
-    -ms-transform: scale(0.9);
-    -webkit-transform: scale(0.9);
-    transform: scale(0.9); }
+    -moz-transform: scale(0.95);
+    -o-transform: scale(0.95);
+    -ms-transform: scale(0.95);
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95); }
 
 .button, .menu-item input.button, .menu-item input.button-half {
   color: #818181;
@@ -367,7 +367,11 @@ select:hover {
     -webkit-transform: scale(1);
     transform: scale(1); }
   #menu-right-back-btn + .btn-back {
-    opacity: 1; }
+    opacity: 1;
+    transition: all 0.25s linear; }
+    @media only screen and (max-width: 250px) {
+      #menu-right-back-btn + .btn-back {
+        margin-left: 50px; } }
   #menu-right-back-btn:checked + .btn-back {
     opacity: 0.5; }
 
@@ -393,8 +397,12 @@ select:hover {
 #menu-left-close-btn {
   left: 0; }
 
-#menu-right-close-btn {
+div#menu-right.expand-horizontal #menu-right-close-btn {
   right: 0; }
+
+#menu-right-close-btn {
+  right: -50px;
+  transition: all 0.5s linear; }
 
 #menu-left-open-btn,
 #menu-right-open-btn {
@@ -408,7 +416,7 @@ select:hover {
 
 #menu-right-open-btn {
   right: 0; }
-  #menu-right-open-btn::before {
+  #menu-right-open-btn::after {
     content: "";
     position: absolute;
     left: 10px;
@@ -417,18 +425,18 @@ select:hover {
     height: 4px;
     background: #818181;
     box-shadow: 0 8px 0 0 #818181, 0 16px 0 0 #818181; }
-  #menu-right-open-btn:hover::before {
+  #menu-right-open-btn:hover::after {
+    -moz-transform: scale(0.95);
+    -o-transform: scale(0.95);
+    -ms-transform: scale(0.95);
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95); }
+  #menu-right-open-btn:active:hover::after {
     -moz-transform: scale(0.9);
     -o-transform: scale(0.9);
     -ms-transform: scale(0.9);
     -webkit-transform: scale(0.9);
     transform: scale(0.9); }
-  #menu-right-open-btn:active:hover::before {
-    -moz-transform: scale(1);
-    -o-transform: scale(1);
-    -ms-transform: scale(1);
-    -webkit-transform: scale(1);
-    transform: scale(1); }
 
 @media only screen and (min-width: 768px) {
   .menu-panel {

@@ -197,6 +197,11 @@
     
     & + .btn-back {
         opacity: 1;
+        transition: all 0.25s linear;
+        
+        @media only screen and (max-width: #{$menu-width}) {
+            margin-left: 50px;
+        }
     }
     
     &:checked + .btn-back {
@@ -240,8 +245,12 @@
 #menu-left-close-btn {
     left: 0;
 }
-#menu-right-close-btn {
+div#menu-right.expand-horizontal #menu-right-close-btn {
     right: 0;
+}
+#menu-right-close-btn {
+    right: -50px;
+    transition: all 0.5s linear;
 }
 
 #menu-left-open-btn,
@@ -257,7 +266,7 @@
 #menu-right-open-btn {
     right: 0;
     
-    &::before {
+    &::after {
         content: "";
         position: absolute;
         left: 10px;
@@ -270,12 +279,12 @@
             0 16px 0 0 $text-color;
     }
     
-    &:hover::before {
-        @include transform(scale(0.9));
+    &:hover::after {
+        @include transform(scale(0.95));
     }
     
-    &:active:hover::before {
-        @include transform(scale(1));
+    &:active:hover::after {
+        @include transform(scale(0.9));
     }
 }
 
