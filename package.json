@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "npm run build",
     "render": "node scripts/render.js",
-    "markdown:help": "marked src/help.md -o www/help.html",
+    "markdown:help": "marked src/template/help.md -o src/template/help.html",
     "preprocess:html": "npm run markdown:help && node scripts/preprocess.js",
     "build": "npm run build:js && npm run build:css && npm run build:html",
     "build:js": "rollup -c --environment BUILD:development",
@@ -16,7 +16,7 @@
     "watch": "npm run watch:js & npm run watch:css & npm run watch:html",
     "watch:js": "rollup -c -w --environment BUILD:development",
     "watch:css": "nodemon -e scss --watch src/scss -x \"npm run build:css\"",
-    "watch:html": "nodemon -e j2,html,md --watch src -x \"npm run build:html\"",
+    "watch:html": "nodemon -e j2,md --watch src -x \"npm run build:html\"",
     "dist": "mkdir -p dist && npm run dist:clean && npm run dist:js && npm run dist:css && npm run dist:html && npm run dist:copy",
     "dist:clean": "rm -rf dist/*",
     "dist:js": "rollup -c --environment BUILD:production",

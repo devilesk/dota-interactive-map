@@ -1,3 +1,4 @@
 node_modules/
 config.json
 dist/
+src/template/*.html

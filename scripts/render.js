@@ -9,7 +9,7 @@ var context = yaml.safeLoadAll(fs.readFileSync('src/template/template_data.yaml'
 var my_template = require("../src/template/index.j2");
 var result = my_template.render(context);
 
-fs.writeFile('src/index.html', result, function(err) {
+fs.writeFile('src/template/index.html', result, function(err) {
     if (err) {
         console.log(err);
     }
