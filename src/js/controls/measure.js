@@ -43,9 +43,7 @@ class MeasureControl {
         this.InteractiveMap = InteractiveMap;
         this.map = InteractiveMap.map;
         this.info = InteractiveMap.infoControl;
-        this.source = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.source = new SourceVector({});
         
         this.layer =  new LayerVector({
             source: this.source

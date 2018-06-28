@@ -54,42 +54,28 @@ class InteractiveMap {
             view: this.view
         });
         
-        this.highlightSource = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.highlightSource = new SourceVector({});
         this.highlightLayer =  new LayerVector({
             source: this.highlightSource,
             style: styles.highlight
         });
 
-        this.selectSource = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.selectSource = new SourceVector({});
         this.selectLayer =  new LayerVector({
             source: this.selectSource,
             style: styles.select
         });
 
-        this.wardRangeSource = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.wardRangeSource = new SourceVector({});
         this.wardRangeLayer =  new LayerVector({
             source: this.wardRangeSource
         });
 
         this.rangeSources = {
-            dayVision: new SourceVector({
-                defaultDataProjection : 'pixel'
-            }),
-            nightVision: new SourceVector({
-                defaultDataProjection : 'pixel'
-            }),
-            trueSight: new SourceVector({
-                defaultDataProjection : 'pixel'
-            }),
-            attackRange: new SourceVector({
-                defaultDataProjection : 'pixel'
-            })
+            dayVision: new SourceVector({}),
+            nightVision: new SourceVector({}),
+            trueSight: new SourceVector({}),
+            attackRange: new SourceVector({})
         }
         this.rangeLayers = {
             dayVision: new LayerVector({

@@ -13,9 +13,7 @@ class DrawCurveControl {
     constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
         const map = InteractiveMap.map;
-        this.source = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.source = new SourceVector({});
         this.layer =  new LayerVector({
             source: this.source,
             style: styles.visionSimulation

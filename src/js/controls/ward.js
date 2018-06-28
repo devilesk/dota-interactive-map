@@ -12,9 +12,7 @@ class WardControl {
     constructor(InteractiveMap, throttleTime) {
         this.InteractiveMap = InteractiveMap;
         this.throttleTime = throttleTime;
-        this.source = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.source = new SourceVector({});
         this.layer =  new LayerVector({
             source: this.source
         });

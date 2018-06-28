@@ -9,9 +9,7 @@ import Feature from 'ol/feature';
 class VisionControl {
     constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
-        this.source = new SourceVector({
-            defaultDataProjection : 'pixel'
-        });
+        this.source = new SourceVector({});
         this.layer =  new LayerVector({
             source: this.source,
             style: styles.visionSimulation

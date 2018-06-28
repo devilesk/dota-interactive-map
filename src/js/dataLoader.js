@@ -13,7 +13,7 @@ const loadGeoJSON = (map, layerDef, data, version) => {
     try {
         const source = new SourceVector({
             url: 'data/' + version + '/' + layerDef.filename,
-            format: new GeoJSON({defaultDataProjection: layerDef.projection || pixelProj})
+            format: new GeoJSON({dataProjection: layerDef.projection || pixelProj})
         });
         return new LayerVector({
             title: layerDef.name,
@@ -41,7 +41,6 @@ const loadPolygon = (map, layerDef, data, layer) => {
     });
     
     const vectorSource = new SourceVector({
-        defaultDataProjection : 'dota',
         features: features
     });
     
@@ -88,7 +87,6 @@ const loadJSON = (map, layerDef, data, layer) => {
     });
     
     const vectorSource = new SourceVector({
-        defaultDataProjection : 'dota',
         features: features
     });
     
@@ -112,7 +110,6 @@ const loadJSON = (map, layerDef, data, layer) => {
 
 const loadNeutralPullRange = (InteractiveMap, layerDef, data, layer) => {
     const vectorSource = new SourceVector({
-        defaultDataProjection : 'pixel',
         features: []
     });
     

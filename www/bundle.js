@@ -2735,9 +2735,7 @@
           this.InteractiveMap = InteractiveMap;
           this.map = InteractiveMap.map;
           this.info = InteractiveMap.infoControl;
-          this.source = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.source = new SourceVector({});
           
           this.layer =  new LayerVector({
               source: this.source
@@ -3333,9 +3331,7 @@
   class VisionControl {
       constructor(InteractiveMap) {
           this.InteractiveMap = InteractiveMap;
-          this.source = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.source = new SourceVector({});
           this.layer =  new LayerVector({
               source: this.source,
               style: styles.visionSimulation
@@ -3423,9 +3419,7 @@
       constructor(InteractiveMap, throttleTime) {
           this.InteractiveMap = InteractiveMap;
           this.throttleTime = throttleTime;
-          this.source = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.source = new SourceVector({});
           this.layer =  new LayerVector({
               source: this.source
           });
@@ -3817,9 +3811,7 @@
   class CursorControl {
       constructor(InteractiveMap) {
           this.InteractiveMap = InteractiveMap;
-          this.source = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.source = new SourceVector({});
           this.layer =  new LayerVector({
               source: this.source,
               style: styles.cursor
@@ -3845,7 +3837,7 @@
       try {
           const source = new SourceVector({
               url: 'data/' + version + '/' + layerDef.filename,
-              format: new GeoJSON({defaultDataProjection: layerDef.projection || pixelProj})
+              format: new GeoJSON({dataProjection: layerDef.projection || pixelProj})
           });
           return new LayerVector({
               title: layerDef.name,
@@ -3873,7 +3865,6 @@
       });
       
       const vectorSource = new SourceVector({
-          defaultDataProjection : 'dota',
           features: features
       });
       
@@ -3920,7 +3911,6 @@
       });
       
       const vectorSource = new SourceVector({
-          defaultDataProjection : 'dota',
           features: features
       });
       
@@ -3944,7 +3934,6 @@
 
   const loadNeutralPullRange = (InteractiveMap, layerDef, data, layer) => {
       const vectorSource = new SourceVector({
-          defaultDataProjection : 'pixel',
           features: []
       });
       
@@ -4281,42 +4270,28 @@
               view: this.view
           });
           
-          this.highlightSource = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.highlightSource = new SourceVector({});
           this.highlightLayer =  new LayerVector({
               source: this.highlightSource,
               style: styles.highlight
           });
 
-          this.selectSource = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.selectSource = new SourceVector({});
           this.selectLayer =  new LayerVector({
               source: this.selectSource,
               style: styles.select
           });
 
-          this.wardRangeSource = new SourceVector({
-              defaultDataProjection : 'pixel'
-          });
+          this.wardRangeSource = new SourceVector({});
           this.wardRangeLayer =  new LayerVector({
               source: this.wardRangeSource
           });
 
           this.rangeSources = {
-              dayVision: new SourceVector({
-                  defaultDataProjection : 'pixel'
-              }),
-              nightVision: new SourceVector({
-                  defaultDataProjection : 'pixel'
-              }),
-              trueSight: new SourceVector({
-                  defaultDataProjection : 'pixel'
-              }),
-              attackRange: new SourceVector({
-                  defaultDataProjection : 'pixel'
-              })
+              dayVision: new SourceVector({}),
+              nightVision: new SourceVector({}),
+              trueSight: new SourceVector({}),
+              attackRange: new SourceVector({})
           };
           this.rangeLayers = {
               dayVision: new LayerVector({
@@ -4630,7 +4605,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "75b4e408299cce9ddfeb54a84e0b5a33cb6ec480",
+                  code_version: "02e64eb50dde8830a6acd4f5c4fea0dab5e0bfa4",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -4667,13 +4642,13 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  const buildDate = "2018-06-28 14:37:20 UTC";
+  const buildDate = "2018-06-28 15:07:45 UTC";
   document.getElementById('buildDate').innerHTML = buildDate;
 
   const releaseTag = "4.12.1";
   document.getElementById('releaseTag').innerHTML = releaseTag;
 
-  const codeVersion = "75b4e408299cce9ddfeb54a84e0b5a33cb6ec480";
+  const codeVersion = "02e64eb50dde8830a6acd4f5c4fea0dab5e0bfa4";
   document.getElementById('codeVersion').innerHTML = codeVersion;
 
   class App {

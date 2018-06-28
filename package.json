@@ -70,7 +70,7 @@
     "@turf/union": "^3.7.0",
     "clean-css-cli": "^4.1.10",
     "dota-vision-simulation": "^0.16.0",
-    "ol": "^4.6.4",
+    "ol": "^5.0.0",
     "rollbar": "^2.3.1"
   }
 }
