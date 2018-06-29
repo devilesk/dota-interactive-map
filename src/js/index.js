@@ -1,4 +1,3 @@
-import VisionSimulation from 'dota-vision-simulation';
 import worlddata from 'dota-vision-simulation/src/worlddata.json';
 import { setQueryString, getParameterByName } from './util/queryString';
 import proj from 'ol/proj';
@@ -37,15 +36,13 @@ document.getElementById('codeVersion').innerHTML = codeVersion;
 
 class App {
     constructor (map_tile_path, vision_data_image_path, version) {
-        const interactiveMap = new InteractiveMap(map_tile_path, version);
+        const interactiveMap = new InteractiveMap(map_tile_path, version, vision_data_image_path, worlddata);
         
         interactiveMap.toggleLayerMenuOption = (layerId, state) => {
             const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
             if (state != null) element.checked = state;
             this.updateLayerAndQueryString(element, layerId);
         }
-
-        interactiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, this.initialize.bind(this));
         
         const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
         const baseLayerToggleHandler = e => {
@@ -68,6 +65,8 @@ class App {
         controls.creep = new CreepControl(interactiveMap, 'timer');
         
         this.interactiveMap = interactiveMap;
+        
+        interactiveMap.vs.initialize(vision_data_image_path, this.initialize.bind(this));
     }
     
     changeMode(mode) {

@@ -1,3 +1,4 @@
+import VisionSimulation from 'dota-vision-simulation';
 import View from 'ol/view';
 import Map from 'ol/map';
 import Collection from 'ol/collection';
@@ -22,8 +23,10 @@ import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
 
 class InteractiveMap {
-    constructor(map_tile_path, version) {
+    constructor(map_tile_path, version, vision_data_image_path, worlddata) {
         this.map_tile_path = map_tile_path;
+        this.vision_data_image_path = vision_data_image_path;
+        this.vs = new VisionSimulation(worlddata);
         this.MODE = 'navigation';
         this.layerDefs = layerDefinitions;
         this.baseLayerDefs = baseLayerDefinitions;

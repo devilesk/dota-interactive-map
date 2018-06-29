@@ -67,7 +67,7 @@
   "dependencies": {
     "@turf/union": "^6.0.3",
     "clean-css-cli": "^4.1.10",
-    "dota-vision-simulation": "^0.16.0",
+    "dota-vision-simulation": "^0.17.0",
     "ol": "^5.0.0",
     "rollbar": "^2.3.1"
   }

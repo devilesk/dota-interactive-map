@@ -4,7 +4,8 @@ import union from "@turf/union";
 import { worldToLatLon } from "./conversion";
 import fs from 'fs';
 
-const vs = new VisionSimulation(worlddata, "www/img/map_data_715.png", () => {
+const vs = new VisionSimulation(worlddata);
+vs.initialize("www/img/map_data_715.png", () => {
     let t1 = Date.now();
     generateGeoJSON(vs, [vs.gridnav, vs.tools_no_wards], 'no_wards.json');
     console.log('no_wards.json', Date.now() - t1 + 'ms');
