@@ -15,7 +15,7 @@ import WardControl from './controls/ward';
 import TreeControl from './controls/tree';
 import CursorControl from './controls/cursor';
 import CoordinateControl from './controls/coordinate';
-import InteractiveMapConstructor from './InteractiveMap';
+import InteractiveMap from './InteractiveMap';
 import modeNotificationText from './modeNotificationText';
 
 import forEach from './util/forEach';
@@ -37,91 +37,91 @@ document.getElementById('codeVersion').innerHTML = codeVersion;
 
 class App {
     constructor (map_tile_path, vision_data_image_path, version) {
-        const InteractiveMap = new InteractiveMapConstructor(map_tile_path, version);
+        const interactiveMap = new InteractiveMap(map_tile_path, version);
         
-        InteractiveMap.toggleLayerMenuOption = (layerId, state) => {
+        interactiveMap.toggleLayerMenuOption = (layerId, state) => {
             const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
             if (state != null) element.checked = state;
             this.updateLayerAndQueryString(element, layerId);
         }
 
-        InteractiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, this.initialize.bind(this));
-        InteractiveMap.menuControl = new MenuControl(InteractiveMap);
+        interactiveMap.vs = new VisionSimulation(worlddata, vision_data_image_path, this.initialize.bind(this));
+        
         const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
         const baseLayerToggleHandler = e => {
             const layerId = e.currentTarget.getAttribute('data-layer-id');
-            this.InteractiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
+            this.interactiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
             setQueryString('BaseLayer', layerId);
         }
-        InteractiveMap.menuControl.initialize(layerToggleHandler, baseLayerToggleHandler);
-        InteractiveMap.infoControl = new InfoControl(InteractiveMap);
-        InteractiveMap.infoControl.initialize('info');
-        InteractiveMap.notificationControl = new NotificationControl();
-        InteractiveMap.notificationControl.initialize('notification');
-        InteractiveMap.visionControl = new VisionControl(InteractiveMap);
-        InteractiveMap.wardControl = new WardControl(InteractiveMap);
-        InteractiveMap.treeControl = new TreeControl(InteractiveMap);
-        InteractiveMap.cursorControl = new CursorControl(InteractiveMap);
-        InteractiveMap.coordinateControl = new CoordinateControl(InteractiveMap, 'coordinates');
-        InteractiveMap.measureControl = new MeasureControl(InteractiveMap);
-        InteractiveMap.creepControl = new CreepControl(InteractiveMap);
-        InteractiveMap.creepControl.initialize('timer');
         
-        this.InteractiveMap = InteractiveMap;
+        const controls = interactiveMap.controls;
+        
+        controls.menu = new MenuControl(interactiveMap, layerToggleHandler, baseLayerToggleHandler);
+        controls.info = new InfoControl(interactiveMap, 'info');
+        controls.notification = new NotificationControl('notification');
+        controls.vision = new VisionControl(interactiveMap);
+        controls.ward = new WardControl(interactiveMap);
+        controls.tree = new TreeControl(interactiveMap);
+        controls.cursor = new CursorControl(interactiveMap);
+        controls.coordinate = new CoordinateControl(interactiveMap, 'coordinates');
+        controls.measure = new MeasureControl(interactiveMap);
+        controls.creep = new CreepControl(interactiveMap, 'timer');
+        
+        this.interactiveMap = interactiveMap;
     }
     
     changeMode(mode) {
-        const InteractiveMap = this.InteractiveMap;
+        const interactiveMap = this.interactiveMap;
         switch (mode) {
             case 'observer':
             case 'sentry':
                 document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
             case 'ward':
                 document.querySelector('input[name="mode"][value="ward"]').checked = true;
-                InteractiveMap.MODE = document.querySelector('input[name="ward-type"]:checked').value;
-                document.getElementById('btn-ward').setAttribute('ward-type', InteractiveMap.MODE);
+                interactiveMap.MODE = document.querySelector('input[name="ward-type"]:checked').value;
+                document.getElementById('btn-ward').setAttribute('ward-type', interactiveMap.MODE);
                 document.getElementById('btn-ward').classList.add('active');
                 document.getElementById('btn-tree').classList.remove('active');
                 document.getElementById('btn-measure').classList.remove('active');
-                setQueryString('mode', InteractiveMap.MODE);
-                InteractiveMap.measureControl.deactivate();
-                InteractiveMap.wardControl.activate();
-                InteractiveMap.infoControl.deactivate();
+                setQueryString('mode', interactiveMap.MODE);
+                interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.ward.activate();
+                interactiveMap.controls.info.deactivate();
             break;
             case 'line':
             case 'circle':
                 document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
             case 'measure':
                 document.querySelector('input[name="mode"][value="measure"]').checked = true;
-                InteractiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
+                interactiveMap.MODE = document.querySelector('input[name="measure-type"]:checked').value;
                 document.getElementById('btn-ward').classList.remove('active');
                 document.getElementById('btn-tree').classList.remove('active');
                 document.getElementById('btn-measure').classList.add('active');
-                document.getElementById('btn-measure').setAttribute('measure-type', InteractiveMap.MODE);
-                setQueryString('mode', InteractiveMap.MODE);
-                InteractiveMap.measureControl.change(InteractiveMap.MODE);
-                InteractiveMap.wardControl.deactivate();
-                InteractiveMap.infoControl.deactivate();
+                document.getElementById('btn-measure').setAttribute('measure-type', interactiveMap.MODE);
+                setQueryString('mode', interactiveMap.MODE);
+                interactiveMap.controls.measure.change(interactiveMap.MODE);
+                interactiveMap.controls.ward.deactivate();
+                interactiveMap.controls.info.deactivate();
                 
             break;
             default:
                 document.querySelector('input[name="mode"][value="navigate"]').checked = true;
-                InteractiveMap.MODE = mode || "navigate";
+                interactiveMap.MODE = mode || "navigate";
                 document.getElementById('btn-ward').classList.remove('active');
                 document.getElementById('btn-tree').classList.add('active');
                 document.getElementById('btn-measure').classList.remove('active');
-                setQueryString('mode', InteractiveMap.MODE == 'navigate' ? null : InteractiveMap.MODE);
-                InteractiveMap.measureControl.deactivate();
-                InteractiveMap.wardControl.deactivate();
-                InteractiveMap.infoControl.activate();
+                setQueryString('mode', interactiveMap.MODE == 'navigate' ? null : interactiveMap.MODE);
+                interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.ward.deactivate();
+                interactiveMap.controls.info.activate();
             break;
         }
-        InteractiveMap.notificationControl.show(modeNotificationText[InteractiveMap.MODE]);
+        interactiveMap.controls.notification.show(modeNotificationText[interactiveMap.MODE]);
     }
 
     updateLayerAndQueryString(element, layerId) {
         layerId = layerId || element.getAttribute('data-layer-id');
-        const layer = this.InteractiveMap.getMapLayer(layerId);
+        const layer = this.interactiveMap.getMapLayer(layerId);
         if (layer) {
             layer.setVisible(element.checked);
             const param = layer.get("title").replace(/ /g, '');
@@ -138,7 +138,7 @@ class App {
         forEach(document.querySelectorAll('.data-layer > input'), element => {
             const label = element.nextSibling;
             const layerId = element.getAttribute('data-layer-id');
-            const layer = this.InteractiveMap.getMapLayer(layerId);
+            const layer = this.interactiveMap.getMapLayer(layerId);
             if (!layer) {
                 label.style.display = "none";
             }
@@ -154,12 +154,12 @@ class App {
         const y = getParameterByName('y');
         const zoom = getParameterByName('zoom');
         if (zoom) {
-            this.InteractiveMap.view.setZoom(zoom);
+            this.interactiveMap.view.setZoom(zoom);
         }
         if (x && y) {
             const coordinate = proj.transform([x, y], dotaProj, pixelProj);
             if (extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
-                this.InteractiveMap.panTo(coordinate);
+                this.interactiveMap.panTo(coordinate);
             }
         }
         
@@ -173,16 +173,16 @@ class App {
             element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
             if (element) {
                 element.checked = true;
-                this.InteractiveMap.baseLayers.filter(layer => layer.get("layerId") == baseLayerName)[0].setVisible(true);
+                this.interactiveMap.baseLayers.filter(layer => layer.get("layerId") == baseLayerName)[0].setVisible(true);
             }
         }
         if (!element) {
             setQueryString('BaseLayer', null);
-            this.InteractiveMap.baseLayers[0].setVisible(true);
-            document.querySelector('input[name="base-layer"][value="' + this.InteractiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
+            this.interactiveMap.baseLayers[0].setVisible(true);
+            document.querySelector('input[name="base-layer"][value="' + this.interactiveMap.baseLayers[0].get("layerId") + '"]').checked = true;
         }
         
-        this.InteractiveMap.layerDefs.forEach(layerDef => {
+        this.interactiveMap.layerDefs.forEach(layerDef => {
             const param = layerDef.name.replace(/ /g, '');
             const value = getParameterByName(param);
             if (value && value !== "false") {
@@ -200,34 +200,34 @@ class App {
     }
 
     initialize(err) {
-        this.InteractiveMap.infoControl.activate();
+        this.interactiveMap.controls.info.activate();
         
         this.setDefaults();
 
-        this.InteractiveMap.setMapLayers(this.InteractiveMap.version, err => {
+        this.interactiveMap.setMapLayers(this.interactiveMap.version, err => {
             if (!err) {
                 this.updateOverlayMenu();
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.measureControl.layer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.cursorControl.layer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.visionControl.layer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.wardControl.layer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.highlightLayer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.selectLayer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.wardRangeLayer);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.rangeLayers.dayVision);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.rangeLayers.nightVision);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.rangeLayers.trueSight);
-                this.InteractiveMap.map.addLayer(this.InteractiveMap.rangeLayers.attackRange);
+                this.interactiveMap.map.addLayer(this.interactiveMap.controls.measure.layer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.controls.cursor.layer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.controls.vision.layer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.controls.ward.layer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.highlightLayer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.selectLayer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.wardRangeLayer);
+                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.dayVision);
+                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.nightVision);
+                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.trueSight);
+                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.attackRange);
                 
-                this.InteractiveMap.treeControl.parseQueryString();
-                this.InteractiveMap.wardControl.parseQueryString();
+                this.interactiveMap.controls.tree.parseQueryString();
+                this.interactiveMap.controls.ward.parseQueryString();
             }
             else {
                 rollbar.log("Vision simulation load error.", err);
             }
         });
         
-        this.InteractiveMap.map.on('moveend', evt => {
+        this.interactiveMap.map.on('moveend', evt => {
             const map = evt.map;
             const ext = map.getView().calculateExtent(map.getSize());
             const center = extent.getCenter(ext);
@@ -235,7 +235,7 @@ class App {
             const coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
             setQueryString('x', coordinate[0]);
             setQueryString('y', coordinate[1]);
-            setQueryString('zoom', Math.round(this.InteractiveMap.view.getZoom()));
+            setQueryString('zoom', Math.round(this.interactiveMap.view.getZoom()));
         });
         
         forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), element => {
@@ -246,75 +246,75 @@ class App {
         
         document.getElementById('nightControl').addEventListener('change', e => {
             const el = e.currentTarget;
-            this.InteractiveMap.isNight = el.checked;
+            this.interactiveMap.isNight = el.checked;
             if (el.checked) {
-                this.InteractiveMap.notificationControl.show(modeNotificationText.nightOn);
+                this.interactiveMap.controls.notification.show(modeNotificationText.nightOn);
             }
             else {
-                this.InteractiveMap.notificationControl.show(modeNotificationText.nightOff);
+                this.interactiveMap.controls.notification.show(modeNotificationText.nightOff);
             }
         });
 
         document.getElementById('darknessControl').addEventListener('change', e => {
             const el = e.currentTarget;
-            this.InteractiveMap.isDarkness = el.checked;
+            this.interactiveMap.isDarkness = el.checked;
             if (el.checked) {
-                this.InteractiveMap.notificationControl.show(modeNotificationText.darknessOn);
+                this.interactiveMap.controls.notification.show(modeNotificationText.darknessOn);
             }
             else {
-                this.InteractiveMap.notificationControl.show(modeNotificationText.darknessOff);
+                this.interactiveMap.controls.notification.show(modeNotificationText.darknessOff);
             }
         });
 
         document.getElementById('creepControl').addEventListener('change', e => {
             if (e.currentTarget.checked) {
-                this.InteractiveMap.creepControl.activate();
+                this.interactiveMap.controls.creep.activate();
             }
             else {
-                this.InteractiveMap.creepControl.deactivate();
+                this.interactiveMap.controls.creep.deactivate();
             }
         });
 
-        document.getElementById('vision-radius').addEventListener('change', e => this.InteractiveMap.visionRadius = e.currentTarget.value);
+        document.getElementById('vision-radius').addEventListener('change', e => this.interactiveMap.visionRadius = e.currentTarget.value);
 
-        document.getElementById('movementSpeed').addEventListener('change', e => this.InteractiveMap.movementSpeed = e.currentTarget.value);
+        document.getElementById('movementSpeed').addEventListener('change', e => this.interactiveMap.movementSpeed = e.currentTarget.value);
             
-        document.getElementById('option-dayVision').addEventListener('change', e => this.InteractiveMap.rangeLayers.dayVision.setVisible(e.currentTarget.checked));
+        document.getElementById('option-dayVision').addEventListener('change', e => this.interactiveMap.rangeLayers.dayVision.setVisible(e.currentTarget.checked));
             
-        document.getElementById('option-nightVision').addEventListener('change', e => this.InteractiveMap.rangeLayers.nightVision.setVisible(e.currentTarget.checked));
+        document.getElementById('option-nightVision').addEventListener('change', e => this.interactiveMap.rangeLayers.nightVision.setVisible(e.currentTarget.checked));
             
-        document.getElementById('option-trueSight').addEventListener('change', e => this.InteractiveMap.rangeLayers.trueSight.setVisible(e.currentTarget.checked));
+        document.getElementById('option-trueSight').addEventListener('change', e => this.interactiveMap.rangeLayers.trueSight.setVisible(e.currentTarget.checked));
             
-        document.getElementById('option-attackRange').addEventListener('change', e => this.InteractiveMap.rangeLayers.attackRange.setVisible(e.currentTarget.checked));
+        document.getElementById('option-attackRange').addEventListener('change', e => this.interactiveMap.rangeLayers.attackRange.setVisible(e.currentTarget.checked));
             
         document.getElementById('version-select').addEventListener('change', e => {
             const el = e.currentTarget;
-            this.InteractiveMap.setMapLayers(el.value, err => {
+            this.interactiveMap.setMapLayers(el.value, err => {
                 if (!err) {
-                    this.InteractiveMap.creepControl.deactivate();
-                    this.InteractiveMap.version = el.value;
-                    document.getElementById('creepControl').disabled = !this.InteractiveMap.getMapLayer('npc_dota_spawner');
+                    this.interactiveMap.controls.creep.deactivate();
+                    this.interactiveMap.version = el.value;
+                    document.getElementById('creepControl').disabled = !this.interactiveMap.getMapLayer('npc_dota_spawner');
                     document.getElementById('creepControl').checked = false;
                 }
                 else {
-                    el.value = this.InteractiveMap.version;
+                    el.value = this.interactiveMap.version;
                     alert('Version change failed.');
                 }
             });
         });
             
-        document.getElementById('btn-zoom-in').addEventListener('click', () => this.InteractiveMap.view.animate({zoom: this.InteractiveMap.view.getZoom() + 1}));
+        document.getElementById('btn-zoom-in').addEventListener('click', () => this.interactiveMap.view.animate({zoom: this.interactiveMap.view.getZoom() + 1}));
             
-        document.getElementById('btn-zoom-out').addEventListener('click', () => this.InteractiveMap.view.animate({zoom: this.InteractiveMap.view.getZoom() - 1}));
+        document.getElementById('btn-zoom-out').addEventListener('click', () => this.interactiveMap.view.animate({zoom: this.interactiveMap.view.getZoom() - 1}));
 
         document.getElementById('reset').addEventListener('click', () => {
             if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
             this.setDefaults();
             this.updateOverlayMenu();
-            this.InteractiveMap.treeControl.toggleAllTrees(false, true);
-            this.InteractiveMap.treeControl.parseQueryString();
-            this.InteractiveMap.wardControl.clearWards();
-            this.InteractiveMap.wardControl.parseQueryString();
+            this.interactiveMap.controls.tree.toggleAllTrees(false, true);
+            this.interactiveMap.controls.tree.parseQueryString();
+            this.interactiveMap.controls.ward.clearWards();
+            this.interactiveMap.controls.ward.parseQueryString();
         });
 
         document.getElementById('btn-tree').addEventListener('click', e => {
@@ -325,9 +325,9 @@ class App {
             el.classList.add('active');
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-measure').classList.remove('active');
-            this.InteractiveMap.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
+            this.interactiveMap.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
             this.changeMode('navigate');
-            this.InteractiveMap.notificationControl.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
+            this.interactiveMap.controls.notification.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
         });
 
         document.getElementById('btn-ward').addEventListener('click', e => {

@@ -9,12 +9,18 @@ import { worldToLatLon } from './../conversion';
 import createCirclePointCoords from './../util/createCirclePointCoords';
 
 class InfoControl {
-    constructor(InteractiveMap) {
+    constructor(InteractiveMap, id) {
         this.InteractiveMap = InteractiveMap;
         //this.highlight = null;
         this.lastPointerMoveTime = Date.now();
         this.pointerMoveListener = null;
         this.clickListener = null;
+        
+        this.id = id;
+        this.info = document.getElementById(id);
+        this.infoContent = document.querySelector('#' + id + ' .message-content');
+        this.closeBtn = document.querySelector('#' + id + ' .btn-close');
+        this.closeBtn.addEventListener('click', evt => this.close(true), false);
     }
     
     activate() {
@@ -45,7 +51,7 @@ class InfoControl {
                     feature = this.InteractiveMap.checkAndHighlightWard(pixel);
                     
                     if (feature) {
-                        this.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'));
+                        this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'));
                     }
                     // no highlighted feature so unhighlight current feature
                     else if (!this.isActive()) {
@@ -65,7 +71,7 @@ class InfoControl {
                         this.InteractiveMap.deselectAll();
                         const dotaProps = feature.get('dotaProps');
                         if (feature.get('dotaProps').id == "ent_dota_tree") {
-                            this.InteractiveMap.treeControl.toggleTree(feature, dotaProps);
+                            this.InteractiveMap.controls.tree.toggleTree(feature, dotaProps);
                         }
                         else {
                             this.displayFeatureInfo(feature, true);
@@ -85,7 +91,7 @@ class InfoControl {
                     if (feature) {
                         const visionFeature = feature.get('visionFeature');
                         if (visionFeature) {
-                            this.InteractiveMap.wardControl.showVisibilityInfo(feature.get('visionFeature'), true);
+                            this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'), true);
                         }
                         else {
                             this.close(true);
@@ -135,14 +141,6 @@ class InfoControl {
         }
     }
 
-    initialize(id) {
-        this.id = id;
-        this.info = document.getElementById(id);
-        this.infoContent = document.querySelector('#' + id + ' .message-content');
-        this.closeBtn = document.querySelector('#' + id + ' .btn-close');
-        this.closeBtn.addEventListener('click', evt => this.close(true), false);
-    }
-    
     displayFeatureInfo(feature, bClicked) {
         this.setContent(getPopupContent(this.InteractiveMap.getStatData(), feature));
         this.open(bClicked);

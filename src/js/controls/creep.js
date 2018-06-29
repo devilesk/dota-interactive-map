@@ -64,7 +64,7 @@ const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) 
 }
 
 class CreepControl {
-    constructor(InteractiveMap) {
+    constructor(InteractiveMap, id) {
         this.InteractiveMap = InteractiveMap;
         this.postComposeListener = null;
         this.postComposeHandler = this.animateCreeps.bind(this);
@@ -72,6 +72,21 @@ class CreepControl {
         this.paused = true;
         this.pauseTime = null;
         this.title = 'Lane Animation';
+        
+        this.id = id;
+        this.info = document.getElementById(id);
+        this.infoContent = document.querySelector('#timer-time');
+        this.playPauseBtn = document.querySelector('#timer-playPause');
+        this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
+        
+        this.stopBtn = document.querySelector('#timer-stop');
+        this.stopBtn.addEventListener('click', () => this.stop(true), false);
+        
+        this.fasterBtn = document.querySelector('#timer-faster');
+        this.fasterBtn.addEventListener('click', () => this.faster(true), false);
+        
+        this.slowerBtn = document.querySelector('#timer-slower');
+        this.slowerBtn.addEventListener('click', () => this.slower(true), false);
     }
     
     show(message) {
@@ -92,23 +107,6 @@ class CreepControl {
     close() {
         this.info.classList.add('slideUp');
         this.info.classList.remove('slideDown');
-    }
-    
-    initialize(id) {
-        this.id = id;
-        this.info = document.getElementById(id);
-        this.infoContent = document.querySelector('#timer-time');
-        this.playPauseBtn = document.querySelector('#timer-playPause');
-        this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
-        
-        this.stopBtn = document.querySelector('#timer-stop');
-        this.stopBtn.addEventListener('click', () => this.stop(true), false);
-        
-        this.fasterBtn = document.querySelector('#timer-faster');
-        this.fasterBtn.addEventListener('click', () => this.faster(true), false);
-        
-        this.slowerBtn = document.querySelector('#timer-slower');
-        this.slowerBtn.addEventListener('click', () => this.slower(true), false);
     }
     
     slower() {

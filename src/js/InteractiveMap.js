@@ -34,6 +34,7 @@ class InteractiveMap {
             resolutions: mapConstants.resolutions,
             extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
         });
+        this.controls = {};
         this.data = {};
         this.layerIndex = {};
         this.version = version;
@@ -199,7 +200,7 @@ class InteractiveMap {
 
     checkAndHighlightWard(pixel) {
         const feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, {
-            layerFilter: this.wardControl.layerFilter
+            layerFilter: this.controls.ward.layerFilter
         });
         this.highlightWard(feature);
         return feature;

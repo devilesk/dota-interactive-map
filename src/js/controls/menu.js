@@ -4,10 +4,7 @@ class MenuPanel {
         this.openId = openId;
         this.closeId = closeId;
         this.fullscreen = fullscreen;
-        this.initialize();
-    }
-    
-    initialize() {
+
         this.panel = document.getElementById(this.panelId);
         
         this.openBtn = document.getElementById(this.openId);
@@ -79,10 +76,10 @@ class MenuPanel {
                 const el = e.currentTarget;
                 const layer = InteractiveMap.getMapLayer(layerDef.id);
                 if (layerDef.id == 'ent_dota_tree') {
-                    InteractiveMap.treeControl.toggleAllTrees(el.checked);
+                    InteractiveMap.controls.tree.toggleAllTrees(el.checked);
                 }
                 else {
-                    InteractiveMap.wardControl.toggleAll(layer, el.checked);
+                    InteractiveMap.controls.ward.toggleAll(layer, el.checked);
                 }
             });
             menuItem.appendChild(toggle);
@@ -93,15 +90,13 @@ class MenuPanel {
 }
 
 class MenuControl {
-    constructor(InteractiveMap) {
+    constructor(InteractiveMap, layerToggleHandler, baseLayerToggleHandler) {
         this.InteractiveMap = InteractiveMap;
         this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
         this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
         this.leftPanel.otherMenu = this.rightPanel;
         this.rightPanel.otherMenu = this.leftPanel;
-    }
-    
-    initialize(layerToggleHandler, baseLayerToggleHandler) {
+        
         this.InteractiveMap.layerDefs.forEach(layerDef => {
             const group = layerDef.group;
             const menu = document.querySelector('#' + group + '-menu');
@@ -116,7 +111,6 @@ class MenuControl {
             menu.appendChild(menuItem);
         });
     }
-
 }
 
 export default MenuControl;

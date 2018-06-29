@@ -42,7 +42,7 @@ class MeasureControl {
     constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
         this.map = InteractiveMap.map;
-        this.info = InteractiveMap.infoControl;
+        this.info = InteractiveMap.controls.info;
         this.source = new SourceVector({});
         
         this.layer =  new LayerVector({

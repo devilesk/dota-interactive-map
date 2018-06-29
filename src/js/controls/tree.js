@@ -50,7 +50,7 @@ class TreeControl {
         });
         this.updateQueryString();
         
-        this.InteractiveMap.wardControl.updateAllWardVision();
+        this.InteractiveMap.controls.ward.updateAllWardVision();
     }
 
     toggleTree(feature, dotaProps, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
@@ -59,7 +59,7 @@ class TreeControl {
         feature.set('isCut', !feature.get('isCut'));
         if (!bSkipQueryStringUpdate) this.updateQueryString();
         
-        if (!bSkipWardVisionUpdate) this.InteractiveMap.wardControl.updateAllWardVision();
+        if (!bSkipWardVisionUpdate) this.InteractiveMap.controls.ward.updateAllWardVision();
     }
 
     toggleAllTrees(state, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
@@ -74,7 +74,7 @@ class TreeControl {
         });
         if (!bSkipQueryStringUpdate) this.updateQueryString();
         
-        if (!bSkipWardVisionUpdate) this.InteractiveMap.wardControl.updateAllWardVision();
+        if (!bSkipWardVisionUpdate) this.InteractiveMap.controls.ward.updateAllWardVision();
     }
 
 }
