@@ -4,7 +4,6 @@
     left: 50px;
     height: 50px;
     width: 250px;
-    background-color: #888;
     z-index: 10;
     
     @media #{$vertical-toolbar} {
@@ -15,7 +14,6 @@
     }
 }
 .btn-tool {
-    @extend .btn;
     display: inline-block;
     position: relative;
     left: 0;
@@ -23,15 +21,6 @@
     @media #{$vertical-toolbar} {
         display: block;
     }
-}
-.btn-tool:hover,
-.btn-tool:active,
-.btn-tool.active {
-    @include transform(scale(0.9));
-}
-
-.btn-tool:active:hover {
-    @include transform(scale(1));
 }
 
 #btn-tree {

@@ -28,9 +28,16 @@ select:hover {
     display: block;
     text-align: center;
     line-height: 50px;
+    transition-duration: 0.1s;
     
+    &.active:hover,
     &:hover {
-        @include transform(scale(0.95));
+        @include transform(scale(0.9));
+    }
+
+    &.active,
+    &:active:hover {
+        @include transform(scale(0.8));
     }
 }
 
@@ -52,23 +59,14 @@ select:hover {
 }
 
 .btn-close, .btn-open, .btn-back {
-    @extend .btn;
     position: absolute;
     top: 0;
 }
 .btn-open {
     z-index: 40;
-    
-    &:hover {
-        @include transform(scale(1));
-    }
 }
 .btn-close {
     z-index: 30;
-    
-    &:active:hover {
-        @include transform(scale(1));
-    }
 }
 .btn-back {
     font-size: 36px;
