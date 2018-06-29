@@ -1,3 +1,5 @@
+import { setQueryString } from '../util/queryString';
+
 class MenuPanel {
     constructor(panelId, openId, closeId, fullscreen) {
         this.panelId = panelId;
@@ -87,10 +89,37 @@ class MenuPanel {
         
         return menuItem;
     }
+    
+    static createBaseLayerMenuItem(id, name, checked) {
+        const menuItem = document.createElement('div');
+            menuItem.classList.add('menu-item');
+            
+        const menuItemRb = document.createElement('input');
+            menuItemRb.id = `base-${id}-option`;
+            menuItemRb.checked = checked;
+            menuItemRb.setAttribute("type", "radio");
+            menuItemRb.setAttribute("name", "base-type");
+            menuItemRb.setAttribute("value", id);
+            menuItem.appendChild(menuItemRb);
+            
+        const menuItemLbl = document.createElement('label');
+            menuItemLbl.classList.add('checkbox');
+            menuItemLbl.setAttribute("for", menuItemRb.id);
+            menuItemLbl.innerHTML = name;
+            menuItem.appendChild(menuItemLbl);
+            
+        const subMenuItem = document.createElement('div');
+            subMenuItem.id = `base-${id}-menu`;
+            subMenuItem.classList.add('menu-item-group');
+            subMenuItem.classList.add('sub-menu');
+            menuItem.appendChild(subMenuItem);
+            
+        return menuItem;
+    }
 }
 
 class MenuControl {
-    constructor(InteractiveMap, layerToggleHandler, baseLayerToggleHandler) {
+    constructor(InteractiveMap, layerToggleHandler) {
         this.InteractiveMap = InteractiveMap;
         this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
         this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
@@ -103,12 +132,32 @@ class MenuControl {
             const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, layerToggleHandler);
             menu.appendChild(menuItem);
         });
+        
+        const baseLayerToggleHandler = e => {
+            const layerId = e.currentTarget.getAttribute('data-layer-id');
+            this.InteractiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
+            setQueryString('BaseLayer', layerId);
+        }
 
-        this.InteractiveMap.baseLayerDefs.forEach(layerDef => {
-            const group = layerDef.group;
-            const menu = document.querySelector('#base-' + group + '-menu');
-            const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
-            menu.appendChild(menuItem);
+        const versionSelect = document.getElementById('version-select');
+        const baseMenu = document.getElementById('base-menu');
+        var checked = true;
+        this.InteractiveMap.baseLayerDefs.forEach(group => {
+            const baseLayerMenu = MenuPanel.createBaseLayerMenuItem(group.id, group.name, checked);
+            baseMenu.appendChild(baseLayerMenu);
+            if (checked) checked = false;
+            
+            group.tilesets.forEach(tileset => {
+                const menu = document.querySelector('#base-' + group.id + '-menu');
+                const layerDef = {...tileset, group: group.id};
+                const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
+                menu.appendChild(menuItem);
+            });
+            
+            const versionOption = document.createElement('option');
+            versionOption.setAttribute("value", group.id);
+            versionOption.innerHTML = group.name;
+            versionSelect.appendChild(versionOption);
         });
     }
 }

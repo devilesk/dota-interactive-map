@@ -239,10 +239,37 @@
             
             return menuItem;
         }
+        
+        static createBaseLayerMenuItem(id, name, checked) {
+            const menuItem = document.createElement('div');
+                menuItem.classList.add('menu-item');
+                
+            const menuItemRb = document.createElement('input');
+                menuItemRb.id = `base-${id}-option`;
+                menuItemRb.checked = checked;
+                menuItemRb.setAttribute("type", "radio");
+                menuItemRb.setAttribute("name", "base-type");
+                menuItemRb.setAttribute("value", id);
+                menuItem.appendChild(menuItemRb);
+                
+            const menuItemLbl = document.createElement('label');
+                menuItemLbl.classList.add('checkbox');
+                menuItemLbl.setAttribute("for", menuItemRb.id);
+                menuItemLbl.innerHTML = name;
+                menuItem.appendChild(menuItemLbl);
+                
+            const subMenuItem = document.createElement('div');
+                subMenuItem.id = `base-${id}-menu`;
+                subMenuItem.classList.add('menu-item-group');
+                subMenuItem.classList.add('sub-menu');
+                menuItem.appendChild(subMenuItem);
+                
+            return menuItem;
+        }
     }
 
     class MenuControl {
-        constructor(InteractiveMap, layerToggleHandler, baseLayerToggleHandler) {
+        constructor(InteractiveMap, layerToggleHandler) {
             this.InteractiveMap = InteractiveMap;
             this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
             this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
@@ -255,12 +282,32 @@
                 const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, layerToggleHandler);
                 menu.appendChild(menuItem);
             });
+            
+            const baseLayerToggleHandler = e => {
+                const layerId = e.currentTarget.getAttribute('data-layer-id');
+                this.InteractiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
+                setQueryString('BaseLayer', layerId);
+            };
 
-            this.InteractiveMap.baseLayerDefs.forEach(layerDef => {
-                const group = layerDef.group;
-                const menu = document.querySelector('#base-' + group + '-menu');
-                const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
-                menu.appendChild(menuItem);
+            const versionSelect = document.getElementById('version-select');
+            const baseMenu = document.getElementById('base-menu');
+            var checked = true;
+            this.InteractiveMap.baseLayerDefs.forEach(group => {
+                const baseLayerMenu = MenuPanel.createBaseLayerMenuItem(group.id, group.name, checked);
+                baseMenu.appendChild(baseLayerMenu);
+                if (checked) checked = false;
+                
+                group.tilesets.forEach(tileset => {
+                    const menu = document.querySelector('#base-' + group.id + '-menu');
+                    const layerDef = {...tileset, group: group.id};
+                    const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
+                    menu.appendChild(menuItem);
+                });
+                
+                const versionOption = document.createElement('option');
+                versionOption.setAttribute("value", group.id);
+                versionOption.innerHTML = group.name;
+                versionSelect.appendChild(versionOption);
             });
         }
     }
@@ -3994,69 +4041,92 @@
 
     const baseLayerDefinitions = [
         {
-            id: 'default',
-            name: 'Default',
-            group: '715'
+            id: '715',
+            name: '7.15',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
         },
         {
-            id: 'default',
-            name: 'Default',
-            group: '709'
+            id: '709',
+            name: '7.09',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
         },
         {
-            id: 'default',
-            name: 'Default',
-            group: '707'
+            id: '707',
+            name: '7.07',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
         },
         {
-            id: 'default',
-            name: 'Default',
-            group: '706'
+            id: '706',
+            name: '7.06',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                },
+                {
+                    id: 'autumn',
+                    name: 'Autumn'
+                },
+                {
+                    id: 'desert',
+                    name: 'Desert'
+                },
+                {
+                    id: 'immortalgardens',
+                    name: 'Immortal Gardens'
+                },
+                {
+                    id: 'journey',
+                    name: 'New Journey'
+                },
+                {
+                    id: 'reef',
+                    name: 'Reef\'s Edge'
+                },
+                {
+                    id: 'spring',
+                    name: 'Spring'
+                },
+                {
+                    id: 'winter',
+                    name: 'Winter'
+                }
+            ]
         },
         {
-            id: 'autumn',
-            name: 'Autumn',
-            group: '706'
+            id: '700',
+            name: '7.00',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
         },
         {
-            id: 'desert',
-            name: 'Desert',
-            group: '706'
-        },
-        {
-            id: 'immortalgardens',
-            name: 'Immortal Gardens',
-            group: '706'
-        },
-        {
-            id: 'journey',
-            name: 'New Journey',
-            group: '706'
-        },
-        {
-            id: 'reef',
-            name: 'Reef\'s Edge',
-            group: '706'
-        },
-        {
-            id: 'spring',
-            name: 'Spring',
-            group: '706'
-        },
-        {
-            id: 'winter',
-            name: 'Winter',
-            group: '706'
-        },
-        {
-            id: 'default',
-            name: 'Default',
-            group: '700'
-        },
-        {
-            id: 'default',
-            name: 'Default',
-            group: '688'
+            id: '688',
+            name: '6.88',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
         }
     ];
 
@@ -4281,25 +4351,28 @@
             };
 
             // setup base layers
-            this.baseLayers = this.baseLayerDefs.map(layerDef => {
-                const layer = new LayerTile({
-                    title: layerDef.name,
-                    type: 'base',
-                    extent: pixelProj.getExtent(), //proj.pixel.getExtent()
-                    source: new TileImage({
-                        tileGrid: new TileGrid({
-                            origin: [0, mapConstants.map_h],
-                            resolutions: mapConstants.resolutions
+            this.baseLayers = this.baseLayerDefs.reduce((baseLayers, group) => {
+                return baseLayers.concat(group.tilesets.map(tileset => {
+                    const layerDef = {...tileset, group: group.id};
+                    const layer = new LayerTile({
+                        title: layerDef.name,
+                        type: 'base',
+                        extent: pixelProj.getExtent(), //proj.pixel.getExtent()
+                        source: new TileImage({
+                            tileGrid: new TileGrid({
+                                origin: [0, mapConstants.map_h],
+                                resolutions: mapConstants.resolutions
+                            }),
+                            projection: pixelProj,
+                            url: this.map_tile_path + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
                         }),
-                        projection: pixelProj,
-                        url: this.map_tile_path + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
-                    }),
-                    visible: !!layerDef.visible
-                });
-                layer.set('layerId', layerDef.group + '-' + layerDef.id, true);
-                layer.set('layerDef', layerDef, true);
-                return layer;
-            });
+                        visible: !!layerDef.visible
+                    });
+                    layer.set('layerId', layerDef.group + '-' + layerDef.id, true);
+                    layer.set('layerDef', layerDef, true);
+                    return layer;
+                }));
+            }, []);
             
             this.baseLayerGroup = new LayerGroup({
                 title: 'Base Layers',
@@ -4630,15 +4703,10 @@
             };
             
             const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
-            const baseLayerToggleHandler = e => {
-                const layerId = e.currentTarget.getAttribute('data-layer-id');
-                this.interactiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
-                setQueryString('BaseLayer', layerId);
-            };
-            
+
             const controls = interactiveMap.controls;
             
-            controls.menu = new MenuControl(interactiveMap, layerToggleHandler, baseLayerToggleHandler);
+            controls.menu = new MenuControl(interactiveMap, layerToggleHandler);
             controls.info = new InfoControl(interactiveMap, 'info');
             controls.notification = new NotificationControl('notification');
             controls.vision = new VisionControl(interactiveMap);

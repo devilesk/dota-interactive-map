@@ -45,15 +45,10 @@ class App {
         }
         
         const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
-        const baseLayerToggleHandler = e => {
-            const layerId = e.currentTarget.getAttribute('data-layer-id');
-            this.interactiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
-            setQueryString('BaseLayer', layerId);
-        }
-        
+
         const controls = interactiveMap.controls;
         
-        controls.menu = new MenuControl(interactiveMap, layerToggleHandler, baseLayerToggleHandler);
+        controls.menu = new MenuControl(interactiveMap, layerToggleHandler);
         controls.info = new InfoControl(interactiveMap, 'info');
         controls.notification = new NotificationControl('notification');
         controls.vision = new VisionControl(interactiveMap);

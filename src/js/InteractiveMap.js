@@ -101,25 +101,28 @@ class InteractiveMap {
         }
 
         // setup base layers
-        this.baseLayers = this.baseLayerDefs.map(layerDef => {
-            const layer = new LayerTile({
-                title: layerDef.name,
-                type: 'base',
-                extent: pixelProj.getExtent(), //proj.pixel.getExtent()
-                source: new TileImage({
-                    tileGrid: new TileGrid({
-                        origin: [0, mapConstants.map_h],
-                        resolutions: mapConstants.resolutions
+        this.baseLayers = this.baseLayerDefs.reduce((baseLayers, group) => {
+            return baseLayers.concat(group.tilesets.map(tileset => {
+                const layerDef = {...tileset, group: group.id};
+                const layer = new LayerTile({
+                    title: layerDef.name,
+                    type: 'base',
+                    extent: pixelProj.getExtent(), //proj.pixel.getExtent()
+                    source: new TileImage({
+                        tileGrid: new TileGrid({
+                            origin: [0, mapConstants.map_h],
+                            resolutions: mapConstants.resolutions
+                        }),
+                        projection: pixelProj,
+                        url: this.map_tile_path + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
                     }),
-                    projection: pixelProj,
-                    url: this.map_tile_path + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
-                }),
-                visible: !!layerDef.visible
-            });
-            layer.set('layerId', layerDef.group + '-' + layerDef.id, true);
-            layer.set('layerDef', layerDef, true);
-            return layer;
-        });
+                    visible: !!layerDef.visible
+                });
+                layer.set('layerId', layerDef.group + '-' + layerDef.id, true);
+                layer.set('layerDef', layerDef, true);
+                return layer;
+            }));
+        }, []);
         
         this.baseLayerGroup = new LayerGroup({
             title: 'Base Layers',

@@ -1,68 +1,91 @@
 const baseLayerDefinitions = [
     {
-        id: 'default',
-        name: 'Default',
-        group: '715'
+        id: '715',
+        name: '7.15',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default'
+            }
+        ]
     },
     {
-        id: 'default',
-        name: 'Default',
-        group: '709'
+        id: '709',
+        name: '7.09',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default'
+            }
+        ]
     },
     {
-        id: 'default',
-        name: 'Default',
-        group: '707'
+        id: '707',
+        name: '7.07',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default'
+            }
+        ]
     },
     {
-        id: 'default',
-        name: 'Default',
-        group: '706'
+        id: '706',
+        name: '7.06',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default'
+            },
+            {
+                id: 'autumn',
+                name: 'Autumn'
+            },
+            {
+                id: 'desert',
+                name: 'Desert'
+            },
+            {
+                id: 'immortalgardens',
+                name: 'Immortal Gardens'
+            },
+            {
+                id: 'journey',
+                name: 'New Journey'
+            },
+            {
+                id: 'reef',
+                name: 'Reef\'s Edge'
+            },
+            {
+                id: 'spring',
+                name: 'Spring'
+            },
+            {
+                id: 'winter',
+                name: 'Winter'
+            }
+        ]
     },
     {
-        id: 'autumn',
-        name: 'Autumn',
-        group: '706'
+        id: '700',
+        name: '7.00',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default'
+            }
+        ]
     },
     {
-        id: 'desert',
-        name: 'Desert',
-        group: '706'
-    },
-    {
-        id: 'immortalgardens',
-        name: 'Immortal Gardens',
-        group: '706'
-    },
-    {
-        id: 'journey',
-        name: 'New Journey',
-        group: '706'
-    },
-    {
-        id: 'reef',
-        name: 'Reef\'s Edge',
-        group: '706'
-    },
-    {
-        id: 'spring',
-        name: 'Spring',
-        group: '706'
-    },
-    {
-        id: 'winter',
-        name: 'Winter',
-        group: '706'
-    },
-    {
-        id: 'default',
-        name: 'Default',
-        group: '700'
-    },
-    {
-        id: 'default',
-        name: 'Default',
-        group: '688'
+        id: '688',
+        name: '6.88',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default'
+            }
+        ]
     }
 ];
 
