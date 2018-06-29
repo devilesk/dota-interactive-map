@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/proj'), require('ol/proj/projection'), require('ol/extent'), require('ol/geom/point'), require('ol/style/style'), require('ol/style/fill'), require('ol/style/stroke'), require('ol/style/regularshape'), require('ol/style/icon'), require('ol/style/circle'), require('ol/observable'), require('ol/geom/polygon'), require('ol/geom/linearring'), require('ol/feature'), require('ol/source/vector'), require('ol/layer/vector'), require('ol/geom/linestring'), require('ol/geom/circle'), require('ol/interaction/draw'), require('ol/overlay'), require('ol/geom/multipolygon'), require('ol/control/mouseposition'), require('ol/coordinate'), require('ol/format/geojson'), require('ol/layer/group'), require('ol/collection'), require('ol/view'), require('ol/map'), require('ol/source/tileimage'), require('ol/layer/tile'), require('ol/tilegrid/tilegrid'), require('ol/control'), require('ol/interaction')) :
-    typeof define === 'function' && define.amd ? define(['ol/proj', 'ol/proj/projection', 'ol/extent', 'ol/geom/point', 'ol/style/style', 'ol/style/fill', 'ol/style/stroke', 'ol/style/regularshape', 'ol/style/icon', 'ol/style/circle', 'ol/observable', 'ol/geom/polygon', 'ol/geom/linearring', 'ol/feature', 'ol/source/vector', 'ol/layer/vector', 'ol/geom/linestring', 'ol/geom/circle', 'ol/interaction/draw', 'ol/overlay', 'ol/geom/multipolygon', 'ol/control/mouseposition', 'ol/coordinate', 'ol/format/geojson', 'ol/layer/group', 'ol/collection', 'ol/view', 'ol/map', 'ol/source/tileimage', 'ol/layer/tile', 'ol/tilegrid/tilegrid', 'ol/control', 'ol/interaction'], factory) :
-    (global.InteractiveMap = factory(global.ol.proj,global.ol.proj.Projection,global.ol.extent,global.ol.geom.Point,global.ol.style.Style,global.ol.style.Fill,global.ol.style.Stroke,global.ol.style.RegularShape,global.ol.style.Icon,global.ol.style.Circle,global.ol.Observable,global.ol.geom.Polygon,global.ol.geom.LinearRing,global.ol.Feature,global.ol.source.Vector,global.ol.layer.Vector,global.ol.geom.LineString,global.ol.geom.Circle,global.ol.interaction.Draw,global.ol.Overlay,global.ol.geom.MultiPolygon,global.ol.control.MousePosition,global.ol.coordinate,global.ol.format.GeoJSON,global.ol.layer.Group,global.ol.Collection,global.ol.View,global.ol.Map,global.ol.source.TileImage,global.ol.layer.Tile,global.ol.tilegrid.TileGrid,global.ol.control,global.ol.interaction));
-}(this, (function (proj,Projection,extent,Point,Style,Fill,Stroke,RegularShape,Icon,Circle,Observable,Polygon,LinearRing,Feature,SourceVector,LayerVector,LineString,Circle$1,Draw,Overlay,MultiPolygon,MousePosition,coordinate,GeoJSON,LayerGroup,Collection,View,Map,TileImage,LayerTile,TileGrid,control,interaction) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/proj'), require('ol/proj/projection'), require('ol/extent'), require('ol/geom/point'), require('ol/style/style'), require('ol/style/fill'), require('ol/style/stroke'), require('ol/style/regularshape'), require('ol/style/icon'), require('ol/style/circle'), require('ol/source/vector'), require('ol/layer/vector'), require('ol/format/geojson'), require('ol/geom/polygon'), require('ol/feature'), require('ol/layer/group'), require('ol/collection'), require('ol/observable'), require('ol/geom/linearring'), require('ol/geom/linestring'), require('ol/geom/circle'), require('ol/interaction/draw'), require('ol/overlay'), require('ol/geom/multipolygon'), require('ol/control/mouseposition'), require('ol/coordinate'), require('ol/view'), require('ol/map'), require('ol/source/tileimage'), require('ol/layer/tile'), require('ol/tilegrid/tilegrid'), require('ol/control'), require('ol/interaction')) :
+    typeof define === 'function' && define.amd ? define(['ol/proj', 'ol/proj/projection', 'ol/extent', 'ol/geom/point', 'ol/style/style', 'ol/style/fill', 'ol/style/stroke', 'ol/style/regularshape', 'ol/style/icon', 'ol/style/circle', 'ol/source/vector', 'ol/layer/vector', 'ol/format/geojson', 'ol/geom/polygon', 'ol/feature', 'ol/layer/group', 'ol/collection', 'ol/observable', 'ol/geom/linearring', 'ol/geom/linestring', 'ol/geom/circle', 'ol/interaction/draw', 'ol/overlay', 'ol/geom/multipolygon', 'ol/control/mouseposition', 'ol/coordinate', 'ol/view', 'ol/map', 'ol/source/tileimage', 'ol/layer/tile', 'ol/tilegrid/tilegrid', 'ol/control', 'ol/interaction'], factory) :
+    (global.InteractiveMap = factory(global.ol.proj,global.ol.proj.Projection,global.ol.extent,global.ol.geom.Point,global.ol.style.Style,global.ol.style.Fill,global.ol.style.Stroke,global.ol.style.RegularShape,global.ol.style.Icon,global.ol.style.Circle,global.ol.source.Vector,global.ol.layer.Vector,global.ol.format.GeoJSON,global.ol.geom.Polygon,global.ol.Feature,global.ol.layer.Group,global.ol.Collection,global.ol.Observable,global.ol.geom.LinearRing,global.ol.geom.LineString,global.ol.geom.Circle,global.ol.interaction.Draw,global.ol.Overlay,global.ol.geom.MultiPolygon,global.ol.control.MousePosition,global.ol.coordinate,global.ol.View,global.ol.Map,global.ol.source.TileImage,global.ol.layer.Tile,global.ol.tilegrid.TileGrid,global.ol.control,global.ol.interaction));
+}(this, (function (proj,Projection,extent,Point,Style,Fill,Stroke,RegularShape,Icon,Circle,SourceVector,LayerVector,GeoJSON,Polygon,Feature,LayerGroup,Collection,Observable,LinearRing,LineString,Circle$1,Draw,Overlay,MultiPolygon,MousePosition,coordinate,View,Map,TileImage,LayerTile,TileGrid,control,interaction) {
     proj = proj && proj.hasOwnProperty('default') ? proj['default'] : proj;
     Projection = Projection && Projection.hasOwnProperty('default') ? Projection['default'] : Projection;
     extent = extent && extent.hasOwnProperty('default') ? extent['default'] : extent;
@@ -13,12 +13,15 @@
     RegularShape = RegularShape && RegularShape.hasOwnProperty('default') ? RegularShape['default'] : RegularShape;
     Icon = Icon && Icon.hasOwnProperty('default') ? Icon['default'] : Icon;
     Circle = Circle && Circle.hasOwnProperty('default') ? Circle['default'] : Circle;
-    Observable = Observable && Observable.hasOwnProperty('default') ? Observable['default'] : Observable;
-    Polygon = Polygon && Polygon.hasOwnProperty('default') ? Polygon['default'] : Polygon;
-    LinearRing = LinearRing && LinearRing.hasOwnProperty('default') ? LinearRing['default'] : LinearRing;
-    Feature = Feature && Feature.hasOwnProperty('default') ? Feature['default'] : Feature;
     SourceVector = SourceVector && SourceVector.hasOwnProperty('default') ? SourceVector['default'] : SourceVector;
     LayerVector = LayerVector && LayerVector.hasOwnProperty('default') ? LayerVector['default'] : LayerVector;
+    GeoJSON = GeoJSON && GeoJSON.hasOwnProperty('default') ? GeoJSON['default'] : GeoJSON;
+    Polygon = Polygon && Polygon.hasOwnProperty('default') ? Polygon['default'] : Polygon;
+    Feature = Feature && Feature.hasOwnProperty('default') ? Feature['default'] : Feature;
+    LayerGroup = LayerGroup && LayerGroup.hasOwnProperty('default') ? LayerGroup['default'] : LayerGroup;
+    Collection = Collection && Collection.hasOwnProperty('default') ? Collection['default'] : Collection;
+    Observable = Observable && Observable.hasOwnProperty('default') ? Observable['default'] : Observable;
+    LinearRing = LinearRing && LinearRing.hasOwnProperty('default') ? LinearRing['default'] : LinearRing;
     LineString = LineString && LineString.hasOwnProperty('default') ? LineString['default'] : LineString;
     Circle$1 = Circle$1 && Circle$1.hasOwnProperty('default') ? Circle$1['default'] : Circle$1;
     Draw = Draw && Draw.hasOwnProperty('default') ? Draw['default'] : Draw;
@@ -26,9 +29,6 @@
     MultiPolygon = MultiPolygon && MultiPolygon.hasOwnProperty('default') ? MultiPolygon['default'] : MultiPolygon;
     MousePosition = MousePosition && MousePosition.hasOwnProperty('default') ? MousePosition['default'] : MousePosition;
     coordinate = coordinate && coordinate.hasOwnProperty('default') ? coordinate['default'] : coordinate;
-    GeoJSON = GeoJSON && GeoJSON.hasOwnProperty('default') ? GeoJSON['default'] : GeoJSON;
-    LayerGroup = LayerGroup && LayerGroup.hasOwnProperty('default') ? LayerGroup['default'] : LayerGroup;
-    Collection = Collection && Collection.hasOwnProperty('default') ? Collection['default'] : Collection;
     View = View && View.hasOwnProperty('default') ? View['default'] : View;
     Map = Map && Map.hasOwnProperty('default') ? Map['default'] : Map;
     TileImage = TileImage && TileImage.hasOwnProperty('default') ? TileImage['default'] : TileImage;
@@ -149,1348 +149,6 @@
 
     proj.addProjection(dotaProj);
     proj.addCoordinateTransforms('dota', pixelProj, worldToLatLon, latLonToWorld);
-
-    class MenuPanel {
-        constructor(panelId, openId, closeId, fullscreen) {
-            this.panelId = panelId;
-            this.openId = openId;
-            this.closeId = closeId;
-            this.fullscreen = fullscreen;
-
-            this.panel = document.getElementById(this.panelId);
-            
-            this.openBtn = document.getElementById(this.openId);
-            this.openBtn.addEventListener("click", this.open.bind(this), false);
-            
-            this.closeBtn = document.getElementById(this.closeId);
-            this.closeBtn.addEventListener("click", this.close.bind(this), false);
-        }
-
-        open() {
-            this.panel.classList.add('expand-horizontal');
-            this.panel.classList.remove('collapsed-horizontal');
-            this.openBtn.classList.add('collapsed-horizontal');
-            this.openBtn.classList.remove('expand-horizontal');
-            this.otherMenu.close();
-        }
-            
-        close() {
-            this.panel.classList.remove('expand-horizontal');
-            this.panel.classList.add('collapsed-horizontal');
-            this.openBtn.classList.remove('collapsed-horizontal');
-            this.openBtn.classList.add('expand-horizontal');
-        }
-            
-        static createToggle(layerDef, handler) {
-            const toggle = document.createElement('div');
-                toggle.classList.add('btn-toggle');
-                
-            const toggleCb = document.createElement('input');
-                toggleCb.setAttribute("type", "checkbox");
-                toggleCb.id = 'toggle-' + layerDef.id;
-                toggleCb.addEventListener("change", handler, false);
-            toggle.appendChild(toggleCb);
-
-            const toggleLbl = document.createElement('label');
-                toggleLbl.setAttribute("for", toggleCb.id);
-            toggle.appendChild(toggleLbl);
-            
-            return toggle;
-        }
-
-        static createMenuPanelItem(InteractiveMap, layerDef, handler, inputType, inputName) {
-            let optionId = layerDef.id;
-            
-            const menuItem = document.createElement('div');
-                menuItem.classList.add('menu-item');
-                menuItem.classList.add(inputName || 'data-layer');
-                
-            const menuItemCb = document.createElement('input');
-                menuItemCb.setAttribute("type", inputType || "checkbox");
-                if (inputType == "radio") {
-                    optionId = layerDef.group + '-' + layerDef.id;
-                    menuItemCb.setAttribute("name", inputName);
-                    menuItemCb.setAttribute("value", optionId);
-                }
-                menuItemCb.id = 'option-' + optionId;
-                menuItemCb.setAttribute("data-layer-id", optionId);
-                menuItemCb.addEventListener("change", handler, false);
-            menuItem.appendChild(menuItemCb);
-            
-            const menuItemLbl = document.createElement('label');
-                menuItemLbl.classList.add('checkbox');
-                menuItemLbl.setAttribute("for", menuItemCb.id);
-                menuItemLbl.innerHTML = layerDef.name;
-            menuItem.appendChild(menuItemLbl);
-            
-            if (layerDef.toggle) {
-                const toggle = MenuPanel.createToggle(layerDef, e => {
-                    const el = e.currentTarget;
-                    const layer = InteractiveMap.getMapLayer(layerDef.id);
-                    if (layerDef.id == 'ent_dota_tree') {
-                        InteractiveMap.controls.tree.toggleAllTrees(el.checked);
-                    }
-                    else {
-                        InteractiveMap.controls.ward.toggleAll(layer, el.checked);
-                    }
-                });
-                menuItem.appendChild(toggle);
-            }
-            
-            return menuItem;
-        }
-        
-        static createBaseLayerMenuItem(id, name, checked) {
-            const menuItem = document.createElement('div');
-                menuItem.classList.add('menu-item');
-                
-            const menuItemRb = document.createElement('input');
-                menuItemRb.id = `base-${id}-option`;
-                menuItemRb.checked = checked;
-                menuItemRb.setAttribute("type", "radio");
-                menuItemRb.setAttribute("name", "base-type");
-                menuItemRb.setAttribute("value", id);
-                menuItem.appendChild(menuItemRb);
-                
-            const menuItemLbl = document.createElement('label');
-                menuItemLbl.classList.add('checkbox');
-                menuItemLbl.setAttribute("for", menuItemRb.id);
-                menuItemLbl.innerHTML = name;
-                menuItem.appendChild(menuItemLbl);
-                
-            const subMenuItem = document.createElement('div');
-                subMenuItem.id = `base-${id}-menu`;
-                subMenuItem.classList.add('menu-item-group');
-                subMenuItem.classList.add('sub-menu');
-                menuItem.appendChild(subMenuItem);
-                
-            return menuItem;
-        }
-    }
-
-    class MenuControl {
-        constructor(InteractiveMap, layerToggleHandler) {
-            this.InteractiveMap = InteractiveMap;
-            this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
-            this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
-            this.leftPanel.otherMenu = this.rightPanel;
-            this.rightPanel.otherMenu = this.leftPanel;
-            
-            this.InteractiveMap.layerDefs.forEach(layerDef => {
-                const group = layerDef.group;
-                const menu = document.querySelector('#' + group + '-menu');
-                const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, layerToggleHandler);
-                menu.appendChild(menuItem);
-            });
-            
-            const baseLayerToggleHandler = e => {
-                const layerId = e.currentTarget.getAttribute('data-layer-id');
-                this.InteractiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
-                setQueryString('BaseLayer', layerId);
-            };
-
-            const versionSelect = document.getElementById('version-select');
-            const baseMenu = document.getElementById('base-menu');
-            var checked = true;
-            this.InteractiveMap.baseLayerDefs.forEach(group => {
-                const baseLayerMenu = MenuPanel.createBaseLayerMenuItem(group.id, group.name, checked);
-                baseMenu.appendChild(baseLayerMenu);
-                if (checked) checked = false;
-                
-                group.tilesets.forEach(tileset => {
-                    const menu = document.querySelector('#base-' + group.id + '-menu');
-                    const layerDef = {...tileset, group: group.id};
-                    const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
-                    menu.appendChild(menuItem);
-                });
-                
-                const versionOption = document.createElement('option');
-                versionOption.setAttribute("value", group.id);
-                versionOption.innerHTML = group.name;
-                versionSelect.appendChild(versionOption);
-            });
-        }
-    }
-
-    const capitalize = string => string.charAt(0).toUpperCase() + string.slice(1);
-
-    const unitNames = {
-        npc_dota_roshan_spawner: "Roshan",
-        dota_item_rune_spawner_powerup: "Rune",
-        dota_item_rune_spawner_bounty: "Bounty Rune",
-        ent_dota_tree: "Tree",
-        npc_dota_healer: "Shrine",
-        ent_dota_fountain: "Fountain",
-        npc_dota_fort: "Ancient",
-        ent_dota_shop: "Shop",
-        npc_dota_tower: "Tower",
-        npc_dota_barracks: "Barracks",
-        npc_dota_filler: "Building",
-        trigger_multiple: "Neutral Camp Spawn Box",
-        npc_dota_neutral_spawner: "Neutral Camp",
-        observer: "Observer Ward",
-        sentry: "Sentry Ward"
-    };
-        
-    const getUnitName = (unitType, unitSubType) => (unitSubType
-                                                    ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' '
-                                                    : '') + unitNames[unitType];
-        
-    const pullTypes = ['Normal', 'Fast', 'Slow'];
-    const neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
-
-    const getPopupContent = (stats, feature) => {
-        const dotaProps = feature.get('dotaProps');
-        const unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
-        const unitStats = stats[unitClass];
-        let htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
-        if (dotaProps.pullType != null) {
-            htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
-        }
-        if (dotaProps.neutralType != null) {
-            htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
-        }
-        if (stats && unitStats) {
-            if (unitStats.hasOwnProperty('damageMin') && unitStats.hasOwnProperty('damageMax')) {
-                htmlContent += '<br><span class="info-line">Damage: ' + unitStats.damageMin + "&ndash;" + unitStats.damageMax + '</span>';
-            }
-            if (unitStats.hasOwnProperty('bat')) {
-                htmlContent += '<br><span class="info-line">BAT: ' + unitStats.bat + '</span>';
-            }
-            if (unitStats.hasOwnProperty('attackRange')) {
-                htmlContent += '<br><span class="info-line">Attack Range: ' + unitStats.attackRange + '</span>';
-            }
-            if (unitStats.hasOwnProperty('health')) {
-                htmlContent += '<br><span class="info-line">Health: ' + unitStats.health + '</span>';
-            }
-            if (unitStats.hasOwnProperty('armor')) {
-                htmlContent += '<br><span class="info-line">Armor: ' + unitStats.armor + '</span>';
-            }
-            if (unitStats.hasOwnProperty('dayVision') && unitStats.hasOwnProperty('nightVision')) {
-                htmlContent += '<br><span class="info-line">Vision: ' + unitStats.dayVision + "/" + unitStats.nightVision + '</span>';
-            }
-        }
-        htmlContent += '</span></div>';
-        return htmlContent;
-    };
-
-    const getFeatureCenter = feature => {
-        const ext = feature.getGeometry().getExtent();
-        const center = extent.getCenter(ext);
-        return new Point(center);
-    };
-
-    const defaultStyle = new Style({
-        fill: new Fill({
-            color: 'rgba(255,255,255,0.4)'
-        }),
-        stroke: new Stroke({
-            color: '#3399CC',
-            width: 1.25
-        })
-    });
-
-    const styles = {
-        creepSpawn: new Style({
-            image: new RegularShape({
-                points: 6,
-                radius: 8,
-                fill: new Fill({
-                    color: 'rgba(0, 0, 255, 0.3)'
-                }),
-                stroke: new Stroke({
-                    color: 'rgba(0, 0, 255, 0.7)',
-                    width: 2
-                })
-            })
-        }),
-        neutralCamp: [
-            new Style({
-                image: new RegularShape({
-                    points: 3,
-                    radius: 8,
-                    fill: new Fill({
-                        color: 'rgba(0, 255, 0, 0.3)'
-                    }),
-                    stroke: new Stroke({
-                        color: 'rgba(0, 255, 0, 0.7)',
-                        width: 2
-                    })
-                })
-            }),
-            new Style({
-                image: new RegularShape({
-                    points: 3,
-                    radius: 9,
-                    fill: new Fill({
-                        color: 'rgba(255, 255, 0, 0.3)'
-                    }),
-                    stroke: new Stroke({
-                        color: 'rgba(255, 255, 0, 0.7)',
-                        width: 2
-                    })
-                })
-            }),
-            new Style({
-                image: new RegularShape({
-                    points: 3,
-                    radius: 10,
-                    fill: new Fill({
-                        color: 'rgba(255, 150, 0, 0.3)'
-                    }),
-                    stroke: new Stroke({
-                        color: 'rgba(255, 150, 0, 0.7)',
-                        width: 2
-                    })
-                })
-            }),
-            new Style({
-                image: new RegularShape({
-                    points: 3,
-                    radius: 11,
-                    fill: new Fill({
-                        color: 'rgba(255, 0, 0, 0.3)'
-                    }),
-                    stroke: new Stroke({
-                        color: 'rgba(255, 0, 0, 0.7)',
-                        width: 2
-                    })
-                })
-            })
-        ],
-        dire: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 51, 51, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: '#FF3333',
-                width: 2
-            })
-        }),
-        radiant: new Style({
-            fill: new Fill({
-                color: 'rgba(51, 255, 51, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: '#33FF33',
-                width: 2
-            })
-        }),
-        direCreep: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 51, 51, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: '#FF3333',
-                width: 10
-            })
-        }),
-        radiantCreep: new Style({
-            fill: new Fill({
-                color: 'rgba(51, 255, 51, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: '#33FF33',
-                width: 10
-            })
-        }),
-        highlight: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 255, 0, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: '#ffff00',
-                width: 2
-            })
-        }),
-        select: new Style({
-            fill: new Fill({
-                color: 'rgba(0, 255, 0, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: '#00ff00',
-                width: 2
-            })
-        }),
-        cursor: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 255, 255, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(255, 255, 255, 1)',
-                width: 1
-            })
-        }),
-        visionSimulation: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 255, 0, 0.2)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(255, 255, 0, 1)',
-                width: 1
-            })
-        }),
-        dayVision: new Style({
-            fill: new Fill({
-                color: 'rgba(238, 153, 0, 0.1)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(238, 153, 0, 0.5)',
-                width: 2
-            })
-        }),
-        nightVision: new Style({
-            fill: new Fill({
-                color: 'rgba(0, 127, 255, 0.1)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(0, 0, 255, 0.5)',
-                width: 2
-            })
-        }),
-        trueSight: new Style({
-            fill: new Fill({
-                color: 'rgba(0, 127, 255, 0.1)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(0, 127, 255, 0.5)',
-                width: 2
-            })
-        }),
-        attackRange: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 0, 0, 0.1)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(255, 0, 0, 0.5)',
-                width: 2
-            })
-        }),
-        ent_dota_fountain: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/water-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        npc_dota_barracks: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/stadium-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        npc_dota_filler: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/landmark-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        npc_dota_tower: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/castle-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        ent_dota_shop: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/shop-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        npc_dota_fort: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/town-hall-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        npc_dota_healer: [
-            defaultStyle,
-            new Style({
-                image: new Icon({
-                    src: 'img/svgs/place-of-worship-15.svg',
-                    anchor: [0.5, 0.5],
-                    imgSize: [21, 21]
-                }),
-                geometry: getFeatureCenter
-            })
-        ],
-        measure: new Style({
-            fill: new Fill({
-                color: 'rgba(255, 255, 255, 0.3)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(255,165,0, 0.7)',
-                lineDash: [10, 10],
-                width: 3
-            }),
-            image: new Circle({
-                radius: 5,
-                stroke: new Stroke({
-                    color: 'rgba(255,165,0, 0.7)',
-                    width: 2
-                }),
-                fill: new Fill({
-                    color: 'rgba(255,165,0, 0.3)'
-                })
-            })
-        }),
-        observer: {
-            normal: new Style({
-                image: new Icon({
-                    src: 'img/ward_observer.png',
-                    anchor: [0.5, 1]
-                })
-            }),
-            highlight: new Style({
-                image: new Icon({
-                    src: 'img/ward_observer.png',
-                    anchor: [0.5, 1],
-                    color: '#0000ff'
-                })
-            }),
-            remove: new Style({
-                image: new Icon({
-                    src: 'img/ward_observer.png',
-                    anchor: [0.5, 1],
-                    color: '#ff0000'
-                })
-            })
-        },
-        sentry: {
-            normal: new Style({
-                image: new Icon({
-                    src: 'img/ward_sentry.png',
-                    anchor: [0.5, 1]
-                })
-            }),
-            highlight: new Style({
-                image: new Icon({
-                    src: 'img/ward_sentry.png',
-                    anchor: [0.5, 1],
-                    color: '#0000ff'
-                })
-            }),
-            remove: new Style({
-                image: new Icon({
-                    src: 'img/ward_sentry.png',
-                    anchor: [0.5, 1],
-                    color: '#ff0000'
-                })
-            })
-        },
-        tree: {
-            alive: new Style({
-                fill: new Fill({color: [0, 255, 0, 0.3]}),
-                stroke: new Stroke({color: [0, 255, 0, 0.8]})
-            }),
-            dead: new Style({
-                fill: new Fill({color: [51, 25, 0, 0.7]}),
-                stroke: new Stroke({color: [255, 128, 0, 0.8]})
-            })
-        },
-        bountyRune: new Style({
-            image: new Icon({
-                src: 'img/bountyrune.png',
-                anchor: [0.5, 0.5]
-            })
-        }),
-        rune: new Style({
-            image: new Icon({
-                src: 'img/doubledamage.png',
-                anchor: [0.5, 0.5]
-            })
-        }),
-        roshan: new Style({
-            image: new Icon({
-                src: 'img/roshan.png',
-                anchor: [0.5, 0.5]
-            })
-        }),
-        pullRange: new Style({
-            fill: new Fill({
-                color: 'rgba(0, 153, 238, 0.1)'
-            }),
-            stroke: new Stroke({
-                color: 'rgba(0, 153, 238, 0.5)',
-                width: 2
-            })
-        }),
-    };
-
-    styles.teamColor = (feature, resolution) => {
-        if (feature.getId().indexOf('_bad_') == -1) {
-            return styles.radiant;
-        }
-        else {
-            return styles.dire;
-        }
-    };
-
-    styles.creepColor = (feature, resolution) => {
-        if (feature.getId().indexOf('_bad_') == -1) {
-            return styles.radiantCreep;
-        }
-        else {
-            return styles.direCreep;
-        }
-    };
-
-    const createCirclePointCoords = (circleCenterX, circleCenterY, circleRadius, pointsToFind) => {
-        const angleToAdd = 360/pointsToFind;
-        const coords = [];  
-        let angle = 0;
-        for (let i = 0; i < pointsToFind; i++) {
-            angle += angleToAdd;
-            const coordX = circleCenterX + circleRadius * Math.cos(angle * Math.PI/180);
-            const coordY = circleCenterY + circleRadius * Math.sin(angle * Math.PI/180);
-            coords.push([coordX,coordY]);
-        }
-        return coords;
-    };
-
-    class InfoControl {
-        constructor(InteractiveMap, id) {
-            this.InteractiveMap = InteractiveMap;
-            //this.highlight = null;
-            this.lastPointerMoveTime = Date.now();
-            this.pointerMoveListener = null;
-            this.clickListener = null;
-            
-            this.id = id;
-            this.info = document.getElementById(id);
-            this.infoContent = document.querySelector('#' + id + ' .message-content');
-            this.closeBtn = document.querySelector('#' + id + ' .btn-close');
-            this.closeBtn.addEventListener('click', evt => this.close(true), false);
-        }
-        
-        activate() {
-            if (!this.pointerMoveListener) {
-                this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', evt => {
-                    // When user was dragging map, then coordinates didn't change and there's
-                    // no need to continue
-                    if (evt.dragging) {
-                        return;
-                    }
-
-                    const pixel = this.InteractiveMap.map.getEventPixel(evt.originalEvent);
-                    
-                    // if mouse over a building feature, show info and highlight
-                    let feature = this.InteractiveMap.map.forEachFeatureAtPixel(pixel, feature => feature, {
-                        layerFilter: this.InteractiveMap.layerFilters.marker
-                    });
-                    if (feature) {
-                        if (!this.isActive()) {
-                            this.displayFeatureInfo(feature, false);
-                        }
-                        this.highlight(feature);
-                    }
-                    else {
-                        this.close(false);
-                
-                        // if mouse over a ward feature, highlight
-                        feature = this.InteractiveMap.checkAndHighlightWard(pixel);
-                        
-                        if (feature) {
-                            this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'));
-                        }
-                        // no highlighted feature so unhighlight current feature
-                        else if (!this.isActive()) {
-                            this.unhighlight();
-                        }
-                    }
-                });
-            }
-            if (!this.clickListener) {
-                this.clickListener = this.InteractiveMap.map.on('click', evt => {
-                    this.unhighlight();
-                    let feature = this.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, feature => feature, {
-                        layerFilter: this.InteractiveMap.layerFilters.marker
-                    });
-                    if (feature) {
-                        if (!feature.get("clicked")) {
-                            this.InteractiveMap.deselectAll();
-                            const dotaProps = feature.get('dotaProps');
-                            if (feature.get('dotaProps').id == "ent_dota_tree") {
-                                this.InteractiveMap.controls.tree.toggleTree(feature, dotaProps);
-                            }
-                            else {
-                                this.displayFeatureInfo(feature, true);
-                                this.select(feature);
-                                this.InteractiveMap.panTo(evt.coordinate);
-                            }
-                        }
-                        else {
-                            this.InteractiveMap.deselectAll();
-                            this.close(true);
-                        }
-                    }
-                    else {
-                        // if clicked a ward feature, highlight
-                        feature = this.InteractiveMap.checkAndHighlightWard(evt.pixel);
-                        
-                        if (feature) {
-                            const visionFeature = feature.get('visionFeature');
-                            if (visionFeature) {
-                                this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'), true);
-                            }
-                            else {
-                                this.close(true);
-                            }
-                            this.InteractiveMap.panTo(evt.coordinate);
-                        }
-                        // no highlighted feature so unhighlight current feature
-                        else if (!this.isActive()) {
-                            this.unhighlight();            
-                            this.close(true);
-                        }
-                        this.InteractiveMap.deselectAll();
-                    }
-                });
-            }
-        }
-        
-        deactivate() {
-            this.InteractiveMap.unhighlightWard();
-            Observable.unByKey(this.pointerMoveListener);
-            this.pointerMoveListener = null;
-            Observable.unByKey(this.clickListener);
-            this.clickListener = null;
-        }
-
-        setContent(html) {
-            this.infoContent.innerHTML = html;
-        }
-
-        isActive() {
-            return this.info.classList.contains('active');
-        }
-
-        open(bClicked) {
-            this.info.classList.add('slideUp');
-            this.info.classList.remove('slideDown');
-            if (bClicked) {
-                this.info.classList.add('active');
-            }
-        }
-
-        close(bOverrideActive) {
-            if (!this.isActive() || bOverrideActive) {
-                this.info.classList.add('slideDown');
-                this.info.classList.remove('slideUp');
-                this.info.classList.remove('active');
-            }
-        }
-
-        displayFeatureInfo(feature, bClicked) {
-            this.setContent(getPopupContent(this.InteractiveMap.getStatData(), feature));
-            this.open(bClicked);
-        };
-
-        unhighlight(feature) {
-            const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
-            if (highlightedFeature && !highlightedFeature.get("clicked")) {
-                const dotaProps = highlightedFeature.get('dotaProps');
-                if (dotaProps) {
-                    if (dotaProps.id == 'npc_dota_neutral_spawner') {
-                        const pullRange = highlightedFeature.get('pullRange');
-                        if (pullRange) {
-                            this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(pullRange);
-                            highlightedFeature.set("pullRange", null, true);
-                        }
-                        const guardRange = highlightedFeature.get('guardRange');
-                        if (guardRange) {
-                            this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(guardRange);
-                            highlightedFeature.set("guardRange", null, true);
-                        }
-                    }
-                }
-            }
-            this.InteractiveMap.unhighlight();
-        }
-
-        highlight(feature) {
-            this.unhighlight();
-            const dotaProps = feature.get('dotaProps');
-            if (dotaProps) {
-                if (dotaProps.id == 'npc_dota_neutral_spawner') {
-                    if (!feature.get('pullRange')) {
-                        let circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
-                        feature.set("guardRange", circle, true);
-                        this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
-                        
-                        const center = worldToLatLon([dotaProps.x, dotaProps.y]);
-                        const pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
-                        const pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
-                        const pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
-                        const geom = new Polygon([pullMaxCoords]);
-                        geom.appendLinearRing(new LinearRing(pullMinCoords));
-                        circle = new Feature(geom);
-                        feature.set("pullRange", circle, true);
-                        this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
-                    }
-                }
-            }
-            this.InteractiveMap.highlight(feature);
-        }
-
-        select(feature) {    
-            if (feature && !feature.get("clicked")) {
-                if (feature == this.InteractiveMap.highlightedFeature) {
-                    this.unhighlight();
-                }
-                this.InteractiveMap.selectSource.addFeature(feature);
-                feature.set("clicked", true, true);
-            }
-        }
-
-    }
-
-    class NotificationControl {
-        constructor(id) {
-            this.timer = null;
-            this.id = id;
-            this.info = document.getElementById(id);
-            this.infoContent = document.querySelector('#' + id + ' .message-content');
-        }
-        
-        show(message) {
-            this.setContent(message);
-            this.info.classList.remove('slideUp');
-            this.info.classList.add('slideDown');
-            clearTimeout(this.timer);
-            this.timer = setTimeout(() => {
-                this.info.classList.add('slideUp');
-                this.info.classList.remove('slideDown');
-            }, 1500);
-        }
-
-        setContent(html) {
-            this.infoContent.innerHTML = html;
-        }
-
-        open() {
-            this.info.classList.add('slideDown');
-            this.info.classList.remove('slideUp');
-        }
-
-        close() {
-            this.info.classList.add('slideUp');
-            this.info.classList.remove('slideDown');
-        }
-
-    }
-
-    const formatRadius = circle => {
-        const length = Math.round(circle.getRadius());
-        const output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
-        return output;
-    };
-
-    /**
-     * Format length output.
-     * @param {ol.geom.LineString} line The line.
-     * @return {string} The formatted length.
-     */
-    const formatLength = (InteractiveMap, line) => {
-        const length = Math.round(line.getLength());
-        const output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / InteractiveMap.movementSpeed).toFixed(2) + 's at ' + InteractiveMap.movementSpeed + 'ms';
-        return output;
-    };
-            
-    class MeasureControl {
-        constructor(InteractiveMap) {
-            this.InteractiveMap = InteractiveMap;
-            this.map = InteractiveMap.map;
-            this.info = InteractiveMap.controls.info;
-            this.source = new SourceVector({});
-            
-            this.layer =  new LayerVector({
-                source: this.source
-            });
-
-            /**
-             * Currently drawn feature.
-             * @type {ol.Feature}
-             */
-            this.sketch = null;
-
-            /**
-             * The help tooltip element.
-             * @type {Element}
-             */
-            this.helpTooltipElement = null;
-
-            /**
-             * Overlay to show the help messages.
-             * @type {ol.Overlay}
-             */
-            this.helpTooltip = null;
-
-            /**
-             * The measure tooltip element.
-             * @type {Element}
-             */
-            this.measureTooltipElement = null;
-
-            /**
-             * Overlay to show the measurement.
-             * @type {ol.Overlay}
-             */
-            this.measureTooltip = null;
-            
-            /**
-             * Message to show when the user is drawing a polygon.
-             * @type {string}
-             */
-            this.continuePolygonMsg = 'Click to continue drawing the polygon';
-            
-            /**
-             * Message to show when the user is drawing a line.
-             * @type {string}
-             */
-            this.continueLineMsg = 'Click to continue drawing the line';
-            
-            /**
-             * Handle pointer move.
-             * @param {ol.MapBrowserEvent} evt The event.
-             */
-            
-            this.pointerMoveListener = null;
-            
-            this.mouseOutHandler = () => this.helpTooltipElement.classList.add('hidden');
-
-            this.type = 'line';
-
-            this.draw = null; // global so we can remove it later
-
-            this.active = false;
-
-        }
-
-        /**
-         * Creates a new measure tooltip
-         */
-        createMeasureTooltip() {
-            if (this.measureTooltipElement) {
-                this.measureTooltipElement.parentNode.removeChild(this.measureTooltipElement);
-            }
-            this.measureTooltipElement = document.createElement('div');
-            this.measureTooltipElement.className = 'tooltip tooltip-measure';
-            this.measureTooltip = new Overlay({
-                element: this.measureTooltipElement,
-                offset: [0, -15],
-                positioning: 'bottom-center'
-            });
-            this.map.addOverlay(this.measureTooltip);
-        }
-            
-        /**
-         * Creates a new help tooltip
-         */
-        createHelpTooltip() {
-            if (this.helpTooltipElement) {
-                this.helpTooltipElement.parentNode.removeChild(this.helpTooltipElement);
-            }
-            this.helpTooltipElement = document.createElement('div');
-            this.helpTooltipElement.className = 'tooltip hidden';
-            this.helpTooltip = new Overlay({
-                element: this.helpTooltipElement,
-                offset: [15, 0],
-                positioning: 'center-left'
-            });
-            this.map.addOverlay(this.helpTooltip);
-        }
-        
-        addInteraction() {
-            const type = (this.type == 'circle' ? 'Circle' : 'LineString');
-            this.draw = new Draw({
-                source: this.source,
-                type: /** @type {ol.geom.GeometryType} */ (type),
-                style: styles.measure
-            });
-            this.map.addInteraction(this.draw);
-
-            this.createHelpTooltip();
-
-            let listener;
-            this.draw.on('drawstart', evt => {
-                this.source.clear(true);
-                this.info.setContent("");
-                this.info.close(true);
-                // set sketch
-                this.sketch = evt.feature;
-                /** @type {ol.Coordinate|undefined} */
-                let tooltipCoord = evt.coordinate;
-
-                listener = this.sketch.getGeometry().on('change', evt => {
-                    const geom = evt.target;
-                    let output;
-                    if (geom instanceof Circle$1) {
-                        output = formatRadius(geom);
-                        tooltipCoord = geom.getLastCoordinate();
-                    } else if (geom instanceof LineString) {
-                        output = formatLength(this.InteractiveMap, geom);
-                        tooltipCoord = geom.getLastCoordinate();
-                    }
-                    this.info.setContent(output);
-                    this.info.open(true);
-                });
-            });
-
-            this.draw.on('drawend', () => {
-                // unset sketch
-                this.sketch = null;
-                // unset tooltip so that a new one can be created
-                Observable.unByKey(listener);
-            });
-        }
-        
-        change(type) {
-            this.type = type;
-            Observable.unByKey(this.pointerMoveListener);
-            this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
-            this.map.removeInteraction(this.draw);
-            this.source.clear(true);
-            this.addInteraction();
-            this.active = true;
-        }
-        
-        activate() {
-            if (!this.active) {
-                this.pointerMoveListener = this.map.on('pointermove', evt => {
-                    if (evt.dragging) {
-                        return;
-                    }
-                    /** @type {string} */
-                    let helpMsg = 'Click to start drawing';
-
-                    if (this.sketch) {
-                        const geom = (this.sketch.getGeometry());
-                        if (geom instanceof Polygon) {
-                            helpMsg = this.continuePolygonMsg;
-                        } else if (geom instanceof LineString) {
-                            helpMsg = this.continueLineMsg;
-                        }
-                    }
-
-                    this.helpTooltipElement.innerHTML = helpMsg;
-                    this.helpTooltip.setPosition(evt.coordinate);
-
-                    this.helpTooltipElement.classList.remove('hidden');
-                });
-                this.map.getViewport().addEventListener('mouseout', this.mouseOutHandler);
-                this.addInteraction();
-            }
-            this.active = true;
-        }
-        
-        deactivate() {
-            Observable.unByKey(this.pointerMoveListener);
-            this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
-            this.map.removeInteraction(this.draw);
-            this.source.clear(true);
-            this.active = false;
-        }
-    }
-
-    const laneData = {
-        700: {
-            npc_dota_spawner_good_bot: [1.25, 10],
-            npc_dota_spawner_bad_bot: [0.75, 22],
-            npc_dota_spawner_good_top: [0.75, 2],
-            npc_dota_spawner_bad_top: [1.25, 2]
-        },
-        706: {
-            npc_dota_spawner_good_bot: [1.3, 16],
-            npc_dota_spawner_bad_bot: [0.65, 22],
-            npc_dota_spawner_good_top: [1.3, 8],
-            npc_dota_spawner_bad_top: [0.65, 8]
-        },
-        707: {
-            npc_dota_spawner_good_bot: [1.3, 4],
-            npc_dota_spawner_bad_bot: [0.65, 6],
-            npc_dota_spawner_good_top: [1.3, 2],
-            npc_dota_spawner_bad_top: [0.65, 2]
-        },
-        709: {
-            npc_dota_spawner_good_bot: [1.3, 4],
-            npc_dota_spawner_bad_bot: [0.65, 6],
-            npc_dota_spawner_good_top: [1.3, 2],
-            npc_dota_spawner_bad_top: [0.65, 2]
-        },
-        715: {
-            npc_dota_spawner_good_bot: [1.3, 4],
-            npc_dota_spawner_bad_bot: [0.65, 6],
-            npc_dota_spawner_good_top: [1.3, 2],
-            npc_dota_spawner_bad_top: [0.65, 2]
-        }
-    };
-
-    const getDistance = (speed, elapsedTime) => speed * elapsedTime / 1000 * mapConstants.scale;
-
-    const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) => {
-        elapsedTime = elapsedTime * playbackSpeed;
-        const base = mapConstants.creepBaseMovementSpeed;
-        if (bNoAdjust) return getDistance(base, elapsedTime);
-
-        switch (id) {
-            case 'npc_dota_spawner_good_bot':
-            case 'npc_dota_spawner_bad_top':
-            case 'npc_dota_spawner_good_top':
-            case 'npc_dota_spawner_bad_bot':
-                const boostMultiplier = laneData[version][id][0];
-                const boostDuration = laneData[version][id][1] * 1000;
-                if (elapsedTime < boostDuration) {
-                    return getDistance(base * boostMultiplier, elapsedTime);
-                }
-                else {
-                    return getDistance(base * boostMultiplier, boostDuration) + getDistance(base, elapsedTime - boostDuration);
-                }
-            break;
-            default:
-                return getDistance(base, elapsedTime);
-            break;
-        }
-    };
-
-    class CreepControl {
-        constructor(InteractiveMap, id) {
-            this.InteractiveMap = InteractiveMap;
-            this.postComposeListener = null;
-            this.postComposeHandler = this.animateCreeps.bind(this);
-            this.playbackSpeed = 1;
-            this.paused = true;
-            this.pauseTime = null;
-            this.title = 'Lane Animation';
-            
-            this.id = id;
-            this.info = document.getElementById(id);
-            this.infoContent = document.querySelector('#timer-time');
-            this.playPauseBtn = document.querySelector('#timer-playPause');
-            this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
-            
-            this.stopBtn = document.querySelector('#timer-stop');
-            this.stopBtn.addEventListener('click', () => this.stop(true), false);
-            
-            this.fasterBtn = document.querySelector('#timer-faster');
-            this.fasterBtn.addEventListener('click', () => this.faster(true), false);
-            
-            this.slowerBtn = document.querySelector('#timer-slower');
-            this.slowerBtn.addEventListener('click', () => this.slower(true), false);
-        }
-        
-        show(message) {
-            this.setContent(message);
-            this.info.classList.remove('slideUp');
-            this.info.classList.add('slideDown');
-        }
-        
-        setContent(html) {
-            this.infoContent.innerHTML = html;
-        }
-        
-        open() {
-            this.info.classList.add('slideDown');
-            this.info.classList.remove('slideUp');
-        }
-        
-        close() {
-            this.info.classList.add('slideUp');
-            this.info.classList.remove('slideDown');
-        }
-        
-        slower() {
-            const oldVal = this.playbackSpeed;
-            this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
-            this.updatePlayback(oldVal, this.playbackSpeed);
-        }
-
-        faster() {
-            const oldVal = this.playbackSpeed;
-            this.playbackSpeed += 1;
-            this.updatePlayback(oldVal, this.playbackSpeed);
-        }
-
-        updatePlayback(oldVal, newVal) {
-            const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-            if (layer) {
-                const features = layer.getSource().getFeatures();
-                let elapsedTime = this.currentTime - this.startTime;
-                let adjustedElapsedTime = elapsedTime * oldVal / newVal;
-                this.startTime = this.currentTime - adjustedElapsedTime;
-                for (let i = 0; i < features.length; i++) {
-                    const feature = features[i];
-                    const waveTimes = feature.get('waveTimes');
-                    if (waveTimes) {
-                        let j = waveTimes.length;
-                        while (j--) {
-                            elapsedTime = this.currentTime - waveTimes[j];
-                            adjustedElapsedTime = elapsedTime * oldVal / newVal;
-                            waveTimes[j] = this.currentTime - adjustedElapsedTime;
-                        }
-                    }
-                }
-            }
-        }
-
-        start() {
-            if (!this.postComposeListener) {
-                this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
-            }
-            if (this.paused) this.playPause();
-            this.InteractiveMap.map.render();
-        }
-
-        stop() {
-            Observable.unByKey(this.postComposeListener);
-            this.postComposeListener = null;
-            const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-            if (layer) {
-                const features = layer.getSource().getFeatures();
-                for (let i = 0; i < features.length; i++) {
-                    const feature = features[i];
-                    feature.set('waveTimes', null, true);
-                }
-            }
-            this.startTime = null;
-            if (!this.paused) this.playPause();
-            this.pauseTime = null;
-            this.InteractiveMap.map.render();
-            this.setContent(this.title);
-        }
-
-        playPause() {
-            this.paused = !this.paused;
-            if (this.paused) {
-                this.playPauseBtn.classList.add('icon-play');
-                this.playPauseBtn.classList.remove('icon-pause');
-            }
-            else {
-                this.playPauseBtn.classList.add('icon-pause');
-                this.playPauseBtn.classList.remove('icon-play');
-                this.start();
-            }
-        }
-
-        activate() {
-            this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', true);
-            this.InteractiveMap.toggleLayerMenuOption('path_corner', true);
-            this.show(this.title);
-        }
-
-        deactivate() {
-            this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', false);
-            this.InteractiveMap.toggleLayerMenuOption('path_corner', false);
-            this.stop();
-            this.close();
-        }
-
-        animateCreeps(event) {
-            const vectorContext = event.vectorContext;
-            const frameState = event.frameState;
-            this.currentTime = frameState.time;
-            const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-            const pathLayer = this.InteractiveMap.getMapLayer('path_corner');
-            if (!layer || !pathLayer) return;
-            const features = layer.getSource().getFeatures();
-            if (!this.startTime) this.startTime = this.currentTime;
-            if (this.paused) {
-                if (this.pauseTime == null) this.pauseTime = frameState.time;
-                this.currentTime = this.pauseTime;
-            }
-            else {
-                if (this.pauseTime != null) {
-                    for (let i = 0; i < features.length; i++) {
-                        const feature = features[i];
-                        const waveTimes = feature.get('waveTimes');
-                        if (waveTimes) {
-                            let j = waveTimes.length;
-                            while (j--) {
-                                waveTimes[j] += (this.currentTime - this.pauseTime);
-                            }
-                        }
-                    }
-                    this.startTime += (this.currentTime - this.pauseTime);
-                    this.pauseTime = null;
-                }
-            }
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                const id = feature.getId();
-                const pathFeature = pathLayer.getSource().getFeatureById(id);
-                let waveTimes = feature.get('waveTimes');
-                if (!waveTimes) {
-                    waveTimes = [this.currentTime];
-                    feature.set('waveTimes', waveTimes, true);
-                }
-                if (this.currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
-                    waveTimes.push(this.currentTime);
-                }
-                let j = waveTimes.length;
-                while (j--) {                
-                    let path = feature.get('path');
-                    let coords;
-                    if (!path) {
-                        path = pathFeature.getGeometry().clone();
-                        coords = path.getCoordinates();
-                        coords[0] = feature.getGeometry().getCoordinates();
-                        path.setCoordinates(coords);
-                        feature.set('path', path, true);
-                    }
-                    const pathLength = path.getLength();
-                    coords = path.getCoordinates();
-                    const elapsedTime = this.currentTime - waveTimes[j];
-                    const elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
-                    const elapsedFraction = Math.max(0, elapsedDistance / pathLength);
-                    let endPoint;
-                    if (elapsedFraction >= 1) {
-                        endPoint = coords[coords.length - 1];
-                        waveTimes.splice(j, 1);
-                    }
-                    else {
-                        endPoint = path.getCoordinateAt(elapsedFraction);
-                    }
-
-                    const point = new Circle$1(endPoint);
-                    vectorContext.setStyle(styles.creepColor(feature));
-                    vectorContext.drawCircle(point);
-                }
-            }
-            let timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
-            if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x';
-            this.setContent(timeText);
-            frameState.animate = true;
-        }
-    }
 
     /*
      * Extracted from pdf.js
@@ -3210,6 +1868,1791 @@
 
     var visionSimulation = VisionSimulation;
 
+    const getFeatureCenter = feature => {
+        const ext = feature.getGeometry().getExtent();
+        const center = extent.getCenter(ext);
+        return new Point(center);
+    };
+
+    const defaultStyle = new Style({
+        fill: new Fill({
+            color: 'rgba(255,255,255,0.4)'
+        }),
+        stroke: new Stroke({
+            color: '#3399CC',
+            width: 1.25
+        })
+    });
+
+    const styles = {
+        creepSpawn: new Style({
+            image: new RegularShape({
+                points: 6,
+                radius: 8,
+                fill: new Fill({
+                    color: 'rgba(0, 0, 255, 0.3)'
+                }),
+                stroke: new Stroke({
+                    color: 'rgba(0, 0, 255, 0.7)',
+                    width: 2
+                })
+            })
+        }),
+        neutralCamp: [
+            new Style({
+                image: new RegularShape({
+                    points: 3,
+                    radius: 8,
+                    fill: new Fill({
+                        color: 'rgba(0, 255, 0, 0.3)'
+                    }),
+                    stroke: new Stroke({
+                        color: 'rgba(0, 255, 0, 0.7)',
+                        width: 2
+                    })
+                })
+            }),
+            new Style({
+                image: new RegularShape({
+                    points: 3,
+                    radius: 9,
+                    fill: new Fill({
+                        color: 'rgba(255, 255, 0, 0.3)'
+                    }),
+                    stroke: new Stroke({
+                        color: 'rgba(255, 255, 0, 0.7)',
+                        width: 2
+                    })
+                })
+            }),
+            new Style({
+                image: new RegularShape({
+                    points: 3,
+                    radius: 10,
+                    fill: new Fill({
+                        color: 'rgba(255, 150, 0, 0.3)'
+                    }),
+                    stroke: new Stroke({
+                        color: 'rgba(255, 150, 0, 0.7)',
+                        width: 2
+                    })
+                })
+            }),
+            new Style({
+                image: new RegularShape({
+                    points: 3,
+                    radius: 11,
+                    fill: new Fill({
+                        color: 'rgba(255, 0, 0, 0.3)'
+                    }),
+                    stroke: new Stroke({
+                        color: 'rgba(255, 0, 0, 0.7)',
+                        width: 2
+                    })
+                })
+            })
+        ],
+        dire: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 51, 51, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: '#FF3333',
+                width: 2
+            })
+        }),
+        radiant: new Style({
+            fill: new Fill({
+                color: 'rgba(51, 255, 51, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: '#33FF33',
+                width: 2
+            })
+        }),
+        direCreep: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 51, 51, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: '#FF3333',
+                width: 10
+            })
+        }),
+        radiantCreep: new Style({
+            fill: new Fill({
+                color: 'rgba(51, 255, 51, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: '#33FF33',
+                width: 10
+            })
+        }),
+        highlight: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 255, 0, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: '#ffff00',
+                width: 2
+            })
+        }),
+        select: new Style({
+            fill: new Fill({
+                color: 'rgba(0, 255, 0, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: '#00ff00',
+                width: 2
+            })
+        }),
+        cursor: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 255, 255, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(255, 255, 255, 1)',
+                width: 1
+            })
+        }),
+        visionSimulation: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 255, 0, 0.2)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(255, 255, 0, 1)',
+                width: 1
+            })
+        }),
+        dayVision: new Style({
+            fill: new Fill({
+                color: 'rgba(238, 153, 0, 0.1)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(238, 153, 0, 0.5)',
+                width: 2
+            })
+        }),
+        nightVision: new Style({
+            fill: new Fill({
+                color: 'rgba(0, 127, 255, 0.1)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(0, 0, 255, 0.5)',
+                width: 2
+            })
+        }),
+        trueSight: new Style({
+            fill: new Fill({
+                color: 'rgba(0, 127, 255, 0.1)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(0, 127, 255, 0.5)',
+                width: 2
+            })
+        }),
+        attackRange: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 0, 0, 0.1)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(255, 0, 0, 0.5)',
+                width: 2
+            })
+        }),
+        ent_dota_fountain: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/water-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        npc_dota_barracks: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/stadium-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        npc_dota_filler: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/landmark-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        npc_dota_tower: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/castle-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        ent_dota_shop: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/shop-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        npc_dota_fort: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/town-hall-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        npc_dota_healer: [
+            defaultStyle,
+            new Style({
+                image: new Icon({
+                    src: 'img/svgs/place-of-worship-15.svg',
+                    anchor: [0.5, 0.5],
+                    imgSize: [21, 21]
+                }),
+                geometry: getFeatureCenter
+            })
+        ],
+        measure: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 255, 255, 0.3)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(255,165,0, 0.7)',
+                lineDash: [10, 10],
+                width: 3
+            }),
+            image: new Circle({
+                radius: 5,
+                stroke: new Stroke({
+                    color: 'rgba(255,165,0, 0.7)',
+                    width: 2
+                }),
+                fill: new Fill({
+                    color: 'rgba(255,165,0, 0.3)'
+                })
+            })
+        }),
+        observer: {
+            normal: new Style({
+                image: new Icon({
+                    src: 'img/ward_observer.png',
+                    anchor: [0.5, 1]
+                })
+            }),
+            highlight: new Style({
+                image: new Icon({
+                    src: 'img/ward_observer.png',
+                    anchor: [0.5, 1],
+                    color: '#0000ff'
+                })
+            }),
+            remove: new Style({
+                image: new Icon({
+                    src: 'img/ward_observer.png',
+                    anchor: [0.5, 1],
+                    color: '#ff0000'
+                })
+            })
+        },
+        sentry: {
+            normal: new Style({
+                image: new Icon({
+                    src: 'img/ward_sentry.png',
+                    anchor: [0.5, 1]
+                })
+            }),
+            highlight: new Style({
+                image: new Icon({
+                    src: 'img/ward_sentry.png',
+                    anchor: [0.5, 1],
+                    color: '#0000ff'
+                })
+            }),
+            remove: new Style({
+                image: new Icon({
+                    src: 'img/ward_sentry.png',
+                    anchor: [0.5, 1],
+                    color: '#ff0000'
+                })
+            })
+        },
+        tree: {
+            alive: new Style({
+                fill: new Fill({color: [0, 255, 0, 0.3]}),
+                stroke: new Stroke({color: [0, 255, 0, 0.8]})
+            }),
+            dead: new Style({
+                fill: new Fill({color: [51, 25, 0, 0.7]}),
+                stroke: new Stroke({color: [255, 128, 0, 0.8]})
+            })
+        },
+        bountyRune: new Style({
+            image: new Icon({
+                src: 'img/bountyrune.png',
+                anchor: [0.5, 0.5]
+            })
+        }),
+        rune: new Style({
+            image: new Icon({
+                src: 'img/doubledamage.png',
+                anchor: [0.5, 0.5]
+            })
+        }),
+        roshan: new Style({
+            image: new Icon({
+                src: 'img/roshan.png',
+                anchor: [0.5, 0.5]
+            })
+        }),
+        pullRange: new Style({
+            fill: new Fill({
+                color: 'rgba(0, 153, 238, 0.1)'
+            }),
+            stroke: new Stroke({
+                color: 'rgba(0, 153, 238, 0.5)',
+                width: 2
+            })
+        }),
+    };
+
+    styles.teamColor = (feature, resolution) => {
+        if (feature.getId().indexOf('_bad_') == -1) {
+            return styles.radiant;
+        }
+        else {
+            return styles.dire;
+        }
+    };
+
+    styles.creepColor = (feature, resolution) => {
+        if (feature.getId().indexOf('_bad_') == -1) {
+            return styles.radiantCreep;
+        }
+        else {
+            return styles.direCreep;
+        }
+    };
+
+    const loadGeoJSON = (map, layerDef, data, version) => {
+        try {
+            const source = new SourceVector({
+                url: 'data/' + version + '/' + layerDef.filename,
+                format: new GeoJSON({dataProjection: layerDef.projection || pixelProj})
+            });
+            return new LayerVector({
+                title: layerDef.name,
+                projection: layerDef.projection || pixelProj,
+                source: source,
+                visible: !!layerDef.visible,
+                style: layerDef.style
+            });
+        }
+        catch (e) {
+        
+        }
+    };
+
+    const loadPolygon = (map, layerDef, data, layer) => {
+        const features = data.data[layerDef.id].map(obj => {
+            const points = obj.points;
+            const ring = points.map(point => proj.transform([point.x, point.y], dotaProj, pixelProj));
+            ring.push(proj.transform([points[0].x, points[0].y], dotaProj, pixelProj));
+            const geom = new Polygon([ring]);
+            const feature = new Feature(geom);
+            obj.id = layerDef.id;
+            feature.set('dotaProps', obj, true);
+            return feature;
+        });
+        
+        const vectorSource = new SourceVector({
+            features: features
+        });
+        
+        if (layer) {
+            layer.setSource(vectorSource);
+        }
+        else {
+            layer = new LayerVector({
+                title: layerDef.name,
+                source: vectorSource,
+                visible: !!layerDef.visible,
+                style: layerDef.style
+            });
+            layer.set('layerId', layerDef.id, true);
+            layer.set('layerDef', layerDef, true);
+            layer.set('showInfo', false, true);
+        }
+
+        return layer;
+    };
+
+    const loadJSON = (map, layerDef, data, layer) => {
+        const features = data.data[layerDef.id].map(point => {
+            const unitClass = point.subType ? layerDef.id + '_' + point.subType : layerDef.id;
+            const stats = data.stats[unitClass];
+            const bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
+            const geom = (bounds && bounds[0] > 0 && bounds[1] > 0)
+                ? new Polygon([[
+                    proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
+                    proj.transform([point.x-bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
+                    proj.transform([point.x+bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
+                    proj.transform([point.x+bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
+                    proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj)
+                ]])
+                : new Point(proj.transform([point.x, point.y], dotaProj, pixelProj));
+
+            const feature = new Feature(geom);
+            
+            point.id = layerDef.id;
+            point.unitClass = unitClass;
+            feature.set('dotaProps', point, true);
+            
+            return feature;
+        });
+        
+        const vectorSource = new SourceVector({
+            features: features
+        });
+        
+        if (layer) {
+            layer.setSource(vectorSource);
+        }
+        else {
+            layer = new LayerVector({
+                title: layerDef.name,
+                source: vectorSource,
+                visible: !!layerDef.visible,
+                style: layerDef.style
+            });
+            layer.set('layerId', layerDef.id, true);
+            layer.set('layerDef', layerDef, true);
+            layer.set('showInfo', false, true);
+        }
+
+        return layer;
+    };
+
+    const loadNeutralPullRange = (InteractiveMap, layerDef, data, layer) => {
+        const vectorSource = new SourceVector({
+            features: []
+        });
+        
+        if (layer) {
+            layer.setSource(vectorSource);
+        }
+        else {
+            layer = new LayerVector({
+                title: layerDef.name,
+                source: vectorSource,
+                visible: !!layerDef.visible,
+                style: layerDef.style
+            });
+            layer.set('layerId', layerDef.id, true);
+            layer.set('layerDef', layerDef, true);
+            layer.set('showInfo', false, true);
+        }
+
+        return layer;
+    };
+
+    const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
+        const layers = [];
+        for (let i = 0; i < layerDefs.length; i++) {
+            const layerDef = layerDefs[i];
+            if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '688')) continue;
+            let layer;
+            switch (layerDef.type) {
+                case 'GeoJSON':
+                    layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id], version);
+                break;
+                case 'polygon':
+                    layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
+                break;
+                case 'pullRange':
+                    layer = loadNeutralPullRange(InteractiveMap, layerDef, data, layersIndex[layerDef.id]);
+                break;
+                default:
+                    layer = loadJSON(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
+                break;
+            }
+            if (layer) {
+                layersIndex[layerDef.id] = layer;
+                layers.push(layer);
+            }
+        }
+        return new LayerGroup({
+            title: 'Layers',
+            layers: new Collection(layers)
+        });
+    };
+
+    const getJSON = (path, callback) => {
+        let retries = 3;
+        
+        const makeReq = () => {
+            const request = new XMLHttpRequest();
+
+            request.open('GET', path, true);
+            let err;
+            request.onload = () => {
+                let data;
+                if (request.status == 200) {
+                    console.log(request);
+                    console.log(request.status);
+                    try {
+                        data = JSON.parse(request.responseText);
+                    }
+                    catch (e) {
+                        err = e;
+                    }
+                }
+                else {
+                    err = new Error("Error loading json " + request.status);
+                }
+                callback(err, data);
+            };
+            request.onerror = () => {
+                retries--;
+                if (retries > 0) {
+                    setTimeout(makeReq, 1000);
+                }
+                else {
+                    err = new Error("Error loading json " + request.status);
+                    callback(err);
+                }
+            };
+            request.send();
+        };
+        
+        makeReq();
+    };
+
+    const baseLayerDefinitions = [
+        {
+            id: '715',
+            name: '7.15',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
+        },
+        {
+            id: '709',
+            name: '7.09',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
+        },
+        {
+            id: '707',
+            name: '7.07',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
+        },
+        {
+            id: '706',
+            name: '7.06',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                },
+                {
+                    id: 'autumn',
+                    name: 'Autumn'
+                },
+                {
+                    id: 'desert',
+                    name: 'Desert'
+                },
+                {
+                    id: 'immortalgardens',
+                    name: 'Immortal Gardens'
+                },
+                {
+                    id: 'journey',
+                    name: 'New Journey'
+                },
+                {
+                    id: 'reef',
+                    name: 'Reef\'s Edge'
+                },
+                {
+                    id: 'spring',
+                    name: 'Spring'
+                },
+                {
+                    id: 'winter',
+                    name: 'Winter'
+                }
+            ]
+        },
+        {
+            id: '700',
+            name: '7.00',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
+        },
+        {
+            id: '688',
+            name: '6.88',
+            tilesets: [
+                {
+                    id: 'default',
+                    name: 'Default'
+                }
+            ]
+        }
+    ];
+
+    const layerDefinitions = [
+        {
+            id: 'path_corner',
+            name: 'Lanes',
+            filename: 'path_corner.json',
+            type: 'GeoJSON',
+            group: 'overlay',
+            projection: dotaProj,
+            style: styles.teamColor
+        },
+        {
+            id: 'npc_dota_spawner',
+            name: 'Lane Spawns',
+            filename: 'npc_dota_spawner.json',
+            type: 'GeoJSON',
+            group: 'overlay',
+            projection: dotaProj,
+            style: styles.creepSpawn
+        },
+        {
+            id: 'ent_fow_blocker_node',
+            name: 'Vision Blocker',
+            filename: 'ent_fow_blocker_node.json',
+            type: 'GeoJSON',
+            group: 'overlay',
+            projection: dotaProj,
+            style: new Style({
+                fill: new Fill({color: [0, 0, 255, 0.3]}),
+                stroke: new Stroke({color: [0, 0, 255, 0.8]})
+            })
+        },
+        {
+            id: 'no_wards',
+            name: 'Invalid Wards',
+            filename: 'no_wards.json',
+            type: 'GeoJSON',
+            group: 'overlay',
+            projection: dotaProj,
+            style: new Style({
+                fill: new Fill({color: [255, 0, 0, 0.3]}),
+                stroke: new Stroke({color: [255, 0, 0, 0.8]})
+            })
+        },
+        {
+            id: 'trigger_multiple',
+            name: 'Spawn Boxes',
+            type: 'polygon',
+            group: 'overlay',
+            style: new Style({
+                fill: new Fill({color: [0, 255, 125, 0.3]}),
+                stroke: new Stroke({color: [0, 255, 125, 0.8]})
+            })
+        },
+        {
+            id: 'npc_dota_neutral_spawner',
+            name: 'Neutral Camps',
+            group: 'object',
+            style: (feature, resolution) => styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
+        },
+        {
+            id: 'ent_dota_tree',
+            name: 'Trees',
+            group: 'object',
+            style: (feature, resolution) => feature.get('isCut') ? styles.tree.dead : styles.tree.alive,
+            toggle: true
+        },
+        {
+            id: 'npc_dota_roshan_spawner',
+            name: 'Roshan',
+            group: 'object',
+            style: styles.roshan
+        },
+        {
+            id: 'dota_item_rune_spawner_powerup',
+            name: 'Runes',
+            group: 'object',
+            style: styles.rune
+        },
+        {
+            id: 'dota_item_rune_spawner_bounty',
+            name: 'Bounty Runes',
+            group: 'object',
+            style: styles.bountyRune
+        },
+        {
+            id: 'ent_dota_fountain',
+            name: 'Fountain',
+            group: 'structure',
+            style: styles.ent_dota_fountain,
+            toggle: true
+        },
+        {
+            id: 'npc_dota_barracks',
+            name: 'Barracks',
+            group: 'structure',
+            style: styles.npc_dota_barracks,
+            toggle: true
+        },
+        {
+            id: 'npc_dota_filler',
+            name: 'Buildings',
+            group: 'structure',
+            style: styles.npc_dota_filler,
+            toggle: true
+        },
+        {
+            id: 'npc_dota_tower',
+            name: 'Towers',
+            group: 'structure',
+            style: styles.npc_dota_tower,
+            toggle: true
+        },
+        {
+            id: 'ent_dota_shop',
+            name: 'Shops',
+            group: 'structure',
+            style: styles.ent_dota_shop
+        },
+        {
+            id: 'npc_dota_fort',
+            name: 'Ancients',
+            group: 'structure',
+            style: styles.npc_dota_fort,
+            toggle: true
+        },
+        {
+            id: 'npc_dota_healer',
+            name: 'Shrines',
+            group: 'structure',
+            style: styles.npc_dota_healer,
+            toggle: true
+        },
+        {
+            id: 'pullRange',
+            name: 'Pull Range',
+            type: 'pullRange',
+            group: 'overlay',
+            style: styles.pullRange,
+            visible: true
+        }
+    ];
+
+    class MenuPanel {
+        constructor(panelId, openId, closeId, fullscreen) {
+            this.panelId = panelId;
+            this.openId = openId;
+            this.closeId = closeId;
+            this.fullscreen = fullscreen;
+
+            this.panel = document.getElementById(this.panelId);
+            
+            this.openBtn = document.getElementById(this.openId);
+            this.openBtn.addEventListener("click", this.open.bind(this), false);
+            
+            this.closeBtn = document.getElementById(this.closeId);
+            this.closeBtn.addEventListener("click", this.close.bind(this), false);
+        }
+
+        open() {
+            this.panel.classList.add('expand-horizontal');
+            this.panel.classList.remove('collapsed-horizontal');
+            this.openBtn.classList.add('collapsed-horizontal');
+            this.openBtn.classList.remove('expand-horizontal');
+            this.otherMenu.close();
+        }
+            
+        close() {
+            this.panel.classList.remove('expand-horizontal');
+            this.panel.classList.add('collapsed-horizontal');
+            this.openBtn.classList.remove('collapsed-horizontal');
+            this.openBtn.classList.add('expand-horizontal');
+        }
+            
+        static createToggle(layerDef, handler) {
+            const toggle = document.createElement('div');
+                toggle.classList.add('btn-toggle');
+                
+            const toggleCb = document.createElement('input');
+                toggleCb.setAttribute("type", "checkbox");
+                toggleCb.id = 'toggle-' + layerDef.id;
+                toggleCb.addEventListener("change", handler, false);
+            toggle.appendChild(toggleCb);
+
+            const toggleLbl = document.createElement('label');
+                toggleLbl.setAttribute("for", toggleCb.id);
+            toggle.appendChild(toggleLbl);
+            
+            return toggle;
+        }
+
+        static createMenuPanelItem(InteractiveMap, layerDef, handler, inputType, inputName) {
+            let optionId = layerDef.id;
+            
+            const menuItem = document.createElement('div');
+                menuItem.classList.add('menu-item');
+                menuItem.classList.add(inputName || 'data-layer');
+                
+            const menuItemCb = document.createElement('input');
+                menuItemCb.setAttribute("type", inputType || "checkbox");
+                if (inputType == "radio") {
+                    optionId = layerDef.group + '-' + layerDef.id;
+                    menuItemCb.setAttribute("name", inputName);
+                    menuItemCb.setAttribute("value", optionId);
+                }
+                menuItemCb.id = 'option-' + optionId;
+                menuItemCb.setAttribute("data-layer-id", optionId);
+                menuItemCb.addEventListener("change", handler, false);
+            menuItem.appendChild(menuItemCb);
+            
+            const menuItemLbl = document.createElement('label');
+                menuItemLbl.classList.add('checkbox');
+                menuItemLbl.setAttribute("for", menuItemCb.id);
+                menuItemLbl.innerHTML = layerDef.name;
+            menuItem.appendChild(menuItemLbl);
+            
+            if (layerDef.toggle) {
+                const toggle = MenuPanel.createToggle(layerDef, e => {
+                    const el = e.currentTarget;
+                    const layer = InteractiveMap.getMapLayer(layerDef.id);
+                    if (layerDef.id == 'ent_dota_tree') {
+                        InteractiveMap.controls.tree.toggleAllTrees(el.checked);
+                    }
+                    else {
+                        InteractiveMap.controls.ward.toggleAll(layer, el.checked);
+                    }
+                });
+                menuItem.appendChild(toggle);
+            }
+            
+            return menuItem;
+        }
+        
+        static createBaseLayerMenuItem(id, name, checked) {
+            const menuItem = document.createElement('div');
+                menuItem.classList.add('menu-item');
+                
+            const menuItemRb = document.createElement('input');
+                menuItemRb.id = `base-${id}-option`;
+                menuItemRb.checked = checked;
+                menuItemRb.setAttribute("type", "radio");
+                menuItemRb.setAttribute("name", "base-type");
+                menuItemRb.setAttribute("value", id);
+                menuItem.appendChild(menuItemRb);
+                
+            const menuItemLbl = document.createElement('label');
+                menuItemLbl.classList.add('checkbox');
+                menuItemLbl.setAttribute("for", menuItemRb.id);
+                menuItemLbl.innerHTML = name;
+                menuItem.appendChild(menuItemLbl);
+                
+            const subMenuItem = document.createElement('div');
+                subMenuItem.id = `base-${id}-menu`;
+                subMenuItem.classList.add('menu-item-group');
+                subMenuItem.classList.add('sub-menu');
+                menuItem.appendChild(subMenuItem);
+                
+            return menuItem;
+        }
+    }
+
+    class MenuControl {
+        constructor(InteractiveMap) {
+            this.InteractiveMap = InteractiveMap;
+            this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
+            this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
+            this.leftPanel.otherMenu = this.rightPanel;
+            this.rightPanel.otherMenu = this.leftPanel;
+            
+            const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
+            
+            this.InteractiveMap.layerDefs.forEach(layerDef => {
+                const group = layerDef.group;
+                const menu = document.querySelector('#' + group + '-menu');
+                const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, layerToggleHandler);
+                menu.appendChild(menuItem);
+            });
+            
+            const baseLayerToggleHandler = e => {
+                const layerId = e.currentTarget.getAttribute('data-layer-id');
+                this.InteractiveMap.baseLayers.forEach(layer => layer.setVisible(layer.get('layerId') === layerId));
+                setQueryString('BaseLayer', layerId);
+            };
+
+            const versionSelect = document.getElementById('version-select');
+            const baseMenu = document.getElementById('base-menu');
+            var checked = true;
+            this.InteractiveMap.baseLayerDefs.forEach(group => {
+                const baseLayerMenu = MenuPanel.createBaseLayerMenuItem(group.id, group.name, checked);
+                baseMenu.appendChild(baseLayerMenu);
+                if (checked) checked = false;
+                
+                group.tilesets.forEach(tileset => {
+                    const menu = document.querySelector('#base-' + group.id + '-menu');
+                    const layerDef = {...tileset, group: group.id};
+                    const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
+                    menu.appendChild(menuItem);
+                });
+                
+                const versionOption = document.createElement('option');
+                versionOption.setAttribute("value", group.id);
+                versionOption.innerHTML = group.name;
+                versionSelect.appendChild(versionOption);
+            });
+        }
+        
+        updateLayerAndQueryString(element, layerId) {
+            layerId = layerId || element.getAttribute('data-layer-id');
+            const layer = this.InteractiveMap.getMapLayer(layerId);
+            if (layer) {
+                layer.setVisible(element.checked);
+                const param = layer.get("title").replace(/ /g, '');
+                setQueryString(param, element.checked ? true : null);
+                if (layerId == 'ent_dota_tree') {
+                    document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+                }
+            }
+        }
+        
+        toggleLayerMenuOption(layerId, state) {
+            const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
+            if (state != null) element.checked = state;
+            this.updateLayerAndQueryString(element, layerId);
+        }
+    }
+
+    const capitalize = string => string.charAt(0).toUpperCase() + string.slice(1);
+
+    const unitNames = {
+        npc_dota_roshan_spawner: "Roshan",
+        dota_item_rune_spawner_powerup: "Rune",
+        dota_item_rune_spawner_bounty: "Bounty Rune",
+        ent_dota_tree: "Tree",
+        npc_dota_healer: "Shrine",
+        ent_dota_fountain: "Fountain",
+        npc_dota_fort: "Ancient",
+        ent_dota_shop: "Shop",
+        npc_dota_tower: "Tower",
+        npc_dota_barracks: "Barracks",
+        npc_dota_filler: "Building",
+        trigger_multiple: "Neutral Camp Spawn Box",
+        npc_dota_neutral_spawner: "Neutral Camp",
+        observer: "Observer Ward",
+        sentry: "Sentry Ward"
+    };
+        
+    const getUnitName = (unitType, unitSubType) => (unitSubType
+                                                    ? capitalize(unitSubType.replace('tower', 'Tier ').replace('range', 'Ranged')) + ' '
+                                                    : '') + unitNames[unitType];
+        
+    const pullTypes = ['Normal', 'Fast', 'Slow'];
+    const neutralTypes = ['Easy', 'Medium', 'Hard', 'Ancient'];
+
+    const getPopupContent = (stats, feature) => {
+        const dotaProps = feature.get('dotaProps');
+        const unitClass = dotaProps.subType ? dotaProps.id + '_' + dotaProps.subType : dotaProps.id;
+        const unitStats = stats[unitClass];
+        let htmlContent = '<div class="info"><span class="info-header">' + getUnitName(dotaProps.id, dotaProps.subType) + '</span><span class="info-body">';
+        if (dotaProps.pullType != null) {
+            htmlContent += '<br><span class="info-line">Pull Type: ' + pullTypes[dotaProps.pullType] + '</span>';
+        }
+        if (dotaProps.neutralType != null) {
+            htmlContent += '<br><span class="info-line">Difficulty: ' + neutralTypes[dotaProps.neutralType] + '</span>';
+        }
+        if (stats && unitStats) {
+            if (unitStats.hasOwnProperty('damageMin') && unitStats.hasOwnProperty('damageMax')) {
+                htmlContent += '<br><span class="info-line">Damage: ' + unitStats.damageMin + "&ndash;" + unitStats.damageMax + '</span>';
+            }
+            if (unitStats.hasOwnProperty('bat')) {
+                htmlContent += '<br><span class="info-line">BAT: ' + unitStats.bat + '</span>';
+            }
+            if (unitStats.hasOwnProperty('attackRange')) {
+                htmlContent += '<br><span class="info-line">Attack Range: ' + unitStats.attackRange + '</span>';
+            }
+            if (unitStats.hasOwnProperty('health')) {
+                htmlContent += '<br><span class="info-line">Health: ' + unitStats.health + '</span>';
+            }
+            if (unitStats.hasOwnProperty('armor')) {
+                htmlContent += '<br><span class="info-line">Armor: ' + unitStats.armor + '</span>';
+            }
+            if (unitStats.hasOwnProperty('dayVision') && unitStats.hasOwnProperty('nightVision')) {
+                htmlContent += '<br><span class="info-line">Vision: ' + unitStats.dayVision + "/" + unitStats.nightVision + '</span>';
+            }
+        }
+        htmlContent += '</span></div>';
+        return htmlContent;
+    };
+
+    const createCirclePointCoords = (circleCenterX, circleCenterY, circleRadius, pointsToFind) => {
+        const angleToAdd = 360/pointsToFind;
+        const coords = [];  
+        let angle = 0;
+        for (let i = 0; i < pointsToFind; i++) {
+            angle += angleToAdd;
+            const coordX = circleCenterX + circleRadius * Math.cos(angle * Math.PI/180);
+            const coordY = circleCenterY + circleRadius * Math.sin(angle * Math.PI/180);
+            coords.push([coordX,coordY]);
+        }
+        return coords;
+    };
+
+    class InfoControl {
+        constructor(InteractiveMap, id) {
+            this.InteractiveMap = InteractiveMap;
+            //this.highlight = null;
+            this.lastPointerMoveTime = Date.now();
+            this.pointerMoveListener = null;
+            this.clickListener = null;
+            
+            this.id = id;
+            this.info = document.getElementById(id);
+            this.infoContent = document.querySelector('#' + id + ' .message-content');
+            this.closeBtn = document.querySelector('#' + id + ' .btn-close');
+            this.closeBtn.addEventListener('click', evt => this.close(true), false);
+        }
+        
+        activate() {
+            if (!this.pointerMoveListener) {
+                this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', evt => {
+                    // When user was dragging map, then coordinates didn't change and there's
+                    // no need to continue
+                    if (evt.dragging) {
+                        return;
+                    }
+
+                    const pixel = this.InteractiveMap.map.getEventPixel(evt.originalEvent);
+                    
+                    // if mouse over a building feature, show info and highlight
+                    let feature = this.InteractiveMap.map.forEachFeatureAtPixel(pixel, feature => feature, {
+                        layerFilter: this.InteractiveMap.layerFilters.marker
+                    });
+                    if (feature) {
+                        if (!this.isActive()) {
+                            this.displayFeatureInfo(feature, false);
+                        }
+                        this.highlight(feature);
+                    }
+                    else {
+                        this.close(false);
+                
+                        // if mouse over a ward feature, highlight
+                        feature = this.InteractiveMap.checkAndHighlightWard(pixel);
+                        
+                        if (feature) {
+                            this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'));
+                        }
+                        // no highlighted feature so unhighlight current feature
+                        else if (!this.isActive()) {
+                            this.unhighlight();
+                        }
+                    }
+                });
+            }
+            if (!this.clickListener) {
+                this.clickListener = this.InteractiveMap.map.on('click', evt => {
+                    this.unhighlight();
+                    let feature = this.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, feature => feature, {
+                        layerFilter: this.InteractiveMap.layerFilters.marker
+                    });
+                    if (feature) {
+                        if (!feature.get("clicked")) {
+                            this.InteractiveMap.deselectAll();
+                            const dotaProps = feature.get('dotaProps');
+                            if (feature.get('dotaProps').id == "ent_dota_tree") {
+                                this.InteractiveMap.controls.tree.toggleTree(feature, dotaProps);
+                            }
+                            else {
+                                this.displayFeatureInfo(feature, true);
+                                this.select(feature);
+                                this.InteractiveMap.panTo(evt.coordinate);
+                            }
+                        }
+                        else {
+                            this.InteractiveMap.deselectAll();
+                            this.close(true);
+                        }
+                    }
+                    else {
+                        // if clicked a ward feature, highlight
+                        feature = this.InteractiveMap.checkAndHighlightWard(evt.pixel);
+                        
+                        if (feature) {
+                            const visionFeature = feature.get('visionFeature');
+                            if (visionFeature) {
+                                this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'), true);
+                            }
+                            else {
+                                this.close(true);
+                            }
+                            this.InteractiveMap.panTo(evt.coordinate);
+                        }
+                        // no highlighted feature so unhighlight current feature
+                        else if (!this.isActive()) {
+                            this.unhighlight();            
+                            this.close(true);
+                        }
+                        this.InteractiveMap.deselectAll();
+                    }
+                });
+            }
+        }
+        
+        deactivate() {
+            this.InteractiveMap.unhighlightWard();
+            Observable.unByKey(this.pointerMoveListener);
+            this.pointerMoveListener = null;
+            Observable.unByKey(this.clickListener);
+            this.clickListener = null;
+        }
+
+        setContent(html) {
+            this.infoContent.innerHTML = html;
+        }
+
+        isActive() {
+            return this.info.classList.contains('active');
+        }
+
+        open(bClicked) {
+            this.info.classList.add('slideUp');
+            this.info.classList.remove('slideDown');
+            if (bClicked) {
+                this.info.classList.add('active');
+            }
+        }
+
+        close(bOverrideActive) {
+            if (!this.isActive() || bOverrideActive) {
+                this.info.classList.add('slideDown');
+                this.info.classList.remove('slideUp');
+                this.info.classList.remove('active');
+            }
+        }
+
+        displayFeatureInfo(feature, bClicked) {
+            this.setContent(getPopupContent(this.InteractiveMap.getStatData(), feature));
+            this.open(bClicked);
+        };
+
+        unhighlight(feature) {
+            const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
+            if (highlightedFeature && !highlightedFeature.get("clicked")) {
+                const dotaProps = highlightedFeature.get('dotaProps');
+                if (dotaProps) {
+                    if (dotaProps.id == 'npc_dota_neutral_spawner') {
+                        const pullRange = highlightedFeature.get('pullRange');
+                        if (pullRange) {
+                            this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(pullRange);
+                            highlightedFeature.set("pullRange", null, true);
+                        }
+                        const guardRange = highlightedFeature.get('guardRange');
+                        if (guardRange) {
+                            this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(guardRange);
+                            highlightedFeature.set("guardRange", null, true);
+                        }
+                    }
+                }
+            }
+            this.InteractiveMap.unhighlight();
+        }
+
+        highlight(feature) {
+            this.unhighlight();
+            const dotaProps = feature.get('dotaProps');
+            if (dotaProps) {
+                if (dotaProps.id == 'npc_dota_neutral_spawner') {
+                    if (!feature.get('pullRange')) {
+                        let circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
+                        feature.set("guardRange", circle, true);
+                        this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
+                        
+                        const center = worldToLatLon([dotaProps.x, dotaProps.y]);
+                        const pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
+                        const pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
+                        const pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
+                        const geom = new Polygon([pullMaxCoords]);
+                        geom.appendLinearRing(new LinearRing(pullMinCoords));
+                        circle = new Feature(geom);
+                        feature.set("pullRange", circle, true);
+                        this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
+                    }
+                }
+            }
+            this.InteractiveMap.highlight(feature);
+        }
+
+        select(feature) {    
+            if (feature && !feature.get("clicked")) {
+                if (feature == this.InteractiveMap.highlightedFeature) {
+                    this.unhighlight();
+                }
+                this.InteractiveMap.selectSource.addFeature(feature);
+                feature.set("clicked", true, true);
+            }
+        }
+
+    }
+
+    class NotificationControl {
+        constructor(id) {
+            this.timer = null;
+            this.id = id;
+            this.info = document.getElementById(id);
+            this.infoContent = document.querySelector('#' + id + ' .message-content');
+        }
+        
+        show(message) {
+            this.setContent(message);
+            this.info.classList.remove('slideUp');
+            this.info.classList.add('slideDown');
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+                this.info.classList.add('slideUp');
+                this.info.classList.remove('slideDown');
+            }, 1500);
+        }
+
+        setContent(html) {
+            this.infoContent.innerHTML = html;
+        }
+
+        open() {
+            this.info.classList.add('slideDown');
+            this.info.classList.remove('slideUp');
+        }
+
+        close() {
+            this.info.classList.add('slideUp');
+            this.info.classList.remove('slideDown');
+        }
+
+    }
+
+    const formatRadius = circle => {
+        const length = Math.round(circle.getRadius());
+        const output = 'Radius: ' + length + ' ' + 'units<br>Area: ' + (Math.PI * length * length).toFixed(2) + ' units<sup>2</sup>';
+        return output;
+    };
+
+    /**
+     * Format length output.
+     * @param {ol.geom.LineString} line The line.
+     * @return {string} The formatted length.
+     */
+    const formatLength = (InteractiveMap, line) => {
+        const length = Math.round(line.getLength());
+        const output = 'Distance: ' + length + ' ' + 'units<br>Travel Time: ' + (length / InteractiveMap.movementSpeed).toFixed(2) + 's at ' + InteractiveMap.movementSpeed + 'ms';
+        return output;
+    };
+            
+    class MeasureControl {
+        constructor(InteractiveMap) {
+            this.InteractiveMap = InteractiveMap;
+            this.map = InteractiveMap.map;
+            this.source = new SourceVector({});
+            
+            this.layer =  new LayerVector({
+                source: this.source
+            });
+
+            /**
+             * Currently drawn feature.
+             * @type {ol.Feature}
+             */
+            this.sketch = null;
+
+            /**
+             * The help tooltip element.
+             * @type {Element}
+             */
+            this.helpTooltipElement = null;
+
+            /**
+             * Overlay to show the help messages.
+             * @type {ol.Overlay}
+             */
+            this.helpTooltip = null;
+
+            /**
+             * The measure tooltip element.
+             * @type {Element}
+             */
+            this.measureTooltipElement = null;
+
+            /**
+             * Overlay to show the measurement.
+             * @type {ol.Overlay}
+             */
+            this.measureTooltip = null;
+            
+            /**
+             * Message to show when the user is drawing a polygon.
+             * @type {string}
+             */
+            this.continuePolygonMsg = 'Click to continue drawing the polygon';
+            
+            /**
+             * Message to show when the user is drawing a line.
+             * @type {string}
+             */
+            this.continueLineMsg = 'Click to continue drawing the line';
+            
+            /**
+             * Handle pointer move.
+             * @param {ol.MapBrowserEvent} evt The event.
+             */
+            
+            this.pointerMoveListener = null;
+            
+            this.mouseOutHandler = () => this.helpTooltipElement.classList.add('hidden');
+
+            this.type = 'line';
+
+            this.draw = null; // global so we can remove it later
+
+            this.active = false;
+
+        }
+
+        /**
+         * Creates a new measure tooltip
+         */
+        createMeasureTooltip() {
+            if (this.measureTooltipElement) {
+                this.measureTooltipElement.parentNode.removeChild(this.measureTooltipElement);
+            }
+            this.measureTooltipElement = document.createElement('div');
+            this.measureTooltipElement.className = 'tooltip tooltip-measure';
+            this.measureTooltip = new Overlay({
+                element: this.measureTooltipElement,
+                offset: [0, -15],
+                positioning: 'bottom-center'
+            });
+            this.map.addOverlay(this.measureTooltip);
+        }
+            
+        /**
+         * Creates a new help tooltip
+         */
+        createHelpTooltip() {
+            if (this.helpTooltipElement) {
+                this.helpTooltipElement.parentNode.removeChild(this.helpTooltipElement);
+            }
+            this.helpTooltipElement = document.createElement('div');
+            this.helpTooltipElement.className = 'tooltip hidden';
+            this.helpTooltip = new Overlay({
+                element: this.helpTooltipElement,
+                offset: [15, 0],
+                positioning: 'center-left'
+            });
+            this.map.addOverlay(this.helpTooltip);
+        }
+        
+        addInteraction() {
+            const type = (this.type == 'circle' ? 'Circle' : 'LineString');
+            this.draw = new Draw({
+                source: this.source,
+                type: /** @type {ol.geom.GeometryType} */ (type),
+                style: styles.measure
+            });
+            this.map.addInteraction(this.draw);
+
+            this.createHelpTooltip();
+
+            let listener;
+            this.draw.on('drawstart', evt => {
+                this.source.clear(true);
+                this.InteractiveMap.controls.info.setContent("");
+                this.InteractiveMap.controls.info.close(true);
+                // set sketch
+                this.sketch = evt.feature;
+                /** @type {ol.Coordinate|undefined} */
+                let tooltipCoord = evt.coordinate;
+
+                listener = this.sketch.getGeometry().on('change', evt => {
+                    const geom = evt.target;
+                    let output;
+                    if (geom instanceof Circle$1) {
+                        output = formatRadius(geom);
+                        tooltipCoord = geom.getLastCoordinate();
+                    } else if (geom instanceof LineString) {
+                        output = formatLength(this.InteractiveMap, geom);
+                        tooltipCoord = geom.getLastCoordinate();
+                    }
+                    this.InteractiveMap.controls.info.setContent(output);
+                    this.InteractiveMap.controls.info.open(true);
+                });
+            });
+
+            this.draw.on('drawend', () => {
+                // unset sketch
+                this.sketch = null;
+                // unset tooltip so that a new one can be created
+                Observable.unByKey(listener);
+            });
+        }
+        
+        change(type) {
+            this.type = type;
+            Observable.unByKey(this.pointerMoveListener);
+            this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
+            this.map.removeInteraction(this.draw);
+            this.source.clear(true);
+            this.addInteraction();
+            this.active = true;
+        }
+        
+        activate() {
+            if (!this.active) {
+                this.pointerMoveListener = this.map.on('pointermove', evt => {
+                    if (evt.dragging) {
+                        return;
+                    }
+                    /** @type {string} */
+                    let helpMsg = 'Click to start drawing';
+
+                    if (this.sketch) {
+                        const geom = (this.sketch.getGeometry());
+                        if (geom instanceof Polygon) {
+                            helpMsg = this.continuePolygonMsg;
+                        } else if (geom instanceof LineString) {
+                            helpMsg = this.continueLineMsg;
+                        }
+                    }
+
+                    this.helpTooltipElement.innerHTML = helpMsg;
+                    this.helpTooltip.setPosition(evt.coordinate);
+
+                    this.helpTooltipElement.classList.remove('hidden');
+                });
+                this.map.getViewport().addEventListener('mouseout', this.mouseOutHandler);
+                this.addInteraction();
+            }
+            this.active = true;
+        }
+        
+        deactivate() {
+            Observable.unByKey(this.pointerMoveListener);
+            this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
+            this.map.removeInteraction(this.draw);
+            this.source.clear(true);
+            this.active = false;
+        }
+    }
+
+    const laneData = {
+        700: {
+            npc_dota_spawner_good_bot: [1.25, 10],
+            npc_dota_spawner_bad_bot: [0.75, 22],
+            npc_dota_spawner_good_top: [0.75, 2],
+            npc_dota_spawner_bad_top: [1.25, 2]
+        },
+        706: {
+            npc_dota_spawner_good_bot: [1.3, 16],
+            npc_dota_spawner_bad_bot: [0.65, 22],
+            npc_dota_spawner_good_top: [1.3, 8],
+            npc_dota_spawner_bad_top: [0.65, 8]
+        },
+        707: {
+            npc_dota_spawner_good_bot: [1.3, 4],
+            npc_dota_spawner_bad_bot: [0.65, 6],
+            npc_dota_spawner_good_top: [1.3, 2],
+            npc_dota_spawner_bad_top: [0.65, 2]
+        },
+        709: {
+            npc_dota_spawner_good_bot: [1.3, 4],
+            npc_dota_spawner_bad_bot: [0.65, 6],
+            npc_dota_spawner_good_top: [1.3, 2],
+            npc_dota_spawner_bad_top: [0.65, 2]
+        },
+        715: {
+            npc_dota_spawner_good_bot: [1.3, 4],
+            npc_dota_spawner_bad_bot: [0.65, 6],
+            npc_dota_spawner_good_top: [1.3, 2],
+            npc_dota_spawner_bad_top: [0.65, 2]
+        }
+    };
+
+    const getDistance = (speed, elapsedTime) => speed * elapsedTime / 1000 * mapConstants.scale;
+
+    const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) => {
+        elapsedTime = elapsedTime * playbackSpeed;
+        const base = mapConstants.creepBaseMovementSpeed;
+        if (bNoAdjust) return getDistance(base, elapsedTime);
+
+        switch (id) {
+            case 'npc_dota_spawner_good_bot':
+            case 'npc_dota_spawner_bad_top':
+            case 'npc_dota_spawner_good_top':
+            case 'npc_dota_spawner_bad_bot':
+                const boostMultiplier = laneData[version][id][0];
+                const boostDuration = laneData[version][id][1] * 1000;
+                if (elapsedTime < boostDuration) {
+                    return getDistance(base * boostMultiplier, elapsedTime);
+                }
+                else {
+                    return getDistance(base * boostMultiplier, boostDuration) + getDistance(base, elapsedTime - boostDuration);
+                }
+            break;
+            default:
+                return getDistance(base, elapsedTime);
+            break;
+        }
+    };
+
+    class CreepControl {
+        constructor(InteractiveMap, id) {
+            this.InteractiveMap = InteractiveMap;
+            this.postComposeListener = null;
+            this.postComposeHandler = this.animateCreeps.bind(this);
+            this.playbackSpeed = 1;
+            this.paused = true;
+            this.pauseTime = null;
+            this.title = 'Lane Animation';
+            
+            this.id = id;
+            this.info = document.getElementById(id);
+            this.infoContent = document.querySelector('#timer-time');
+            this.playPauseBtn = document.querySelector('#timer-playPause');
+            this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
+            
+            this.stopBtn = document.querySelector('#timer-stop');
+            this.stopBtn.addEventListener('click', () => this.stop(true), false);
+            
+            this.fasterBtn = document.querySelector('#timer-faster');
+            this.fasterBtn.addEventListener('click', () => this.faster(true), false);
+            
+            this.slowerBtn = document.querySelector('#timer-slower');
+            this.slowerBtn.addEventListener('click', () => this.slower(true), false);
+        }
+        
+        show(message) {
+            this.setContent(message);
+            this.info.classList.remove('slideUp');
+            this.info.classList.add('slideDown');
+        }
+        
+        setContent(html) {
+            this.infoContent.innerHTML = html;
+        }
+        
+        open() {
+            this.info.classList.add('slideDown');
+            this.info.classList.remove('slideUp');
+        }
+        
+        close() {
+            this.info.classList.add('slideUp');
+            this.info.classList.remove('slideDown');
+        }
+        
+        slower() {
+            const oldVal = this.playbackSpeed;
+            this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
+            this.updatePlayback(oldVal, this.playbackSpeed);
+        }
+
+        faster() {
+            const oldVal = this.playbackSpeed;
+            this.playbackSpeed += 1;
+            this.updatePlayback(oldVal, this.playbackSpeed);
+        }
+
+        updatePlayback(oldVal, newVal) {
+            const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+            if (layer) {
+                const features = layer.getSource().getFeatures();
+                let elapsedTime = this.currentTime - this.startTime;
+                let adjustedElapsedTime = elapsedTime * oldVal / newVal;
+                this.startTime = this.currentTime - adjustedElapsedTime;
+                for (let i = 0; i < features.length; i++) {
+                    const feature = features[i];
+                    const waveTimes = feature.get('waveTimes');
+                    if (waveTimes) {
+                        let j = waveTimes.length;
+                        while (j--) {
+                            elapsedTime = this.currentTime - waveTimes[j];
+                            adjustedElapsedTime = elapsedTime * oldVal / newVal;
+                            waveTimes[j] = this.currentTime - adjustedElapsedTime;
+                        }
+                    }
+                }
+            }
+        }
+
+        start() {
+            if (!this.postComposeListener) {
+                this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
+            }
+            if (this.paused) this.playPause();
+            this.InteractiveMap.map.render();
+        }
+
+        stop() {
+            Observable.unByKey(this.postComposeListener);
+            this.postComposeListener = null;
+            const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+            if (layer) {
+                const features = layer.getSource().getFeatures();
+                for (let i = 0; i < features.length; i++) {
+                    const feature = features[i];
+                    feature.set('waveTimes', null, true);
+                }
+            }
+            this.startTime = null;
+            if (!this.paused) this.playPause();
+            this.pauseTime = null;
+            this.InteractiveMap.map.render();
+            this.setContent(this.title);
+        }
+
+        playPause() {
+            this.paused = !this.paused;
+            if (this.paused) {
+                this.playPauseBtn.classList.add('icon-play');
+                this.playPauseBtn.classList.remove('icon-pause');
+            }
+            else {
+                this.playPauseBtn.classList.add('icon-pause');
+                this.playPauseBtn.classList.remove('icon-play');
+                this.start();
+            }
+        }
+
+        activate() {
+            this.show(this.title);
+        }
+
+        deactivate() {
+            this.stop();
+            this.close();
+        }
+
+        animateCreeps(event) {
+            const vectorContext = event.vectorContext;
+            const frameState = event.frameState;
+            this.currentTime = frameState.time;
+            const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
+            const pathLayer = this.InteractiveMap.getMapLayer('path_corner');
+            if (!layer || !pathLayer) return;
+            const features = layer.getSource().getFeatures();
+            if (!this.startTime) this.startTime = this.currentTime;
+            if (this.paused) {
+                if (this.pauseTime == null) this.pauseTime = frameState.time;
+                this.currentTime = this.pauseTime;
+            }
+            else {
+                if (this.pauseTime != null) {
+                    for (let i = 0; i < features.length; i++) {
+                        const feature = features[i];
+                        const waveTimes = feature.get('waveTimes');
+                        if (waveTimes) {
+                            let j = waveTimes.length;
+                            while (j--) {
+                                waveTimes[j] += (this.currentTime - this.pauseTime);
+                            }
+                        }
+                    }
+                    this.startTime += (this.currentTime - this.pauseTime);
+                    this.pauseTime = null;
+                }
+            }
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const id = feature.getId();
+                const pathFeature = pathLayer.getSource().getFeatureById(id);
+                let waveTimes = feature.get('waveTimes');
+                if (!waveTimes) {
+                    waveTimes = [this.currentTime];
+                    feature.set('waveTimes', waveTimes, true);
+                }
+                if (this.currentTime - waveTimes[waveTimes.length - 1] >= 30000 / this.playbackSpeed) {
+                    waveTimes.push(this.currentTime);
+                }
+                let j = waveTimes.length;
+                while (j--) {                
+                    let path = feature.get('path');
+                    let coords;
+                    if (!path) {
+                        path = pathFeature.getGeometry().clone();
+                        coords = path.getCoordinates();
+                        coords[0] = feature.getGeometry().getCoordinates();
+                        path.setCoordinates(coords);
+                        feature.set('path', path, true);
+                    }
+                    const pathLength = path.getLength();
+                    coords = path.getCoordinates();
+                    const elapsedTime = this.currentTime - waveTimes[j];
+                    const elapsedDistance = getElapsedDistance(this.InteractiveMap.version, id, elapsedTime, this.playbackSpeed);
+                    const elapsedFraction = Math.max(0, elapsedDistance / pathLength);
+                    let endPoint;
+                    if (elapsedFraction >= 1) {
+                        endPoint = coords[coords.length - 1];
+                        waveTimes.splice(j, 1);
+                    }
+                    else {
+                        endPoint = path.getCoordinateAt(elapsedFraction);
+                    }
+
+                    const point = new Circle$1(endPoint);
+                    vectorContext.setStyle(styles.creepColor(feature));
+                    vectorContext.drawCircle(point);
+                }
+            }
+            let timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
+            if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x';
+            this.setContent(timeText);
+            frameState.animate = true;
+        }
+    }
+
     const key2pt$1 = visionSimulation.prototype.key2pt;
     const xy2pt$1 = visionSimulation.prototype.xy2pt;
 
@@ -3845,433 +4288,6 @@
         }
     }
 
-    const loadGeoJSON = (map, layerDef, data, version) => {
-        try {
-            const source = new SourceVector({
-                url: 'data/' + version + '/' + layerDef.filename,
-                format: new GeoJSON({dataProjection: layerDef.projection || pixelProj})
-            });
-            return new LayerVector({
-                title: layerDef.name,
-                projection: layerDef.projection || pixelProj,
-                source: source,
-                visible: !!layerDef.visible,
-                style: layerDef.style
-            });
-        }
-        catch (e) {
-        
-        }
-    };
-
-    const loadPolygon = (map, layerDef, data, layer) => {
-        const features = data.data[layerDef.id].map(obj => {
-            const points = obj.points;
-            const ring = points.map(point => proj.transform([point.x, point.y], dotaProj, pixelProj));
-            ring.push(proj.transform([points[0].x, points[0].y], dotaProj, pixelProj));
-            const geom = new Polygon([ring]);
-            const feature = new Feature(geom);
-            obj.id = layerDef.id;
-            feature.set('dotaProps', obj, true);
-            return feature;
-        });
-        
-        const vectorSource = new SourceVector({
-            features: features
-        });
-        
-        if (layer) {
-            layer.setSource(vectorSource);
-        }
-        else {
-            layer = new LayerVector({
-                title: layerDef.name,
-                source: vectorSource,
-                visible: !!layerDef.visible,
-                style: layerDef.style
-            });
-            layer.set('layerId', layerDef.id, true);
-            layer.set('layerDef', layerDef, true);
-            layer.set('showInfo', false, true);
-        }
-
-        return layer;
-    };
-
-    const loadJSON = (map, layerDef, data, layer) => {
-        const features = data.data[layerDef.id].map(point => {
-            const unitClass = point.subType ? layerDef.id + '_' + point.subType : layerDef.id;
-            const stats = data.stats[unitClass];
-            const bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
-            const geom = (bounds && bounds[0] > 0 && bounds[1] > 0)
-                ? new Polygon([[
-                    proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
-                    proj.transform([point.x-bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
-                    proj.transform([point.x+bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
-                    proj.transform([point.x+bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
-                    proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj)
-                ]])
-                : new Point(proj.transform([point.x, point.y], dotaProj, pixelProj));
-
-            const feature = new Feature(geom);
-            
-            point.id = layerDef.id;
-            point.unitClass = unitClass;
-            feature.set('dotaProps', point, true);
-            
-            return feature;
-        });
-        
-        const vectorSource = new SourceVector({
-            features: features
-        });
-        
-        if (layer) {
-            layer.setSource(vectorSource);
-        }
-        else {
-            layer = new LayerVector({
-                title: layerDef.name,
-                source: vectorSource,
-                visible: !!layerDef.visible,
-                style: layerDef.style
-            });
-            layer.set('layerId', layerDef.id, true);
-            layer.set('layerDef', layerDef, true);
-            layer.set('showInfo', false, true);
-        }
-
-        return layer;
-    };
-
-    const loadNeutralPullRange = (InteractiveMap, layerDef, data, layer) => {
-        const vectorSource = new SourceVector({
-            features: []
-        });
-        
-        if (layer) {
-            layer.setSource(vectorSource);
-        }
-        else {
-            layer = new LayerVector({
-                title: layerDef.name,
-                source: vectorSource,
-                visible: !!layerDef.visible,
-                style: layerDef.style
-            });
-            layer.set('layerId', layerDef.id, true);
-            layer.set('layerDef', layerDef, true);
-            layer.set('showInfo', false, true);
-        }
-
-        return layer;
-    };
-
-    const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
-        const layers = [];
-        for (let i = 0; i < layerDefs.length; i++) {
-            const layerDef = layerDefs[i];
-            if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '688')) continue;
-            let layer;
-            switch (layerDef.type) {
-                case 'GeoJSON':
-                    layer = loadGeoJSON(InteractiveMap.map, layerDef, layersIndex[layerDef.id], version);
-                break;
-                case 'polygon':
-                    layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
-                break;
-                case 'pullRange':
-                    layer = loadNeutralPullRange(InteractiveMap, layerDef, data, layersIndex[layerDef.id]);
-                break;
-                default:
-                    layer = loadJSON(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
-                break;
-            }
-            if (layer) {
-                layersIndex[layerDef.id] = layer;
-                layers.push(layer);
-            }
-        }
-        return new LayerGroup({
-            title: 'Layers',
-            layers: new Collection(layers)
-        });
-    };
-
-    const getJSON = (path, callback) => {
-        let retries = 3;
-        
-        const makeReq = () => {
-            const request = new XMLHttpRequest();
-
-            request.open('GET', path, true);
-            let err;
-            request.onload = () => {
-                let data;
-                if (request.status == 200) {
-                    console.log(request);
-                    console.log(request.status);
-                    try {
-                        data = JSON.parse(request.responseText);
-                    }
-                    catch (e) {
-                        err = e;
-                    }
-                }
-                else {
-                    err = new Error("Error loading json " + request.status);
-                }
-                callback(err, data);
-            };
-            request.onerror = () => {
-                retries--;
-                if (retries > 0) {
-                    setTimeout(makeReq, 1000);
-                }
-                else {
-                    err = new Error("Error loading json " + request.status);
-                    callback(err);
-                }
-            };
-            request.send();
-        };
-        
-        makeReq();
-    };
-
-    const baseLayerDefinitions = [
-        {
-            id: '715',
-            name: '7.15',
-            tilesets: [
-                {
-                    id: 'default',
-                    name: 'Default'
-                }
-            ]
-        },
-        {
-            id: '709',
-            name: '7.09',
-            tilesets: [
-                {
-                    id: 'default',
-                    name: 'Default'
-                }
-            ]
-        },
-        {
-            id: '707',
-            name: '7.07',
-            tilesets: [
-                {
-                    id: 'default',
-                    name: 'Default'
-                }
-            ]
-        },
-        {
-            id: '706',
-            name: '7.06',
-            tilesets: [
-                {
-                    id: 'default',
-                    name: 'Default'
-                },
-                {
-                    id: 'autumn',
-                    name: 'Autumn'
-                },
-                {
-                    id: 'desert',
-                    name: 'Desert'
-                },
-                {
-                    id: 'immortalgardens',
-                    name: 'Immortal Gardens'
-                },
-                {
-                    id: 'journey',
-                    name: 'New Journey'
-                },
-                {
-                    id: 'reef',
-                    name: 'Reef\'s Edge'
-                },
-                {
-                    id: 'spring',
-                    name: 'Spring'
-                },
-                {
-                    id: 'winter',
-                    name: 'Winter'
-                }
-            ]
-        },
-        {
-            id: '700',
-            name: '7.00',
-            tilesets: [
-                {
-                    id: 'default',
-                    name: 'Default'
-                }
-            ]
-        },
-        {
-            id: '688',
-            name: '6.88',
-            tilesets: [
-                {
-                    id: 'default',
-                    name: 'Default'
-                }
-            ]
-        }
-    ];
-
-    const layerDefinitions = [
-        {
-            id: 'path_corner',
-            name: 'Lanes',
-            filename: 'path_corner.json',
-            type: 'GeoJSON',
-            group: 'overlay',
-            projection: dotaProj,
-            style: styles.teamColor
-        },
-        {
-            id: 'npc_dota_spawner',
-            name: 'Lane Spawns',
-            filename: 'npc_dota_spawner.json',
-            type: 'GeoJSON',
-            group: 'overlay',
-            projection: dotaProj,
-            style: styles.creepSpawn
-        },
-        {
-            id: 'ent_fow_blocker_node',
-            name: 'Vision Blocker',
-            filename: 'ent_fow_blocker_node.json',
-            type: 'GeoJSON',
-            group: 'overlay',
-            projection: dotaProj,
-            style: new Style({
-                fill: new Fill({color: [0, 0, 255, 0.3]}),
-                stroke: new Stroke({color: [0, 0, 255, 0.8]})
-            })
-        },
-        {
-            id: 'no_wards',
-            name: 'Invalid Wards',
-            filename: 'no_wards.json',
-            type: 'GeoJSON',
-            group: 'overlay',
-            projection: dotaProj,
-            style: new Style({
-                fill: new Fill({color: [255, 0, 0, 0.3]}),
-                stroke: new Stroke({color: [255, 0, 0, 0.8]})
-            })
-        },
-        {
-            id: 'trigger_multiple',
-            name: 'Spawn Boxes',
-            type: 'polygon',
-            group: 'overlay',
-            style: new Style({
-                fill: new Fill({color: [0, 255, 125, 0.3]}),
-                stroke: new Stroke({color: [0, 255, 125, 0.8]})
-            })
-        },
-        {
-            id: 'npc_dota_neutral_spawner',
-            name: 'Neutral Camps',
-            group: 'object',
-            style: (feature, resolution) => styles.neutralCamp[parseInt(feature.get('dotaProps').neutralType)]
-        },
-        {
-            id: 'ent_dota_tree',
-            name: 'Trees',
-            group: 'object',
-            style: (feature, resolution) => feature.get('isCut') ? styles.tree.dead : styles.tree.alive,
-            toggle: true
-        },
-        {
-            id: 'npc_dota_roshan_spawner',
-            name: 'Roshan',
-            group: 'object',
-            style: styles.roshan
-        },
-        {
-            id: 'dota_item_rune_spawner_powerup',
-            name: 'Runes',
-            group: 'object',
-            style: styles.rune
-        },
-        {
-            id: 'dota_item_rune_spawner_bounty',
-            name: 'Bounty Runes',
-            group: 'object',
-            style: styles.bountyRune
-        },
-        {
-            id: 'ent_dota_fountain',
-            name: 'Fountain',
-            group: 'structure',
-            style: styles.ent_dota_fountain,
-            toggle: true
-        },
-        {
-            id: 'npc_dota_barracks',
-            name: 'Barracks',
-            group: 'structure',
-            style: styles.npc_dota_barracks,
-            toggle: true
-        },
-        {
-            id: 'npc_dota_filler',
-            name: 'Buildings',
-            group: 'structure',
-            style: styles.npc_dota_filler,
-            toggle: true
-        },
-        {
-            id: 'npc_dota_tower',
-            name: 'Towers',
-            group: 'structure',
-            style: styles.npc_dota_tower,
-            toggle: true
-        },
-        {
-            id: 'ent_dota_shop',
-            name: 'Shops',
-            group: 'structure',
-            style: styles.ent_dota_shop
-        },
-        {
-            id: 'npc_dota_fort',
-            name: 'Ancients',
-            group: 'structure',
-            style: styles.npc_dota_fort,
-            toggle: true
-        },
-        {
-            id: 'npc_dota_healer',
-            name: 'Shrines',
-            group: 'structure',
-            style: styles.npc_dota_healer,
-            toggle: true
-        },
-        {
-            id: 'pullRange',
-            name: 'Pull Range',
-            type: 'pullRange',
-            group: 'overlay',
-            style: styles.pullRange,
-            visible: true
-        }
-    ];
-
     class InteractiveMap {
         constructor(map_tile_path, version, vision_data_image_path, worlddata) {
             this.map_tile_path = map_tile_path;
@@ -4281,13 +4297,12 @@
             this.layerDefs = layerDefinitions;
             this.baseLayerDefs = baseLayerDefinitions;
             this.view = new View({
-                zoom: 0,
+                zoom: 1,
                 center: mapConstants.imgCenter,
                 projection: pixelProj,
-                resolutions: mapConstants.resolutions,
+                resolutions: [32,16,8,4,2,1],
                 extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
             });
-            this.controls = {};
             this.data = {};
             this.layerIndex = {};
             this.version = version;
@@ -4378,6 +4393,19 @@
                 title: 'Base Layers',
                 layers: new Collection(this.baseLayers)
             });
+            
+            this.controls = {
+                menu: new MenuControl(this),
+                info: new InfoControl(this, 'info'),
+                notification: new NotificationControl('notification'),
+                vision: new VisionControl(this),
+                ward: new WardControl(this),
+                tree: new TreeControl(this),
+                cursor: new CursorControl(this),
+                coordinate: new CoordinateControl(this, 'coordinates'),
+                measure: new MeasureControl(this),
+                creep: new CreepControl(this, 'timer')
+            };
         }
         
         getMapData(version) {
@@ -4419,6 +4447,19 @@
                     this.map.setLayerGroup(data.layerGroup);
                     this.map.getLayerGroup().setVisible(true);
                 }
+            
+                this.map.addLayer(this.controls.measure.layer);
+                this.map.addLayer(this.controls.cursor.layer);
+                this.map.addLayer(this.controls.vision.layer);
+                this.map.addLayer(this.controls.ward.layer);
+                this.map.addLayer(this.highlightLayer);
+                this.map.addLayer(this.selectLayer);
+                this.map.addLayer(this.wardRangeLayer);
+                this.map.addLayer(this.rangeLayers.dayVision);
+                this.map.addLayer(this.rangeLayers.nightVision);
+                this.map.addLayer(this.rangeLayers.trueSight);
+                this.map.addLayer(this.rangeLayers.attackRange);
+                
                 if (callback) callback(err);
             });
         }
@@ -4646,7 +4687,7 @@
             client: {
                 javascript: {
                     source_map_enabled: true,
-                    code_version: "e70893525279e2336352b4dfe9037608cb4e75c4",
+                    code_version: "c093b5858277b556944f4706112fb596b04866ea",
                     // Optionally have Rollbar guess which frames the error was thrown from
                     // when the browser does not provide line and column numbers.
                     guess_uncaught_frames: true
@@ -4683,39 +4724,18 @@
     const aboutModal = new ModalControl('about', 'about-open', 'about-close');
     const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-    const buildDate = "2018-06-29 14:36:38 UTC";
+    const buildDate = "2018-06-29 20:30:39 UTC";
     document.getElementById('buildDate').innerHTML = buildDate;
 
     const releaseTag = "4.12.1";
     document.getElementById('releaseTag').innerHTML = releaseTag;
 
-    const codeVersion = "e70893525279e2336352b4dfe9037608cb4e75c4";
+    const codeVersion = "c093b5858277b556944f4706112fb596b04866ea";
     document.getElementById('codeVersion').innerHTML = codeVersion;
 
     class App {
         constructor (map_tile_path, vision_data_image_path, version) {
             const interactiveMap = new InteractiveMap(map_tile_path, version, vision_data_image_path, worlddata);
-            
-            interactiveMap.toggleLayerMenuOption = (layerId, state) => {
-                const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
-                if (state != null) element.checked = state;
-                this.updateLayerAndQueryString(element, layerId);
-            };
-            
-            const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
-
-            const controls = interactiveMap.controls;
-            
-            controls.menu = new MenuControl(interactiveMap, layerToggleHandler);
-            controls.info = new InfoControl(interactiveMap, 'info');
-            controls.notification = new NotificationControl('notification');
-            controls.vision = new VisionControl(interactiveMap);
-            controls.ward = new WardControl(interactiveMap);
-            controls.tree = new TreeControl(interactiveMap);
-            controls.cursor = new CursorControl(interactiveMap);
-            controls.coordinate = new CoordinateControl(interactiveMap, 'coordinates');
-            controls.measure = new MeasureControl(interactiveMap);
-            controls.creep = new CreepControl(interactiveMap, 'timer');
             
             this.interactiveMap = interactiveMap;
             
@@ -4769,19 +4789,6 @@
                 break;
             }
             interactiveMap.controls.notification.show(modeNotificationText[interactiveMap.MODE]);
-        }
-
-        updateLayerAndQueryString(element, layerId) {
-            layerId = layerId || element.getAttribute('data-layer-id');
-            const layer = this.interactiveMap.getMapLayer(layerId);
-            if (layer) {
-                layer.setVisible(element.checked);
-                const param = layer.get("title").replace(/ /g, '');
-                setQueryString(param, element.checked ? true : null);
-                if (layerId == 'ent_dota_tree') {
-                    document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
-                }
-            }
         }
 
         // updates element visibility based on map layer index
@@ -4859,18 +4866,6 @@
             this.interactiveMap.setMapLayers(this.interactiveMap.version, err => {
                 if (!err) {
                     this.updateOverlayMenu();
-                    this.interactiveMap.map.addLayer(this.interactiveMap.controls.measure.layer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.controls.cursor.layer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.controls.vision.layer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.controls.ward.layer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.highlightLayer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.selectLayer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.wardRangeLayer);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.dayVision);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.nightVision);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.trueSight);
-                    this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.attackRange);
-                    
                     this.interactiveMap.controls.tree.parseQueryString();
                     this.interactiveMap.controls.ward.parseQueryString();
                 }
@@ -4919,6 +4914,8 @@
             });
 
             document.getElementById('creepControl').addEventListener('change', e => {
+                this.interactiveMap.controls.menu.toggleLayerMenuOption('npc_dota_spawner', e.currentTarget.checked);
+                this.interactiveMap.controls.menu.toggleLayerMenuOption('path_corner', e.currentTarget.checked);
                 if (e.currentTarget.checked) {
                     this.interactiveMap.controls.creep.activate();
                 }
@@ -4977,7 +4974,7 @@
                 el.classList.add('active');
                 document.getElementById('btn-ward').classList.remove('active');
                 document.getElementById('btn-measure').classList.remove('active');
-                this.interactiveMap.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
+                this.interactiveMap.controls.menu.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
                 this.changeMode('navigate');
                 this.interactiveMap.controls.notification.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
             });

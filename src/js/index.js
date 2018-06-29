@@ -4,16 +4,6 @@ import proj from 'ol/proj';
 import extent from 'ol/extent';
 import { pixelProj, dotaProj } from './projections';
 import mapConstants from './mapConstants';
-import MenuControl from './controls/menu';
-import InfoControl from './controls/info';
-import NotificationControl from './controls/notification';
-import MeasureControl from './controls/measure';
-import CreepControl from './controls/creep';
-import VisionControl from './controls/vision';
-import WardControl from './controls/ward';
-import TreeControl from './controls/tree';
-import CursorControl from './controls/cursor';
-import CoordinateControl from './controls/coordinate';
 import InteractiveMap from './InteractiveMap';
 import modeNotificationText from './modeNotificationText';
 
@@ -37,27 +27,6 @@ document.getElementById('codeVersion').innerHTML = codeVersion;
 class App {
     constructor (map_tile_path, vision_data_image_path, version) {
         const interactiveMap = new InteractiveMap(map_tile_path, version, vision_data_image_path, worlddata);
-        
-        interactiveMap.toggleLayerMenuOption = (layerId, state) => {
-            const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
-            if (state != null) element.checked = state;
-            this.updateLayerAndQueryString(element, layerId);
-        }
-        
-        const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
-
-        const controls = interactiveMap.controls;
-        
-        controls.menu = new MenuControl(interactiveMap, layerToggleHandler);
-        controls.info = new InfoControl(interactiveMap, 'info');
-        controls.notification = new NotificationControl('notification');
-        controls.vision = new VisionControl(interactiveMap);
-        controls.ward = new WardControl(interactiveMap);
-        controls.tree = new TreeControl(interactiveMap);
-        controls.cursor = new CursorControl(interactiveMap);
-        controls.coordinate = new CoordinateControl(interactiveMap, 'coordinates');
-        controls.measure = new MeasureControl(interactiveMap);
-        controls.creep = new CreepControl(interactiveMap, 'timer');
         
         this.interactiveMap = interactiveMap;
         
@@ -111,19 +80,6 @@ class App {
             break;
         }
         interactiveMap.controls.notification.show(modeNotificationText[interactiveMap.MODE]);
-    }
-
-    updateLayerAndQueryString(element, layerId) {
-        layerId = layerId || element.getAttribute('data-layer-id');
-        const layer = this.interactiveMap.getMapLayer(layerId);
-        if (layer) {
-            layer.setVisible(element.checked);
-            const param = layer.get("title").replace(/ /g, '');
-            setQueryString(param, element.checked ? true : null);
-            if (layerId == 'ent_dota_tree') {
-                document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
-            }
-        }
     }
 
     // updates element visibility based on map layer index
@@ -201,18 +157,6 @@ class App {
         this.interactiveMap.setMapLayers(this.interactiveMap.version, err => {
             if (!err) {
                 this.updateOverlayMenu();
-                this.interactiveMap.map.addLayer(this.interactiveMap.controls.measure.layer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.controls.cursor.layer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.controls.vision.layer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.controls.ward.layer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.highlightLayer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.selectLayer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.wardRangeLayer);
-                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.dayVision);
-                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.nightVision);
-                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.trueSight);
-                this.interactiveMap.map.addLayer(this.interactiveMap.rangeLayers.attackRange);
-                
                 this.interactiveMap.controls.tree.parseQueryString();
                 this.interactiveMap.controls.ward.parseQueryString();
             }
@@ -261,6 +205,8 @@ class App {
         });
 
         document.getElementById('creepControl').addEventListener('change', e => {
+            this.interactiveMap.controls.menu.toggleLayerMenuOption('npc_dota_spawner', e.currentTarget.checked);
+            this.interactiveMap.controls.menu.toggleLayerMenuOption('path_corner', e.currentTarget.checked);
             if (e.currentTarget.checked) {
                 this.interactiveMap.controls.creep.activate();
             }
@@ -319,7 +265,7 @@ class App {
             el.classList.add('active');
             document.getElementById('btn-ward').classList.remove('active');
             document.getElementById('btn-measure').classList.remove('active');
-            this.interactiveMap.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
+            this.interactiveMap.controls.menu.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
             this.changeMode('navigate');
             this.interactiveMap.controls.notification.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
         });

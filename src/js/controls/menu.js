@@ -119,12 +119,14 @@ class MenuPanel {
 }
 
 class MenuControl {
-    constructor(InteractiveMap, layerToggleHandler) {
+    constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
         this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
         this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
         this.leftPanel.otherMenu = this.rightPanel;
         this.rightPanel.otherMenu = this.leftPanel;
+        
+        const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
         
         this.InteractiveMap.layerDefs.forEach(layerDef => {
             const group = layerDef.group;
@@ -159,6 +161,25 @@ class MenuControl {
             versionOption.innerHTML = group.name;
             versionSelect.appendChild(versionOption);
         });
+    }
+    
+    updateLayerAndQueryString(element, layerId) {
+        layerId = layerId || element.getAttribute('data-layer-id');
+        const layer = this.InteractiveMap.getMapLayer(layerId);
+        if (layer) {
+            layer.setVisible(element.checked);
+            const param = layer.get("title").replace(/ /g, '');
+            setQueryString(param, element.checked ? true : null);
+            if (layerId == 'ent_dota_tree') {
+                document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+            }
+        }
+    }
+    
+    toggleLayerMenuOption(layerId, state) {
+        const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
+        if (state != null) element.checked = state;
+        this.updateLayerAndQueryString(element, layerId);
     }
 }
 

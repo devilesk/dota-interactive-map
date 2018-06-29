@@ -42,7 +42,6 @@ class MeasureControl {
     constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
         this.map = InteractiveMap.map;
-        this.info = InteractiveMap.controls.info;
         this.source = new SourceVector({});
         
         this.layer =  new LayerVector({
@@ -156,8 +155,8 @@ class MeasureControl {
         let listener;
         this.draw.on('drawstart', evt => {
             this.source.clear(true);
-            this.info.setContent("");
-            this.info.close(true);
+            this.InteractiveMap.controls.info.setContent("");
+            this.InteractiveMap.controls.info.close(true);
             // set sketch
             this.sketch = evt.feature;
             /** @type {ol.Coordinate|undefined} */
@@ -173,8 +172,8 @@ class MeasureControl {
                     output = formatLength(this.InteractiveMap, geom);
                     tooltipCoord = geom.getLastCoordinate();
                 }
-                this.info.setContent(output);
-                this.info.open(true);
+                this.InteractiveMap.controls.info.setContent(output);
+                this.InteractiveMap.controls.info.open(true);
             });
         });
 

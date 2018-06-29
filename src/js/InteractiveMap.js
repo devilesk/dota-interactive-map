@@ -21,6 +21,16 @@ import getJSON from './util/getJSON';
 import {getScaledRadius, worldToLatLon} from './conversion';
 import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
+import MenuControl from './controls/menu';
+import InfoControl from './controls/info';
+import NotificationControl from './controls/notification';
+import MeasureControl from './controls/measure';
+import CreepControl from './controls/creep';
+import VisionControl from './controls/vision';
+import WardControl from './controls/ward';
+import TreeControl from './controls/tree';
+import CursorControl from './controls/cursor';
+import CoordinateControl from './controls/coordinate';
 
 class InteractiveMap {
     constructor(map_tile_path, version, vision_data_image_path, worlddata) {
@@ -31,13 +41,12 @@ class InteractiveMap {
         this.layerDefs = layerDefinitions;
         this.baseLayerDefs = baseLayerDefinitions;
         this.view = new View({
-            zoom: 0,
+            zoom: 1,
             center: mapConstants.imgCenter,
             projection: pixelProj,
-            resolutions: mapConstants.resolutions,
+            resolutions: [32,16,8,4,2,1],
             extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
         });
-        this.controls = {};
         this.data = {};
         this.layerIndex = {};
         this.version = version;
@@ -128,6 +137,19 @@ class InteractiveMap {
             title: 'Base Layers',
             layers: new Collection(this.baseLayers)
         });
+        
+        this.controls = {
+            menu: new MenuControl(this),
+            info: new InfoControl(this, 'info'),
+            notification: new NotificationControl('notification'),
+            vision: new VisionControl(this),
+            ward: new WardControl(this),
+            tree: new TreeControl(this),
+            cursor: new CursorControl(this),
+            coordinate: new CoordinateControl(this, 'coordinates'),
+            measure: new MeasureControl(this),
+            creep: new CreepControl(this, 'timer')
+        };
     }
     
     getMapData(version) {
@@ -169,6 +191,19 @@ class InteractiveMap {
                 this.map.setLayerGroup(data.layerGroup);
                 this.map.getLayerGroup().setVisible(true);
             }
+        
+            this.map.addLayer(this.controls.measure.layer);
+            this.map.addLayer(this.controls.cursor.layer);
+            this.map.addLayer(this.controls.vision.layer);
+            this.map.addLayer(this.controls.ward.layer);
+            this.map.addLayer(this.highlightLayer);
+            this.map.addLayer(this.selectLayer);
+            this.map.addLayer(this.wardRangeLayer);
+            this.map.addLayer(this.rangeLayers.dayVision);
+            this.map.addLayer(this.rangeLayers.nightVision);
+            this.map.addLayer(this.rangeLayers.trueSight);
+            this.map.addLayer(this.rangeLayers.attackRange);
+            
             if (callback) callback(err);
         });
     }

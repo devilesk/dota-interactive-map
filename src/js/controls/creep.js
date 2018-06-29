@@ -183,14 +183,10 @@ class CreepControl {
     }
 
     activate() {
-        this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', true);
-        this.InteractiveMap.toggleLayerMenuOption('path_corner', true);
         this.show(this.title);
     }
 
     deactivate() {
-        this.InteractiveMap.toggleLayerMenuOption('npc_dota_spawner', false);
-        this.InteractiveMap.toggleLayerMenuOption('path_corner', false);
         this.stop();
         this.close();
     }
