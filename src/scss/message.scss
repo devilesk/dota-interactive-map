@@ -74,7 +74,7 @@
     z-index: 10;
     
     .message-content {
-        background-color: white;
+        background-color: $light-bg-color;
         color: black;
         line-height: 12px;
     }
@@ -120,7 +120,7 @@
         line-height: 36px;
         border-radius: 10px;
         margin: 10px;
-        background-color: #fff;
+        background-color: $light-bg-color;
         right: 0;
     }
 
@@ -137,7 +137,7 @@
 .message-content {
     padding: 10px;
     border-radius: 5px;
-    background-color: white;
+    background-color: $light-bg-color;
     margin: 10px;
     box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4);
     line-height: 22px;

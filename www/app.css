@@ -74,7 +74,7 @@ select:hover {
   right: 0;
   padding: 5px;
   font-size: 14px;
-  background-color: #fff;
+  background-color: #fefefe;
   display: none; }
   @media only screen and (min-width: 768px) {
     .coordinates-container {
@@ -573,7 +573,7 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
         #timer .message-content span + span {
           margin-left: 10px; } }
   #timer .message-content {
-    background-color: white;
+    background-color: #fefefe;
     color: black;
     line-height: 12px; }
   @media only screen and (min-width: 768px) {
@@ -631,7 +631,7 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
     line-height: 36px;
     border-radius: 10px;
     margin: 10px;
-    background-color: #fff;
+    background-color: #fefefe;
     right: 0; }
   #info:not(.active) #info-close-btn {
     display: none; }
@@ -643,7 +643,7 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
 .message-content {
   padding: 10px;
   border-radius: 5px;
-  background-color: white;
+  background-color: #fefefe;
   margin: 10px;
   box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4);
   line-height: 22px;
@@ -770,7 +770,7 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   position: relative;
   vertical-align: middle;
   border-radius: 2px;
-  background-color: white;
+  background-color: #fefefe;
   color: black; }
   .btn-playback:hover {
     border: 1px solid #818181;
@@ -849,7 +849,7 @@ input[type="checkbox"]:checked + .checkbox + .btn-toggle {
   box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4); }
 
 .close {
-  color: #aaa;
+  color: #818181;
   float: right;
   font-size: 28px;
   font-weight: bold; }
