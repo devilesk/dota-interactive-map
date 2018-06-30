@@ -1,6 +1,7 @@
 import VisionSimulation from 'dota-vision-simulation';
 import View from 'ol/view';
 import Map from 'ol/map';
+import extent from 'ol/extent';
 import Collection from 'ol/collection';
 import SourceVector from 'ol/source/vector';
 import TileImage from 'ol/source/tileimage';
@@ -8,19 +9,19 @@ import LayerVector from 'ol/layer/vector';
 import LayerTile from 'ol/layer/tile';
 import LayerGroup from 'ol/layer/group';
 import TileGrid from 'ol/tilegrid/tilegrid';
-//import proj from 'ol/proj';
+import proj from 'ol/proj';
 import control from 'ol/control';
 import interaction from 'ol/interaction';
 import Feature from 'ol/feature';
 import Circle from 'ol/geom/circle';
-import { pixelProj } from './projections';
+import { pixelProj, dotaProj } from './projections';
 import mapConstants from './mapConstants';
 import styles from './styleDefinitions';
 import { loadGeoJSON, loadJSON, loadLayerGroupFromData } from './dataLoader';
-import getJSON from './util/getJSON';
 import {getScaledRadius, worldToLatLon} from './conversion';
 import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
+import modeNotificationText from './modeNotificationText';
 import MenuControl from './controls/menu';
 import InfoControl from './controls/info';
 import NotificationControl from './controls/notification';
@@ -31,20 +32,33 @@ import WardControl from './controls/ward';
 import TreeControl from './controls/tree';
 import CursorControl from './controls/cursor';
 import CoordinateControl from './controls/coordinate';
+import getJSON from './util/getJSON';
+import { setQueryString, getParameterByName } from './util/queryString';
+import forEach from './util/forEach';
 
 class InteractiveMap {
-    constructor(map_tile_path, version, vision_data_image_path, worlddata) {
+    constructor(map_tile_path, version, vision_data_image_path, worlddata, options) {
+        this.options = options || {
+            mode: 'navigate',
+            zoom: 1,
+            resolutions: [32,16,8,4,2,1],
+            isNight: false,
+            isDarkness: false,
+            controls: {
+                coordinate:true
+            }
+        };
         this.map_tile_path = map_tile_path;
         this.vision_data_image_path = vision_data_image_path;
         this.vs = new VisionSimulation(worlddata);
-        this.MODE = 'navigation';
+        this.mode = this.options.mode;
         this.layerDefs = layerDefinitions;
         this.baseLayerDefs = baseLayerDefinitions;
         this.view = new View({
-            zoom: 1,
+            zoom: this.options.zoom,
             center: mapConstants.imgCenter,
             projection: pixelProj,
-            resolutions: [32,16,8,4,2,1],
+            resolutions: this.options.resolutions,
             extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
         });
         this.data = {};
@@ -52,8 +66,8 @@ class InteractiveMap {
         this.version = version;
         this.visionRadius = mapConstants.visionRadius.observer;
         this.movementSpeed = mapConstants.defaultMovementSpeed;
-        this.isNight = false;
-        this.isDarkness = false;
+        this.isNight = this.options.isNight;
+        this.isDarkness = this.options.isDarkness;
         this.layerFilters = {
             marker: layer => {
                 const layerDef = layer.get('layerDef');
@@ -146,10 +160,21 @@ class InteractiveMap {
             ward: new WardControl(this),
             tree: new TreeControl(this),
             cursor: new CursorControl(this),
-            coordinate: new CoordinateControl(this, 'coordinates'),
+            coordinate: this.options.controls.coordinate && new CoordinateControl(this, 'coordinates'),
             measure: new MeasureControl(this),
             creep: new CreepControl(this, 'timer')
         };
+        
+        this.map.on('moveend', evt => {
+            const map = evt.map;
+            const ext = map.getView().calculateExtent(map.getSize());
+            const center = extent.getCenter(ext);
+            const worldXY = proj.transform(center, pixelProj, dotaProj);
+            const coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
+            setQueryString('x', coordinate[0]);
+            setQueryString('y', coordinate[1]);
+            setQueryString('zoom', Math.round(this.view.getZoom()));
+        });
     }
     
     getMapData(version) {
@@ -235,7 +260,7 @@ class InteractiveMap {
         if (duration == null) duration = 1000;
         this.view.animate({
           center: coordinate,
-          duration: 1000
+          duration: duration
         });
     }
 
@@ -253,7 +278,7 @@ class InteractiveMap {
                 this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);
             }
             if (feature) {
-                feature.setStyle(styles[feature.get('wardType')][this.MODE == 'navigate' ? 'highlight' : 'remove']);
+                feature.setStyle(styles[feature.get('wardType')][this.mode == 'navigate' ? 'highlight' : 'remove']);
             }
             this.highlightedWard = feature;
         }
@@ -382,6 +407,204 @@ class InteractiveMap {
         return circle;
     }
 
+    setDefaults() {
+        const x = getParameterByName('x');
+        const y = getParameterByName('y');
+        const zoom = getParameterByName('zoom');
+        if (zoom) {
+            this.view.setZoom(zoom);
+        }
+        if (x && y) {
+            const coordinate = proj.transform([x, y], dotaProj, pixelProj);
+            if (extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
+                this.panTo(coordinate);
+            }
+        }
+        
+        document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
+        const mode = getParameterByName('mode');
+        this.controls.menu.changeMode(mode);
+
+        const baseLayerName = getParameterByName('BaseLayer');
+        let element;
+        if (baseLayerName) {
+            element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
+            if (element) {
+                element.checked = true;
+                this.baseLayers.filter(layer => layer.get("layerId") == baseLayerName)[0].setVisible(true);
+            }
+        }
+        if (!element) {
+            setQueryString('BaseLayer', null);
+            this.baseLayers[0].setVisible(true);
+            document.querySelector('input[name="base-layer"][value="' + this.baseLayers[0].get("layerId") + '"]').checked = true;
+        }
+        
+        this.layerDefs.forEach(layerDef => {
+            const param = layerDef.name.replace(/ /g, '');
+            const value = getParameterByName(param);
+            if (value && value !== "false") {
+                layerDef.visible = true;
+                document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
+                setQueryString(param, true);
+            }
+            else {
+                setQueryString(param, null);
+            }
+            if (layerDef.id == 'ent_dota_tree') {
+                document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
+            }
+        });
+    }
+
+    initialize() {
+        this.vs.initialize(this.vision_data_image_path, err => {
+            this.controls.info.activate();
+            
+            this.setDefaults();
+
+            this.setMapLayers(this.version, err => {
+                if (!err) {
+                    this.controls.menu.updateOverlayMenu();
+                    this.controls.tree.parseQueryString();
+                    this.controls.ward.parseQueryString();
+                }
+                else {
+                    throw new Error(err);
+                }
+            });
+            
+            forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), element => {
+                element.addEventListener("change", e => {
+                    this.controls.menu.changeMode(e.currentTarget.value);
+                }, false);
+            }, this);
+            
+            document.getElementById('nightControl').addEventListener('change', e => {
+                this.isNight = e.currentTarget.checked;
+                if (this.isNight) {
+                    this.controls.notification.show(modeNotificationText.nightOn);
+                }
+                else {
+                    this.controls.notification.show(modeNotificationText.nightOff);
+                }
+            });
+
+            document.getElementById('darknessControl').addEventListener('change', e => {
+                this.isDarkness = e.currentTarget.checked;
+                if (this.isDarkness) {
+                    this.controls.notification.show(modeNotificationText.darknessOn);
+                }
+                else {
+                    this.controls.notification.show(modeNotificationText.darknessOff);
+                }
+            });
+
+            document.getElementById('creepControl').addEventListener('change', e => {
+                this.controls.menu.toggleLayerMenuOption('npc_dota_spawner', e.currentTarget.checked);
+                this.controls.menu.toggleLayerMenuOption('path_corner', e.currentTarget.checked);
+                if (e.currentTarget.checked) {
+                    this.controls.creep.activate();
+                }
+                else {
+                    this.controls.creep.deactivate();
+                }
+            });
+
+            document.getElementById('vision-radius').addEventListener('change', e => this.visionRadius = e.currentTarget.value);
+
+            document.getElementById('movementSpeed').addEventListener('change', e => this.movementSpeed = e.currentTarget.value);
+                
+            document.getElementById('option-dayVision').addEventListener('change', e => this.rangeLayers.dayVision.setVisible(e.currentTarget.checked));
+                
+            document.getElementById('option-nightVision').addEventListener('change', e => this.rangeLayers.nightVision.setVisible(e.currentTarget.checked));
+                
+            document.getElementById('option-trueSight').addEventListener('change', e => this.rangeLayers.trueSight.setVisible(e.currentTarget.checked));
+                
+            document.getElementById('option-attackRange').addEventListener('change', e => this.rangeLayers.attackRange.setVisible(e.currentTarget.checked));
+                
+            document.getElementById('version-select').addEventListener('change', e => {
+                const el = e.currentTarget;
+                this.setMapLayers(el.value, err => {
+                    if (!err) {
+                        this.controls.creep.deactivate();
+                        this.version = el.value;
+                        document.getElementById('creepControl').disabled = !this.getMapLayer('npc_dota_spawner');
+                        document.getElementById('creepControl').checked = false;
+                    }
+                    else {
+                        el.value = this.version;
+                        alert('Version change failed.');
+                    }
+                });
+            });
+                
+            document.getElementById('btn-zoom-in').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() + 1}));
+                
+            document.getElementById('btn-zoom-out').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() - 1}));
+
+            document.getElementById('reset').addEventListener('click', () => {
+                if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
+                this.setDefaults();
+                this.controls.menu.updateOverlayMenu();
+                this.controls.tree.toggleAllTrees(false, true);
+                this.controls.tree.parseQueryString();
+                this.controls.ward.clearWards();
+                this.controls.ward.parseQueryString();
+            });
+
+            document.getElementById('btn-tree').addEventListener('click', e => {
+                const el = e.currentTarget;
+                if (el.classList.contains('active')) {
+                    el.setAttribute('trees-enabled', el.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
+                }
+                el.classList.add('active');
+                document.getElementById('btn-ward').classList.remove('active');
+                document.getElementById('btn-measure').classList.remove('active');
+                this.controls.menu.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
+                this.controls.menu.changeMode('navigate');
+                this.controls.notification.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
+            });
+
+            document.getElementById('btn-ward').addEventListener('click', e => {
+                const el = e.currentTarget;
+                if (el.classList.contains('active')) {
+                    el.setAttribute('ward-type', el.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
+                }
+                if (el.getAttribute('ward-type') == 'sentry') {
+                    document.querySelector('input[name="mode"][value="ward"]').checked = true;
+                    document.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
+                }
+                else {
+                    document.querySelector('input[name="mode"][value="ward"]').checked = true;
+                    document.querySelector('input[name="ward-type"][value="observer"]').checked = true;
+                }
+                el.classList.add('active');
+                document.getElementById('btn-tree').classList.remove('active');
+                document.getElementById('btn-measure').classList.remove('active');
+                this.controls.menu.changeMode('ward');
+            });
+
+            document.getElementById('btn-measure').addEventListener('click', e => {
+                const el = e.currentTarget;
+                if (el.classList.contains('active')) {
+                    el.setAttribute('measure-type', el.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
+                }
+                if (el.getAttribute('measure-type') == 'circle') {
+                    document.querySelector('input[name="mode"][value="measure"]').checked = true;
+                    document.querySelector('input[name="measure-type"][value="circle"]').checked = true;
+                }
+                else {
+                    document.querySelector('input[name="mode"][value="measure"]').checked = true;
+                    document.querySelector('input[name="measure-type"][value="line"]').checked = true;
+                }
+                el.classList.add('active');
+                document.getElementById('btn-tree').classList.remove('active');
+                document.getElementById('btn-ward').classList.remove('active');
+                this.controls.menu.changeMode('measure');
+            });
+        });
+    }
 }
 
 export default InteractiveMap;

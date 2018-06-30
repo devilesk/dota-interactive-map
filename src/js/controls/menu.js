@@ -1,4 +1,6 @@
 import { setQueryString } from '../util/queryString';
+import modeNotificationText from '../modeNotificationText';
+import forEach from '../util/forEach';
 
 class MenuPanel {
     constructor(panelId, openId, closeId, fullscreen) {
@@ -180,6 +182,72 @@ class MenuControl {
         const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
         if (state != null) element.checked = state;
         this.updateLayerAndQueryString(element, layerId);
+    }
+
+    // updates element visibility based on map layer index
+    // updates layer visibility based on element state
+    updateOverlayMenu() {
+        forEach(document.querySelectorAll('.data-layer > input'), element => {
+            const label = element.nextSibling;
+            const layerId = element.getAttribute('data-layer-id');
+            const layer = this.InteractiveMap.getMapLayer(layerId);
+            if (!layer) {
+                label.style.display = "none";
+            }
+            else {
+                label.style.display = "block";
+                layer.setVisible(element.checked);
+            }
+        }, this);
+    }
+    
+    changeMode(mode) {
+        const interactiveMap = this.InteractiveMap;
+        switch (mode) {
+            case 'observer':
+            case 'sentry':
+                document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
+            case 'ward':
+                document.querySelector('input[name="mode"][value="ward"]').checked = true;
+                interactiveMap.mode = document.querySelector('input[name="ward-type"]:checked').value;
+                document.getElementById('btn-ward').setAttribute('ward-type', interactiveMap.mode);
+                document.getElementById('btn-ward').classList.add('active');
+                document.getElementById('btn-tree').classList.remove('active');
+                document.getElementById('btn-measure').classList.remove('active');
+                setQueryString('mode', interactiveMap.mode);
+                interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.ward.activate();
+                interactiveMap.controls.info.deactivate();
+            break;
+            case 'line':
+            case 'circle':
+                document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
+            case 'measure':
+                document.querySelector('input[name="mode"][value="measure"]').checked = true;
+                interactiveMap.mode = document.querySelector('input[name="measure-type"]:checked').value;
+                document.getElementById('btn-ward').classList.remove('active');
+                document.getElementById('btn-tree').classList.remove('active');
+                document.getElementById('btn-measure').classList.add('active');
+                document.getElementById('btn-measure').setAttribute('measure-type', interactiveMap.mode);
+                setQueryString('mode', interactiveMap.mode);
+                interactiveMap.controls.measure.change(interactiveMap.mode);
+                interactiveMap.controls.ward.deactivate();
+                interactiveMap.controls.info.deactivate();
+                
+            break;
+            default:
+                document.querySelector('input[name="mode"][value="navigate"]').checked = true;
+                interactiveMap.mode = mode || "navigate";
+                document.getElementById('btn-ward').classList.remove('active');
+                document.getElementById('btn-tree').classList.add('active');
+                document.getElementById('btn-measure').classList.remove('active');
+                setQueryString('mode', interactiveMap.mode == 'navigate' ? null : interactiveMap.mode);
+                interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.ward.deactivate();
+                interactiveMap.controls.info.activate();
+            break;
+        }
+        interactiveMap.controls.notification.show(modeNotificationText[interactiveMap.mode]);
     }
 }
 

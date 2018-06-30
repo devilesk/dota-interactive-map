@@ -169,7 +169,7 @@ class WardControl {
                         this.clearInfo(true);
                     }
                     else {
-                        this.addWard(evt.coordinate, this.InteractiveMap.MODE);
+                        this.addWard(evt.coordinate, this.InteractiveMap.mode);
                         this.InteractiveMap.controls.cursor.source.clear(true);
                     }
                 }
