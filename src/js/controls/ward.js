@@ -55,22 +55,26 @@ class WardControl {
         });
     }
 
-    showVisibilityInfo(visionFeature, bClicked) {
+    showVisibilityInfo(feature, bClicked) {
+        const visionFeature = feature ? feature.get('visionFeature') : null;
         const info = this.InteractiveMap.controls.info;
         const vs = this.InteractiveMap.vs;
         let lightArea = vs.lightArea;
         let area = vs.area;
-        if (visionFeature) {
-            const visionData = visionFeature.get('visionData');
+        if (feature) {
+            const visionData = visionFeature ? visionFeature.get('visionData') : null;
             if (visionData) {
                 lightArea = visionData.lightArea;
                 area = visionData.area;
-                info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+                info.setContent(lightArea ? "Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area : '');
                 info.open(bClicked);
+            }
+            else {
+                info.clearInfo();
             }
         }
         else {
-            info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+            info.setContent(lightArea ? "Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area : '');
             info.open(bClicked);
         }
     }

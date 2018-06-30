@@ -3031,7 +3031,7 @@
                       feature = this.InteractiveMap.checkAndHighlightWard(pixel);
                       
                       if (feature) {
-                          this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'));
+                          this.InteractiveMap.controls.ward.showVisibilityInfo(feature);
                       }
                       // no highlighted feature so unhighlight current feature
                       else if (!this.isActive()) {
@@ -3071,7 +3071,7 @@
                       if (feature) {
                           const visionFeature = feature.get('visionFeature');
                           if (visionFeature) {
-                              this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'), true);
+                              this.InteractiveMap.controls.ward.showVisibilityInfo(feature, true);
                           }
                           else {
                               this.close(true);
@@ -3962,22 +3962,26 @@
           });
       }
 
-      showVisibilityInfo(visionFeature, bClicked) {
+      showVisibilityInfo(feature, bClicked) {
+          const visionFeature = feature ? feature.get('visionFeature') : null;
           const info = this.InteractiveMap.controls.info;
           const vs = this.InteractiveMap.vs;
           let lightArea = vs.lightArea;
           let area = vs.area;
-          if (visionFeature) {
-              const visionData = visionFeature.get('visionData');
+          if (feature) {
+              const visionData = visionFeature ? visionFeature.get('visionData') : null;
               if (visionData) {
                   lightArea = visionData.lightArea;
                   area = visionData.area;
-                  info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+                  info.setContent(lightArea ? "Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area : '');
                   info.open(bClicked);
+              }
+              else {
+                  info.clearInfo();
               }
           }
           else {
-              info.setContent("Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area);
+              info.setContent(lightArea ? "Visibility: " + (lightArea / area * 100).toFixed() + '% ' + lightArea + "/" + area : '');
               info.open(bClicked);
           }
       }
@@ -4326,8 +4330,7 @@
           this.mousePosition = new MousePosition({
               coordinateFormat: coordinate.createStringXY(),
               projection: dotaProj,
-              target: document.getElementById(elementId),
-              undefinedHTML: '&nbsp;'
+              target: document.getElementById(elementId)
           });
           this.InteractiveMap.map.addControl(this.mousePosition);
       }
@@ -4972,7 +4975,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "87eb7ba8e4eef39da2f34b7ab45db78560e6caa4",
+                  code_version: "cb1e48f432be93fc2ec38fdcf1b6ee39a4c05dc9",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -5009,9 +5012,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2018-06-30 11:44:57 UTC";
+  document.getElementById('buildDate').innerHTML = "2018-06-30 14:27:11 UTC";
   document.getElementById('releaseTag').innerHTML = "4.12.1";
-  document.getElementById('codeVersion').innerHTML = "87eb7ba8e4eef39da2f34b7ab45db78560e6caa4";
+  document.getElementById('codeVersion').innerHTML = "cb1e48f432be93fc2ec38fdcf1b6ee39a4c05dc9";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {

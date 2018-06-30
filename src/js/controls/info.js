@@ -51,7 +51,7 @@ class InfoControl {
                     feature = this.InteractiveMap.checkAndHighlightWard(pixel);
                     
                     if (feature) {
-                        this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'));
+                        this.InteractiveMap.controls.ward.showVisibilityInfo(feature);
                     }
                     // no highlighted feature so unhighlight current feature
                     else if (!this.isActive()) {
@@ -91,7 +91,7 @@ class InfoControl {
                     if (feature) {
                         const visionFeature = feature.get('visionFeature');
                         if (visionFeature) {
-                            this.InteractiveMap.controls.ward.showVisibilityInfo(feature.get('visionFeature'), true);
+                            this.InteractiveMap.controls.ward.showVisibilityInfo(feature, true);
                         }
                         else {
                             this.close(true);

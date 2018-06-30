@@ -664,7 +664,8 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
   left: 50px;
   height: 50px;
   width: 250px;
-  z-index: 10; }
+  z-index: 10;
+  background-color: rgba(175, 175, 175, 0.4); }
   @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
     #tool-btn-container {
       width: 50px;

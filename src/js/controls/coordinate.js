@@ -8,8 +8,7 @@ class CoordinateControl {
         this.mousePosition = new MousePosition({
             coordinateFormat: coordinate.createStringXY(),
             projection: dotaProj,
-            target: document.getElementById(elementId),
-            undefinedHTML: '&nbsp;'
+            target: document.getElementById(elementId)
         });
         this.InteractiveMap.map.addControl(this.mousePosition);
     }

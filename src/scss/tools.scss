@@ -5,6 +5,7 @@
     height: 50px;
     width: 250px;
     z-index: 10;
+    background-color: rgba(175, 175, 175, 0.4);
     
     @media #{$vertical-toolbar} {
         width: 50px;
