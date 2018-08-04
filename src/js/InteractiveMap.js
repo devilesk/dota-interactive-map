@@ -1,7 +1,7 @@
 import VisionSimulation from 'dota-vision-simulation';
 import View from 'ol/view';
 import Map from 'ol/map';
-import extent from 'ol/extent';
+import { getCenter, containsXY } from 'ol/extent';
 import Collection from 'ol/collection';
 import SourceVector from 'ol/source/vector';
 import TileImage from 'ol/source/tileimage';
@@ -9,9 +9,9 @@ import LayerVector from 'ol/layer/vector';
 import LayerTile from 'ol/layer/tile';
 import LayerGroup from 'ol/layer/group';
 import TileGrid from 'ol/tilegrid/tilegrid';
-import proj from 'ol/proj';
-import control from 'ol/control';
-import interaction from 'ol/interaction';
+import { transform } from 'ol/proj';
+import {defaults as defaultControls} from 'ol/control';
+import {defaults as defaultInteractions} from 'ol/interaction';
 import Feature from 'ol/feature';
 import Circle from 'ol/geom/circle';
 import { pixelProj, dotaProj } from './projections';
@@ -75,8 +75,8 @@ class InteractiveMap {
             }
         };
         this.map = new Map({
-            controls: control.defaults({ zoom: false, attribution: false, rotate: false }),
-            interactions: interaction.defaults({altShiftDragRotate:false, pinchRotate:false}),
+            controls: defaultControls({ zoom: false, attribution: false, rotate: false }),
+            interactions: defaultInteractions({altShiftDragRotate:false, pinchRotate:false}),
             target: 'map',
             view: this.view
         });
@@ -168,8 +168,8 @@ class InteractiveMap {
         this.map.on('moveend', evt => {
             const map = evt.map;
             const ext = map.getView().calculateExtent(map.getSize());
-            const center = extent.getCenter(ext);
-            const worldXY = proj.transform(center, pixelProj, dotaProj);
+            const center = getCenter(ext);
+            const worldXY = transform(center, pixelProj, dotaProj);
             const coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
             setQueryString('x', coordinate[0]);
             setQueryString('y', coordinate[1]);
@@ -415,8 +415,8 @@ class InteractiveMap {
             this.view.setZoom(zoom);
         }
         if (x && y) {
-            const coordinate = proj.transform([x, y], dotaProj, pixelProj);
-            if (extent.containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
+            const coordinate = transform([x, y], dotaProj, pixelProj);
+            if (containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
                 this.panTo(coordinate);
             }
         }

@@ -1,4 +1,4 @@
-import proj from 'ol/proj';
+import { addProjection, addCoordinateTransforms } from 'ol/proj';
 import Projection from 'ol/proj/projection';
 import {latLonToWorld, worldToLatLon} from './conversion';
 import mapConstants from './mapConstants';
@@ -15,10 +15,10 @@ const dotaProj = new Projection({
     units: 'units'
 });
 
-proj.addProjection(pixelProj);
-proj.addCoordinateTransforms('pixel', dotaProj, latLonToWorld, worldToLatLon);
+addProjection(pixelProj);
+addCoordinateTransforms('pixel', dotaProj, latLonToWorld, worldToLatLon);
 
-proj.addProjection(dotaProj);
-proj.addCoordinateTransforms('dota', pixelProj, worldToLatLon, latLonToWorld);
+addProjection(dotaProj);
+addCoordinateTransforms('dota', pixelProj, worldToLatLon, latLonToWorld);
 
 export { pixelProj, dotaProj };

@@ -3,9 +3,7 @@
   typeof define === 'function' && define.amd ? define(['ol/proj', 'ol/proj/projection', 'ol/extent', 'ol/geom/point', 'ol/style/style', 'ol/style/fill', 'ol/style/stroke', 'ol/style/regularshape', 'ol/style/icon', 'ol/style/circle', 'ol/source/vector', 'ol/layer/vector', 'ol/format/geojson', 'ol/geom/polygon', 'ol/feature', 'ol/layer/group', 'ol/collection', 'ol/observable', 'ol/geom/linearring', 'ol/geom/linestring', 'ol/geom/circle', 'ol/interaction/draw', 'ol/overlay', 'ol/geom/multipolygon', 'ol/control/mouseposition', 'ol/coordinate', 'ol/view', 'ol/map', 'ol/source/tileimage', 'ol/layer/tile', 'ol/tilegrid/tilegrid', 'ol/control', 'ol/interaction'], factory) :
   (global.InteractiveMap = factory(global.ol.proj,global.ol.proj.Projection,global.ol.extent,global.ol.geom.Point,global.ol.style.Style,global.ol.style.Fill,global.ol.style.Stroke,global.ol.style.RegularShape,global.ol.style.Icon,global.ol.style.Circle,global.ol.source.Vector,global.ol.layer.Vector,global.ol.format.GeoJSON,global.ol.geom.Polygon,global.ol.Feature,global.ol.layer.Group,global.ol.Collection,global.ol.Observable,global.ol.geom.LinearRing,global.ol.geom.LineString,global.ol.geom.Circle,global.ol.interaction.Draw,global.ol.Overlay,global.ol.geom.MultiPolygon,global.ol.control.MousePosition,global.ol.coordinate,global.ol.View,global.ol.Map,global.ol.source.TileImage,global.ol.layer.Tile,global.ol.tilegrid.TileGrid,global.ol.control,global.ol.interaction));
 }(this, (function (proj,Projection,extent,Point,Style,Fill,Stroke,RegularShape,Icon,Circle,SourceVector,LayerVector,GeoJSON,Polygon,Feature,LayerGroup,Collection,Observable,LinearRing,LineString,Circle$1,Draw,Overlay,MultiPolygon,MousePosition,coordinate,View,Map,TileImage,LayerTile,TileGrid,control,interaction) {
-  proj = proj && proj.hasOwnProperty('default') ? proj['default'] : proj;
   Projection = Projection && Projection.hasOwnProperty('default') ? Projection['default'] : Projection;
-  extent = extent && extent.hasOwnProperty('default') ? extent['default'] : extent;
   Point = Point && Point.hasOwnProperty('default') ? Point['default'] : Point;
   Style = Style && Style.hasOwnProperty('default') ? Style['default'] : Style;
   Fill = Fill && Fill.hasOwnProperty('default') ? Fill['default'] : Fill;
@@ -28,14 +26,11 @@
   Overlay = Overlay && Overlay.hasOwnProperty('default') ? Overlay['default'] : Overlay;
   MultiPolygon = MultiPolygon && MultiPolygon.hasOwnProperty('default') ? MultiPolygon['default'] : MultiPolygon;
   MousePosition = MousePosition && MousePosition.hasOwnProperty('default') ? MousePosition['default'] : MousePosition;
-  coordinate = coordinate && coordinate.hasOwnProperty('default') ? coordinate['default'] : coordinate;
   View = View && View.hasOwnProperty('default') ? View['default'] : View;
   Map = Map && Map.hasOwnProperty('default') ? Map['default'] : Map;
   TileImage = TileImage && TileImage.hasOwnProperty('default') ? TileImage['default'] : TileImage;
   LayerTile = LayerTile && LayerTile.hasOwnProperty('default') ? LayerTile['default'] : LayerTile;
   TileGrid = TileGrid && TileGrid.hasOwnProperty('default') ? TileGrid['default'] : TileGrid;
-  control = control && control.hasOwnProperty('default') ? control['default'] : control;
-  interaction = interaction && interaction.hasOwnProperty('default') ? interaction['default'] : interaction;
 
   var worldMinX = -8288;
   var worldMaxX = 8288;
@@ -4991,7 +4986,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "4dbd7514a7fcf2645dcc118a83ead793470595e5",
+                  code_version: "eb41a543b940316eaacc118ca102aa6449b8db60",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -5028,9 +5023,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2018-08-04 19:38:30 UTC";
-  document.getElementById('releaseTag').innerHTML = "4.12.1";
-  document.getElementById('codeVersion').innerHTML = "4dbd7514a7fcf2645dcc118a83ead793470595e5";
+  document.getElementById('buildDate').innerHTML = "2018-08-04 21:14:07 UTC";
+  document.getElementById('releaseTag').innerHTML = "4.13.0";
+  document.getElementById('codeVersion').innerHTML = "eb41a543b940316eaacc118ca102aa6449b8db60";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {

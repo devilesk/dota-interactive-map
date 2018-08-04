@@ -1,7 +1,7 @@
 import SourceVector from 'ol/source/vector';
 import LayerVector from 'ol/layer/vector';
 import GeoJSON from 'ol/format/geojson';
-import proj from 'ol/proj';
+import { transform } from 'ol/proj';
 import Polygon from 'ol/geom/polygon';
 import Point from 'ol/geom/point';
 import Feature from 'ol/feature';
@@ -31,8 +31,8 @@ const loadGeoJSON = (map, layerDef, data, version) => {
 const loadPolygon = (map, layerDef, data, layer) => {
     const features = data.data[layerDef.id].map(obj => {
         const points = obj.points;
-        const ring = points.map(point => proj.transform([point.x, point.y], dotaProj, pixelProj));
-        ring.push(proj.transform([points[0].x, points[0].y], dotaProj, pixelProj))
+        const ring = points.map(point => transform([point.x, point.y], dotaProj, pixelProj));
+        ring.push(transform([points[0].x, points[0].y], dotaProj, pixelProj))
         const geom = new Polygon([ring]);
         const feature = new Feature(geom);
         obj.id = layerDef.id;
@@ -69,13 +69,13 @@ const loadJSON = (map, layerDef, data, layer) => {
         const bounds = layerDef.id == "ent_dota_tree" ? [64, 64] : stats.bounds;
         const geom = (bounds && bounds[0] > 0 && bounds[1] > 0)
             ? new Polygon([[
-                proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
-                proj.transform([point.x-bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
-                proj.transform([point.x+bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
-                proj.transform([point.x+bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
-                proj.transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj)
+                transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
+                transform([point.x-bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
+                transform([point.x+bounds[0], point.y+bounds[1]], dotaProj, pixelProj),
+                transform([point.x+bounds[0], point.y-bounds[1]], dotaProj, pixelProj),
+                transform([point.x-bounds[0], point.y-bounds[1]], dotaProj, pixelProj)
             ]])
-            : new Point(proj.transform([point.x, point.y], dotaProj, pixelProj))
+            : new Point(transform([point.x, point.y], dotaProj, pixelProj))
 
         const feature = new Feature(geom);
         
