@@ -5,7 +5,7 @@ import git from 'git-rev-sync';
 import pkg from './package.json';
 import replace from 'rollup-plugin-replace';
 import resolve from 'rollup-plugin-node-resolve';
-import { uglify } from 'rollup-plugin-uglify';
+import { terser } from "rollup-plugin-terser";
 
 const env = process.env.BUILD;
 
@@ -65,7 +65,7 @@ export default {
     resolve({browser: true}),
     commonjs({}),
     json({}),
-    env === 'production' && uglify()
+    env === 'production' && terser()
   ],
   external: id => env !== 'production' && /ol\//.test(id),
   watch: {
