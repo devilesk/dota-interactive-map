@@ -1,8 +1,8 @@
-import SourceVector from 'ol/source/vector';
-import LayerVector from 'ol/layer/vector';
-import Feature from 'ol/feature';
-import Point from 'ol/geom/point';
-import Observable from 'ol/observable';
+import SourceVector from 'ol/source/Vector';
+import LayerVector from 'ol/layer/Vector';
+import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import { unByKey } from 'ol/Observable';
 import styles from './../styleDefinitions';
 import mapConstants from './../mapConstants';
 import { latLonToWorld, worldToLatLon } from './../conversion';
@@ -184,9 +184,9 @@ class WardControl {
     deactivate() {
         this.InteractiveMap.unhighlightWard();
         this.InteractiveMap.controls.cursor.source.clear(true);
-        Observable.unByKey(this.pointerMoveListener);
+        unByKey(this.pointerMoveListener);
         this.pointerMoveListener = null;
-        Observable.unByKey(this.clickListener);
+        unByKey(this.clickListener);
         this.clickListener = null;
     }
 

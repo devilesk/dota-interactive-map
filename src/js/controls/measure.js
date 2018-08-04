@@ -1,11 +1,11 @@
-import SourceVector from 'ol/source/vector';
-import LayerVector from 'ol/layer/vector';
-import Polygon from 'ol/geom/polygon';
-import LineString from 'ol/geom/linestring';
-import Circle from 'ol/geom/circle';
-import Draw from 'ol/interaction/draw';
-import Overlay from 'ol/overlay';
-import Observable from 'ol/observable';
+import SourceVector from 'ol/source/Vector';
+import LayerVector from 'ol/layer/Vector';
+import Polygon from 'ol/geom/Polygon';
+import LineString from 'ol/geom/LineString';
+import Circle from 'ol/geom/Circle';
+import Draw from 'ol/interaction/Draw';
+import Overlay from 'ol/Overlay';
+import { unByKey } from 'ol/Observable';
 import styles from './../styleDefinitions';
 
 /**
@@ -181,13 +181,13 @@ class MeasureControl {
             // unset sketch
             this.sketch = null;
             // unset tooltip so that a new one can be created
-            Observable.unByKey(listener);
+            unByKey(listener);
         });
     }
     
     change(type) {
         this.type = type;
-        Observable.unByKey(this.pointerMoveListener);
+        unByKey(this.pointerMoveListener);
         this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
         this.map.removeInteraction(this.draw);
         this.source.clear(true);
@@ -225,7 +225,7 @@ class MeasureControl {
     }
     
     deactivate() {
-        Observable.unByKey(this.pointerMoveListener);
+        unByKey(this.pointerMoveListener);
         this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
         this.map.removeInteraction(this.draw);
         this.source.clear(true);

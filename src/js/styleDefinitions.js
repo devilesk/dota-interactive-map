@@ -1,9 +1,9 @@
-import Style from 'ol/style/style';
-import Fill from 'ol/style/fill';
-import Stroke from 'ol/style/stroke';
-import RegularShape from 'ol/style/regularshape';
-import Icon from 'ol/style/icon';
-import Circle from 'ol/style/circle';
+import Style from 'ol/style/Style';
+import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import RegularShape from 'ol/style/RegularShape';
+import Icon from 'ol/style/Icon';
+import Circle from 'ol/style/Circle';
 import getFeatureCenter from './util/getFeatureCenter';
 
 const defaultStyle = new Style({

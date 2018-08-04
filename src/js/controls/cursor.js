@@ -1,5 +1,5 @@
-import SourceVector from 'ol/source/vector';
-import LayerVector from 'ol/layer/vector';
+import SourceVector from 'ol/source/Vector';
+import LayerVector from 'ol/layer/Vector';
 import styles from './../styleDefinitions';
 
 class CursorControl {

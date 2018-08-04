@@ -1,5 +1,5 @@
-import Circle from 'ol/geom/circle';
-import Observable from 'ol/observable';
+import Circle from 'ol/geom/Circle';
+import { unByKey } from 'ol/Observable';
 import mapConstants from './../mapConstants';
 import styles from './../styleDefinitions';
 
@@ -158,7 +158,7 @@ class CreepControl {
     }
 
     stop() {
-        Observable.unByKey(this.postComposeListener);
+        unByKey(this.postComposeListener);
         this.postComposeListener = null;
         const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
         if (layer) {

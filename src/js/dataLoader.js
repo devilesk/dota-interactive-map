@@ -1,12 +1,12 @@
-import SourceVector from 'ol/source/vector';
-import LayerVector from 'ol/layer/vector';
-import GeoJSON from 'ol/format/geojson';
+import SourceVector from 'ol/source/Vector';
+import LayerVector from 'ol/layer/Vector';
+import GeoJSON from 'ol/format/GeoJSON';
 import { transform } from 'ol/proj';
-import Polygon from 'ol/geom/polygon';
-import Point from 'ol/geom/point';
-import Feature from 'ol/feature';
-import LayerGroup from 'ol/layer/group';
-import Collection from 'ol/collection';
+import Polygon from 'ol/geom/Polygon';
+import Point from 'ol/geom/Point';
+import Feature from 'ol/Feature';
+import LayerGroup from 'ol/layer/Group';
+import Collection from 'ol/Collection';
 import { dotaProj, pixelProj } from './projections';
 
 const loadGeoJSON = (map, layerDef, data, version) => {

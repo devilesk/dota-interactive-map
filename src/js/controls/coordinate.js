@@ -1,4 +1,4 @@
-import MousePosition from 'ol/control/mouseposition';
+import MousePosition from 'ol/control/MousePosition';
 import { createStringXY } from 'ol/coordinate';
 import { dotaProj } from '../projections';
 

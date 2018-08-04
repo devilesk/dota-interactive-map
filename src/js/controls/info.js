@@ -1,7 +1,7 @@
-import Observable from 'ol/observable';
-import Polygon from 'ol/geom/polygon';
-import LinearRing from 'ol/geom/linearring';
-import Feature from 'ol/feature';
+import { unByKey } from 'ol/Observable';
+import Polygon from 'ol/geom/Polygon';
+import LinearRing from 'ol/geom/LinearRing';
+import Feature from 'ol/Feature';
 import getPopupContent from './../getPopupContent';
 import styles from './../styleDefinitions';
 import mapConstants from './../mapConstants';
@@ -111,9 +111,9 @@ class InfoControl {
     
     deactivate() {
         this.InteractiveMap.unhighlightWard();
-        Observable.unByKey(this.pointerMoveListener);
+        unByKey(this.pointerMoveListener);
         this.pointerMoveListener = null;
-        Observable.unByKey(this.clickListener);
+        unByKey(this.clickListener);
         this.clickListener = null;
     }
 

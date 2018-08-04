@@ -1,10 +1,10 @@
-import SourceVector from 'ol/source/vector';
-import LayerVector from 'ol/layer/vector';
+import SourceVector from 'ol/source/Vector';
+import LayerVector from 'ol/layer/Vector';
 import { latLonToWorld, worldToLatLon, getTileRadius } from './../conversion';
 import getLightUnion from './../getLightUnion';
 import styles from './../styleDefinitions';
-import MultiPolygon from 'ol/geom/multipolygon';
-import Feature from 'ol/feature';
+import MultiPolygon from 'ol/geom/MultiPolygon';
+import Feature from 'ol/Feature';
 
 class VisionControl {
     constructor(InteractiveMap) {

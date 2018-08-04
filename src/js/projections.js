@@ -1,5 +1,5 @@
 import { addProjection, addCoordinateTransforms } from 'ol/proj';
-import Projection from 'ol/proj/projection';
+import Projection from 'ol/proj/Projection';
 import {latLonToWorld, worldToLatLon} from './conversion';
 import mapConstants from './mapConstants';
 
