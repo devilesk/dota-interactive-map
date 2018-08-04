@@ -1,6 +1,6 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/proj'), require('ol/proj/projection'), require('ol/extent'), require('ol/geom/point'), require('ol/style/style'), require('ol/style/fill'), require('ol/style/stroke'), require('ol/style/regularshape'), require('ol/style/icon'), require('ol/style/circle'), require('ol/source/vector'), require('ol/layer/vector'), require('ol/format/geojson'), require('ol/geom/polygon'), require('ol/feature'), require('ol/layer/group'), require('ol/collection'), require('ol/observable'), require('ol/geom/linearring'), require('ol/geom/linestring'), require('ol/geom/circle'), require('ol/interaction/draw'), require('ol/overlay'), require('ol/geom/multipolygon'), require('ol/control/mouseposition'), require('ol/coordinate'), require('ol/view'), require('ol/map'), require('ol/source/tileimage'), require('ol/layer/tile'), require('ol/tilegrid/tilegrid'), require('ol/control'), require('ol/interaction')) :
-  typeof define === 'function' && define.amd ? define(['ol/proj', 'ol/proj/projection', 'ol/extent', 'ol/geom/point', 'ol/style/style', 'ol/style/fill', 'ol/style/stroke', 'ol/style/regularshape', 'ol/style/icon', 'ol/style/circle', 'ol/source/vector', 'ol/layer/vector', 'ol/format/geojson', 'ol/geom/polygon', 'ol/feature', 'ol/layer/group', 'ol/collection', 'ol/observable', 'ol/geom/linearring', 'ol/geom/linestring', 'ol/geom/circle', 'ol/interaction/draw', 'ol/overlay', 'ol/geom/multipolygon', 'ol/control/mouseposition', 'ol/coordinate', 'ol/view', 'ol/map', 'ol/source/tileimage', 'ol/layer/tile', 'ol/tilegrid/tilegrid', 'ol/control', 'ol/interaction'], factory) :
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/proj'), require('ol/proj/Projection'), require('ol/extent'), require('ol/geom/Point'), require('ol/style/Style'), require('ol/style/Fill'), require('ol/style/Stroke'), require('ol/style/RegularShape'), require('ol/style/Icon'), require('ol/style/Circle'), require('ol/source/Vector'), require('ol/layer/Vector'), require('ol/format/GeoJSON'), require('ol/geom/Polygon'), require('ol/Feature'), require('ol/layer/Group'), require('ol/Collection'), require('ol/Observable'), require('ol/geom/LinearRing'), require('ol/geom/LineString'), require('ol/geom/Circle'), require('ol/interaction/Draw'), require('ol/Overlay'), require('ol/geom/MultiPolygon'), require('ol/control/MousePosition'), require('ol/coordinate'), require('ol/View'), require('ol/Map'), require('ol/source/TileImage'), require('ol/layer/Tile'), require('ol/tilegrid/TileGrid'), require('ol/control'), require('ol/interaction')) :
+  typeof define === 'function' && define.amd ? define(['ol/proj', 'ol/proj/Projection', 'ol/extent', 'ol/geom/Point', 'ol/style/Style', 'ol/style/Fill', 'ol/style/Stroke', 'ol/style/RegularShape', 'ol/style/Icon', 'ol/style/Circle', 'ol/source/Vector', 'ol/layer/Vector', 'ol/format/GeoJSON', 'ol/geom/Polygon', 'ol/Feature', 'ol/layer/Group', 'ol/Collection', 'ol/Observable', 'ol/geom/LinearRing', 'ol/geom/LineString', 'ol/geom/Circle', 'ol/interaction/Draw', 'ol/Overlay', 'ol/geom/MultiPolygon', 'ol/control/MousePosition', 'ol/coordinate', 'ol/View', 'ol/Map', 'ol/source/TileImage', 'ol/layer/Tile', 'ol/tilegrid/TileGrid', 'ol/control', 'ol/interaction'], factory) :
   (global.InteractiveMap = factory(global.ol.proj,global.ol.proj.Projection,global.ol.extent,global.ol.geom.Point,global.ol.style.Style,global.ol.style.Fill,global.ol.style.Stroke,global.ol.style.RegularShape,global.ol.style.Icon,global.ol.style.Circle,global.ol.source.Vector,global.ol.layer.Vector,global.ol.format.GeoJSON,global.ol.geom.Polygon,global.ol.Feature,global.ol.layer.Group,global.ol.Collection,global.ol.Observable,global.ol.geom.LinearRing,global.ol.geom.LineString,global.ol.geom.Circle,global.ol.interaction.Draw,global.ol.Overlay,global.ol.geom.MultiPolygon,global.ol.control.MousePosition,global.ol.coordinate,global.ol.View,global.ol.Map,global.ol.source.TileImage,global.ol.layer.Tile,global.ol.tilegrid.TileGrid,global.ol.control,global.ol.interaction));
 }(this, (function (proj,Projection,extent,Point,Style,Fill,Stroke,RegularShape,Icon,Circle,SourceVector,LayerVector,GeoJSON,Polygon,Feature,LayerGroup,Collection,Observable,LinearRing,LineString,Circle$1,Draw,Overlay,MultiPolygon,MousePosition,coordinate,View,Map,TileImage,LayerTile,TileGrid,control,interaction) {
   Projection = Projection && Projection.hasOwnProperty('default') ? Projection['default'] : Projection;
@@ -18,7 +18,6 @@
   Feature = Feature && Feature.hasOwnProperty('default') ? Feature['default'] : Feature;
   LayerGroup = LayerGroup && LayerGroup.hasOwnProperty('default') ? LayerGroup['default'] : LayerGroup;
   Collection = Collection && Collection.hasOwnProperty('default') ? Collection['default'] : Collection;
-  Observable = Observable && Observable.hasOwnProperty('default') ? Observable['default'] : Observable;
   LinearRing = LinearRing && LinearRing.hasOwnProperty('default') ? LinearRing['default'] : LinearRing;
   LineString = LineString && LineString.hasOwnProperty('default') ? LineString['default'] : LineString;
   Circle$1 = Circle$1 && Circle$1.hasOwnProperty('default') ? Circle$1['default'] : Circle$1;
@@ -4986,7 +4985,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "eb41a543b940316eaacc118ca102aa6449b8db60",
+                  code_version: "4e08186d23bf7f7720a139db140347128f630514",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -5023,9 +5022,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2018-08-04 21:14:07 UTC";
-  document.getElementById('releaseTag').innerHTML = "4.13.0";
-  document.getElementById('codeVersion').innerHTML = "eb41a543b940316eaacc118ca102aa6449b8db60";
+  document.getElementById('buildDate').innerHTML = "2018-08-04 23:54:26 UTC";
+  document.getElementById('releaseTag').innerHTML = "4.14.0";
+  document.getElementById('codeVersion').innerHTML = "4e08186d23bf7f7720a139db140347128f630514";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {
