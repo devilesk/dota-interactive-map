@@ -70,7 +70,7 @@ class WardControl {
                 info.open(bClicked);
             }
             else {
-                info.clearInfo();
+                this.clearInfo();
             }
         }
         else {

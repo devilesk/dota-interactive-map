@@ -3987,7 +3987,7 @@
                   info.open(bClicked);
               }
               else {
-                  info.clearInfo();
+                  this.clearInfo();
               }
           }
           else {
@@ -4985,7 +4985,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "4e08186d23bf7f7720a139db140347128f630514",
+                  code_version: "32f267d32e2d0ebad878989b4a07b67bb3d0b627",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -5022,9 +5022,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2018-08-04 23:54:26 UTC";
-  document.getElementById('releaseTag').innerHTML = "4.14.0";
-  document.getElementById('codeVersion').innerHTML = "4e08186d23bf7f7720a139db140347128f630514";
+  document.getElementById('buildDate').innerHTML = "2018-08-28 12:26:56 UTC";
+  document.getElementById('releaseTag').innerHTML = "4.15.0";
+  document.getElementById('codeVersion').innerHTML = "32f267d32e2d0ebad878989b4a07b67bb3d0b627";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {
