@@ -13,6 +13,10 @@
     right: 0;
 }
 
+#menu-left .menu-contents {
+    margin-left: 12px;
+}
+
 .menu-panel-inner {
     width: 100%;
     padding-top: 50px;
@@ -25,7 +29,23 @@
     
     .menu-contents {
         height: calc(100% - 50px);
-        overflow-y: auto;
+        overflow-y: scroll;
+        
+        &::-webkit-scrollbar {
+            height: 12px;
+            width: 12px;
+            background: $bg-color;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #2b2b2b;
+            -webkit-border-radius: 1ex;
+            -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+        }
+
+        &::-webkit-scrollbar-corner {
+            background: $bg-color;
+        }
     }
 }
 
@@ -52,7 +72,7 @@
     }
     
     .text-label, .select-label, .checkbox, input, select {
-        padding: 8px 8px 8px 24px;
+        padding: 8px 8px 8px 16px;
         text-decoration: none;
         font-size: 20px;
         display: block;
@@ -64,6 +84,11 @@
         color: $text-color;
         box-sizing: border-box;
         height: 40px;
+        
+        &.small-font {
+            font-size: 18px;
+            color: darken($text-color, 10%);
+        }
     }
 
     .sub-menu {
@@ -140,7 +165,7 @@
         }
         
         &:checked {
-            & + .checkbox, & + .checkbox + .sub-menu, & + .checkbox {
+            & + .checkbox, & + .checkbox + .sub-menu, & + .checkbox, & + .checkbox + .sub-menu .sub-menu, & + .checkbox {
                 max-height: 999px;
                 display: block;
             }
@@ -209,6 +234,13 @@
     }
 }
 
+.menu-item .inline {
+    width: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    text-align: left;
+}
+
 .menu-item-group {
     
     .menu-item {
@@ -216,7 +248,7 @@
             width: 50%;
             display: inline-block;
             box-sizing: border-box;
-            text-align: center;
+            text-align: left;
         }
         
         .checkbox, input, select {
@@ -231,8 +263,8 @@
                 padding-left: 48px;
             }
             
-            &.inline .checkbox {
-                padding-left: 8px;
+            &.inline .checkbox, label.text-label {
+                padding-left: 20px;
             }
             
             .menu-item-group.sub-menu .menu-item .checkbox {
@@ -286,6 +318,100 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
     &:active:hover::after {
         @include transform(scale(0.9));
     }
+}
+
+.draw-options {
+    .menu-item {
+        max-height: 0;
+        transition: 0.3s;
+        overflow: hidden;
+    }
+    
+    &.brush .menu-item.brush {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.marker .menu-item.marker {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.point .menu-item.point {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.linestring .menu-item.linestring {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.polygon .menu-item.polygon {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.shape .menu-item.shape {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.modify .menu-item.modify {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.rotate .menu-item.rotate {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.translate .menu-item.translate {
+        max-height: 999px;
+        display: block;
+    }
+    
+    &.delete .menu-item.delete {
+        max-height: 999px;
+        display: block;
+    }
+}
+
+.hide-draw {
+    max-height: 999px;
+    display: block;
+    
+    #menu-left.draw & {
+        max-height: 0;
+        transition: 0.3s;
+        overflow: hidden;
+    }
+}
+
+#strokecolor-picker-container,
+#fillcolor-picker-container {
+    max-height: 0;
+    transition: 0.3s;
+    overflow: hidden;
+    
+    &.open {
+        max-height: 999px;
+        display: block;
+    }
+}
+
+.color-preview {
+    display: inline-block;
+    height: 0.75em;
+    width: 0.75em;
+}
+
+#marker-preview {
+    display: inline-block;
+    position: absolute;
+    top: 6px;
+    margin-left: 4px;
 }
 
 @media #{$not-mobile} {

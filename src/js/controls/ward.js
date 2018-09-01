@@ -14,6 +14,7 @@ class WardControl {
         this.throttleTime = throttleTime;
         this.source = new SourceVector({});
         this.layer =  new LayerVector({
+            title: 'Ward',
             source: this.source
         });
         this.layerFilter = layer => layer === this.layer;

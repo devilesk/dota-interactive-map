@@ -1,0 +1,582 @@
+{
+  "antimage": {
+    "name": "Anti-Mage",
+    "x": 64,
+    "y": 0
+  },
+  "axe": {
+    "name": "Axe",
+    "x": 32,
+    "y": 64
+  },
+  "bane": {
+    "name": "Bane",
+    "x": 64,
+    "y": 64
+  },
+  "bloodseeker": {
+    "name": "Bloodseeker",
+    "x": 96,
+    "y": 64
+  },
+  "crystal_maiden": {
+    "name": "Crystal Maiden",
+    "x": 96,
+    "y": 128
+  },
+  "drow_ranger": {
+    "name": "Drow Ranger",
+    "x": 128,
+    "y": 160
+  },
+  "earthshaker": {
+    "name": "Earthshaker",
+    "x": 160,
+    "y": 160
+  },
+  "juggernaut": {
+    "name": "Juggernaut",
+    "x": 192,
+    "y": 192
+  },
+  "mirana": {
+    "name": "Mirana",
+    "x": 256,
+    "y": 96
+  },
+  "morphling": {
+    "name": "Morphling",
+    "x": 256,
+    "y": 192
+  },
+  "nevermore": {
+    "name": "Shadow Fiend",
+    "x": 32,
+    "y": 256
+  },
+  "phantom_lancer": {
+    "name": "Phantom Lancer",
+    "x": 288,
+    "y": 96
+  },
+  "puck": {
+    "name": "Puck",
+    "x": 288,
+    "y": 160
+  },
+  "pudge": {
+    "name": "Pudge",
+    "x": 288,
+    "y": 192
+  },
+  "razor": {
+    "name": "Razor",
+    "x": 32,
+    "y": 288
+  },
+  "sand_king": {
+    "name": "Sand King",
+    "x": 224,
+    "y": 288
+  },
+  "storm_spirit": {
+    "name": "Storm Spirit",
+    "x": 0,
+    "y": 320
+  },
+  "sven": {
+    "name": "Sven",
+    "x": 32,
+    "y": 320
+  },
+  "tiny": {
+    "name": "Tiny",
+    "x": 288,
+    "y": 320
+  },
+  "vengefulspirit": {
+    "name": "Vengeful Spirit",
+    "x": 352,
+    "y": 128
+  },
+  "windrunner": {
+    "name": "Windranger",
+    "x": 32,
+    "y": 352
+  },
+  "zuus": {
+    "name": "Zeus",
+    "x": 160,
+    "y": 352
+  },
+  "kunkka": {
+    "name": "Kunkka",
+    "x": 224,
+    "y": 64
+  },
+  "lina": {
+    "name": "Lina",
+    "x": 64,
+    "y": 224
+  },
+  "lion": {
+    "name": "Lion",
+    "x": 128,
+    "y": 224
+  },
+  "shadow_shaman": {
+    "name": "Shadow Shaman",
+    "x": 288,
+    "y": 288
+  },
+  "slardar": {
+    "name": "Slardar",
+    "x": 320,
+    "y": 128
+  },
+  "tidehunter": {
+    "name": "Tidehunter",
+    "x": 224,
+    "y": 320
+  },
+  "witch_doctor": {
+    "name": "Witch Doctor",
+    "x": 128,
+    "y": 352
+  },
+  "lich": {
+    "name": "Lich",
+    "x": 0,
+    "y": 224
+  },
+  "riki": {
+    "name": "Riki",
+    "x": 64,
+    "y": 288
+  },
+  "enigma": {
+    "name": "Enigma",
+    "x": 192,
+    "y": 128
+  },
+  "tinker": {
+    "name": "Tinker",
+    "x": 256,
+    "y": 320
+  },
+  "sniper": {
+    "name": "Sniper",
+    "x": 320,
+    "y": 192
+  },
+  "necrolyte": {
+    "name": "Necrophos",
+    "x": 0,
+    "y": 256
+  },
+  "warlock": {
+    "name": "Warlock",
+    "x": 352,
+    "y": 320
+  },
+  "beastmaster": {
+    "name": "Beastmaster",
+    "x": 96,
+    "y": 32
+  },
+  "queenofpain": {
+    "name": "Queen of Pain",
+    "x": 288,
+    "y": 256
+  },
+  "venomancer": {
+    "name": "Venomancer",
+    "x": 352,
+    "y": 160
+  },
+  "faceless_void": {
+    "name": "Faceless Void",
+    "x": 192,
+    "y": 160
+  },
+  "skeleton_king": {
+    "name": "Wraith King",
+    "x": 320,
+    "y": 64
+  },
+  "death_prophet": {
+    "name": "Death Prophet",
+    "x": 160,
+    "y": 96
+  },
+  "phantom_assassin": {
+    "name": "Phantom Assassin",
+    "x": 288,
+    "y": 32
+  },
+  "pugna": {
+    "name": "Pugna",
+    "x": 288,
+    "y": 224
+  },
+  "templar_assassin": {
+    "name": "Templar Assassin",
+    "x": 128,
+    "y": 320
+  },
+  "viper": {
+    "name": "Viper",
+    "x": 352,
+    "y": 192
+  },
+  "luna": {
+    "name": "Luna",
+    "x": 192,
+    "y": 224
+  },
+  "dragon_knight": {
+    "name": "Dragon Knight",
+    "x": 64,
+    "y": 160
+  },
+  "dazzle": {
+    "name": "Dazzle",
+    "x": 160,
+    "y": 64
+  },
+  "rattletrap": {
+    "name": "Clockwerk",
+    "x": 0,
+    "y": 288
+  },
+  "leshrac": {
+    "name": "Leshrac",
+    "x": 224,
+    "y": 192
+  },
+  "furion": {
+    "name": "Nature's Prophet",
+    "x": 0,
+    "y": 192
+  },
+  "life_stealer": {
+    "name": "Lifestealer",
+    "x": 32,
+    "y": 224
+  },
+  "dark_seer": {
+    "name": "Dark Seer",
+    "x": 160,
+    "y": 0
+  },
+  "clinkz": {
+    "name": "Clinkz",
+    "x": 64,
+    "y": 128
+  },
+  "omniknight": {
+    "name": "Omniknight",
+    "x": 224,
+    "y": 256
+  },
+  "enchantress": {
+    "name": "Enchantress",
+    "x": 192,
+    "y": 96
+  },
+  "huskar": {
+    "name": "Huskar",
+    "x": 96,
+    "y": 192
+  },
+  "night_stalker": {
+    "name": "Night Stalker",
+    "x": 96,
+    "y": 256
+  },
+  "broodmother": {
+    "name": "Broodmother",
+    "x": 128,
+    "y": 64
+  },
+  "bounty_hunter": {
+    "name": "Bounty Hunter",
+    "x": 96,
+    "y": 96
+  },
+  "weaver": {
+    "name": "Weaver",
+    "x": 0,
+    "y": 352
+  },
+  "jakiro": {
+    "name": "Jakiro",
+    "x": 160,
+    "y": 192
+  },
+  "batrider": {
+    "name": "Batrider",
+    "x": 96,
+    "y": 0
+  },
+  "chen": {
+    "name": "Chen",
+    "x": 32,
+    "y": 128
+  },
+  "spectre": {
+    "name": "Spectre",
+    "x": 320,
+    "y": 224
+  },
+  "ancient_apparition": {
+    "name": "Ancient Apparition",
+    "x": 32,
+    "y": 32
+  },
+  "doom_bringer": {
+    "name": "Doom",
+    "x": 32,
+    "y": 160
+  },
+  "ursa": {
+    "name": "Ursa",
+    "x": 352,
+    "y": 96
+  },
+  "spirit_breaker": {
+    "name": "Spirit Breaker",
+    "x": 320,
+    "y": 288
+  },
+  "gyrocopter": {
+    "name": "Gyrocopter",
+    "x": 64,
+    "y": 192
+  },
+  "alchemist": {
+    "name": "Alchemist",
+    "x": 0,
+    "y": 32
+  },
+  "invoker": {
+    "name": "Invoker",
+    "x": 128,
+    "y": 192
+  },
+  "silencer": {
+    "name": "Silencer",
+    "x": 320,
+    "y": 32
+  },
+  "obsidian_destroyer": {
+    "name": "Outworld Devourer",
+    "x": 160,
+    "y": 256
+  },
+  "lycan": {
+    "name": "Lycan",
+    "x": 224,
+    "y": 224
+  },
+  "brewmaster": {
+    "name": "Brewmaster",
+    "x": 128,
+    "y": 0
+  },
+  "shadow_demon": {
+    "name": "Shadow Demon",
+    "x": 256,
+    "y": 288
+  },
+  "lone_druid": {
+    "name": "Lone Druid",
+    "x": 160,
+    "y": 224
+  },
+  "chaos_knight": {
+    "name": "Chaos Knight",
+    "x": 0,
+    "y": 128
+  },
+  "meepo": {
+    "name": "Meepo",
+    "x": 256,
+    "y": 64
+  },
+  "treant": {
+    "name": "Treant Protector",
+    "x": 320,
+    "y": 320
+  },
+  "ogre_magi": {
+    "name": "Ogre Magi",
+    "x": 192,
+    "y": 256
+  },
+  "undying": {
+    "name": "Undying",
+    "x": 352,
+    "y": 64
+  },
+  "rubick": {
+    "name": "Rubick",
+    "x": 160,
+    "y": 288
+  },
+  "disruptor": {
+    "name": "Disruptor",
+    "x": 160,
+    "y": 128
+  },
+  "nyx_assassin": {
+    "name": "Nyx Assassin",
+    "x": 128,
+    "y": 256
+  },
+  "naga_siren": {
+    "name": "Naga Siren",
+    "x": 256,
+    "y": 224
+  },
+  "keeper_of_the_light": {
+    "name": "Keeper of the Light",
+    "x": 224,
+    "y": 32
+  },
+  "wisp": {
+    "name": "Io",
+    "x": 96,
+    "y": 352
+  },
+  "visage": {
+    "name": "Visage",
+    "x": 352,
+    "y": 224
+  },
+  "slark": {
+    "name": "Slark",
+    "x": 320,
+    "y": 160
+  },
+  "medusa": {
+    "name": "Medusa",
+    "x": 256,
+    "y": 32
+  },
+  "troll_warlord": {
+    "name": "Troll Warlord",
+    "x": 352,
+    "y": 0
+  },
+  "centaur": {
+    "name": "Centaur Warrunner",
+    "x": 128,
+    "y": 96
+  },
+  "magnataur": {
+    "name": "Magnus",
+    "x": 256,
+    "y": 0
+  },
+  "shredder": {
+    "name": "Timbersaw",
+    "x": 320,
+    "y": 0
+  },
+  "bristleback": {
+    "name": "Bristleback",
+    "x": 128,
+    "y": 32
+  },
+  "tusk": {
+    "name": "Tusk",
+    "x": 352,
+    "y": 32
+  },
+  "skywrath_mage": {
+    "name": "Skywrath Mage",
+    "x": 320,
+    "y": 96
+  },
+  "abaddon": {
+    "name": "Abaddon",
+    "x": 32,
+    "y": 0
+  },
+  "elder_titan": {
+    "name": "Elder Titan",
+    "x": 192,
+    "y": 32
+  },
+  "legion_commander": {
+    "name": "Legion Commander",
+    "x": 224,
+    "y": 128
+  },
+  "techies": {
+    "name": "Techies",
+    "x": 64,
+    "y": 320
+  },
+  "ember_spirit": {
+    "name": "Ember Spirit",
+    "x": 192,
+    "y": 64
+  },
+  "earth_spirit": {
+    "name": "Earth Spirit",
+    "x": 192,
+    "y": 0
+  },
+  "abyssal_underlord": {
+    "name": "Underlord",
+    "x": 256,
+    "y": 160
+  },
+  "terrorblade": {
+    "name": "Terrorblade",
+    "x": 160,
+    "y": 320
+  },
+  "phoenix": {
+    "name": "Phoenix",
+    "x": 288,
+    "y": 128
+  },
+  "oracle": {
+    "name": "Oracle",
+    "x": 256,
+    "y": 256
+  },
+  "winter_wyvern": {
+    "name": "Winter Wyvern",
+    "x": 64,
+    "y": 352
+  },
+  "arc_warden": {
+    "name": "Arc Warden",
+    "x": 0,
+    "y": 64
+  },
+  "monkey_king": {
+    "name": "Monkey King",
+    "x": 256,
+    "y": 128
+  },
+  "dark_willow": {
+    "name": "Dark Willow",
+    "x": 160,
+    "y": 32
+  },
+  "pangolier": {
+    "name": "Pangolier",
+    "x": 288,
+    "y": 0
+  },
+  "grimstroke": {
+    "name": "Grimstroke",
+    "x": 32,
+    "y": 192
+  }
+}

@@ -130,6 +130,9 @@ class MenuControl {
         
         const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
         
+        document.getElementById('option-draw-layer').addEventListener("change", layerToggleHandler, false);
+        document.getElementById('option-ward-layer').addEventListener("change", layerToggleHandler, false);
+        
         this.InteractiveMap.layerDefs.forEach(layerDef => {
             const group = layerDef.group;
             const menu = document.querySelector('#' + group + '-menu');
@@ -167,8 +170,18 @@ class MenuControl {
     
     updateLayerAndQueryString(element, layerId) {
         layerId = layerId || element.getAttribute('data-layer-id');
-        const layer = this.InteractiveMap.getMapLayer(layerId);
-        if (layer) {
+        let layer = this.InteractiveMap.getMapLayer(layerId);
+        if (layerId === 'ward-layer') {
+            layer = this.InteractiveMap.controls.ward.layer;
+            this.InteractiveMap.controls.vision.layer.setVisible(element.checked);
+            this.InteractiveMap.wardRangeLayer.setVisible(element.checked);
+            layer.setVisible(element.checked);
+        }
+        else if (layerId === 'draw-layer') {
+            layer = this.InteractiveMap.controls.draw.layer;
+            layer.setVisible(element.checked);
+        }
+        else if (layer) {
             layer.setVisible(element.checked);
             const param = layer.get("title").replace(/ /g, '');
             setQueryString(param, element.checked ? true : null);
@@ -214,8 +227,10 @@ class MenuControl {
                 document.getElementById('btn-ward').classList.add('active');
                 document.getElementById('btn-tree').classList.remove('active');
                 document.getElementById('btn-measure').classList.remove('active');
+                document.getElementById('menu-left').classList.remove('draw');
                 setQueryString('mode', interactiveMap.mode);
                 interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.draw.deactivate();
                 interactiveMap.controls.ward.activate();
                 interactiveMap.controls.info.deactivate();
             break;
@@ -229,11 +244,44 @@ class MenuControl {
                 document.getElementById('btn-tree').classList.remove('active');
                 document.getElementById('btn-measure').classList.add('active');
                 document.getElementById('btn-measure').setAttribute('measure-type', interactiveMap.mode);
+                document.getElementById('menu-left').classList.remove('draw');
                 setQueryString('mode', interactiveMap.mode);
                 interactiveMap.controls.measure.change(interactiveMap.mode);
+                interactiveMap.controls.draw.deactivate();
                 interactiveMap.controls.ward.deactivate();
                 interactiveMap.controls.info.deactivate();
-                
+            break;
+            case 'brush':
+            case 'marker':
+            case 'point':
+            case 'linestring':
+            case 'polygon':
+            case 'shape':
+            case 'modify':
+            case 'rotate':
+            case 'scale':
+            case 'skew':
+            case 'translate':
+            case 'delete':
+            case 'draw':
+                document.querySelector('input[name="mode"][value="draw"]').checked = true;
+                interactiveMap.mode = document.querySelector('input[name="draw-type"]:checked').value;
+                document.getElementById('btn-ward').classList.remove('active');
+                document.getElementById('btn-tree').classList.remove('active');
+                document.getElementById('btn-measure').classList.remove('active');
+                document.getElementById('menu-left').classList.add('draw');
+                setQueryString('mode', interactiveMap.mode);
+                interactiveMap.controls.draw.change(interactiveMap.mode);
+                interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.ward.deactivate();
+                interactiveMap.controls.info.deactivate();
+                document.getElementById('draw-options').classList.remove('brush');
+                document.getElementById('draw-options').classList.remove('marker');
+                document.getElementById('draw-options').classList.remove('point');
+                document.getElementById('draw-options').classList.remove('linestring');
+                document.getElementById('draw-options').classList.remove('polygon');
+                document.getElementById('draw-options').classList.remove('shape');
+                document.getElementById('draw-options').classList.add(interactiveMap.mode);
             break;
             default:
                 document.querySelector('input[name="mode"][value="navigate"]').checked = true;
@@ -241,12 +289,14 @@ class MenuControl {
                 document.getElementById('btn-ward').classList.remove('active');
                 document.getElementById('btn-tree').classList.add('active');
                 document.getElementById('btn-measure').classList.remove('active');
+                document.getElementById('menu-left').classList.remove('draw');
                 setQueryString('mode', interactiveMap.mode == 'navigate' ? null : interactiveMap.mode);
                 interactiveMap.controls.measure.deactivate();
+                interactiveMap.controls.draw.deactivate();
                 interactiveMap.controls.ward.deactivate();
                 interactiveMap.controls.info.activate();
             break;
-        }
+        };
         interactiveMap.controls.notification.show(modeNotificationText[interactiveMap.mode]);
     }
 }

@@ -10,10 +10,11 @@ import LayerTile from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import TileGrid from 'ol/tilegrid/TileGrid';
 import { transform } from 'ol/proj';
-import {defaults as defaultControls} from 'ol/control';
+import {defaults as defaultControls, FullScreen} from 'ol/control';
 import {defaults as defaultInteractions} from 'ol/interaction';
 import Feature from 'ol/Feature';
 import Circle from 'ol/geom/Circle';
+import { KML } from 'ol/format';
 import { pixelProj, dotaProj } from './projections';
 import mapConstants from './mapConstants';
 import styles from './styleDefinitions';
@@ -32,9 +33,13 @@ import WardControl from './controls/ward';
 import TreeControl from './controls/tree';
 import CursorControl from './controls/cursor';
 import CoordinateControl from './controls/coordinate';
+import DrawControl from './controls/draw';
 import getJSON from './util/getJSON';
 import { setQueryString, getParameterByName } from './util/queryString';
 import forEach from './util/forEach';
+import CP from './util/color-picker';
+import { saveAs } from 'file-saver/FileSaver';
+import heroIcons from './heroIconManifest.json';
 
 class InteractiveMap {
     constructor(map_tile_path, version, vision_data_image_path, worlddata, options) {
@@ -75,7 +80,9 @@ class InteractiveMap {
             }
         };
         this.map = new Map({
-            controls: defaultControls({ zoom: false, attribution: false, rotate: false }),
+            controls: defaultControls({ zoom: false, attribution: false, rotate: false }).extend([
+                new FullScreen()
+            ]),
             interactions: defaultInteractions({altShiftDragRotate:false, pinchRotate:false}),
             target: 'map',
             view: this.view
@@ -162,7 +169,8 @@ class InteractiveMap {
             cursor: new CursorControl(this),
             coordinate: this.options.controls.coordinate && new CoordinateControl(this, 'coordinates'),
             measure: new MeasureControl(this),
-            creep: new CreepControl(this, 'timer')
+            creep: new CreepControl(this, 'timer'),
+            draw: new DrawControl(this)
         };
         
         this.map.on('moveend', evt => {
@@ -228,6 +236,7 @@ class InteractiveMap {
             this.map.addLayer(this.rangeLayers.nightVision);
             this.map.addLayer(this.rangeLayers.trueSight);
             this.map.addLayer(this.rangeLayers.attackRange);
+            this.map.addLayer(this.controls.draw.layer);
             
             if (callback) callback(err);
         });
@@ -455,6 +464,86 @@ class InteractiveMap {
                 document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
             }
         });
+        
+        this.controls.draw.setDataId(getParameterByName('data'));
+    }
+    
+    export(filename) {
+        const map = document.getElementById('map');
+        map.style.width = '2048px';
+        map.style.height = '2048px';
+        this.map.updateSize();
+        const center = this.view.getCenter();
+        const zoom = this.view.getZoom();
+        this.view.setZoom(2);
+        this.view.setCenter([mapConstants.map_w / 2, mapConstants.map_h / 2]);
+        const resetExport = () => {
+            map.style.width = '100%';
+            map.style.height = '100%';
+            this.map.updateSize();
+            this.view.setZoom(zoom);
+            this.view.setCenter(center);
+        }
+        this.map.once('rendercomplete', (event) => {
+            const canvas = event.context.canvas;
+            if (navigator.msSaveBlob) {
+                navigator.msSaveBlob(canvas.msToBlob(), filename);
+                resetExport();
+            }
+            else {
+                canvas.toBlob(function(blob) {
+                    saveAs(blob, filename);
+                    resetExport();
+                });
+            }
+        });
+        this.map.renderSync();
+    }
+    
+    save() {
+        const writer = new KML();
+        const str = writer.writeFeatures(this.controls.draw.source.getFeatures());
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", 'save.php', true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if ( xhr.status == 200 ) {
+                    const data = JSON.parse(xhr.responseText);
+                    if (data.file) {
+                        setQueryString("data", data.file);
+                        this.controls.notification.show(modeNotificationText.saveSuccess);
+                        return;
+                    }
+                }
+            }
+            this.controls.notification.show(modeNotificationText.saveFailed);
+        }
+        xhr.send("data=" + str);
+    }
+    
+    share() {
+        const dummy = document.createElement('input');
+        const text = window.location.href;
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        this.controls.notification.show(modeNotificationText.share);
+    }
+    
+    reset() {
+        if (history && history.replaceState) {
+            history.replaceState(null, "", window.location.href.split("?")[0]);
+        }
+        this.setDefaults();
+        this.controls.menu.updateOverlayMenu();
+        this.controls.tree.toggleAllTrees(false, true);
+        this.controls.tree.parseQueryString();
+        this.controls.ward.clearWards();
+        this.controls.ward.parseQueryString();
+        this.controls.draw.clear();
     }
 
     initialize() {
@@ -474,11 +563,61 @@ class InteractiveMap {
                 }
             });
             
-            forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"]'), element => {
+            forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]'), element => {
                 element.addEventListener("change", e => {
                     this.controls.menu.changeMode(e.currentTarget.value);
                 }, false);
             }, this);
+            
+            document.getElementById('save').addEventListener('click', () => this.save());
+            
+            document.getElementById('share').addEventListener('click', () => this.share());
+            
+            document.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
+            
+            const strokePicker = new CP(document.getElementById('strokecolor-option'), false, document.getElementById('strokecolor-picker-container'));
+            strokePicker.on("change", function(color) {
+                this.target.value = '#' + color;
+                document.getElementById('strokecolor-preview').style.backgroundColor = '#' + color;
+            });
+            
+            strokePicker.target.oncut = strokePicker.target.onpaste = strokePicker.target.onkeyup = strokePicker.target.oninput = function() {
+                strokePicker.set(this.value);
+            }
+            
+            document.getElementById('strokecolor-option').addEventListener('blur', () => {
+                document.getElementById('strokecolor-picker-container').classList.remove('open');
+            });
+            
+            document.getElementById('strokecolor-option').addEventListener('click', () => {
+                document.getElementById('strokecolor-picker-container').classList.add('open');
+                strokePicker.fit = function() { // do nothing ...
+                    this.picker.style.left = this.picker.style.top = "";
+                };
+                strokePicker.enter();
+            });
+            
+            const fillPicker = new CP(document.getElementById('fillcolor-option'), false, document.getElementById('fillcolor-picker-container'));
+            fillPicker.on("change", function(color) {
+                this.target.value = '#' + color;
+                document.getElementById('fillcolor-preview').style.backgroundColor = '#' + color;
+            });
+            
+            fillPicker.target.oncut = fillPicker.target.onpaste = fillPicker.target.onkeyup = fillPicker.target.oninput = function() {
+                fillPicker.set(this.value);
+            }
+            
+            document.getElementById('fillcolor-option').addEventListener('blur', () => {
+                document.getElementById('fillcolor-picker-container').classList.remove('open');
+            });
+            
+            document.getElementById('fillcolor-option').addEventListener('click', () => {
+                document.getElementById('fillcolor-picker-container').classList.add('open');
+                fillPicker.fit = function() { // do nothing ...
+                    this.picker.style.left = this.picker.style.top = "";
+                };
+                fillPicker.enter();
+            });
             
             document.getElementById('nightControl').addEventListener('change', e => {
                 this.isNight = e.currentTarget.checked;
@@ -538,20 +677,46 @@ class InteractiveMap {
                     }
                 });
             });
+            
+            const heroData = Object.keys(heroIcons).map(id => {
+                heroIcons[id].id = id;
+                return heroIcons[id];
+            });
+            heroData.sort(function(a, b) {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return 1;
+                return 0;
+            });
+            const markerSelect = document.getElementById('marker-select');
+            for (const data of heroData) {
+                markerSelect.options[markerSelect.options.length] = new Option(data.name, data.id);
+            }
+            
+            document.getElementById('marker-select').addEventListener('change', e => {
+                const el = e.currentTarget;
+                this.controls.draw.changeMarkerType(el.value);
+                document.getElementById('marker-preview').className = "";
+                document.getElementById('marker-preview').classList.add('miniheroes-sprite-' + el.value);
+            });
+            
+            document.getElementById('freehand-select').addEventListener('change', e => {
+                const el = e.currentTarget;
+                this.controls.draw.changeFreehandType(el.value);
+            });
+            
+            document.getElementById('sides-option').addEventListener('change', e => {
+                const el = e.currentTarget;
+                this.controls.draw.changeSides(parseInt(el.value));
+            });
+            
+            document.getElementById('undo').addEventListener('click', () => this.controls.draw.undo());
+            document.getElementById('redo').addEventListener('click', () => this.controls.draw.redo());
                 
             document.getElementById('btn-zoom-in').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() + 1}));
                 
             document.getElementById('btn-zoom-out').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() - 1}));
 
-            document.getElementById('reset').addEventListener('click', () => {
-                if (history && history.replaceState) history.replaceState(null, "", window.location.href.split("?")[0]);
-                this.setDefaults();
-                this.controls.menu.updateOverlayMenu();
-                this.controls.tree.toggleAllTrees(false, true);
-                this.controls.tree.parseQueryString();
-                this.controls.ward.clearWards();
-                this.controls.ward.parseQueryString();
-            });
+            document.getElementById('reset').addEventListener('click', () => this.reset());
 
             document.getElementById('btn-tree').addEventListener('click', e => {
                 const el = e.currentTarget;

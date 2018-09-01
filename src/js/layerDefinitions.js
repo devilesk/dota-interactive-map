@@ -135,14 +135,6 @@ const layerDefinitions = [
         group: 'structure',
         style: styles.npc_dota_healer,
         toggle: true
-    },
-    {
-        id: 'pullRange',
-        name: 'Pull Range',
-        type: 'pullRange',
-        group: 'overlay',
-        style: styles.pullRange,
-        visible: true
     }
 ];
 

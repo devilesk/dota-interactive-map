@@ -5,8 +5,12 @@ import { dotaProj } from '../projections';
 class CoordinateControl {
     constructor(InteractiveMap, elementId) {
         this.InteractiveMap = InteractiveMap;
+        this.createStringXY = createStringXY();
         this.mousePosition = new MousePosition({
-            coordinateFormat: createStringXY(),
+            undefinedHTML: '<span></span>',
+            coordinateFormat: (coordinate) => {
+                return '<div class="coordinate">' + this.createStringXY(coordinate) + '</div>';
+            },
             projection: dotaProj,
             target: document.getElementById(elementId)
         });

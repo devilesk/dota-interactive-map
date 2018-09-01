@@ -79,12 +79,33 @@ select:hover {
     bottom: 0;
     z-index: 40;
     right: 0;
-    padding: 5px;
     font-size: 14px;
     background-color: $light-bg-color;
     display: none;
     
+    div.coordinate {
+        padding: 5px;
+        font-family: monospace;
+    }
+    
     @media #{$not-mobile} {
         display: block;
     }
+}
+
+.ol-full-screen-true, .ol-full-screen-false {
+    @extend .btn;
+    
+    border: none;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    font-size: 36px;
+    
+    &:focus {
+        outline: none;
+    }
+}
+.ol-full-screen-true {
+    top: 0;
 }

@@ -42,6 +42,7 @@ export default {
       'ol/control/MousePosition': 'ol.control.MousePosition',
       'ol/coordinate': 'ol.coordinate',
       'ol/format/GeoJSON': 'ol.format.GeoJSON',
+      'ol/format': 'ol.format',
       'ol/layer/Group': 'ol.layer.Group',
       'ol/Collection': 'ol.Collection',
       'ol/View': 'ol.View',
@@ -50,7 +51,12 @@ export default {
       'ol/layer/Tile': 'ol.layer.Tile',
       'ol/tilegrid/TileGrid': 'ol.tilegrid.TileGrid',
       'ol/control': 'ol.control',
-      'ol/interaction': 'ol.interaction'
+      'ol/interaction': 'ol.interaction',
+      'ol/interaction/Select': 'ol.interaction.Select',
+      'ol/interaction/Pointer': 'ol.interaction.Pointer',
+      'ol/geom/GeometryCollection': 'ol.geom.GeometryCollection',
+      'ol/style/Text': 'ol.style.Text',
+      'ol/color': 'ol.color'
     }
   },
   plugins: [

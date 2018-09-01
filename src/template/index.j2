@@ -43,8 +43,20 @@
                             <label for="observer-option" class="checkbox">Observer</label>
                         </div><!--
                      --><div class="menu-item inline">
-                            <input type="radio" name="ward-type" value="sentry" id="sentry-option"  checked />
+                            <input type="radio" name="ward-type" value="sentry" id="sentry-option" checked />
                             <label for="sentry-option" class="checkbox">Sentry</label>
+                        </div><!--
+                     --><div class="menu-item">
+                            <label class="text-label small-font" for="vision-radius">Radius</label><!--
+                         --><input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="checkbox" id="nightControl"/>
+                            <label for="nightControl" class="checkbox">Night</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="checkbox" id="darknessControl"/>
+                            <label for="darknessControl" class="checkbox">Darkness</label>
                         </div>
                     </div>
                 </div>
@@ -53,48 +65,128 @@
                     <label for="measureToggle" class="checkbox">Measure</label>
                     <div class="menu-item-group sub-menu"><!--
                      --><div class="menu-item inline">
-                            <input type="radio" name="measure-type" value="line" id="line-option"  checked />
+                            <input type="radio" name="measure-type" value="line" id="line-option" checked />
                             <label for="line-option" class="checkbox">Line</label>
                         </div><!--
                      --><div class="menu-item inline">
                             <input type="radio" name="measure-type" value="circle" id="circle-option" />
                             <label for="circle-option" class="checkbox">Circle</label>
+                        </div><!--
+                     --><div class="menu-item">
+                            <label class="text-label small-font" for="movementSpeed">MS</label><!--
+                         --><input type="number" id="movementSpeed" value="300" min="0" max="9999" step="1" />
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <input type="radio" name="mode" value="draw" id="drawToggle" />
+                    <label for="drawToggle" class="checkbox">Draw</label>
+                    <div class="menu-item-group sub-menu"><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="brush" id="brush-option" checked />
+                            <label for="brush-option" class="checkbox">Brush</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="marker" id="marker-option" />
+                            <label for="marker-option" class="checkbox">Icon</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="point" id="point-option" />
+                            <label for="point-option" class="checkbox">Point</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="linestring" id="linestring-option" />
+                            <label for="linestring-option" class="checkbox">Line</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="polygon" id="polygon-option" />
+                            <label for="polygon-option" class="checkbox">Polygon</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="shape" id="shape-option" />
+                            <label for="shape-option" class="checkbox">Shape</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="modify" id="modify-option" />
+                            <label for="modify-option" class="checkbox">Modify</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="rotate" id="rotate-option" />
+                            <label for="rotate-option" class="checkbox">Rotate</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="translate" id="translate-option" />
+                            <label for="translate-option" class="checkbox">Drag</label>
+                        </div><!--
+                     --><div class="menu-item inline">
+                            <input type="radio" name="draw-type" value="delete" id="delete-option" />
+                            <label for="delete-option" class="checkbox">Delete</label>
+                        </div><!--
+                     --><div class="menu-item button-half-container">
+                            <input type="button" id="undo" class="button-half" value="Undo"><!--
+                         --><input type="button" id="redo" class="button-half" value="Redo">
+                        </div><!--
+                     --><div id="draw-options" class="menu-item-group sub-menu draw-options brush"><!--
+                         --><div class="menu-item brush">
+                                <label class="select-label text-label small-font" for="freehand-select">Type</label><!--
+                             --><select id="freehand-select">
+                                    <option value="LineString">Brush</option>
+                                    <option value="Box">Box</option>
+                                    <option value="Circle">Circle</option>
+                                    <option value="Star">Star</option>
+                                    <option value="Polygon">Polygon</option>
+                                </select>
+                            </div><!--
+                         --><div class="menu-item marker">
+                                <label class="select-label text-label small-font" for="marker-select">Type<div id="marker-preview" class="miniheroes-sprite-abaddon"></div></label><!--
+                             --><select id="marker-select">
+                                </select>
+                            </div><!--
+                         --><div class="menu-item brush point linestring polygon shape">
+                                <label class="text-label small-font" for="strokesize-option">Size</label><!--
+                             --><input type="number" id="strokesize-option" value="5" min="1" max="999" step="1" />
+                            </div><!--
+                         --><div class="menu-item brush point linestring polygon shape">
+                                <label class="text-label small-font" for="strokecolor-option">Color <div id="strokecolor-preview" class="color-preview"></div></label><!--
+                             --><input type="text" id="strokecolor-option" /><!--
+                             --><div id="strokecolor-picker-container"></div>
+                            </div><!--
+                         --><div class="menu-item brush point linestring polygon shape">
+                                <label class="text-label small-font" for="strokeopacity-option">Opacity</label><!--
+                             --><input type="number" id="strokeopacity-option" value="100" min="0" max="100" step="1" />
+                            </div><!--
+                         --><div class="menu-item polygon shape">
+                                <label class="text-label small-font" for="fillcolor-option">Fill Color <div id="fillcolor-preview" class="color-preview"></div></label><!--
+                             --><input type="text" id="fillcolor-option" /><!--
+                             --><div id="fillcolor-picker-container"></div>
+                            </div><!--
+                         --><div class="menu-item polygon shape">
+                                <label class="text-label small-font" for="fillopacity-option">Fill Opacity</label><!--
+                             --><input type="number" id="fillopacity-option" value="100" min="0" max="100" step="1" />
+                            </div><!--
+                         --><div class="menu-item shape">
+                                <label class="text-label small-font" for="sides-option">Sides</label><!--
+                             --><input type="number" id="sides-option" value="3" min="3" max="100" step="1" />
+                            </div>
+                        </div><!--
+                     --><div class="menu-item button-half-container">
+                            <input type="button" id="save" class="button-half" value="Save"/><input type="button" id="share" class="button-half" value="Share"/>
                         </div>
                     </div>
                 </div>
                 <hr>
-                <div class="menu-item">
+                <div class="menu-item hide-draw">
                     <input type="checkbox" id="creepControl"/>
                     <label for="creepControl" class="checkbox">Lane Animation</label>
+                    <hr>
                 </div>
-                <hr>
                 <div class="menu-item">
-                    <label class="text-label" for="vision-radius">Radius</label><!--
-                    --><input type="number" id="vision-radius" value="1600" min="0" max="3000" step="25" />
+                    <label class="select-label small-font" for="version-select">Version</label><!--
+                 --><select id="version-select"></select>
+                    <hr>
                 </div>
-                <hr>
-                <div class="menu-item">
-                    <input type="checkbox" id="nightControl"/>
-                    <label for="nightControl" class="checkbox">Night</label>
-                </div>
-                <hr>
-                <div class="menu-item">
-                    <input type="checkbox" id="darknessControl"/>
-                    <label for="darknessControl" class="checkbox">Darkness</label>
-                </div>
-                <hr>
-                <div class="menu-item">
-                    <label class="text-label" for="movementSpeed">MS</label><!--
-                    --><input type="number" id="movementSpeed" value="300" min="0" max="9999" step="1" />
-                </div>
-                <hr>
-                <div class="menu-item">
-                    <label class="select-label" for="version-select">Version</label><!--
-                     --><select id="version-select"></select>
-                </div>
-                <hr>
-                <div class="menu-item">
-                    <input type="button" id="reset" class="button" value="Reset Map"/>
+                <div class="menu-item button-half-container">
+                    <input type="button" id="reset" class="button-half" value="Reset"/><input type="button" id="export-map" class="button-half" value="Download"/>
                 </div>
                 <div class="menu-item button-half-container">
                     <input type="button" id="help-open" class="button-half" value="Help"/><input type="button" id="about-open" class="button-half" value="About"/>
@@ -114,16 +206,12 @@
                         <label for="overlay-menu-toggle" class="root checkbox inverse">Overlays</label>
                         <div id="overlay-menu" class="menu-item-group sub-menu"><!--
                          --><div class="menu-item">
-                                <input type="checkbox" id="option-drawn-circles"/>
-                                <label for="option-drawn-circles" class="checkbox">Drawn Circles</label>
-                                <div class="btn-toggle">
-                                    <input id="toggle-1" type="checkbox"></input>
-                                    <label for="toggle-1"></label>
-                                </div>
+                                <input type="checkbox" id="option-draw-layer" data-layer-id="draw-layer" checked />
+                                <label for="option-draw-layer" class="checkbox">Draw</label>
                             </div><!--
                          --><div class="menu-item">
-                                <input type="checkbox" id="option-placed-wards" checked />
-                                <label for="option-placed-wards" class="checkbox">Placed Wards</label>
+                                <input type="checkbox" id="option-ward-layer" data-layer-id="ward-layer" checked />
+                                <label for="option-ward-layer" class="checkbox">Placed Wards</label>
                             </div>
                         </div>
                     </div>
@@ -211,7 +299,7 @@
     {% block js %}
         {{ super() }}
         <!-- @if NODE_ENV!='production' -->
-        <script src="https://openlayers.org/en/v5.0.0/build/ol.js"></script>
+        <script src="https://openlayers.org/en/v5.2.0/build/ol.js"></script>
         <script src="bundle.js"></script>
         <script>new InteractiveMap("tiles/", "img/map_data_719.png", "719")</script>
         <!-- @endif -->

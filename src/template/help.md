@@ -22,19 +22,34 @@ Opened from the cog in the toolbar.
 
 * **Mode Options** - Same as in toolbar.
 
+ * **Navigation**
+
+ * **Place Ward**
+
+    * **Observer/Sentry**
+
+    * **Radius** - Vision simulation radius.
+
+    * **Night/Darkness** - Toggles night/darkness for building vision simulation.
+
+ * **Measure**
+
+    * **Line/Circle**
+
+    * **MS** - Movement speed. Used for calculating travel time of measured distance.
+
+* **Draw** - Tools for drawing on the map
+
 * **Lane Animation** - Toggle lane animation overlay.
 
-* **Radius** - Vision simulation radius.
 
-* **Night** - Toggles day/night for building vision simulation.
 
-* **Darkness** - Toggles darkness for vision simulation.
-
-* **MS** - Movement speed. Used in measure mode for calculating travel time.
 
 * **Version** - Select map data version.
 
-* **Reset Map**
+* **Reset** - Reset the map.
+
+* **Download** - Map image download.
 
 ## Right Overlay Menu
 
