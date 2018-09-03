@@ -2600,6 +2600,14 @@
           group: 'structure',
           style: styles.npc_dota_healer,
           toggle: true
+      },
+      {
+          id: 'pullRange',
+          name: 'Pull Range',
+          type: 'pullRange',
+          group: 'overlay',
+          style: styles.pullRange,
+          visible: true
       }
   ];
 
@@ -2806,9 +2814,6 @@
           
           const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
           
-          document.getElementById('option-draw-layer').addEventListener("change", layerToggleHandler, false);
-          document.getElementById('option-ward-layer').addEventListener("change", layerToggleHandler, false);
-          
           this.InteractiveMap.layerDefs.forEach(layerDef => {
               const group = layerDef.group;
               const menu = document.querySelector('#' + group + '-menu');
@@ -2846,18 +2851,8 @@
       
       updateLayerAndQueryString(element, layerId) {
           layerId = layerId || element.getAttribute('data-layer-id');
-          let layer = this.InteractiveMap.getMapLayer(layerId);
-          if (layerId === 'ward-layer') {
-              layer = this.InteractiveMap.controls.ward.layer;
-              this.InteractiveMap.controls.vision.layer.setVisible(element.checked);
-              this.InteractiveMap.wardRangeLayer.setVisible(element.checked);
-              layer.setVisible(element.checked);
-          }
-          else if (layerId === 'draw-layer') {
-              layer = this.InteractiveMap.controls.draw.layer;
-              layer.setVisible(element.checked);
-          }
-          else if (layer) {
+          const layer = this.InteractiveMap.getMapLayer(layerId);
+          if (layer) {
               layer.setVisible(element.checked);
               const param = layer.get("title").replace(/ /g, '');
               setQueryString(param, element.checked ? true : null);
@@ -3990,7 +3985,6 @@
           this.throttleTime = throttleTime;
           this.source = new SourceVector({});
           this.layer =  new LayerVector({
-              title: 'Ward',
               source: this.source
           });
           this.layerFilter = layer => layer === this.layer;
@@ -4397,12 +4391,8 @@
   class CoordinateControl {
       constructor(InteractiveMap, elementId) {
           this.InteractiveMap = InteractiveMap;
-          this.createStringXY = coordinate.createStringXY();
           this.mousePosition = new MousePosition({
-              undefinedHTML: '<span></span>',
-              coordinateFormat: (coordinate$$1) => {
-                  return '<div class="coordinate">' + this.createStringXY(coordinate$$1) + '</div>';
-              },
+              coordinateFormat: coordinate.createStringXY(),
               projection: dotaProj,
               target: document.getElementById(elementId)
           });
@@ -6120,7 +6110,6 @@
           });
           
           this.layer =  new LayerVector({
-              title: 'Draw',
               source: this.source
           });
           
@@ -7334,9 +7323,7 @@
               }
           };
           this.map = new Map({
-              controls: control.defaults({ zoom: false, attribution: false, rotate: false }).extend([
-                  new control.FullScreen()
-              ]),
+              controls: control.defaults({ zoom: false, attribution: false, rotate: false }),
               interactions: interaction.defaults({altShiftDragRotate:false, pinchRotate:false}),
               target: 'map',
               view: this.view
@@ -7723,31 +7710,14 @@
       }
       
       export(filename) {
-          const map = document.getElementById('map');
-          map.style.width = '2048px';
-          map.style.height = '2048px';
-          this.map.updateSize();
-          const center = this.view.getCenter();
-          const zoom = this.view.getZoom();
-          this.view.setZoom(2);
-          this.view.setCenter([mapConstants.map_w / 2, mapConstants.map_h / 2]);
-          const resetExport = () => {
-              map.style.width = '100%';
-              map.style.height = '100%';
-              this.map.updateSize();
-              this.view.setZoom(zoom);
-              this.view.setCenter(center);
-          };
-          this.map.once('rendercomplete', (event) => {
+          this.map.once('postcompose', (event) => {
               const canvas = event.context.canvas;
               if (navigator.msSaveBlob) {
                   navigator.msSaveBlob(canvas.msToBlob(), filename);
-                  resetExport();
               }
               else {
                   canvas.toBlob(function(blob) {
                       FileSaver_1(blob, filename);
-                      resetExport();
                   });
               }
           });
@@ -7832,7 +7802,6 @@
               const strokePicker = new colorPicker(document.getElementById('strokecolor-option'), false, document.getElementById('strokecolor-picker-container'));
               strokePicker.on("change", function(color$$1) {
                   this.target.value = '#' + color$$1;
-                  document.getElementById('strokecolor-preview').style.backgroundColor = '#' + color$$1;
               });
               
               strokePicker.target.oncut = strokePicker.target.onpaste = strokePicker.target.onkeyup = strokePicker.target.oninput = function() {
@@ -7854,7 +7823,6 @@
               const fillPicker = new colorPicker(document.getElementById('fillcolor-option'), false, document.getElementById('fillcolor-picker-container'));
               fillPicker.on("change", function(color$$1) {
                   this.target.value = '#' + color$$1;
-                  document.getElementById('fillcolor-preview').style.backgroundColor = '#' + color$$1;
               });
               
               fillPicker.target.oncut = fillPicker.target.onpaste = fillPicker.target.onkeyup = fillPicker.target.oninput = function() {
@@ -7949,8 +7917,6 @@
               document.getElementById('marker-select').addEventListener('change', e => {
                   const el = e.currentTarget;
                   this.controls.draw.changeMarkerType(el.value);
-                  document.getElementById('marker-preview').className = "";
-                  document.getElementById('marker-preview').classList.add('miniheroes-sprite-' + el.value);
               });
               
               document.getElementById('freehand-select').addEventListener('change', e => {
