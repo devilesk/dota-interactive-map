@@ -361,15 +361,6 @@ const styles = {
             anchor: [0.5, 0.5]
         })
     }),
-    pullRange: new Style({
-        fill: new Fill({
-            color: 'rgba(0, 153, 238, 0.1)'
-        }),
-        stroke: new Stroke({
-            color: 'rgba(0, 153, 238, 0.5)',
-            width: 2
-        })
-    }),
 }
 
 styles.teamColor = (feature, resolution) => {

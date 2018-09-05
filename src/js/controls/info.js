@@ -147,49 +147,11 @@ class InfoControl {
     };
 
     unhighlight(feature) {
-        const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
-        if (highlightedFeature && !highlightedFeature.get("clicked")) {
-            const dotaProps = highlightedFeature.get('dotaProps');
-            if (dotaProps) {
-                if (dotaProps.id == 'npc_dota_neutral_spawner') {
-                    const pullRange = highlightedFeature.get('pullRange');
-                    if (pullRange) {
-                        this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(pullRange);
-                        highlightedFeature.set("pullRange", null, true);
-                    }
-                    const guardRange = highlightedFeature.get('guardRange');
-                    if (guardRange) {
-                        this.InteractiveMap.getMapLayer('pullRange').getSource().removeFeature(guardRange);
-                        highlightedFeature.set("guardRange", null, true);
-                    }
-                }
-            }
-        }
         this.InteractiveMap.unhighlight();
     }
 
     highlight(feature) {
         this.unhighlight();
-        const dotaProps = feature.get('dotaProps');
-        if (dotaProps) {
-            if (dotaProps.id == 'npc_dota_neutral_spawner') {
-                if (!feature.get('pullRange')) {
-                    let circle = this.InteractiveMap.getRangeCircle(feature, null, null, null, 400);
-                    feature.set("guardRange", circle, true);
-                    this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
-                    
-                    const center = worldToLatLon([dotaProps.x, dotaProps.y]);
-                    const pullTiming = mapConstants.pullRangeTiming[dotaProps.pullType];
-                    const pullMaxCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 350, 360);
-                    const pullMinCoords = createCirclePointCoords(center[0], center[1], 400 + pullTiming * 270, 360);
-                    const geom = new Polygon([pullMaxCoords]);
-                    geom.appendLinearRing(new LinearRing(pullMinCoords));
-                    circle = new Feature(geom);
-                    feature.set("pullRange", circle, true);
-                    this.InteractiveMap.getMapLayer('pullRange').getSource().addFeature(circle);
-                }
-            }
-        }
         this.InteractiveMap.highlight(feature);
     }
 

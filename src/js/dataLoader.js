@@ -108,29 +108,6 @@ const loadJSON = (map, layerDef, data, layer) => {
     return layer;
 }
 
-const loadNeutralPullRange = (InteractiveMap, layerDef, data, layer) => {
-    const vectorSource = new SourceVector({
-        features: []
-    });
-    
-    if (layer) {
-        layer.setSource(vectorSource);
-    }
-    else {
-        layer = new LayerVector({
-            title: layerDef.name,
-            source: vectorSource,
-            visible: !!layerDef.visible,
-            style: layerDef.style
-        });
-        layer.set('layerId', layerDef.id, true);
-        layer.set('layerDef', layerDef, true);
-        layer.set('showInfo', false, true);
-    }
-
-    return layer;
-}
-
 const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
     const layers = [];
     for (let i = 0; i < layerDefs.length; i++) {
@@ -143,9 +120,6 @@ const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, laye
             break;
             case 'polygon':
                 layer = loadPolygon(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
-            break;
-            case 'pullRange':
-                layer = loadNeutralPullRange(InteractiveMap, layerDef, data, layersIndex[layerDef.id]);
             break;
             default:
                 layer = loadJSON(InteractiveMap.map, layerDef, data, layersIndex[layerDef.id]);
