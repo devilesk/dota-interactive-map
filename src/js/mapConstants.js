@@ -12,7 +12,7 @@ const mapConstants = {
     ],
     visionRadius: {
         observer: 1600,
-        sentry: 850,
+        sentry: 1000,
         darkness: 675
     },
     defaultMovementSpeed: 300,

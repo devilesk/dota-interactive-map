@@ -1777,7 +1777,7 @@
       ],
       visionRadius: {
           observer: 1600,
-          sentry: 850,
+          sentry: 1000,
           darkness: 675
       },
       defaultMovementSpeed: 300,
@@ -2334,6 +2334,16 @@
   };
 
   const baseLayerDefinitions = [
+      {
+          id: '720',
+          name: '7.20',
+          tilesets: [
+              {
+                  id: 'default',
+                  name: 'Default'
+              }
+          ]
+      },
       {
           id: '719',
           name: '7.19',
@@ -7960,7 +7970,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "cd89e400b21bd6a24afd878b2079fa3ab589ad08",
+                  code_version: "90492e0b6d52e0c52e3ddc9b346df758efef004a",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -7997,9 +8007,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2018-09-05 11:00:51 UTC";
-  document.getElementById('releaseTag').innerHTML = "5.0.0";
-  document.getElementById('codeVersion').innerHTML = "cd89e400b21bd6a24afd878b2079fa3ab589ad08";
+  document.getElementById('buildDate').innerHTML = "2018-11-23 15:47:04 UTC";
+  document.getElementById('releaseTag').innerHTML = "5.0.1";
+  document.getElementById('codeVersion').innerHTML = "90492e0b6d52e0c52e3ddc9b346df758efef004a";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {
