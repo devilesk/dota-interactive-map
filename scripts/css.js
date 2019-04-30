@@ -12,7 +12,7 @@ sass.render({
     }
     else {
         console.log("Css compiled.");
-        let contents = renderedCss;
+        let contents = renderedCss.css;
         let outFile = 'build/app.css';
         fs.writeFile(outFile, contents, err => {
             if (err) {
