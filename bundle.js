@@ -7961,31 +7961,6 @@
   });
   var rollbar_umd_min_1 = rollbar_umd_min.rollbar;
 
-  const rollbarConfig = {
-      accessToken: "",
-      captureUncaught: true,
-      ignoredMessages: [
-          "Error:  DOM Exception 18",
-          "SecurityError: DOM Exception 18: An attempt was made to break through the security policy of the user agent.",
-          "SecurityError:  An attempt was made to break through the security policy of the user agent.",
-          "Script error."
-      ],
-      payload: {
-          environment: "development",
-          client: {
-              javascript: {
-                  source_map_enabled: true,
-                  code_version: "2a2fedbaa9638f940beb60736a0c759e80a37244",
-                  // Optionally have Rollbar guess which frames the error was thrown from
-                  // when the browser does not provide line and column numbers.
-                  guess_uncaught_frames: true
-              }
-          }
-      }
-  };
-
-  const rollbar = new rollbar_umd_min(rollbarConfig);
-
   class ModalControl {
       constructor(id, openBtnId, closeBtnId) {
           this.modal = document.getElementById(id);
@@ -8012,9 +7987,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2019-04-30 17:45:53 UTC";
+  document.getElementById('buildDate').innerHTML = "2019-04-30 17:55:48 UTC";
   document.getElementById('releaseTag').innerHTML = "5.1.0";
-  document.getElementById('codeVersion').innerHTML = "2a2fedbaa9638f940beb60736a0c759e80a37244";
+  document.getElementById('codeVersion').innerHTML = "351f79c6db288312c18ea753733c402336019f47";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {
