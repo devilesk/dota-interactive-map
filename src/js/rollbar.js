@@ -23,6 +23,9 @@ const rollbarConfig = {
     }
 };
 
-const rollbar = new Rollbar(rollbarConfig);
+let rollbar = {};
+if ('#rollbar_client_token') {
+    rollbar = new Rollbar(rollbarConfig);
+}
 
 export default rollbar;
