@@ -1,0 +1,3 @@
+[submodule "www/tiles"]
+	path = www/tiles
+	url = git@github.com:devilesk/dota-map-tiles.git
