@@ -24,7 +24,8 @@
     "rollbar:deploy": "node scripts/rollbar_deploy.js",
     "rollbar": "npm run rollbar:sourcemap && npm run rollbar:deploy -- production",
     "deploy": "node scripts/deploy.js && npm run rollbar",
-    "gh-pages": "git subtree push --prefix build origin gh-pages"
+    "gh-pages": "git subtree push --prefix build origin gh-pages",
+    "serve": "npx http-server build -p 3000"
   },
   "repository": {
     "type": "git",

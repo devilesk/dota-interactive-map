@@ -23,4 +23,7 @@ $ mv .env.example .env
 
 # Build project
 $ npm run build
+
+# Serve build
+$ npx run serve
 ```
