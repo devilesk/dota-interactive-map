@@ -66,6 +66,8 @@ export default {
         code_version: git.long(),
         rollbar_client_token: process.env.ROLLBAR_CLIENT_TOKEN,
         rollbar_environment: process.env.NODE_ENV || 'development',
+        enable_save: process.env.ENABLE_SAVE === 'true',
+        enable_download: process.env.ENABLE_DOWNLOAD === 'true',
     }),
     resolve({browser: true}),
     commonjs({}),

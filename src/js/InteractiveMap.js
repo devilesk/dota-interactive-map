@@ -569,11 +569,15 @@ class InteractiveMap {
                 }, false);
             }, this);
             
-            document.getElementById('save').addEventListener('click', () => this.save());
+            if ('#enable_save' === 'true') {
+                document.getElementById('save').addEventListener('click', () => this.save());
+            }
             
             document.getElementById('share').addEventListener('click', () => this.share());
             
-            document.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
+            if ('#enable_download' === 'true') {
+                document.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
+            }
             
             const strokePicker = new CP(document.getElementById('strokecolor-option'), false, document.getElementById('strokecolor-picker-container'));
             strokePicker.on("change", function(color) {
