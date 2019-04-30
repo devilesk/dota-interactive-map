@@ -18,6 +18,7 @@ export default {
     globals: process.env.NODE_ENV === 'production' ? {} : {
       'ol/proj': 'ol.proj',
       'ol/proj/Projection': 'ol.proj.Projection',
+      'ol/events/condition': 'ol.events.condition',
       'ol/extent': 'ol.extent',
       'ol/geom/Point': 'ol.geom.Point',
       'ol/style/Style': 'ol.style.Style',
