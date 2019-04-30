@@ -7754,11 +7754,7 @@
                   }, false);
               }, this);
               
-              document.getElementById('save').addEventListener('click', () => this.save());
-              
               document.getElementById('share').addEventListener('click', () => this.share());
-              
-              document.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
               
               const strokePicker = new colorPicker(document.getElementById('strokecolor-option'), false, document.getElementById('strokecolor-picker-container'));
               strokePicker.on("change", function(color$$1) {
@@ -8016,7 +8012,7 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2019-04-30 17:26:06 UTC";
+  document.getElementById('buildDate').innerHTML = "2019-04-30 17:45:53 UTC";
   document.getElementById('releaseTag').innerHTML = "5.1.0";
   document.getElementById('codeVersion').innerHTML = "2a2fedbaa9638f940beb60736a0c759e80a37244";
 
