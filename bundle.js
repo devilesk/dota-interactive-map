@@ -7979,7 +7979,7 @@
           client: {
               javascript: {
                   source_map_enabled: true,
-                  code_version: "d141386457086990c71a3a4cd5b3e67f2a33e75f",
+                  code_version: "2a2fedbaa9638f940beb60736a0c759e80a37244",
                   // Optionally have Rollbar guess which frames the error was thrown from
                   // when the browser does not provide line and column numbers.
                   guess_uncaught_frames: true
@@ -8016,9 +8016,9 @@
   const aboutModal = new ModalControl('about', 'about-open', 'about-close');
   const helpModal = new ModalControl('help', 'help-open', 'help-close');
 
-  document.getElementById('buildDate').innerHTML = "2019-04-30 16:08:03 UTC";
+  document.getElementById('buildDate').innerHTML = "2019-04-30 17:26:06 UTC";
   document.getElementById('releaseTag').innerHTML = "5.1.0";
-  document.getElementById('codeVersion').innerHTML = "d141386457086990c71a3a4cd5b3e67f2a33e75f";
+  document.getElementById('codeVersion').innerHTML = "2a2fedbaa9638f940beb60736a0c759e80a37244";
 
   class App {
       constructor (map_tile_path, vision_data_image_path, version) {

@@ -1,1 +1,1693 @@
-[object Object]
+html, body, #map {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: sans-serif;
+  z-index: 0; }
+
+body {
+  overflow-y: hidden; }
+
+hr {
+  border-color: #111;
+  margin: 0; }
+
+select:hover {
+  cursor: pointer; }
+
+.btn, .ol-full-screen-true, .ol-full-screen-false {
+  text-decoration: none;
+  background-color: #111;
+  color: #818181;
+  font-size: 50px;
+  width: 50px;
+  height: 50px;
+  display: block;
+  text-align: center;
+  line-height: 50px;
+  transition-duration: 0.1s; }
+  .btn.active:hover, .active.ol-full-screen-true:hover, .active.ol-full-screen-false:hover, .btn:hover, .ol-full-screen-true:hover, .ol-full-screen-false:hover {
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9); }
+  .btn.active, .active.ol-full-screen-true, .active.ol-full-screen-false, .btn:active:hover, .ol-full-screen-true:active:hover, .ol-full-screen-false:active:hover {
+    -moz-transform: scale(0.8);
+    -o-transform: scale(0.8);
+    -ms-transform: scale(0.8);
+    -webkit-transform: scale(0.8);
+    transform: scale(0.8); }
+
+.button, .menu-item input.button, .menu-item input.button-half {
+  color: #818181;
+  background-color: #111;
+  border: 1px solid #5b5b5b;
+  cursor: pointer; }
+  .button:hover, .menu-item input.button:hover, .menu-item input.button-half:hover {
+    border-color: #f1f1f1;
+    color: #f1f1f1; }
+  .button:active, .menu-item input.button:active, .menu-item input.button-half:active {
+    background-color: #818181;
+    color: #f1f1f1; }
+
+.btn-close, .btn-open, .btn-back {
+  position: absolute;
+  top: 0; }
+
+.btn-open {
+  z-index: 40; }
+
+.btn-close {
+  z-index: 30; }
+
+.btn-back {
+  font-size: 36px;
+  z-index: 30;
+  line-height: 45px; }
+
+.coordinates-container {
+  position: absolute;
+  bottom: 0;
+  z-index: 40;
+  right: 0;
+  font-size: 14px;
+  background-color: #fefefe;
+  display: none; }
+  .coordinates-container div.coordinate {
+    padding: 5px;
+    font-family: monospace; }
+  @media only screen and (min-width: 768px) {
+    .coordinates-container {
+      display: block; } }
+
+.ol-full-screen-true, .ol-full-screen-false {
+  border: none;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  font-size: 36px; }
+  .ol-full-screen-true:focus, .ol-full-screen-false:focus {
+    outline: none; }
+
+.ol-full-screen-true {
+  top: 0; }
+
+.gear {
+  height: 20px;
+  width: 20px;
+  background: transparent;
+  box-shadow: inset 0 0 0px 5px #818181, inset 0 0 0px 8px #1e1e1e;
+  border-radius: 50%;
+  position: relative;
+  margin: 15px; }
+  .gear:hover {
+    -webkit-animation: rotate 0.5s ease-out 1;
+    -moz-animation: rotate 0.5s ease-out 1;
+    -ms-animation: rotate 0.5s ease-out 1;
+    -o-animation: rotate 0.5s ease-out 1;
+    animation: rotate 0.5s ease-out 1; }
+  .gear:active:hover {
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9); }
+  .gear::before, .gear::after {
+    height: 4px;
+    width: 4px;
+    content: '';
+    border-radius: 20%;
+    position: absolute;
+    background: #818181; }
+  .gear::before {
+    box-shadow: 10px 10px 0 0 #818181, -10px 10px 0 0 #818181, 0 20px 0 0 #818181;
+    top: -2px;
+    left: 8px; }
+  .gear::after {
+    top: 1px;
+    left: 15px;
+    box-shadow: 0px 20px 0 0 #818181, 10px 10px 0 0 #818181, -10px 10px 0 0 #818181;
+    -moz-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg); }
+
+@-webkit-keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1); }
+  100% {
+    transform: rotate(45deg); } }
+
+@-moz-keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1); }
+  100% {
+    transform: rotate(45deg); } }
+
+@-ms-keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1); }
+  100% {
+    transform: rotate(45deg); } }
+
+@-o-keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1); }
+  100% {
+    transform: rotate(45deg); } }
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1); }
+  100% {
+    transform: rotate(45deg); } }
+
+#btn-measure .line-icon {
+  height: 0px;
+  position: absolute;
+  width: 30px;
+  left: 6px;
+  top: 20px;
+  border: 2px dotted #818181;
+  -moz-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg); }
+
+#btn-measure .circle-icon {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  border: 3px dotted #818181; }
+
+#btn-measure[measure-type="line"] {
+  -moz-transform: scaleX(-1) scaleY(-1);
+  -o-transform: scaleX(-1) scaleY(-1);
+  -ms-transform: scaleX(-1) scaleY(-1);
+  -webkit-transform: scaleX(-1) scaleY(-1);
+  transform: scaleX(-1) scaleY(-1); }
+  #btn-measure[measure-type="line"].active:hover, #btn-measure[measure-type="line"]:hover {
+    -moz-transform: scale(-0.9);
+    -o-transform: scale(-0.9);
+    -ms-transform: scale(-0.9);
+    -webkit-transform: scale(-0.9);
+    transform: scale(-0.9); }
+  #btn-measure[measure-type="line"]:hover:active {
+    -moz-transform: scale(-0.8);
+    -o-transform: scale(-0.8);
+    -ms-transform: scale(-0.8);
+    -webkit-transform: scale(-0.8);
+    transform: scale(-0.8); }
+  #btn-measure[measure-type="line"].active {
+    -moz-transform: scale(0.8) scaleX(-1) scaleY(-1);
+    -o-transform: scale(0.8) scaleX(-1) scaleY(-1);
+    -ms-transform: scale(0.8) scaleX(-1) scaleY(-1);
+    -webkit-transform: scale(0.8) scaleX(-1) scaleY(-1);
+    transform: scale(0.8) scaleX(-1) scaleY(-1); }
+    #btn-measure[measure-type="line"].active .line-icon {
+      border-style: solid; }
+
+#btn-measure[measure-type="circle"] .line-icon {
+  width: 16px;
+  left: 3px;
+  top: 10px; }
+
+#btn-measure[measure-type="circle"] .circle-icon {
+  height: 20px;
+  width: 20px;
+  right: 9px;
+  top: 15px; }
+
+#btn-measure[measure-type="circle"].active:hover, #btn-measure[measure-type="circle"]:hover {
+  -moz-transform: scale(0.9);
+  -o-transform: scale(0.9);
+  -ms-transform: scale(0.9);
+  -webkit-transform: scale(0.9);
+  transform: scale(0.9); }
+
+#btn-measure[measure-type="circle"]:hover:active {
+  -moz-transform: scale(0.8);
+  -o-transform: scale(0.8);
+  -ms-transform: scale(0.8);
+  -webkit-transform: scale(0.8);
+  transform: scale(0.8); }
+
+#btn-measure[measure-type="circle"].active {
+  -moz-transform: scale(0.8);
+  -o-transform: scale(0.8);
+  -ms-transform: scale(0.8);
+  -webkit-transform: scale(0.8);
+  transform: scale(0.8); }
+  #btn-measure[measure-type="circle"].active .circle-icon {
+    border-style: solid; }
+
+.menu-panel {
+  height: 100%;
+  width: 250px;
+  max-width: 250px;
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  background-color: transparent;
+  overflow: hidden;
+  transition: 0.5s; }
+
+#menu-right {
+  right: 0; }
+
+#menu-left .menu-contents {
+  margin-left: 12px; }
+
+.menu-panel-inner {
+  width: 100%;
+  padding-top: 50px;
+  background-color: #111;
+  height: 100%; }
+  .menu-panel-inner .back-group {
+    height: 100%; }
+  .menu-panel-inner .menu-contents {
+    height: calc(100% - 50px);
+    overflow-y: scroll; }
+    .menu-panel-inner .menu-contents::-webkit-scrollbar {
+      height: 12px;
+      width: 12px;
+      background: #111; }
+    .menu-panel-inner .menu-contents::-webkit-scrollbar-thumb {
+      background: #2b2b2b;
+      -webkit-border-radius: 1ex;
+      -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75); }
+    .menu-panel-inner .menu-contents::-webkit-scrollbar-corner {
+      background: #111; }
+
+.btn.collapsed-horizontal, .collapsed-horizontal.ol-full-screen-true, .collapsed-horizontal.ol-full-screen-false,
+.menu-panel.collapsed-horizontal {
+  width: 0;
+  transition: 0.2s;
+  z-index: 0; }
+
+.btn.collapsed-horizontal::before, .collapsed-horizontal.ol-full-screen-true::before, .collapsed-horizontal.ol-full-screen-false::before {
+  display: none; }
+
+.menu-panel.expand-horizontal {
+  width: 100%;
+  transition-delay: 0.2s; }
+
+.menu-item {
+  position: relative; }
+  .menu-item .checkbox {
+    cursor: pointer; }
+  .menu-item .text-label, .menu-item .select-label, .menu-item .checkbox, .menu-item input, .menu-item select {
+    padding: 8px 8px 8px 16px;
+    text-decoration: none;
+    font-size: 20px;
+    display: block;
+    transition: 0.3s;
+    white-space: nowrap;
+    width: 100%;
+    background-color: #111;
+    border: 0;
+    color: #818181;
+    box-sizing: border-box;
+    height: 40px; }
+    .menu-item .text-label.small-font, .menu-item .select-label.small-font, .menu-item .checkbox.small-font, .menu-item input.small-font, .menu-item select.small-font {
+      font-size: 18px;
+      color: #686868; }
+  .menu-item .sub-menu {
+    max-height: 0;
+    transition: 0.3s;
+    overflow: hidden; }
+  .menu-item input[type=radio]:checked + .checkbox {
+    cursor: default; }
+  .menu-item input[type=radio], .menu-item input[type=checkbox] {
+    display: none; }
+    .menu-item input[type=radio] + .checkbox:hover, .menu-item input[type=checkbox] + .checkbox:hover {
+      color: #f1f1f1; }
+    .menu-item input[type=radio] + .checkbox.inverse, .menu-item input[type=checkbox] + .checkbox.inverse {
+      background-color: #1b1a1a; }
+      .menu-item input[type=radio] + .checkbox.inverse:hover, .menu-item input[type=checkbox] + .checkbox.inverse:hover {
+        background-color: #111; }
+    .menu-item input[type=radio]:checked + .checkbox, .menu-item input[type=checkbox]:checked + .checkbox {
+      background-color: #818181;
+      color: #111; }
+      .menu-item input[type=radio]:checked + .checkbox:hover, .menu-item input[type=checkbox]:checked + .checkbox:hover {
+        color: #f1f1f1; }
+      .menu-item input[type=radio]:checked + .checkbox.inverse, .menu-item input[type=checkbox]:checked + .checkbox.inverse {
+        background-color: #111;
+        color: #f1f1f1; }
+    .menu-item input[type=radio]:disabled + .checkbox, .menu-item input[type=checkbox]:disabled + .checkbox {
+      cursor: not-allowed;
+      opacity: 0.5; }
+      .menu-item input[type=radio]:disabled + .checkbox:hover, .menu-item input[type=checkbox]:disabled + .checkbox:hover {
+        color: #818181; }
+    .menu-item input[type=radio][name="base-type"]:checked + .checkbox, .menu-item input[type=checkbox][name="base-type"]:checked + .checkbox {
+      background-color: #111;
+      color: #f1f1f1; }
+  .menu-item input.button, .menu-item input.button-half {
+    width: calc(100% - 8px);
+    margin: 2px 4px; }
+  .menu-item input.button-half {
+    width: calc(50% - 4px);
+    margin: 2px;
+    display: inline-block;
+    padding: 8px; }
+  .menu-item input:checked + .checkbox, .menu-item input:checked + .checkbox + .sub-menu, .menu-item input:checked + .checkbox, .menu-item input:checked + .checkbox + .sub-menu .sub-menu, .menu-item input:checked + .checkbox {
+    max-height: 999px;
+    display: block; }
+  .menu-item.button-half-container {
+    padding: 2px;
+    padding-top: 0px; }
+  .menu-item .text-label,
+  .menu-item .select-label,
+  .menu-item .text-label + input,
+  .menu-item .select-label + select {
+    width: 50%;
+    display: inline-block;
+    box-sizing: border-box; }
+
+#menu-right-back-btn {
+  display: none; }
+  #menu-right-back-btn:checked + .btn-back + .back-group .menu-contents .menu-item label.root {
+    display: block;
+    max-height: 999px; }
+  #menu-right-back-btn:not(:checked) + .btn-back + .back-group .menu-contents .menu-item input[name="right-menu"]:not(:checked) + label.root {
+    display: none; }
+  @media only screen and (min-height: 769px) {
+    #menu-right-back-btn:not(:checked) + .btn-back + .back-group .menu-contents .menu-item input[name="right-menu"]:not(:checked) + label.root {
+      display: block; }
+    #menu-right-back-btn + .btn-back {
+      display: none; } }
+  #menu-right-back-btn:hover:not(:checked) + .btn-back {
+    cursor: pointer; }
+  #menu-right-back-btn:hover:active:not(:checked) + .btn-back {
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1); }
+  #menu-right-back-btn:hover:checked + .btn-back {
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1); }
+  #menu-right-back-btn + .btn-back {
+    opacity: 1;
+    transition: all 0.25s linear; }
+    @media only screen and (max-width: 250px) {
+      #menu-right-back-btn + .btn-back {
+        margin-left: 50px; } }
+  #menu-right-back-btn:checked + .btn-back {
+    opacity: 0.5; }
+
+.menu-item .inline {
+  width: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: left; }
+
+.menu-item-group .menu-item.inline {
+  width: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: left; }
+
+.menu-item-group .menu-item .checkbox, .menu-item-group .menu-item input, .menu-item-group .menu-item select {
+  padding: 8px;
+  cursor: pointer; }
+
+.menu-item-group.sub-menu .menu-item .checkbox {
+  padding-left: 48px; }
+
+.menu-item-group.sub-menu .menu-item.inline .checkbox, .menu-item-group.sub-menu .menu-item label.text-label {
+  padding-left: 20px; }
+
+.menu-item-group.sub-menu .menu-item .menu-item-group.sub-menu .menu-item .checkbox {
+  padding-left: 64px; }
+
+#menu-left-close-btn {
+  left: 0; }
+
+div#menu-right.expand-horizontal #menu-right-close-btn {
+  right: 0; }
+
+#menu-right-close-btn {
+  right: -50px;
+  transition: all 0.5s linear; }
+
+#menu-left-open-btn,
+#menu-right-open-btn {
+  position: absolute;
+  top: 0;
+  width: 50px;
+  height: 50px; }
+
+#menu-left-open-btn {
+  left: 0; }
+
+#menu-right-open-btn {
+  right: 0; }
+  #menu-right-open-btn::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    width: 30px;
+    height: 4px;
+    background: #818181;
+    box-shadow: 0 8px 0 0 #818181, 0 16px 0 0 #818181; }
+  #menu-right-open-btn:hover::after {
+    -moz-transform: scale(0.95);
+    -o-transform: scale(0.95);
+    -ms-transform: scale(0.95);
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95); }
+  #menu-right-open-btn:active:hover::after {
+    -moz-transform: scale(0.9);
+    -o-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9); }
+
+.draw-options .menu-item {
+  max-height: 0;
+  transition: 0.3s;
+  overflow: hidden; }
+
+.draw-options.brush .menu-item.brush {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.marker .menu-item.marker {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.point .menu-item.point {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.linestring .menu-item.linestring {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.polygon .menu-item.polygon {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.shape .menu-item.shape {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.modify .menu-item.modify {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.rotate .menu-item.rotate {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.translate .menu-item.translate {
+  max-height: 999px;
+  display: block; }
+
+.draw-options.delete .menu-item.delete {
+  max-height: 999px;
+  display: block; }
+
+.hide-draw {
+  max-height: 999px;
+  display: block; }
+  #menu-left.draw .hide-draw {
+    max-height: 0;
+    transition: 0.3s;
+    overflow: hidden; }
+
+#strokecolor-picker-container,
+#fillcolor-picker-container {
+  max-height: 0;
+  transition: 0.3s;
+  overflow: hidden; }
+  #strokecolor-picker-container.open,
+  #fillcolor-picker-container.open {
+    max-height: 999px;
+    display: block; }
+
+.color-preview {
+  display: inline-block;
+  height: 0.75em;
+  width: 0.75em; }
+
+#marker-preview {
+  display: inline-block;
+  position: absolute;
+  top: 6px;
+  margin-left: 4px; }
+
+@media only screen and (min-width: 768px) {
+  .menu-panel {
+    width: 250px; }
+  .menu-panel.expand-horizontal {
+    width: 250px; }
+  .menu-contents.hidden {
+    display: block; }
+  #marker-menu-open-btn,
+  #base-menu-open-btn {
+    display: none; } }
+
+#notification {
+  z-index: 100;
+  position: absolute;
+  top: 50px;
+  width: calc(100% - 120px);
+  transition: 0.5s;
+  text-align: center;
+  margin-left: 60px; }
+  @media only screen and (min-width: 768px) {
+    #notification {
+      width: 500px;
+      left: 50%;
+      margin-left: 0px;
+      -moz-transform: translateX(-50%);
+      -o-transform: translateX(-50%);
+      -ms-transform: translateX(-50%);
+      -webkit-transform: translateX(-50%);
+      transform: translateX(-50%); } }
+  #notification.slideUp {
+    top: 0;
+    -moz-transform: translateY(-100%);
+    -o-transform: translateY(-100%);
+    -ms-transform: translateY(-100%);
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%); }
+  #notification.slideDown {
+    -moz-transform: translateY(0%);
+    -o-transform: translateY(0%);
+    -ms-transform: translateY(0%);
+    -webkit-transform: translateY(0%);
+    transform: translateY(0%); }
+  @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
+    #notification {
+      top: 0; } }
+  @media only screen and (min-width: 768px) {
+    #notification.slideUp {
+      -moz-transform: translateX(-50%) translateY(-100%);
+      -o-transform: translateX(-50%) translateY(-100%);
+      -ms-transform: translateX(-50%) translateY(-100%);
+      -webkit-transform: translateX(-50%) translateY(-100%);
+      transform: translateX(-50%) translateY(-100%); }
+    #notification.slideDown {
+      -moz-transform: translateX(-50%) translateY(0%);
+      -o-transform: translateX(-50%) translateY(0%);
+      -ms-transform: translateX(-50%) translateY(0%);
+      -webkit-transform: translateX(-50%) translateY(0%);
+      transform: translateX(-50%) translateY(0%); } }
+  #notification .message-content {
+    padding: 6px 10px;
+    line-height: 24px;
+    color: #818181;
+    margin: 10px 0px;
+    background-color: #111; }
+    #notification .message-content span {
+      display: block; }
+    @media only screen and (min-width: 768px) {
+      #notification .message-content span {
+        display: inline-block; }
+        #notification .message-content span + span {
+          margin-left: 10px; } }
+
+#timer {
+  z-index: 100;
+  position: absolute;
+  top: 50px;
+  width: calc(100% - 120px);
+  transition: 0.5s;
+  text-align: center;
+  margin-left: 60px;
+  z-index: 10; }
+  @media only screen and (min-width: 768px) {
+    #timer {
+      width: 500px;
+      left: 50%;
+      margin-left: 0px;
+      -moz-transform: translateX(-50%);
+      -o-transform: translateX(-50%);
+      -ms-transform: translateX(-50%);
+      -webkit-transform: translateX(-50%);
+      transform: translateX(-50%); } }
+  #timer.slideUp {
+    top: 0;
+    -moz-transform: translateY(-100%);
+    -o-transform: translateY(-100%);
+    -ms-transform: translateY(-100%);
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%); }
+  #timer.slideDown {
+    -moz-transform: translateY(0%);
+    -o-transform: translateY(0%);
+    -ms-transform: translateY(0%);
+    -webkit-transform: translateY(0%);
+    transform: translateY(0%); }
+  @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
+    #timer {
+      top: 0; } }
+  @media only screen and (min-width: 768px) {
+    #timer.slideUp {
+      -moz-transform: translateX(-50%) translateY(-100%);
+      -o-transform: translateX(-50%) translateY(-100%);
+      -ms-transform: translateX(-50%) translateY(-100%);
+      -webkit-transform: translateX(-50%) translateY(-100%);
+      transform: translateX(-50%) translateY(-100%); }
+    #timer.slideDown {
+      -moz-transform: translateX(-50%) translateY(0%);
+      -o-transform: translateX(-50%) translateY(0%);
+      -ms-transform: translateX(-50%) translateY(0%);
+      -webkit-transform: translateX(-50%) translateY(0%);
+      transform: translateX(-50%) translateY(0%); } }
+  #timer .message-content {
+    padding: 6px 10px;
+    line-height: 24px;
+    color: #818181;
+    margin: 10px 0px;
+    background-color: #111; }
+    #timer .message-content span {
+      display: block; }
+    @media only screen and (min-width: 768px) {
+      #timer .message-content span {
+        display: inline-block; }
+        #timer .message-content span + span {
+          margin-left: 10px; } }
+  #timer .message-content {
+    background-color: #fefefe;
+    color: black;
+    line-height: 12px; }
+  @media only screen and (min-width: 768px) {
+    #timer {
+      width: 240px; } }
+  #timer #timer-time {
+    margin-top: 10px; }
+
+#info {
+  bottom: 0px;
+  width: 100%;
+  transition: 0.5s;
+  z-index: 100;
+  position: absolute; }
+  @media only screen and (min-width: 768px) {
+    #info {
+      width: 500px;
+      left: 50%;
+      margin-left: 0px;
+      -moz-transform: translateX(-50%);
+      -o-transform: translateX(-50%);
+      -ms-transform: translateX(-50%);
+      -webkit-transform: translateX(-50%);
+      transform: translateX(-50%); } }
+  #info.slideUp {
+    -moz-transform: translateY(0%);
+    -o-transform: translateY(0%);
+    -ms-transform: translateY(0%);
+    -webkit-transform: translateY(0%);
+    transform: translateY(0%); }
+  #info.slideDown {
+    transition-delay: 0.5s;
+    -moz-transform: translateY(100%);
+    -o-transform: translateY(100%);
+    -ms-transform: translateY(100%);
+    -webkit-transform: translateY(100%);
+    transform: translateY(100%); }
+  @media only screen and (min-width: 768px) {
+    #info.slideUp {
+      -moz-transform: translateX(-50%) translateY(0%);
+      -o-transform: translateX(-50%) translateY(0%);
+      -ms-transform: translateX(-50%) translateY(0%);
+      -webkit-transform: translateX(-50%) translateY(0%);
+      transform: translateX(-50%) translateY(0%); }
+    #info.slideDown {
+      -moz-transform: translateX(-50%) translateY(100%);
+      -o-transform: translateX(-50%) translateY(100%);
+      -ms-transform: translateX(-50%) translateY(100%);
+      -webkit-transform: translateX(-50%) translateY(100%);
+      transform: translateX(-50%) translateY(100%); } }
+  #info-close-btn {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    border-radius: 10px;
+    margin: 10px;
+    background-color: #fefefe;
+    right: 0; }
+  #info:not(.active) #info-close-btn {
+    display: none; }
+  @media only screen and (max-width: 349px) and (max-height: 550px), only screen and (min-width: 768px) and (max-height: 550px), only screen and (orientation: landscape) and (max-height: 550px) {
+    #info {
+      width: calc(100% - 120px);
+      margin-left: 60px; } }
+
+.message-content {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #fefefe;
+  margin: 10px;
+  box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4);
+  line-height: 22px;
+  min-height: 22px; }
+
+.info-header {
+  font-weight: bold;
+  margin-bottom: 5px; }
+
+.info-line {
+  margin-bottom: 5px; }
+  .info-line:last-child {
+    margin-bottom: 0; }
+
+#tool-btn-container {
+  position: absolute;
+  top: 0px;
+  left: 50px;
+  height: 50px;
+  width: 250px;
+  z-index: 10;
+  background-color: rgba(175, 175, 175, 0.4); }
+  @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
+    #tool-btn-container {
+      width: 50px;
+      top: 50px;
+      left: 0;
+      height: 250px; } }
+
+.btn-tool {
+  display: inline-block;
+  position: relative;
+  left: 0; }
+  @media only screen and (max-width: 349px), only screen and (min-width: 768px), only screen and (orientation: landscape) {
+    .btn-tool {
+      display: block; } }
+
+#btn-tree {
+  background-image: url("img/dota_cursor.png"); }
+  #btn-tree[trees-enabled="yes"] {
+    background-image: url("img/btn-quelling_blade.png"); }
+
+#btn-ward[ward-type="observer"] {
+  background-image: url("img/ward_dispenser_observer.png"); }
+
+#btn-ward[ward-type="sentry"] {
+  background-image: url("img/ward_dispenser_sentry.png"); }
+
+#btn-measure {
+  position: relative; }
+
+.zoom-label {
+  width: 50px;
+  line-height: 50px;
+  font-size: 50px;
+  left: 0;
+  position: absolute; }
+
+#btn-zoom-in:hover,
+#btn-zoom-out:hover {
+  font-size: 32px; }
+
+.btn-toggle {
+  transition: 0.3s;
+  height: 36px;
+  width: 50px;
+  display: none;
+  position: absolute;
+  top: 2px;
+  right: 2px; }
+
+.btn-toggle label {
+  display: block;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  cursor: pointer; }
+
+input[type="checkbox"]:checked + .checkbox + .btn-toggle {
+  display: block; }
+
+.btn-toggle label::before {
+  position: absolute;
+  display: block;
+  content: "";
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 5px;
+  box-sizing: border-box;
+  border: 2px solid #111;
+  background-color: #111;
+  transition: background 0.3s; }
+
+.btn-toggle label::after {
+  position: absolute;
+  display: block;
+  content: "";
+  width: 50%;
+  height: 32px;
+  border-radius: 5px;
+  background-color: #818181;
+  top: 0px;
+  left: 0px;
+  margin: 2px;
+  box-sizing: border-box;
+  transition: margin 0.3s; }
+
+.btn-toggle input[type="checkbox"]:checked + label::after {
+  margin-left: calc(50% - 2px); }
+
+.btn-toggle input[type="checkbox"]:checked + label::before {
+  background-color: #414141; }
+
+.btn-playback {
+  border: 1px solid #818181;
+  cursor: pointer;
+  display: inline-block;
+  width: 50px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 0;
+  position: relative;
+  vertical-align: middle;
+  border-radius: 2px;
+  background-color: #fefefe;
+  color: black; }
+  .btn-playback:hover {
+    border: 1px solid #818181;
+    color: #818181; }
+  .btn-playback:active {
+    background-color: #818181;
+    color: #f1f1f1; }
+
+.icon, #timer-faster::before, #timer-faster::after, #timer-slower::before, #timer-slower::after, #timer-stop::before, #timer-playPause.icon-pause::before, #timer-playPause.icon-play::before {
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: 15px;
+  top: 0;
+  content: ''; }
+
+#timer-faster::before {
+  border: 5px solid transparent;
+  border-left: 6px solid;
+  margin: 4px; }
+
+#timer-faster::after {
+  top: 4px;
+  left: 25px;
+  border: 5px solid transparent;
+  border-left: 6px solid; }
+
+#timer-slower::before {
+  border: 5px solid transparent;
+  border-right: 6px solid;
+  margin: 4px; }
+
+#timer-slower::after {
+  top: 4px;
+  left: 13px;
+  border: 5px solid transparent;
+  border-right: 6px solid; }
+
+#timer-stop::before {
+  border: 4px solid;
+  margin: 5px; }
+
+#timer-playPause.icon-pause::before {
+  width: 3px;
+  height: 10px;
+  margin: 4px;
+  box-shadow: inset 0 0 0 16px, 6px 0 0 0; }
+
+#timer-playPause.icon-play::before {
+  border-width: 5px 0 5px 8px;
+  border-style: solid;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  margin: 4px 6px; }
+
+.modal {
+  position: fixed;
+  z-index: 110;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  background-color: rgba(0, 0, 0, 0.4); }
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  box-shadow: 1px 2px 6px 0px rgba(0, 0, 0, 0.4); }
+
+.close {
+  color: #818181;
+  float: right;
+  font-size: 28px;
+  font-weight: bold; }
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer; }
+
+.modal-open {
+  display: block; }
+
+.modal-close {
+  display: none; }
+
+#about .modal-content {
+  height: 200px;
+  margin-top: 100px;
+  border-radius: 10px; }
+
+.ol-box {
+  box-sizing: border-box;
+  border-radius: 2px;
+  border: 2px solid blue; }
+
+.ol-overlay-container {
+  will-change: left,right,top,bottom; }
+
+.ol-viewport .ol-unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); }
+
+.color-picker,
+.color-picker::before,
+.color-picker::after,
+.color-picker *,
+.color-picker *::before,
+.color-picker *::after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+.color-picker {
+  position: static;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  font-size: 20px; }
+
+.color-picker-container {
+  background: #000;
+  color: #000;
+  padding: 1px;
+  -webkit-box-shadow: 1px 5px 10px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 1px 5px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 1px 5px 10px rgba(0, 0, 0, 0.5);
+  width: calc(11.5em + 3px);
+  /* TODO */ }
+
+.color-picker-container *,
+.color-picker-container *::before,
+.color-picker-container *::after {
+  border-color: inherit; }
+
+.color-picker-container::after {
+  content: "";
+  display: table;
+  clear: both; }
+
+.color-picker i {
+  font: inherit;
+  font-size: 12px;
+  /* measure the color control size by measuring the text size */ }
+
+.color-picker-h {
+  position: relative;
+  width: 1.5em;
+  height: 10em;
+  float: right;
+  cursor: ns-resize;
+  background: transparent url("color-picker-h.png") no-repeat 50% 50%;
+  background-image: -webkit-linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+  background-image: -moz-linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+  background-image: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+  -webkit-background-size: 100% 100%;
+  -moz-background-size: 100% 100%;
+  background-size: 100% 100%;
+  overflow: hidden; }
+
+.color-picker-h i {
+  position: absolute;
+  top: -.25em;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  display: block;
+  height: .5em; }
+
+.color-picker-h i::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  border: .25em solid;
+  border-color: inherit;
+  border-top-color: transparent;
+  border-bottom-color: transparent; }
+
+.color-picker-sv {
+  position: relative;
+  width: 10em;
+  height: 10em;
+  float: left;
+  margin-right: 1px;
+  background: transparent url("color-picker-sv.png") no-repeat 50% 50%;
+  background-image: -webkit-linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+  background-image: -moz-linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+  background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+  -webkit-background-size: 100% 100%;
+  -moz-background-size: 100% 100%;
+  background-size: 100% 100%;
+  cursor: crosshair; }
+
+.color-picker-sv i {
+  position: absolute;
+  top: -.4em;
+  right: -.4em;
+  z-index: 3;
+  display: block;
+  width: .8em;
+  height: .8em; }
+
+.color-picker-sv i::before,
+.color-picker-sv i::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  border: 1px solid;
+  border-color: inherit;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  border-radius: 100%; }
+
+.color-picker-sv i::before {
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  border-color: #fff; }
+
+.color-picker-h,
+.color-picker-sv {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-tap-highlight-color: transparent; }
+
+.miniheroes-sprite-abaddon, .miniheroes-sprite-abyssal_underlord {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -32px 0;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-abyssal_underlord {
+  background-position: -256px -160px; }
+
+.miniheroes-sprite-alchemist, .miniheroes-sprite-ancient_apparition, .miniheroes-sprite-antimage {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: 0 -32px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-ancient_apparition, .miniheroes-sprite-antimage {
+  background-position: -32px -32px; }
+
+.miniheroes-sprite-antimage {
+  background-position: -64px 0; }
+
+.miniheroes-sprite-arc_warden, .miniheroes-sprite-arcwarden, .miniheroes-sprite-axe {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: 0 -64px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-arcwarden, .miniheroes-sprite-axe {
+  background-position: -64px -32px; }
+
+.miniheroes-sprite-axe {
+  background-position: -32px -64px; }
+
+.miniheroes-sprite-bane, .miniheroes-sprite-batrider, .miniheroes-sprite-beastmaster {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -64px -64px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-batrider, .miniheroes-sprite-beastmaster {
+  background-position: -96px 0; }
+
+.miniheroes-sprite-beastmaster {
+  background-position: -96px -32px; }
+
+.miniheroes-sprite-bloodseeker, .miniheroes-sprite-bm_earth, .miniheroes-sprite-bm_fire {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -96px -64px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-bm_earth, .miniheroes-sprite-bm_fire {
+  background-position: 0 -96px; }
+
+.miniheroes-sprite-bm_fire {
+  background-position: -32px -96px; }
+
+.miniheroes-sprite-bm_storm, .miniheroes-sprite-bounty_hunter, .miniheroes-sprite-brewmaster {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -64px -96px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-bounty_hunter, .miniheroes-sprite-brewmaster {
+  background-position: -96px -96px; }
+
+.miniheroes-sprite-brewmaster {
+  background-position: -128px 0; }
+
+.miniheroes-sprite-bristleback, .miniheroes-sprite-broodmother, .miniheroes-sprite-centaur {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -128px -32px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-broodmother, .miniheroes-sprite-centaur {
+  background-position: -128px -64px; }
+
+.miniheroes-sprite-centaur {
+  background-position: -128px -96px; }
+
+.miniheroes-sprite-chaos_knight, .miniheroes-sprite-chen, .miniheroes-sprite-clinkz {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: 0 -128px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-chen, .miniheroes-sprite-clinkz {
+  background-position: -32px -128px; }
+
+.miniheroes-sprite-clinkz {
+  background-position: -64px -128px; }
+
+.miniheroes-sprite-crystal_maiden, .miniheroes-sprite-crystal_maiden_alt1, .miniheroes-sprite-dark_seer {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -96px -128px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-crystal_maiden_alt1, .miniheroes-sprite-dark_seer {
+  background-position: -128px -128px; }
+
+.miniheroes-sprite-dark_seer {
+  background-position: -160px 0; }
+
+.miniheroes-sprite-dark_willow, .miniheroes-sprite-dazzle, .miniheroes-sprite-death_prophet {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -160px -32px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-dazzle, .miniheroes-sprite-death_prophet {
+  background-position: -160px -64px; }
+
+.miniheroes-sprite-death_prophet {
+  background-position: -160px -96px; }
+
+.miniheroes-sprite-disruptor, .miniheroes-sprite-doom, .miniheroes-sprite-doom_bringer {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -160px -128px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-doom, .miniheroes-sprite-doom_bringer {
+  background-position: 0 -160px; }
+
+.miniheroes-sprite-doom_bringer {
+  background-position: -32px -160px; }
+
+.miniheroes-sprite-dragon_knight, .miniheroes-sprite-drow, .miniheroes-sprite-drow_ranger {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -64px -160px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-drow, .miniheroes-sprite-drow_ranger {
+  background-position: -96px -160px; }
+
+.miniheroes-sprite-drow_ranger {
+  background-position: -128px -160px; }
+
+.miniheroes-sprite-earth_spirit, .miniheroes-sprite-earthshaker, .miniheroes-sprite-elder_titan {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -192px 0;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-earthshaker, .miniheroes-sprite-elder_titan {
+  background-position: -160px -160px; }
+
+.miniheroes-sprite-elder_titan {
+  background-position: -192px -32px; }
+
+.miniheroes-sprite-ember_spirit, .miniheroes-sprite-enchantress, .miniheroes-sprite-enigma {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -192px -64px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-enchantress, .miniheroes-sprite-enigma {
+  background-position: -192px -96px; }
+
+.miniheroes-sprite-enigma {
+  background-position: -192px -128px; }
+
+.miniheroes-sprite-faceless_void, .miniheroes-sprite-furion, .miniheroes-sprite-grimstroke {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -192px -160px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-furion, .miniheroes-sprite-grimstroke {
+  background-position: 0 -192px; }
+
+.miniheroes-sprite-grimstroke {
+  background-position: -32px -192px; }
+
+.miniheroes-sprite-gyrocopter, .miniheroes-sprite-huskar, .miniheroes-sprite-invoker {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -64px -192px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-huskar, .miniheroes-sprite-invoker {
+  background-position: -96px -192px; }
+
+.miniheroes-sprite-invoker {
+  background-position: -128px -192px; }
+
+.miniheroes-sprite-jakiro, .miniheroes-sprite-juggernaut, .miniheroes-sprite-juggernaut_alt {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -160px -192px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-juggernaut, .miniheroes-sprite-juggernaut_alt {
+  background-position: -192px -192px; }
+
+.miniheroes-sprite-juggernaut_alt {
+  background-position: -224px 0; }
+
+.miniheroes-sprite-keeper_of_the_light, .miniheroes-sprite-kunkka, .miniheroes-sprite-lanaya {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -224px -32px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-kunkka, .miniheroes-sprite-lanaya {
+  background-position: -224px -64px; }
+
+.miniheroes-sprite-lanaya {
+  background-position: -224px -96px; }
+
+.miniheroes-sprite-legion_commander, .miniheroes-sprite-legion_commander_alt1, .miniheroes-sprite-leshrac {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -224px -128px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-legion_commander_alt1, .miniheroes-sprite-leshrac {
+  background-position: -224px -160px; }
+
+.miniheroes-sprite-leshrac {
+  background-position: -224px -192px; }
+
+.miniheroes-sprite-lich, .miniheroes-sprite-life_stealer, .miniheroes-sprite-lina {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: 0 -224px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-life_stealer, .miniheroes-sprite-lina {
+  background-position: -32px -224px; }
+
+.miniheroes-sprite-lina {
+  background-position: -64px -224px; }
+
+.miniheroes-sprite-lina_alt1, .miniheroes-sprite-lion, .miniheroes-sprite-lone_druid {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -96px -224px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-lion, .miniheroes-sprite-lone_druid {
+  background-position: -128px -224px; }
+
+.miniheroes-sprite-lone_druid {
+  background-position: -160px -224px; }
+
+.miniheroes-sprite-luna, .miniheroes-sprite-lycan, .miniheroes-sprite-magnataur {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -192px -224px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-lycan, .miniheroes-sprite-magnataur {
+  background-position: -224px -224px; }
+
+.miniheroes-sprite-magnataur {
+  background-position: -256px 0; }
+
+.miniheroes-sprite-medusa, .miniheroes-sprite-meepo, .miniheroes-sprite-mirana {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -256px -32px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-meepo, .miniheroes-sprite-mirana {
+  background-position: -256px -64px; }
+
+.miniheroes-sprite-mirana {
+  background-position: -256px -96px; }
+
+.miniheroes-sprite-monkey_king, .miniheroes-sprite-monkey_king_alt1, .miniheroes-sprite-morphling {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -256px -128px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-monkey_king_alt1, .miniheroes-sprite-morphling {
+  background-position: 0 0; }
+
+.miniheroes-sprite-morphling {
+  background-position: -256px -192px; }
+
+.miniheroes-sprite-naga_siren, .miniheroes-sprite-necrolyte, .miniheroes-sprite-nevermore {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -256px -224px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-necrolyte, .miniheroes-sprite-nevermore {
+  background-position: 0 -256px; }
+
+.miniheroes-sprite-nevermore {
+  background-position: -32px -256px; }
+
+.miniheroes-sprite-nevermore_alt1, .miniheroes-sprite-night_stalker, .miniheroes-sprite-nyx_assassin {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -64px -256px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-night_stalker, .miniheroes-sprite-nyx_assassin {
+  background-position: -96px -256px; }
+
+.miniheroes-sprite-nyx_assassin {
+  background-position: -128px -256px; }
+
+.miniheroes-sprite-obsidian_destroyer, .miniheroes-sprite-ogre_magi, .miniheroes-sprite-omniknight {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -160px -256px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-ogre_magi, .miniheroes-sprite-omniknight {
+  background-position: -192px -256px; }
+
+.miniheroes-sprite-omniknight {
+  background-position: -224px -256px; }
+
+.miniheroes-sprite-oracle, .miniheroes-sprite-pangolier, .miniheroes-sprite-phantom_assassin {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -256px -256px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-pangolier, .miniheroes-sprite-phantom_assassin {
+  background-position: -288px 0; }
+
+.miniheroes-sprite-phantom_assassin {
+  background-position: -288px -32px; }
+
+.miniheroes-sprite-phantom_assassin_alt1, .miniheroes-sprite-phantom_lancer {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -288px -64px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-phantom_lancer {
+  background-position: -288px -96px; }
+
+.miniheroes-sprite-phoenix, .miniheroes-sprite-puck, .miniheroes-sprite-pudge {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -288px -128px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-puck, .miniheroes-sprite-pudge {
+  background-position: -288px -160px; }
+
+.miniheroes-sprite-pudge {
+  background-position: -288px -192px; }
+
+.miniheroes-sprite-pugna, .miniheroes-sprite-queenofpain, .miniheroes-sprite-rattletrap {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -288px -224px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-queenofpain, .miniheroes-sprite-rattletrap {
+  background-position: -288px -256px; }
+
+.miniheroes-sprite-rattletrap {
+  background-position: 0 -288px; }
+
+.miniheroes-sprite-razor, .miniheroes-sprite-riki, .miniheroes-sprite-rikimaru {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -32px -288px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-riki, .miniheroes-sprite-rikimaru {
+  background-position: -64px -288px; }
+
+.miniheroes-sprite-rikimaru {
+  background-position: -96px -288px; }
+
+.miniheroes-sprite-roshan, .miniheroes-sprite-rubick, .miniheroes-sprite-sand_king {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -128px -288px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-rubick, .miniheroes-sprite-sand_king {
+  background-position: -160px -288px; }
+
+.miniheroes-sprite-sand_king {
+  background-position: -224px -288px; }
+
+.miniheroes-sprite-sandking, .miniheroes-sprite-shadow_demon, .miniheroes-sprite-shadow_shaman {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -192px -288px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-shadow_demon, .miniheroes-sprite-shadow_shaman {
+  background-position: -256px -288px; }
+
+.miniheroes-sprite-shadow_shaman {
+  background-position: -288px -288px; }
+
+.miniheroes-sprite-shredder, .miniheroes-sprite-silencer, .miniheroes-sprite-skeleton_king {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -320px 0;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-silencer, .miniheroes-sprite-skeleton_king {
+  background-position: -320px -32px; }
+
+.miniheroes-sprite-skeleton_king {
+  background-position: -320px -64px; }
+
+.miniheroes-sprite-skywrath_mage, .miniheroes-sprite-slardar, .miniheroes-sprite-slark {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -320px -96px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-slardar, .miniheroes-sprite-slark {
+  background-position: -320px -128px; }
+
+.miniheroes-sprite-slark {
+  background-position: -320px -160px; }
+
+.miniheroes-sprite-sniper, .miniheroes-sprite-spectre, .miniheroes-sprite-spirit_break {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -320px -192px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-spectre, .miniheroes-sprite-spirit_break {
+  background-position: -320px -224px; }
+
+.miniheroes-sprite-spirit_break {
+  background-position: -320px -256px; }
+
+.miniheroes-sprite-spirit_breaker, .miniheroes-sprite-storm_spirit, .miniheroes-sprite-sven {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -320px -288px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-storm_spirit, .miniheroes-sprite-sven {
+  background-position: 0 -320px; }
+
+.miniheroes-sprite-sven {
+  background-position: -32px -320px; }
+
+.miniheroes-sprite-techies, .miniheroes-sprite-techies_alt1, .miniheroes-sprite-templar_assassin {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -64px -320px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-techies_alt1, .miniheroes-sprite-templar_assassin {
+  background-position: -96px -320px; }
+
+.miniheroes-sprite-templar_assassin {
+  background-position: -128px -320px; }
+
+.miniheroes-sprite-terrorblade, .miniheroes-sprite-terrorblade_alt1, .miniheroes-sprite-tidehunter {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -160px -320px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-terrorblade_alt1, .miniheroes-sprite-tidehunter {
+  background-position: -192px -320px; }
+
+.miniheroes-sprite-tidehunter {
+  background-position: -224px -320px; }
+
+.miniheroes-sprite-tinker, .miniheroes-sprite-tiny, .miniheroes-sprite-treant {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -256px -320px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-tiny, .miniheroes-sprite-treant {
+  background-position: -288px -320px; }
+
+.miniheroes-sprite-treant {
+  background-position: -320px -320px; }
+
+.miniheroes-sprite-troll_warlord, .miniheroes-sprite-tusk, .miniheroes-sprite-undying {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -352px 0;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-tusk, .miniheroes-sprite-undying {
+  background-position: -352px -32px; }
+
+.miniheroes-sprite-undying {
+  background-position: -352px -64px; }
+
+.miniheroes-sprite-ursa, .miniheroes-sprite-vengefulspirit, .miniheroes-sprite-venomancer {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -352px -96px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-vengefulspirit, .miniheroes-sprite-venomancer {
+  background-position: -352px -128px; }
+
+.miniheroes-sprite-venomancer {
+  background-position: -352px -160px; }
+
+.miniheroes-sprite-viper, .miniheroes-sprite-visage, .miniheroes-sprite-ward_observer {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -352px -192px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-visage, .miniheroes-sprite-ward_observer {
+  background-position: -352px -224px; }
+
+.miniheroes-sprite-ward_observer {
+  background-position: -352px -256px; }
+
+.miniheroes-sprite-ward_sentry, .miniheroes-sprite-warlock, .miniheroes-sprite-weaver {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -352px -288px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-warlock, .miniheroes-sprite-weaver {
+  background-position: -352px -320px; }
+
+.miniheroes-sprite-weaver {
+  background-position: 0 -352px; }
+
+.miniheroes-sprite-windrunner, .miniheroes-sprite-winter_wyvern, .miniheroes-sprite-wisp {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -32px -352px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-winter_wyvern, .miniheroes-sprite-wisp {
+  background-position: -64px -352px; }
+
+.miniheroes-sprite-wisp {
+  background-position: -96px -352px; }
+
+.miniheroes-sprite-witch_doctor, .miniheroes-sprite-zuus, .miniheroes-sprite-zuus_alt1 {
+  background-image: url(img/miniheroes_sprite.png);
+  background-position: -128px -352px;
+  width: 32px;
+  height: 32px; }
+
+.miniheroes-sprite-zuus, .miniheroes-sprite-zuus_alt1 {
+  background-position: -160px -352px; }
+
+.miniheroes-sprite-zuus_alt1 {
+  background-position: -192px -352px; }
