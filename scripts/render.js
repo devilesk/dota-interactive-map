@@ -1,19 +1,17 @@
-var yaml = require('js-yaml');
-var fs = require('fs');
-require("jinjs").registerExtension(".j2", function (txt, x) { 
-    return '{% extends "./template.tpl" %}' + txt; 
-});
+const yaml = require('js-yaml');
+const fs = require('fs');
+require("jinjs").registerExtension(".j2", (txt, x) => '{% extends "./template.tpl" %}' + txt);
 require("jinjs").registerExtension(".tpl");
 
-var context = yaml.safeLoadAll(fs.readFileSync('src/template/template_data.yaml', 'utf8'))[0];
-var my_template = require("../src/template/index.j2");
-var result = my_template.render(context);
-
-fs.writeFile('src/template/index.html', result, function(err) {
+const context = yaml.safeLoadAll(fs.readFileSync('src/template/template_data.yaml', 'utf8'))[0];
+const myTemplate = require("../src/template/index.j2");
+const result = myTemplate.render(context);
+const outFile = 'src/template/index.html';
+fs.writeFile(outFile, result, err => {
     if (err) {
         console.log(err);
     }
     else {
-        console.log("File was successfully saved.");
+        console.log(`${outFile} was successfully saved.`);
     }
 });

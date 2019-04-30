@@ -1,5 +1,5 @@
+require('dotenv').config({ path: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env' });
 import commonjs from 'rollup-plugin-commonjs';
-import config from './config.json';
 import json from 'rollup-plugin-json';
 import git from 'git-rev-sync';
 import pkg from './package.json';
@@ -7,17 +7,15 @@ import replace from 'rollup-plugin-replace';
 import resolve from 'rollup-plugin-node-resolve';
 import { terser } from "rollup-plugin-terser";
 
-const env = process.env.BUILD;
-
 export default {
   input: 'src/js/index.js',
   output: {
-    name: config.appName,
-    file: env === 'production' ? 'dist/bundle-' + git.short() + '.min.js' : 'www/bundle.js',
+    name: process.env.APP_NAME,
+    file: process.env.NODE_ENV === 'production' ? `build/bundle-${git.short()}.min.js` : 'build/bundle.js',
     format: 'umd',
     strict: false,
     sourcemap: true,
-    globals: env === 'production' ? {} : {
+    globals: process.env.NODE_ENV === 'production' ? {} : {
       'ol/proj': 'ol.proj',
       'ol/proj/Projection': 'ol.proj.Projection',
       'ol/extent': 'ol.extent',
@@ -65,15 +63,15 @@ export default {
         build_date: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' UTC',
         release_tag: pkg.version,
         code_version: git.long(),
-        rollbar_client_token: config.rollbar.client_token || "",
-        rollbar_environment: env
+        rollbar_client_token: process.env.ROLLBAR_CLIENT_TOKEN,
+        rollbar_environment: process.env.NODE_ENV || 'development',
     }),
     resolve({browser: true}),
     commonjs({}),
     json({}),
-    env === 'production' && terser()
+    process.env.NODE_ENV === 'production' && terser()
   ],
-  external: id => env !== 'production' && /ol\//.test(id),
+  external: id => process.env.NODE_ENV !== 'production' && /ol\//.test(id),
   watch: {
     exclude: 'node_modules/**'
   }

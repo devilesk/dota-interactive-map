@@ -1,18 +1,11 @@
-var config = require('../config.json');
-var path = require('path');
-var execSync = require('child_process').execSync;
-var del = require('del');
-
-var env = process.argv.indexOf('production') !== -1 ? 'production': 'development';
-console.log('env', env);
-
-var deployPath = config.deployPath[env];
+require('dotenv').config({ path: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env' });
+const path = require('path');
+const execSync = require('child_process').execSync;
+const del = require('del');
 
 // clean and move to deploy directory
-var normalizedPath = path.normalize(deployPath);
-var paths = [
-    normalizedPath + '/**/*',
-]
-console.log(paths);
+const normalizedPath = path.normalize(process.env.DEPLOY_PATH);
+const paths = [`${normalizedPath}/**/*`];
+console.log('Deploying to', paths);
 del.sync(paths, {force: true});
-execSync('cp -r dist/* ' + normalizedPath);
+execSync(`mkdir -p ${normalizedPath} && cp -r build/* ${normalizedPath}`);

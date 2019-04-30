@@ -1,5 +1,6 @@
 node_modules/
-config.json
+build/
 dist/
 src/template/*.html
-save/
+.env*
+!.env.example

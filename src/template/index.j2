@@ -170,7 +170,7 @@
                             </div>
                         </div><!--
                      --><div class="menu-item button-half-container">
-                            <input type="button" id="save" class="button-half" value="Save"/><input type="button" id="share" class="button-half" value="Share"/>
+                            <!-- @if ENABLE_SAVE='true' --><input type="button" id="save" class="button-half" value="Save"/><!-- @endif --><input type="button" id="share" class="button<!-- @if ENABLE_SAVE='true' -->-half<!-- @endif -->" value="Share"/>
                         </div>
                     </div>
                 </div>
@@ -186,7 +186,7 @@
                     <hr>
                 </div>
                 <div class="menu-item button-half-container">
-                    <input type="button" id="reset" class="button-half" value="Reset"/><input type="button" id="export-map" class="button-half" value="Download"/>
+                    <input type="button" id="reset" class="button<!-- @if ENABLE_DOWNLOAD='true' -->-half<!-- @endif -->" value="Reset"/><!-- @if ENABLE_DOWNLOAD='true' --><input type="button" id="export-map" class="button-half" value="Download"/><!-- @endif -->
                 </div>
                 <div class="menu-item button-half-container">
                     <input type="button" id="help-open" class="button-half" value="Help"/><input type="button" id="about-open" class="button-half" value="About"/>
@@ -277,7 +277,7 @@
     <div id="help" class="modal modal-close">
         <div class="modal-content">
             <span id="help-close" class="close">&times;</span>
-            <!-- @include src/template/help.html -->
+            <!-- @include help.html -->
         </div>
     </div>
     <div id="about" class="modal modal-close">
@@ -301,11 +301,10 @@
         <!-- @if NODE_ENV!='production' -->
         <script src="https://openlayers.org/en/v5.2.0/build/ol.js"></script>
         <script src="bundle.js"></script>
-        <script>new InteractiveMap("tiles/", "img/map_data_720.png", "720")</script>
         <!-- @endif -->
         <!-- @if NODE_ENV='production' !>
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
-        <script>new InteractiveMap("<!-- @echo map_data_path !>", "<!-- @echo vision_data_image_path !>", "<!-- @echo map_data_version !>")</script>
         <!-- @endif -->
+        <script>new InteractiveMap("<!-- @echo MAP_DATA_PATH !>", "<!-- @echo VISION_DATA_IMAGE_PATH !>", "<!-- @echo MAP_DATA_VERSION !>")</script>
     {% endblock js %}
 {% endblock body %}
