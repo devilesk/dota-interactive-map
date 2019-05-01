@@ -7,12 +7,12 @@ const sourcemaps = require('gulp-sourcemaps');
 gulp.task('rollbar:sourcemap', () => {
     if (process.env.ROLLBAR_SERVER_TOKEN && process.env.ROLLBAR_SOURCE_MAPPING_URL_PREFIX) {
         return gulp.src('build/**/*.min.js')
-        .pipe(sourcemaps.init({loadMaps: true}))
-        .pipe(rollbar({
-            accessToken: process.env.ROLLBAR_SERVER_TOKEN,
-            version: git.long(),
-            sourceMappingURLPrefix: process.env.ROLLBAR_SOURCE_MAPPING_URL_PREFIX,
-        }));
+            .pipe(sourcemaps.init({ loadMaps: true }))
+            .pipe(rollbar({
+                accessToken: process.env.ROLLBAR_SERVER_TOKEN,
+                version: git.long(),
+                sourceMappingURLPrefix: process.env.ROLLBAR_SOURCE_MAPPING_URL_PREFIX,
+            }));
     }
     console.log('No rollbar config.');
 });

@@ -7,5 +7,5 @@ const del = require('del');
 const normalizedPath = path.normalize(process.env.DEPLOY_PATH);
 const paths = [`${normalizedPath}/**/*`];
 console.log('Deploying to', paths);
-del.sync(paths, {force: true});
+del.sync(paths, { force: true });
 execSync(`mkdir -p ${normalizedPath} && cp -r build/* ${normalizedPath}`);
