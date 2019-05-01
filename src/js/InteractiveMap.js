@@ -43,7 +43,7 @@ import { saveAs } from 'file-saver/FileSaver';
 import heroIcons from './heroIconManifest.json';
 
 class InteractiveMap {
-    constructor(root, mapTilePath, version, visionDataImagePath, options) {
+    constructor(root, mapTilePath, version, visionDataImagePath, options = {}) {
         this.root = root;
         this.options = {
             mode: 'navigate',
