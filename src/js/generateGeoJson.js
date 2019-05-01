@@ -5,7 +5,7 @@ import { worldToLatLon } from "./conversion";
 import fs from 'fs';
 
 const vs = new VisionSimulation(worlddata);
-vs.initialize("www/img/map_data_720.png", () => {
+vs.initialize("assets/img/map_data_720.png", () => {
     let t1 = Date.now();
     generateGeoJSON(vs, [vs.gridnav, vs.tools_no_wards], 'no_wards.json');
     console.log('no_wards.json', Date.now() - t1 + 'ms');
