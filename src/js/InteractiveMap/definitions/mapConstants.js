@@ -18,8 +18,12 @@ const mapConstants = {
     defaultMovementSpeed: 300,
     creepBaseMovementSpeed: 325,
     pullRangeTiming: [4, 2.25, 4.75],
+    get imgCenter() {
+        return [this.map_w / 2, this.map_h / 2];
+    },
+    get scale() {
+        return Math.abs(this.map_x_boundaries[1] - this.map_x_boundaries[0]) / this.map_w;
+    },
 };
-mapConstants.imgCenter = [mapConstants.map_w / 2, mapConstants.map_h / 2];
-mapConstants.scale = Math.abs(mapConstants.map_x_boundaries[1] - mapConstants.map_x_boundaries[0]) / mapConstants.map_w;
 
 export default mapConstants;
