@@ -1,11 +1,12 @@
 import styles from './../styleDefinitions';
 
 class NotificationControl {
-    constructor(id) {
+    constructor(root, id) {
+        this.root = root;
         this.timer = null;
         this.id = id;
-        this.info = document.getElementById(id);
-        this.infoContent = document.querySelector('#' + id + ' .message-content');
+        this.info = this.root.getElementById(id);
+        this.infoContent = this.root.querySelector('#' + id + ' .message-content');
     }
     
     show(message) {

@@ -6,6 +6,10 @@ class TreeControl {
         this.allTreesCutState = false;
     }
     
+    get root() {
+        return this.InteractiveMap.root;
+    }
+    
     updateQueryString() {
         const keys = ['cut_trees', 'uncut_trees'];
         const layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
@@ -20,7 +24,7 @@ class TreeControl {
             .join(';');
         setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
         setQueryString(keys[this.allTreesCutState ? 0 : 1], null);
-        document.getElementById('toggle-ent_dota_tree').checked = this.allTreesCutState;
+        this.root.getElementById('toggle-ent_dota_tree').checked = this.allTreesCutState;
     }
 
     parseQueryString() {

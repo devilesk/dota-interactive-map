@@ -1,14 +1,15 @@
 class ModalControl {
-    constructor(id, openBtnId, closeBtnId) {
-        this.modal = document.getElementById(id);
+    constructor(root, id, openBtnId, closeBtnId) {
+        this.root = root;
+        this.modal = this.root.getElementById(id);
         
-        this.openBtn = document.getElementById(openBtnId);
+        this.openBtn = this.root.getElementById(openBtnId);
         this.openBtn.addEventListener('click', () => {
             this.modal.classList.add('modal-open');
             this.modal.classList.remove('modal-close');
         }, false);
         
-        this.closeBtn = document.getElementById(closeBtnId);
+        this.closeBtn = this.root.getElementById(closeBtnId);
         const closeHandler = evt => {
             if (evt.target == this.modal || evt.target == this.closeBtn) {
                 this.modal.classList.add('modal-close');

@@ -12,9 +12,13 @@ class CoordinateControl {
                 return '<div class="coordinate">' + this.createStringXY(coordinate) + '</div>';
             },
             projection: dotaProj,
-            target: document.getElementById(elementId)
+            target: this.root.getElementById(elementId)
         });
         this.InteractiveMap.map.addControl(this.mousePosition);
+    }
+    
+    get root() {
+        return this.InteractiveMap.root;
     }
 }
 

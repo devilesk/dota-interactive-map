@@ -80,19 +80,23 @@ class CreepControl {
         this.title = 'Lane Animation';
         
         this.id = id;
-        this.info = document.getElementById(id);
-        this.infoContent = document.querySelector('#timer-time');
-        this.playPauseBtn = document.querySelector('#timer-playPause');
+        this.info = this.root.getElementById(id);
+        this.infoContent = this.root.querySelector('#timer-time');
+        this.playPauseBtn = this.root.querySelector('#timer-playPause');
         this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
         
-        this.stopBtn = document.querySelector('#timer-stop');
+        this.stopBtn = this.root.querySelector('#timer-stop');
         this.stopBtn.addEventListener('click', () => this.stop(true), false);
         
-        this.fasterBtn = document.querySelector('#timer-faster');
+        this.fasterBtn = this.root.querySelector('#timer-faster');
         this.fasterBtn.addEventListener('click', () => this.faster(true), false);
         
-        this.slowerBtn = document.querySelector('#timer-slower');
+        this.slowerBtn = this.root.querySelector('#timer-slower');
         this.slowerBtn.addEventListener('click', () => this.slower(true), false);
+    }
+    
+    get root() {
+        return this.InteractiveMap.root;
     }
     
     show(message) {

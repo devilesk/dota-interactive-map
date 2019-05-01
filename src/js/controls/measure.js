@@ -106,6 +106,10 @@ class MeasureControl {
         this.active = false;
 
     }
+    
+    get root() {
+        return this.InteractiveMap.root;
+    }
 
     /**
      * Creates a new measure tooltip

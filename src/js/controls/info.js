@@ -17,10 +17,14 @@ class InfoControl {
         this.clickListener = null;
         
         this.id = id;
-        this.info = document.getElementById(id);
-        this.infoContent = document.querySelector('#' + id + ' .message-content');
-        this.closeBtn = document.querySelector('#' + id + ' .btn-close');
+        this.info = InteractiveMap.root.getElementById(id);
+        this.infoContent = InteractiveMap.root.querySelector('#' + id + ' .message-content');
+        this.closeBtn = InteractiveMap.root.querySelector('#' + id + ' .btn-close');
         this.closeBtn.addEventListener('click', evt => this.close(true), false);
+    }
+    
+    get root() {
+        this.InteractiveMap.root;
     }
     
     activate() {

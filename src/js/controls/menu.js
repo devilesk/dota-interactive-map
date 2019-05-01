@@ -3,18 +3,19 @@ import modeNotificationText from '../modeNotificationText';
 import forEach from '../util/forEach';
 
 class MenuPanel {
-    constructor(panelId, openId, closeId, fullscreen) {
+    constructor(root, panelId, openId, closeId, fullscreen) {
+        this.root = root;
         this.panelId = panelId;
         this.openId = openId;
         this.closeId = closeId;
         this.fullscreen = fullscreen;
 
-        this.panel = document.getElementById(this.panelId);
+        this.panel = this.root.getElementById(this.panelId);
         
-        this.openBtn = document.getElementById(this.openId);
+        this.openBtn = this.root.getElementById(this.openId);
         this.openBtn.addEventListener("click", this.open.bind(this), false);
         
-        this.closeBtn = document.getElementById(this.closeId);
+        this.closeBtn = this.root.getElementById(this.closeId);
         this.closeBtn.addEventListener("click", this.close.bind(this), false);
     }
 
@@ -123,19 +124,19 @@ class MenuPanel {
 class MenuControl {
     constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
-        this.leftPanel = new MenuPanel("menu-left", "menu-left-open-btn", "menu-left-close-btn");
-        this.rightPanel = new MenuPanel("menu-right", "menu-right-open-btn", "menu-right-close-btn");
+        this.leftPanel = new MenuPanel(InteractiveMap.root, "menu-left", "menu-left-open-btn", "menu-left-close-btn");
+        this.rightPanel = new MenuPanel(InteractiveMap.root, "menu-right", "menu-right-open-btn", "menu-right-close-btn");
         this.leftPanel.otherMenu = this.rightPanel;
         this.rightPanel.otherMenu = this.leftPanel;
         
         const layerToggleHandler = e => this.updateLayerAndQueryString(e.currentTarget);
         
-        document.getElementById('option-draw-layer').addEventListener("change", layerToggleHandler, false);
-        document.getElementById('option-ward-layer').addEventListener("change", layerToggleHandler, false);
+        this.root.getElementById('option-draw-layer').addEventListener("change", layerToggleHandler, false);
+        this.root.getElementById('option-ward-layer').addEventListener("change", layerToggleHandler, false);
         
         this.InteractiveMap.layerDefs.forEach(layerDef => {
             const group = layerDef.group;
-            const menu = document.querySelector('#' + group + '-menu');
+            const menu = this.root.querySelector('#' + group + '-menu');
             const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, layerToggleHandler);
             menu.appendChild(menuItem);
         });
@@ -146,8 +147,8 @@ class MenuControl {
             setQueryString('BaseLayer', layerId);
         }
 
-        const versionSelect = document.getElementById('version-select');
-        const baseMenu = document.getElementById('base-menu');
+        const versionSelect = this.root.getElementById('version-select');
+        const baseMenu = this.root.getElementById('base-menu');
         var checked = true;
         this.InteractiveMap.baseLayerDefs.forEach(group => {
             const baseLayerMenu = MenuPanel.createBaseLayerMenuItem(group.id, group.name, checked);
@@ -155,7 +156,7 @@ class MenuControl {
             if (checked) checked = false;
             
             group.tilesets.forEach(tileset => {
-                const menu = document.querySelector('#base-' + group.id + '-menu');
+                const menu = this.root.querySelector('#base-' + group.id + '-menu');
                 const layerDef = {...tileset, group: group.id};
                 const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
                 menu.appendChild(menuItem);
@@ -166,6 +167,10 @@ class MenuControl {
             versionOption.innerHTML = group.name;
             versionSelect.appendChild(versionOption);
         });
+    }
+    
+    get root() {
+        return this.InteractiveMap.root;
     }
     
     updateLayerAndQueryString(element, layerId) {
@@ -186,13 +191,13 @@ class MenuControl {
             const param = layer.get("title").replace(/ /g, '');
             setQueryString(param, element.checked ? true : null);
             if (layerId == 'ent_dota_tree') {
-                document.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
+                this.root.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? "yes" : "no");
             }
         }
     }
     
     toggleLayerMenuOption(layerId, state) {
-        const element = document.querySelector('input[data-layer-id="' + layerId + '"]');
+        const element = this.root.querySelector('input[data-layer-id="' + layerId + '"]');
         if (state != null) element.checked = state;
         this.updateLayerAndQueryString(element, layerId);
     }
@@ -200,7 +205,7 @@ class MenuControl {
     // updates element visibility based on map layer index
     // updates layer visibility based on element state
     updateOverlayMenu() {
-        forEach(document.querySelectorAll('.data-layer > input'), element => {
+        forEach(this.root.querySelectorAll('.data-layer > input'), element => {
             const label = element.nextSibling;
             const layerId = element.getAttribute('data-layer-id');
             const layer = this.InteractiveMap.getMapLayer(layerId);
@@ -219,15 +224,15 @@ class MenuControl {
         switch (mode) {
             case 'observer':
             case 'sentry':
-                document.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
+                this.root.querySelector('input[name="ward-type"][value="' + mode + '"]').checked = true;
             case 'ward':
-                document.querySelector('input[name="mode"][value="ward"]').checked = true;
-                interactiveMap.mode = document.querySelector('input[name="ward-type"]:checked').value;
-                document.getElementById('btn-ward').setAttribute('ward-type', interactiveMap.mode);
-                document.getElementById('btn-ward').classList.add('active');
-                document.getElementById('btn-tree').classList.remove('active');
-                document.getElementById('btn-measure').classList.remove('active');
-                document.getElementById('menu-left').classList.remove('draw');
+                this.root.querySelector('input[name="mode"][value="ward"]').checked = true;
+                interactiveMap.mode = this.root.querySelector('input[name="ward-type"]:checked').value;
+                this.root.getElementById('btn-ward').setAttribute('ward-type', interactiveMap.mode);
+                this.root.getElementById('btn-ward').classList.add('active');
+                this.root.getElementById('btn-tree').classList.remove('active');
+                this.root.getElementById('btn-measure').classList.remove('active');
+                this.root.getElementById('menu-left').classList.remove('draw');
                 setQueryString('mode', interactiveMap.mode);
                 interactiveMap.controls.measure.deactivate();
                 interactiveMap.controls.draw.deactivate();
@@ -236,15 +241,15 @@ class MenuControl {
             break;
             case 'line':
             case 'circle':
-                document.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
+                this.root.querySelector('input[name="measure-type"][value="' + mode + '"]').checked = true;
             case 'measure':
-                document.querySelector('input[name="mode"][value="measure"]').checked = true;
-                interactiveMap.mode = document.querySelector('input[name="measure-type"]:checked').value;
-                document.getElementById('btn-ward').classList.remove('active');
-                document.getElementById('btn-tree').classList.remove('active');
-                document.getElementById('btn-measure').classList.add('active');
-                document.getElementById('btn-measure').setAttribute('measure-type', interactiveMap.mode);
-                document.getElementById('menu-left').classList.remove('draw');
+                this.root.querySelector('input[name="mode"][value="measure"]').checked = true;
+                interactiveMap.mode = this.root.querySelector('input[name="measure-type"]:checked').value;
+                this.root.getElementById('btn-ward').classList.remove('active');
+                this.root.getElementById('btn-tree').classList.remove('active');
+                this.root.getElementById('btn-measure').classList.add('active');
+                this.root.getElementById('btn-measure').setAttribute('measure-type', interactiveMap.mode);
+                this.root.getElementById('menu-left').classList.remove('draw');
                 setQueryString('mode', interactiveMap.mode);
                 interactiveMap.controls.measure.change(interactiveMap.mode);
                 interactiveMap.controls.draw.deactivate();
@@ -264,32 +269,32 @@ class MenuControl {
             case 'translate':
             case 'delete':
             case 'draw':
-                document.querySelector('input[name="mode"][value="draw"]').checked = true;
-                interactiveMap.mode = document.querySelector('input[name="draw-type"]:checked').value;
-                document.getElementById('btn-ward').classList.remove('active');
-                document.getElementById('btn-tree').classList.remove('active');
-                document.getElementById('btn-measure').classList.remove('active');
-                document.getElementById('menu-left').classList.add('draw');
+                this.root.querySelector('input[name="mode"][value="draw"]').checked = true;
+                interactiveMap.mode = this.root.querySelector('input[name="draw-type"]:checked').value;
+                this.root.getElementById('btn-ward').classList.remove('active');
+                this.root.getElementById('btn-tree').classList.remove('active');
+                this.root.getElementById('btn-measure').classList.remove('active');
+                this.root.getElementById('menu-left').classList.add('draw');
                 setQueryString('mode', interactiveMap.mode);
                 interactiveMap.controls.draw.change(interactiveMap.mode);
                 interactiveMap.controls.measure.deactivate();
                 interactiveMap.controls.ward.deactivate();
                 interactiveMap.controls.info.deactivate();
-                document.getElementById('draw-options').classList.remove('brush');
-                document.getElementById('draw-options').classList.remove('marker');
-                document.getElementById('draw-options').classList.remove('point');
-                document.getElementById('draw-options').classList.remove('linestring');
-                document.getElementById('draw-options').classList.remove('polygon');
-                document.getElementById('draw-options').classList.remove('shape');
-                document.getElementById('draw-options').classList.add(interactiveMap.mode);
+                this.root.getElementById('draw-options').classList.remove('brush');
+                this.root.getElementById('draw-options').classList.remove('marker');
+                this.root.getElementById('draw-options').classList.remove('point');
+                this.root.getElementById('draw-options').classList.remove('linestring');
+                this.root.getElementById('draw-options').classList.remove('polygon');
+                this.root.getElementById('draw-options').classList.remove('shape');
+                this.root.getElementById('draw-options').classList.add(interactiveMap.mode);
             break;
             default:
-                document.querySelector('input[name="mode"][value="navigate"]').checked = true;
+                this.root.querySelector('input[name="mode"][value="navigate"]').checked = true;
                 interactiveMap.mode = mode || "navigate";
-                document.getElementById('btn-ward').classList.remove('active');
-                document.getElementById('btn-tree').classList.add('active');
-                document.getElementById('btn-measure').classList.remove('active');
-                document.getElementById('menu-left').classList.remove('draw');
+                this.root.getElementById('btn-ward').classList.remove('active');
+                this.root.getElementById('btn-tree').classList.add('active');
+                this.root.getElementById('btn-measure').classList.remove('active');
+                this.root.getElementById('menu-left').classList.remove('draw');
                 setQueryString('mode', interactiveMap.mode == 'navigate' ? null : interactiveMap.mode);
                 interactiveMap.controls.measure.deactivate();
                 interactiveMap.controls.draw.deactivate();

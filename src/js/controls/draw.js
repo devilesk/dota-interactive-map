@@ -57,6 +57,10 @@ class DrawControl {
         this.redoHistory = [];
     }
     
+    get root() {
+        return this.InteractiveMap.root;
+    }
+    
     getId() {
         return '_' + Math.random().toString(36).substr(2, 9);
     }
@@ -209,13 +213,13 @@ class DrawControl {
                 }),
                 stroke: new Stroke({
                     color: this.strokeColor(),
-                    width: parseInt(document.getElementById('strokesize-option').value)
+                    width: parseInt(this.root.getElementById('strokesize-option').value)
                 })
             });
             if (this.type === 'point') {
                 style = new Style({
                     image: new Circle({
-                        radius: parseInt(document.getElementById('strokesize-option').value),
+                        radius: parseInt(this.root.getElementById('strokesize-option').value),
                         fill: new Fill({
                             color: this.strokeColor()
                         })
@@ -251,14 +255,14 @@ class DrawControl {
     }
     
     strokeColor() {
-        const color = colorAsArray(document.getElementById('strokecolor-option').value).slice();;
-        color[3] = parseInt(document.getElementById('strokeopacity-option').value) / 100;
+        const color = colorAsArray(this.root.getElementById('strokecolor-option').value).slice();;
+        color[3] = parseInt(this.root.getElementById('strokeopacity-option').value) / 100;
         return color;
     }
     
     fillColor() {
-        const color = colorAsArray(document.getElementById('fillcolor-option').value).slice();;
-        color[3] = parseInt(document.getElementById('fillopacity-option').value) / 100;
+        const color = colorAsArray(this.root.getElementById('fillcolor-option').value).slice();;
+        color[3] = parseInt(this.root.getElementById('fillopacity-option').value) / 100;
         return color;
     }
     

@@ -1,4 +1,5 @@
 import VisionSimulation from 'dota-vision-simulation';
+import worlddata from 'dota-vision-simulation/src/worlddata.json';
 import View from 'ol/View';
 import Map from 'ol/Map';
 import { getCenter, containsXY } from 'ol/extent';
@@ -42,19 +43,22 @@ import { saveAs } from 'file-saver/FileSaver';
 import heroIcons from './heroIconManifest.json';
 
 class InteractiveMap {
-    constructor(map_tile_path, version, vision_data_image_path, worlddata, options) {
-        this.options = options || {
+    constructor(root, mapTilePath, version, visionDataImagePath, options) {
+        this.root = root;
+        this.options = {
             mode: 'navigate',
             zoom: 1,
             resolutions: [32,16,8,4,2,1],
             isNight: false,
             isDarkness: false,
+            ...options,
             controls: {
-                coordinate:true
+                coordinate:true,
+                ...options.controls,
             }
         };
-        this.map_tile_path = map_tile_path;
-        this.vision_data_image_path = vision_data_image_path;
+        this.mapTilePath = mapTilePath;
+        this.visionDataImagePath = visionDataImagePath;
         this.vs = new VisionSimulation(worlddata);
         this.mode = this.options.mode;
         this.layerDefs = layerDefinitions;
@@ -144,7 +148,7 @@ class InteractiveMap {
                             resolutions: mapConstants.resolutions
                         }),
                         projection: pixelProj,
-                        url: this.map_tile_path + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
+                        url: this.mapTilePath + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
                     }),
                     visible: !!layerDef.visible
                 });
@@ -162,7 +166,7 @@ class InteractiveMap {
         this.controls = {
             menu: new MenuControl(this),
             info: new InfoControl(this, 'info'),
-            notification: new NotificationControl('notification'),
+            notification: new NotificationControl(this.root, 'notification'),
             vision: new VisionControl(this),
             ward: new WardControl(this),
             tree: new TreeControl(this),
@@ -346,6 +350,7 @@ class InteractiveMap {
         this.selectSource.getFeatures().forEach(feature => feature.set("clicked", false, true));
         this.selectSource.clear();
     }
+
     deselect(feature) {
         if (feature && feature.get("clicked")) {
             if (feature == this.highlightedFeature) {
@@ -430,14 +435,14 @@ class InteractiveMap {
             }
         }
         
-        document.getElementById('btn-ward').setAttribute('ward-type', 'observer');
+        this.root.getElementById('btn-ward').setAttribute('ward-type', 'observer');
         const mode = getParameterByName('mode');
         this.controls.menu.changeMode(mode);
 
         const baseLayerName = getParameterByName('BaseLayer');
         let element;
         if (baseLayerName) {
-            element = document.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
+            element = this.root.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
             if (element) {
                 element.checked = true;
                 this.baseLayers.filter(layer => layer.get("layerId") == baseLayerName)[0].setVisible(true);
@@ -446,7 +451,7 @@ class InteractiveMap {
         if (!element) {
             setQueryString('BaseLayer', null);
             this.baseLayers[0].setVisible(true);
-            document.querySelector('input[name="base-layer"][value="' + this.baseLayers[0].get("layerId") + '"]').checked = true;
+            this.root.querySelector('input[name="base-layer"][value="' + this.baseLayers[0].get("layerId") + '"]').checked = true;
         }
         
         this.layerDefs.forEach(layerDef => {
@@ -454,14 +459,14 @@ class InteractiveMap {
             const value = getParameterByName(param);
             if (value && value !== "false") {
                 layerDef.visible = true;
-                document.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
+                this.root.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
                 setQueryString(param, true);
             }
             else {
                 setQueryString(param, null);
             }
             if (layerDef.id == 'ent_dota_tree') {
-                document.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
+                this.root.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
             }
         });
         
@@ -469,7 +474,7 @@ class InteractiveMap {
     }
     
     export(filename) {
-        const map = document.getElementById('map');
+        const map = this.root.getElementById('map');
         map.style.width = '2048px';
         map.style.height = '2048px';
         this.map.updateSize();
@@ -525,11 +530,11 @@ class InteractiveMap {
     share() {
         const dummy = document.createElement('input');
         const text = window.location.href;
-        document.body.appendChild(dummy);
+        this.root.body.appendChild(dummy);
         dummy.value = text;
         dummy.select();
-        document.execCommand('copy');
-        document.body.removeChild(dummy);
+        this.root.execCommand('copy');
+        this.root.body.removeChild(dummy);
         this.controls.notification.show(modeNotificationText.share);
     }
     
@@ -547,7 +552,7 @@ class InteractiveMap {
     }
 
     initialize() {
-        this.vs.initialize(this.vision_data_image_path, err => {
+        this.vs.initialize(this.visionDataImagePath, err => {
             this.controls.info.activate();
             
             this.setDefaults();
@@ -563,67 +568,68 @@ class InteractiveMap {
                 }
             });
             
-            forEach(document.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]'), element => {
+            forEach(this.root.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]'), element => {
                 element.addEventListener("change", e => {
                     this.controls.menu.changeMode(e.currentTarget.value);
                 }, false);
             }, this);
             
             if ('#enable_save' === 'true') {
-                document.getElementById('save').addEventListener('click', () => this.save());
+                this.root.getElementById('save').addEventListener('click', () => this.save());
             }
             
-            document.getElementById('share').addEventListener('click', () => this.share());
+            this.root.getElementById('share').addEventListener('click', () => this.share());
             
             if ('#enable_download' === 'true') {
-                document.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
+                this.root.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
             }
             
-            const strokePicker = new CP(document.getElementById('strokecolor-option'), false, document.getElementById('strokecolor-picker-container'));
-            strokePicker.on("change", function(color) {
+            const strokePicker = new CP(this.root.getElementById('strokecolor-option'), false, this.root.getElementById('strokecolor-picker-container'));
+            const self = this;
+            strokePicker.on("change", function (color) {
                 this.target.value = '#' + color;
-                document.getElementById('strokecolor-preview').style.backgroundColor = '#' + color;
+                self.root.getElementById('strokecolor-preview').style.backgroundColor = '#' + color;
             });
             
             strokePicker.target.oncut = strokePicker.target.onpaste = strokePicker.target.onkeyup = strokePicker.target.oninput = function() {
                 strokePicker.set(this.value);
             }
             
-            document.getElementById('strokecolor-option').addEventListener('blur', () => {
-                document.getElementById('strokecolor-picker-container').classList.remove('open');
+            this.root.getElementById('strokecolor-option').addEventListener('blur', () => {
+                this.root.getElementById('strokecolor-picker-container').classList.remove('open');
             });
             
-            document.getElementById('strokecolor-option').addEventListener('click', () => {
-                document.getElementById('strokecolor-picker-container').classList.add('open');
+            this.root.getElementById('strokecolor-option').addEventListener('click', () => {
+                this.root.getElementById('strokecolor-picker-container').classList.add('open');
                 strokePicker.fit = function() { // do nothing ...
                     this.picker.style.left = this.picker.style.top = "";
                 };
                 strokePicker.enter();
             });
             
-            const fillPicker = new CP(document.getElementById('fillcolor-option'), false, document.getElementById('fillcolor-picker-container'));
+            const fillPicker = new CP(this.root.getElementById('fillcolor-option'), false, this.root.getElementById('fillcolor-picker-container'));
             fillPicker.on("change", function(color) {
                 this.target.value = '#' + color;
-                document.getElementById('fillcolor-preview').style.backgroundColor = '#' + color;
+                self.root.getElementById('fillcolor-preview').style.backgroundColor = '#' + color;
             });
             
             fillPicker.target.oncut = fillPicker.target.onpaste = fillPicker.target.onkeyup = fillPicker.target.oninput = function() {
                 fillPicker.set(this.value);
             }
             
-            document.getElementById('fillcolor-option').addEventListener('blur', () => {
-                document.getElementById('fillcolor-picker-container').classList.remove('open');
+            this.root.getElementById('fillcolor-option').addEventListener('blur', () => {
+                this.root.getElementById('fillcolor-picker-container').classList.remove('open');
             });
             
-            document.getElementById('fillcolor-option').addEventListener('click', () => {
-                document.getElementById('fillcolor-picker-container').classList.add('open');
+            this.root.getElementById('fillcolor-option').addEventListener('click', () => {
+                this.root.getElementById('fillcolor-picker-container').classList.add('open');
                 fillPicker.fit = function() { // do nothing ...
                     this.picker.style.left = this.picker.style.top = "";
                 };
                 fillPicker.enter();
             });
             
-            document.getElementById('nightControl').addEventListener('change', e => {
+            this.root.getElementById('nightControl').addEventListener('change', e => {
                 this.isNight = e.currentTarget.checked;
                 if (this.isNight) {
                     this.controls.notification.show(modeNotificationText.nightOn);
@@ -633,7 +639,7 @@ class InteractiveMap {
                 }
             });
 
-            document.getElementById('darknessControl').addEventListener('change', e => {
+            this.root.getElementById('darknessControl').addEventListener('change', e => {
                 this.isDarkness = e.currentTarget.checked;
                 if (this.isDarkness) {
                     this.controls.notification.show(modeNotificationText.darknessOn);
@@ -643,7 +649,7 @@ class InteractiveMap {
                 }
             });
 
-            document.getElementById('creepControl').addEventListener('change', e => {
+            this.root.getElementById('creepControl').addEventListener('change', e => {
                 this.controls.menu.toggleLayerMenuOption('npc_dota_spawner', e.currentTarget.checked);
                 this.controls.menu.toggleLayerMenuOption('path_corner', e.currentTarget.checked);
                 if (e.currentTarget.checked) {
@@ -654,26 +660,26 @@ class InteractiveMap {
                 }
             });
 
-            document.getElementById('vision-radius').addEventListener('change', e => this.visionRadius = e.currentTarget.value);
+            this.root.getElementById('vision-radius').addEventListener('change', e => this.visionRadius = e.currentTarget.value);
 
-            document.getElementById('movementSpeed').addEventListener('change', e => this.movementSpeed = e.currentTarget.value);
+            this.root.getElementById('movementSpeed').addEventListener('change', e => this.movementSpeed = e.currentTarget.value);
                 
-            document.getElementById('option-dayVision').addEventListener('change', e => this.rangeLayers.dayVision.setVisible(e.currentTarget.checked));
+            this.root.getElementById('option-dayVision').addEventListener('change', e => this.rangeLayers.dayVision.setVisible(e.currentTarget.checked));
                 
-            document.getElementById('option-nightVision').addEventListener('change', e => this.rangeLayers.nightVision.setVisible(e.currentTarget.checked));
+            this.root.getElementById('option-nightVision').addEventListener('change', e => this.rangeLayers.nightVision.setVisible(e.currentTarget.checked));
                 
-            document.getElementById('option-trueSight').addEventListener('change', e => this.rangeLayers.trueSight.setVisible(e.currentTarget.checked));
+            this.root.getElementById('option-trueSight').addEventListener('change', e => this.rangeLayers.trueSight.setVisible(e.currentTarget.checked));
                 
-            document.getElementById('option-attackRange').addEventListener('change', e => this.rangeLayers.attackRange.setVisible(e.currentTarget.checked));
+            this.root.getElementById('option-attackRange').addEventListener('change', e => this.rangeLayers.attackRange.setVisible(e.currentTarget.checked));
                 
-            document.getElementById('version-select').addEventListener('change', e => {
+            this.root.getElementById('version-select').addEventListener('change', e => {
                 const el = e.currentTarget;
                 this.setMapLayers(el.value, err => {
                     if (!err) {
                         this.controls.creep.deactivate();
                         this.version = el.value;
-                        document.getElementById('creepControl').disabled = !this.getMapLayer('npc_dota_spawner');
-                        document.getElementById('creepControl').checked = false;
+                        this.root.getElementById('creepControl').disabled = !this.getMapLayer('npc_dota_spawner');
+                        this.root.getElementById('creepControl').checked = false;
                     }
                     else {
                         el.value = this.version;
@@ -691,85 +697,85 @@ class InteractiveMap {
                 if (a.name > b.name) return 1;
                 return 0;
             });
-            const markerSelect = document.getElementById('marker-select');
+            const markerSelect = this.root.getElementById('marker-select');
             for (const data of heroData) {
                 markerSelect.options[markerSelect.options.length] = new Option(data.name, data.id);
             }
             
-            document.getElementById('marker-select').addEventListener('change', e => {
+            this.root.getElementById('marker-select').addEventListener('change', e => {
                 const el = e.currentTarget;
                 this.controls.draw.changeMarkerType(el.value);
-                document.getElementById('marker-preview').className = "";
-                document.getElementById('marker-preview').classList.add('miniheroes-sprite-' + el.value);
+                this.root.getElementById('marker-preview').className = "";
+                this.root.getElementById('marker-preview').classList.add('miniheroes-sprite-' + el.value);
             });
             
-            document.getElementById('freehand-select').addEventListener('change', e => {
+            this.root.getElementById('freehand-select').addEventListener('change', e => {
                 const el = e.currentTarget;
                 this.controls.draw.changeFreehandType(el.value);
             });
             
-            document.getElementById('sides-option').addEventListener('change', e => {
+            this.root.getElementById('sides-option').addEventListener('change', e => {
                 const el = e.currentTarget;
                 this.controls.draw.changeSides(parseInt(el.value));
             });
             
-            document.getElementById('undo').addEventListener('click', () => this.controls.draw.undo());
-            document.getElementById('redo').addEventListener('click', () => this.controls.draw.redo());
+            this.root.getElementById('undo').addEventListener('click', () => this.controls.draw.undo());
+            this.root.getElementById('redo').addEventListener('click', () => this.controls.draw.redo());
                 
-            document.getElementById('btn-zoom-in').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() + 1}));
+            this.root.getElementById('btn-zoom-in').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() + 1}));
                 
-            document.getElementById('btn-zoom-out').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() - 1}));
+            this.root.getElementById('btn-zoom-out').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() - 1}));
 
-            document.getElementById('reset').addEventListener('click', () => this.reset());
+            this.root.getElementById('reset').addEventListener('click', () => this.reset());
 
-            document.getElementById('btn-tree').addEventListener('click', e => {
+            this.root.getElementById('btn-tree').addEventListener('click', e => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
                     el.setAttribute('trees-enabled', el.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
                 }
                 el.classList.add('active');
-                document.getElementById('btn-ward').classList.remove('active');
-                document.getElementById('btn-measure').classList.remove('active');
+                this.root.getElementById('btn-ward').classList.remove('active');
+                this.root.getElementById('btn-measure').classList.remove('active');
                 this.controls.menu.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
                 this.controls.menu.changeMode('navigate');
                 this.controls.notification.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
             });
 
-            document.getElementById('btn-ward').addEventListener('click', e => {
+            this.root.getElementById('btn-ward').addEventListener('click', e => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
                     el.setAttribute('ward-type', el.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
                 }
                 if (el.getAttribute('ward-type') == 'sentry') {
-                    document.querySelector('input[name="mode"][value="ward"]').checked = true;
-                    document.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
+                    this.root.querySelector('input[name="mode"][value="ward"]').checked = true;
+                    this.root.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
                 }
                 else {
-                    document.querySelector('input[name="mode"][value="ward"]').checked = true;
-                    document.querySelector('input[name="ward-type"][value="observer"]').checked = true;
+                    this.root.querySelector('input[name="mode"][value="ward"]').checked = true;
+                    this.root.querySelector('input[name="ward-type"][value="observer"]').checked = true;
                 }
                 el.classList.add('active');
-                document.getElementById('btn-tree').classList.remove('active');
-                document.getElementById('btn-measure').classList.remove('active');
+                this.root.getElementById('btn-tree').classList.remove('active');
+                this.root.getElementById('btn-measure').classList.remove('active');
                 this.controls.menu.changeMode('ward');
             });
 
-            document.getElementById('btn-measure').addEventListener('click', e => {
+            this.root.getElementById('btn-measure').addEventListener('click', e => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
                     el.setAttribute('measure-type', el.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
                 }
                 if (el.getAttribute('measure-type') == 'circle') {
-                    document.querySelector('input[name="mode"][value="measure"]').checked = true;
-                    document.querySelector('input[name="measure-type"][value="circle"]').checked = true;
+                    this.root.querySelector('input[name="mode"][value="measure"]').checked = true;
+                    this.root.querySelector('input[name="measure-type"][value="circle"]').checked = true;
                 }
                 else {
-                    document.querySelector('input[name="mode"][value="measure"]').checked = true;
-                    document.querySelector('input[name="measure-type"][value="line"]').checked = true;
+                    this.root.querySelector('input[name="mode"][value="measure"]').checked = true;
+                    this.root.querySelector('input[name="measure-type"][value="line"]').checked = true;
                 }
                 el.classList.add('active');
-                document.getElementById('btn-tree').classList.remove('active');
-                document.getElementById('btn-ward').classList.remove('active');
+                this.root.getElementById('btn-tree').classList.remove('active');
+                this.root.getElementById('btn-ward').classList.remove('active');
                 this.controls.menu.changeMode('measure');
             });
         });
