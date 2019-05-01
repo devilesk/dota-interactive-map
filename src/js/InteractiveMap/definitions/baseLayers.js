@@ -1,4 +1,4 @@
-const baseLayerDefinitions = [
+const baseLayers = [
     {
         id: '720',
         name: '7.20',
@@ -109,4 +109,4 @@ const baseLayerDefinitions = [
     },
 ];
 
-export default baseLayerDefinitions;
+export default baseLayers;

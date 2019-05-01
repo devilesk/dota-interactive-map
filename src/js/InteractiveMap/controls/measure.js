@@ -6,7 +6,7 @@ import Circle from 'ol/geom/Circle';
 import Draw from 'ol/interaction/Draw';
 import Overlay from 'ol/Overlay';
 import { unByKey } from 'ol/Observable';
-import styles from '../styleDefinitions';
+import styles from '../definitions/styles';
 
 /**
  * Format area output.

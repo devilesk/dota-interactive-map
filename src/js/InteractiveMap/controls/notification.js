@@ -1,4 +1,4 @@
-import styles from '../styleDefinitions';
+import styles from '../definitions/styles';
 
 class NotificationControl {
     constructor(root, id) {

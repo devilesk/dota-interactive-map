@@ -3,8 +3,8 @@ import Polygon from 'ol/geom/Polygon';
 import LinearRing from 'ol/geom/LinearRing';
 import Feature from 'ol/Feature';
 import getPopupContent from '../getPopupContent';
-import styles from '../styleDefinitions';
-import mapConstants from '../mapConstants';
+import styles from '../definitions/styles';
+import mapConstants from '../definitions/mapConstants';
 import { worldToLatLon } from '../conversion';
 import createCirclePointCoords from '../util/createCirclePointCoords';
 

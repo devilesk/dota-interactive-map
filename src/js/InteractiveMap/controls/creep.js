@@ -1,7 +1,7 @@
 import Circle from 'ol/geom/Circle';
 import { unByKey } from 'ol/Observable';
-import mapConstants from '../mapConstants';
-import styles from '../styleDefinitions';
+import mapConstants from '../definitions/mapConstants';
+import styles from '../definitions/styles';
 
 const laneData = {
     700: {

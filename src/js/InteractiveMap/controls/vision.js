@@ -2,7 +2,7 @@ import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import { latLonToWorld, worldToLatLon, getTileRadius } from '../conversion';
 import getLightUnion from '../getLightUnion';
-import styles from '../styleDefinitions';
+import styles from '../definitions/styles';
 import MultiPolygon from 'ol/geom/MultiPolygon';
 import Feature from 'ol/Feature';
 

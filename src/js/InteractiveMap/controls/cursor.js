@@ -1,6 +1,6 @@
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
-import styles from '../styleDefinitions';
+import styles from '../definitions/styles';
 
 class CursorControl {
     constructor(InteractiveMap) {

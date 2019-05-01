@@ -7,7 +7,7 @@ import Point from 'ol/geom/Point';
 import Feature from 'ol/Feature';
 import LayerGroup from 'ol/layer/Group';
 import Collection from 'ol/Collection';
-import { dotaProj, pixelProj } from './projections';
+import { dotaProj, pixelProj } from './definitions/projections';
 
 const loadGeoJSON = (map, layerDef, data, version) => {
     try {

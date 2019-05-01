@@ -1,7 +1,7 @@
 import VisionSimulation from 'dota-vision-simulation';
 import worlddata from 'dota-vision-simulation/src/worlddata.json';
 import union from '@turf/union';
-import { worldToLatLon } from './conversion';
+import { worldToLatLon } from './InteractiveMap/conversion';
 import fs from 'fs';
 
 const vs = new VisionSimulation(worlddata);

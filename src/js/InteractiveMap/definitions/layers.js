@@ -1,10 +1,10 @@
 import Style from 'ol/style/Style';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
-import styles from './styleDefinitions';
+import styles from './styles';
 import { dotaProj } from './projections';
 
-const layerDefinitions = [
+const layers = [
     {
         id: 'path_corner',
         name: 'Lanes',
@@ -138,4 +138,4 @@ const layerDefinitions = [
     },
 ];
 
-export default layerDefinitions;
+export default layers;

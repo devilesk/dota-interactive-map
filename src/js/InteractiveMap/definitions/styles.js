@@ -4,7 +4,7 @@ import Stroke from 'ol/style/Stroke';
 import RegularShape from 'ol/style/RegularShape';
 import Icon from 'ol/style/Icon';
 import Circle from 'ol/style/Circle';
-import getFeatureCenter from './util/getFeatureCenter';
+import getFeatureCenter from '../util/getFeatureCenter';
 
 const defaultStyle = new Style({
     fill: new Fill({ color: 'rgba(255,255,255,0.4)' }),

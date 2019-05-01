@@ -1,4 +1,4 @@
-import mapConstants from './mapConstants';
+import mapConstants from './definitions/mapConstants';
 
 export const lerp = (minVal, maxVal, pos_r) => pos_r * (maxVal - minVal) + minVal;
 

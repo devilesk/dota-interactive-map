@@ -3,8 +3,8 @@ import LayerVector from 'ol/layer/Vector';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import { unByKey } from 'ol/Observable';
-import styles from '../styleDefinitions';
-import mapConstants from '../mapConstants';
+import styles from '../definitions/styles';
+import mapConstants from '../definitions/mapConstants';
 import { latLonToWorld, worldToLatLon } from '../conversion';
 import { setQueryString, getParameterByName } from '../util/queryString';
 
