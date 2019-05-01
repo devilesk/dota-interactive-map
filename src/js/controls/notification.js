@@ -1,4 +1,4 @@
-import styles from './../styleDefinitions';
+import styles from '../styleDefinitions';
 
 class NotificationControl {
     constructor(root, id) {
@@ -6,9 +6,9 @@ class NotificationControl {
         this.timer = null;
         this.id = id;
         this.info = this.root.getElementById(id);
-        this.infoContent = this.root.querySelector('#' + id + ' .message-content');
+        this.infoContent = this.root.querySelector(`#${id} .message-content`);
     }
-    
+
     show(message) {
         this.setContent(message);
         this.info.classList.remove('slideUp');
@@ -33,7 +33,6 @@ class NotificationControl {
         this.info.classList.add('slideUp');
         this.info.classList.remove('slideDown');
     }
-
 }
 
 export default NotificationControl;

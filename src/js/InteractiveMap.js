@@ -11,8 +11,8 @@ import LayerTile from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import TileGrid from 'ol/tilegrid/TileGrid';
 import { transform } from 'ol/proj';
-import {defaults as defaultControls, FullScreen} from 'ol/control';
-import {defaults as defaultInteractions} from 'ol/interaction';
+import { defaults as defaultControls, FullScreen } from 'ol/control';
+import { defaults as defaultInteractions } from 'ol/interaction';
 import Feature from 'ol/Feature';
 import Circle from 'ol/geom/Circle';
 import { KML } from 'ol/format';
@@ -20,7 +20,7 @@ import { pixelProj, dotaProj } from './projections';
 import mapConstants from './mapConstants';
 import styles from './styleDefinitions';
 import { loadGeoJSON, loadJSON, loadLayerGroupFromData } from './dataLoader';
-import {getScaledRadius, worldToLatLon} from './conversion';
+import { getScaledRadius, worldToLatLon } from './conversion';
 import baseLayerDefinitions from './baseLayerDefinitions';
 import layerDefinitions from './layerDefinitions';
 import modeNotificationText from './modeNotificationText';
@@ -48,14 +48,14 @@ class InteractiveMap {
         this.options = {
             mode: 'navigate',
             zoom: 1,
-            resolutions: [32,16,8,4,2,1],
+            resolutions: [32, 16, 8, 4, 2, 1],
             isNight: false,
             isDarkness: false,
             ...options,
             controls: {
-                coordinate:true,
+                coordinate: true,
                 ...options.controls,
-            }
+            },
         };
         this.mapTilePath = mapTilePath;
         this.visionDataImagePath = visionDataImagePath;
@@ -68,7 +68,7 @@ class InteractiveMap {
             center: mapConstants.imgCenter,
             projection: pixelProj,
             resolutions: this.options.resolutions,
-            extent: [0, 0, mapConstants.map_w, mapConstants.map_h]
+            extent: [0, 0, mapConstants.map_w, mapConstants.map_h],
         });
         this.data = {};
         this.layerIndex = {};
@@ -78,91 +78,87 @@ class InteractiveMap {
         this.isNight = this.options.isNight;
         this.isDarkness = this.options.isDarkness;
         this.layerFilters = {
-            marker: layer => {
+            marker: (layer) => {
                 const layerDef = layer.get('layerDef');
                 return layer.getVisible() && layerDef && (layerDef.group == 'structure' || layerDef.group == 'object');
-            }
+            },
         };
         this.map = new Map({
             controls: defaultControls({ zoom: false, attribution: false, rotate: false }).extend([
-                new FullScreen()
+                new FullScreen(),
             ]),
-            interactions: defaultInteractions({altShiftDragRotate:false, pinchRotate:false}),
+            interactions: defaultInteractions({ altShiftDragRotate: false, pinchRotate: false }),
             target: 'map',
-            view: this.view
+            view: this.view,
         });
-        
+
         this.highlightSource = new SourceVector({});
-        this.highlightLayer =  new LayerVector({
+        this.highlightLayer = new LayerVector({
             source: this.highlightSource,
-            style: styles.highlight
+            style: styles.highlight,
         });
 
         this.selectSource = new SourceVector({});
-        this.selectLayer =  new LayerVector({
+        this.selectLayer = new LayerVector({
             source: this.selectSource,
-            style: styles.select
+            style: styles.select,
         });
 
         this.wardRangeSource = new SourceVector({});
-        this.wardRangeLayer =  new LayerVector({
-            source: this.wardRangeSource
-        });
+        this.wardRangeLayer = new LayerVector({ source: this.wardRangeSource });
 
         this.rangeSources = {
             dayVision: new SourceVector({}),
             nightVision: new SourceVector({}),
             trueSight: new SourceVector({}),
-            attackRange: new SourceVector({})
-        }
+            attackRange: new SourceVector({}),
+        };
         this.rangeLayers = {
             dayVision: new LayerVector({
                 source: this.rangeSources.dayVision,
-                style: styles.dayVision
+                style: styles.dayVision,
             }),
             nightVision: new LayerVector({
                 source: this.rangeSources.nightVision,
-                style: styles.nightVision
+                style: styles.nightVision,
             }),
             trueSight: new LayerVector({
                 source: this.rangeSources.trueSight,
-                style: styles.trueSight
+                style: styles.trueSight,
             }),
             attackRange: new LayerVector({
                 source: this.rangeSources.attackRange,
-                style: styles.attackRange
-            })
-        }
+                style: styles.attackRange,
+            }),
+        };
 
         // setup base layers
-        this.baseLayers = this.baseLayerDefs.reduce((baseLayers, group) => {
-            return baseLayers.concat(group.tilesets.map(tileset => {
-                const layerDef = {...tileset, group: group.id};
-                const layer = new LayerTile({
-                    title: layerDef.name,
-                    type: 'base',
-                    extent: pixelProj.getExtent(), //proj.pixel.getExtent()
-                    source: new TileImage({
-                        tileGrid: new TileGrid({
-                            origin: [0, mapConstants.map_h],
-                            resolutions: mapConstants.resolutions
-                        }),
-                        projection: pixelProj,
-                        url: this.mapTilePath + layerDef.group + '/' + layerDef.id + '/{z}/tile_{x}_{y}.jpg'
+        this.baseLayers = this.baseLayerDefs.reduce((baseLayers, group) => baseLayers.concat(group.tilesets.map((tileset) => {
+            const layerDef = { ...tileset, group: group.id };
+            const layer = new LayerTile({
+                title: layerDef.name,
+                type: 'base',
+                extent: pixelProj.getExtent(), // proj.pixel.getExtent()
+                source: new TileImage({
+                    tileGrid: new TileGrid({
+                        origin: [0, mapConstants.map_h],
+                        resolutions: mapConstants.resolutions,
                     }),
-                    visible: !!layerDef.visible
-                });
-                layer.set('layerId', layerDef.group + '-' + layerDef.id, true);
-                layer.set('layerDef', layerDef, true);
-                return layer;
-            }));
-        }, []);
-        
+                    projection: pixelProj,
+                    url: `${this.mapTilePath + layerDef.group}/${layerDef.id}/{z}/tile_{x}_{y}.jpg`,
+                }),
+                visible: !!layerDef.visible,
+            });
+            layer.set('layerId', `${layerDef.group}-${layerDef.id}`, true);
+            layer.set('layerDef', layerDef, true);
+            return layer;
+        })), []);
+
         this.baseLayerGroup = new LayerGroup({
             title: 'Base Layers',
-            layers: new Collection(this.baseLayers)
+            layers: new Collection(this.baseLayers),
         });
-        
+
         this.controls = {
             menu: new MenuControl(this),
             info: new InfoControl(this, 'info'),
@@ -174,10 +170,10 @@ class InteractiveMap {
             coordinate: this.options.controls.coordinate && new CoordinateControl(this, 'coordinates'),
             measure: new MeasureControl(this),
             creep: new CreepControl(this, 'timer'),
-            draw: new DrawControl(this)
+            draw: new DrawControl(this),
         };
-        
-        this.map.on('moveend', evt => {
+
+        this.map.on('moveend', (evt) => {
             const map = evt.map;
             const ext = map.getView().calculateExtent(map.getSize());
             const center = getCenter(ext);
@@ -188,7 +184,7 @@ class InteractiveMap {
             setQueryString('zoom', Math.round(this.view.getZoom()));
         });
     }
-    
+
     getMapData(version) {
         return this.data[version || this.version] || {};
     }
@@ -217,7 +213,7 @@ class InteractiveMap {
 
     getMapDataPath(version) {
         version = version || this.version;
-        return 'data/' + version + '/mapdata.json';
+        return `data/${version}/mapdata.json`;
     }
 
     setMapLayers(version, callback) {
@@ -228,7 +224,7 @@ class InteractiveMap {
                 this.map.setLayerGroup(data.layerGroup);
                 this.map.getLayerGroup().setVisible(true);
             }
-        
+
             this.map.addLayer(this.controls.measure.layer);
             this.map.addLayer(this.controls.cursor.layer);
             this.map.addLayer(this.controls.vision.layer);
@@ -241,7 +237,7 @@ class InteractiveMap {
             this.map.addLayer(this.rangeLayers.trueSight);
             this.map.addLayer(this.rangeLayers.attackRange);
             this.map.addLayer(this.controls.draw.layer);
-            
+
             if (callback) callback(err);
         });
     }
@@ -254,14 +250,14 @@ class InteractiveMap {
             getJSON(this.getMapDataPath(version), (err, data) => {
                 if (!err) {
                     this.data[version] = {
-                        data: data,
+                        data,
                         layerGroup: new LayerGroup({
-                            title: version + ' Layers',
+                            title: `${version} Layers`,
                             layers: new Collection([
                                 this.baseLayerGroup,
-                                loadLayerGroupFromData(this, data, version, this.getMapLayerIndex(version), this.layerDefs)
-                            ])
-                        })
+                                loadLayerGroupFromData(this, data, version, this.getMapLayerIndex(version), this.layerDefs),
+                            ]),
+                        }),
                     };
                 }
                 callback(err, this.data[version]);
@@ -272,15 +268,13 @@ class InteractiveMap {
     panTo(coordinate, duration) {
         if (duration == null) duration = 1000;
         this.view.animate({
-          center: coordinate,
-          duration: duration
+            center: coordinate,
+            duration,
         });
     }
 
     checkAndHighlightWard(pixel) {
-        const feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, {
-            layerFilter: this.controls.ward.layerFilter
-        });
+        const feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.controls.ward.layerFilter });
         this.highlightWard(feature);
         return feature;
     }
@@ -323,42 +317,41 @@ class InteractiveMap {
         this.highlightedFeature = null;
     }
 
-    toggle(feature) {    
+    toggle(feature) {
         if (feature) {
-            if (feature.get("clicked")) {
+            if (feature.get('clicked')) {
                 this.deselect(feature);
                 return false;
             }
-            else {
-                this.select(feature);
-                return true;
-            }
+
+            this.select(feature);
+            return true;
         }
     }
 
-    select(feature) {    
-        if (feature && !feature.get("clicked")) {
+    select(feature) {
+        if (feature && !feature.get('clicked')) {
             if (feature == this.highlightedFeature) {
                 this.unhighlight();
             }
             this.selectSource.addFeature(feature);
-            feature.set("clicked", true, true);
+            feature.set('clicked', true, true);
         }
     }
 
     deselectAll() {
-        this.selectSource.getFeatures().forEach(feature => feature.set("clicked", false, true));
+        this.selectSource.getFeatures().forEach(feature => feature.set('clicked', false, true));
         this.selectSource.clear();
     }
 
     deselect(feature) {
-        if (feature && feature.get("clicked")) {
+        if (feature && feature.get('clicked')) {
             if (feature == this.highlightedFeature) {
                 this.unhighlight();
             }
-            
+
             this.selectSource.removeFeature(feature);
-            feature.set("clicked", false, true);
+            feature.set('clicked', false, true);
         }
     }
 
@@ -382,28 +375,28 @@ class InteractiveMap {
         }
         else {
             if (rangeType && !unitStats.hasOwnProperty(rangeType)) return null;
-            
+
             switch (rangeType) {
-                case 'dayVision':
-                case 'nightVision':
-                    radius = unitStats[rangeType];
-                    if (this.isDarkness) {
-                        radius = Math.min(mapConstants.visionRadius.darkness, radius);
-                    }
-                case 'trueSight':
-                case 'attackRange':
-                    radius = unitStats[rangeType];
+            case 'dayVision':
+            case 'nightVision':
+                radius = unitStats[rangeType];
+                if (this.isDarkness) {
+                    radius = Math.min(mapConstants.visionRadius.darkness, radius);
+                }
+            case 'trueSight':
+            case 'attackRange':
+                radius = unitStats[rangeType];
                 break;
-                default:
-                    if (this.isNight) {
-                        radius = unitStats.nightVision;
-                    }
-                    else {
-                        radius = unitStats.dayVision;
-                    }
-                    if (this.isDarkness) {
-                        radius = Math.min(mapConstants.visionRadius.darkness, radius);
-                    }
+            default:
+                if (this.isNight) {
+                    radius = unitStats.nightVision;
+                }
+                else {
+                    radius = unitStats.dayVision;
+                }
+                if (this.isDarkness) {
+                    radius = Math.min(mapConstants.visionRadius.darkness, radius);
+                }
                 break;
             }
         }
@@ -430,11 +423,11 @@ class InteractiveMap {
         }
         if (x && y) {
             const coordinate = transform([x, y], dotaProj, pixelProj);
-            if (containsXY([-100, -100, mapConstants.map_w+100, mapConstants.map_h+100], coordinate[0], coordinate[1])) {
+            if (containsXY([-100, -100, mapConstants.map_w + 100, mapConstants.map_h + 100], coordinate[0], coordinate[1])) {
                 this.panTo(coordinate);
             }
         }
-        
+
         this.root.getElementById('btn-ward').setAttribute('ward-type', 'observer');
         const mode = getParameterByName('mode');
         this.controls.menu.changeMode(mode);
@@ -442,37 +435,37 @@ class InteractiveMap {
         const baseLayerName = getParameterByName('BaseLayer');
         let element;
         if (baseLayerName) {
-            element = this.root.querySelector('input[name="base-layer"][value="' + baseLayerName + '"]');
+            element = this.root.querySelector(`input[name="base-layer"][value="${baseLayerName}"]`);
             if (element) {
                 element.checked = true;
-                this.baseLayers.filter(layer => layer.get("layerId") == baseLayerName)[0].setVisible(true);
+                this.baseLayers.filter(layer => layer.get('layerId') == baseLayerName)[0].setVisible(true);
             }
         }
         if (!element) {
             setQueryString('BaseLayer', null);
             this.baseLayers[0].setVisible(true);
-            this.root.querySelector('input[name="base-layer"][value="' + this.baseLayers[0].get("layerId") + '"]').checked = true;
+            this.root.querySelector(`input[name="base-layer"][value="${this.baseLayers[0].get('layerId')}"]`).checked = true;
         }
-        
-        this.layerDefs.forEach(layerDef => {
+
+        this.layerDefs.forEach((layerDef) => {
             const param = layerDef.name.replace(/ /g, '');
             const value = getParameterByName(param);
-            if (value && value !== "false") {
+            if (value && value !== 'false') {
                 layerDef.visible = true;
-                this.root.querySelector('input[data-layer-id="' + layerDef.id + '"]').checked = true;
+                this.root.querySelector(`input[data-layer-id="${layerDef.id}"]`).checked = true;
                 setQueryString(param, true);
             }
             else {
                 setQueryString(param, null);
             }
             if (layerDef.id == 'ent_dota_tree') {
-                this.root.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? "yes" : "no");
+                this.root.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? 'yes' : 'no');
             }
         });
-        
+
         this.controls.draw.setDataId(getParameterByName('data'));
     }
-    
+
     export(filename) {
         const map = this.root.getElementById('map');
         map.style.width = '2048px';
@@ -488,7 +481,7 @@ class InteractiveMap {
             this.map.updateSize();
             this.view.setZoom(zoom);
             this.view.setCenter(center);
-        }
+        };
         this.map.once('rendercomplete', (event) => {
             const canvas = event.context.canvas;
             if (navigator.msSaveBlob) {
@@ -496,7 +489,7 @@ class InteractiveMap {
                 resetExport();
             }
             else {
-                canvas.toBlob(function(blob) {
+                canvas.toBlob((blob) => {
                     saveAs(blob, filename);
                     resetExport();
                 });
@@ -504,29 +497,29 @@ class InteractiveMap {
         });
         this.map.renderSync();
     }
-    
+
     save() {
         const writer = new KML();
         const str = writer.writeFeatures(this.controls.draw.source.getFeatures());
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", 'save.php', true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        xhr.open('POST', 'save.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
         xhr.onreadystatechange = () => {
             if (xhr.readyState == XMLHttpRequest.DONE) {
-                if ( xhr.status == 200 ) {
+                if (xhr.status == 200) {
                     const data = JSON.parse(xhr.responseText);
                     if (data.file) {
-                        setQueryString("data", data.file);
+                        setQueryString('data', data.file);
                         this.controls.notification.show(modeNotificationText.saveSuccess);
                         return;
                     }
                 }
             }
             this.controls.notification.show(modeNotificationText.saveFailed);
-        }
-        xhr.send("data=" + str);
+        };
+        xhr.send(`data=${str}`);
     }
-    
+
     share() {
         const dummy = document.createElement('input');
         const text = window.location.href;
@@ -537,10 +530,10 @@ class InteractiveMap {
         this.root.body.removeChild(dummy);
         this.controls.notification.show(modeNotificationText.share);
     }
-    
+
     reset() {
         if (history && history.replaceState) {
-            history.replaceState(null, "", window.location.href.split("?")[0]);
+            history.replaceState(null, '', window.location.href.split('?')[0]);
         }
         this.setDefaults();
         this.controls.menu.updateOverlayMenu();
@@ -552,12 +545,12 @@ class InteractiveMap {
     }
 
     initialize() {
-        this.vs.initialize(this.visionDataImagePath, err => {
+        this.vs.initialize(this.visionDataImagePath, (err) => {
             this.controls.info.activate();
-            
+
             this.setDefaults();
 
-            this.setMapLayers(this.version, err => {
+            this.setMapLayers(this.version, (err) => {
                 if (!err) {
                     this.controls.menu.updateOverlayMenu();
                     this.controls.tree.parseQueryString();
@@ -567,69 +560,69 @@ class InteractiveMap {
                     throw new Error(err);
                 }
             });
-            
-            forEach(this.root.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]'), element => {
-                element.addEventListener("change", e => {
+
+            forEach(this.root.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]'), (element) => {
+                element.addEventListener('change', (e) => {
                     this.controls.menu.changeMode(e.currentTarget.value);
                 }, false);
             }, this);
-            
+
             if ('#enable_save' === 'true') {
                 this.root.getElementById('save').addEventListener('click', () => this.save());
             }
-            
+
             this.root.getElementById('share').addEventListener('click', () => this.share());
-            
+
             if ('#enable_download' === 'true') {
                 this.root.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
             }
-            
+
             const strokePicker = new CP(this.root.getElementById('strokecolor-option'), false, this.root.getElementById('strokecolor-picker-container'));
             const self = this;
-            strokePicker.on("change", function (color) {
-                this.target.value = '#' + color;
-                self.root.getElementById('strokecolor-preview').style.backgroundColor = '#' + color;
+            strokePicker.on('change', function (color) {
+                this.target.value = `#${color}`;
+                self.root.getElementById('strokecolor-preview').style.backgroundColor = `#${color}`;
             });
-            
-            strokePicker.target.oncut = strokePicker.target.onpaste = strokePicker.target.onkeyup = strokePicker.target.oninput = function() {
+
+            strokePicker.target.oncut = strokePicker.target.onpaste = strokePicker.target.onkeyup = strokePicker.target.oninput = function () {
                 strokePicker.set(this.value);
-            }
-            
+            };
+
             this.root.getElementById('strokecolor-option').addEventListener('blur', () => {
                 this.root.getElementById('strokecolor-picker-container').classList.remove('open');
             });
-            
+
             this.root.getElementById('strokecolor-option').addEventListener('click', () => {
                 this.root.getElementById('strokecolor-picker-container').classList.add('open');
-                strokePicker.fit = function() { // do nothing ...
-                    this.picker.style.left = this.picker.style.top = "";
+                strokePicker.fit = function () { // do nothing ...
+                    this.picker.style.left = this.picker.style.top = '';
                 };
                 strokePicker.enter();
             });
-            
+
             const fillPicker = new CP(this.root.getElementById('fillcolor-option'), false, this.root.getElementById('fillcolor-picker-container'));
-            fillPicker.on("change", function(color) {
-                this.target.value = '#' + color;
-                self.root.getElementById('fillcolor-preview').style.backgroundColor = '#' + color;
+            fillPicker.on('change', function (color) {
+                this.target.value = `#${color}`;
+                self.root.getElementById('fillcolor-preview').style.backgroundColor = `#${color}`;
             });
-            
-            fillPicker.target.oncut = fillPicker.target.onpaste = fillPicker.target.onkeyup = fillPicker.target.oninput = function() {
+
+            fillPicker.target.oncut = fillPicker.target.onpaste = fillPicker.target.onkeyup = fillPicker.target.oninput = function () {
                 fillPicker.set(this.value);
-            }
-            
+            };
+
             this.root.getElementById('fillcolor-option').addEventListener('blur', () => {
                 this.root.getElementById('fillcolor-picker-container').classList.remove('open');
             });
-            
+
             this.root.getElementById('fillcolor-option').addEventListener('click', () => {
                 this.root.getElementById('fillcolor-picker-container').classList.add('open');
-                fillPicker.fit = function() { // do nothing ...
-                    this.picker.style.left = this.picker.style.top = "";
+                fillPicker.fit = function () { // do nothing ...
+                    this.picker.style.left = this.picker.style.top = '';
                 };
                 fillPicker.enter();
             });
-            
-            this.root.getElementById('nightControl').addEventListener('change', e => {
+
+            this.root.getElementById('nightControl').addEventListener('change', (e) => {
                 this.isNight = e.currentTarget.checked;
                 if (this.isNight) {
                     this.controls.notification.show(modeNotificationText.nightOn);
@@ -639,7 +632,7 @@ class InteractiveMap {
                 }
             });
 
-            this.root.getElementById('darknessControl').addEventListener('change', e => {
+            this.root.getElementById('darknessControl').addEventListener('change', (e) => {
                 this.isDarkness = e.currentTarget.checked;
                 if (this.isDarkness) {
                     this.controls.notification.show(modeNotificationText.darknessOn);
@@ -649,7 +642,7 @@ class InteractiveMap {
                 }
             });
 
-            this.root.getElementById('creepControl').addEventListener('change', e => {
+            this.root.getElementById('creepControl').addEventListener('change', (e) => {
                 this.controls.menu.toggleLayerMenuOption('npc_dota_spawner', e.currentTarget.checked);
                 this.controls.menu.toggleLayerMenuOption('path_corner', e.currentTarget.checked);
                 if (e.currentTarget.checked) {
@@ -663,18 +656,18 @@ class InteractiveMap {
             this.root.getElementById('vision-radius').addEventListener('change', e => this.visionRadius = e.currentTarget.value);
 
             this.root.getElementById('movementSpeed').addEventListener('change', e => this.movementSpeed = e.currentTarget.value);
-                
+
             this.root.getElementById('option-dayVision').addEventListener('change', e => this.rangeLayers.dayVision.setVisible(e.currentTarget.checked));
-                
+
             this.root.getElementById('option-nightVision').addEventListener('change', e => this.rangeLayers.nightVision.setVisible(e.currentTarget.checked));
-                
+
             this.root.getElementById('option-trueSight').addEventListener('change', e => this.rangeLayers.trueSight.setVisible(e.currentTarget.checked));
-                
+
             this.root.getElementById('option-attackRange').addEventListener('change', e => this.rangeLayers.attackRange.setVisible(e.currentTarget.checked));
-                
-            this.root.getElementById('version-select').addEventListener('change', e => {
+
+            this.root.getElementById('version-select').addEventListener('change', (e) => {
                 const el = e.currentTarget;
-                this.setMapLayers(el.value, err => {
+                this.setMapLayers(el.value, (err) => {
                     if (!err) {
                         this.controls.creep.deactivate();
                         this.version = el.value;
@@ -687,12 +680,12 @@ class InteractiveMap {
                     }
                 });
             });
-            
-            const heroData = Object.keys(heroIcons).map(id => {
+
+            const heroData = Object.keys(heroIcons).map((id) => {
                 heroIcons[id].id = id;
                 return heroIcons[id];
             });
-            heroData.sort(function(a, b) {
+            heroData.sort((a, b) => {
                 if (a.name < b.name) return -1;
                 if (a.name > b.name) return 1;
                 return 0;
@@ -701,47 +694,47 @@ class InteractiveMap {
             for (const data of heroData) {
                 markerSelect.options[markerSelect.options.length] = new Option(data.name, data.id);
             }
-            
-            this.root.getElementById('marker-select').addEventListener('change', e => {
+
+            this.root.getElementById('marker-select').addEventListener('change', (e) => {
                 const el = e.currentTarget;
                 this.controls.draw.changeMarkerType(el.value);
-                this.root.getElementById('marker-preview').className = "";
-                this.root.getElementById('marker-preview').classList.add('miniheroes-sprite-' + el.value);
+                this.root.getElementById('marker-preview').className = '';
+                this.root.getElementById('marker-preview').classList.add(`miniheroes-sprite-${el.value}`);
             });
-            
-            this.root.getElementById('freehand-select').addEventListener('change', e => {
+
+            this.root.getElementById('freehand-select').addEventListener('change', (e) => {
                 const el = e.currentTarget;
                 this.controls.draw.changeFreehandType(el.value);
             });
-            
-            this.root.getElementById('sides-option').addEventListener('change', e => {
+
+            this.root.getElementById('sides-option').addEventListener('change', (e) => {
                 const el = e.currentTarget;
                 this.controls.draw.changeSides(parseInt(el.value));
             });
-            
+
             this.root.getElementById('undo').addEventListener('click', () => this.controls.draw.undo());
             this.root.getElementById('redo').addEventListener('click', () => this.controls.draw.redo());
-                
-            this.root.getElementById('btn-zoom-in').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() + 1}));
-                
-            this.root.getElementById('btn-zoom-out').addEventListener('click', () => this.view.animate({zoom: this.view.getZoom() - 1}));
+
+            this.root.getElementById('btn-zoom-in').addEventListener('click', () => this.view.animate({ zoom: this.view.getZoom() + 1 }));
+
+            this.root.getElementById('btn-zoom-out').addEventListener('click', () => this.view.animate({ zoom: this.view.getZoom() - 1 }));
 
             this.root.getElementById('reset').addEventListener('click', () => this.reset());
 
-            this.root.getElementById('btn-tree').addEventListener('click', e => {
+            this.root.getElementById('btn-tree').addEventListener('click', (e) => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
-                    el.setAttribute('trees-enabled', el.getAttribute('trees-enabled') == "yes" ? "no" : "yes");
+                    el.setAttribute('trees-enabled', el.getAttribute('trees-enabled') == 'yes' ? 'no' : 'yes');
                 }
                 el.classList.add('active');
                 this.root.getElementById('btn-ward').classList.remove('active');
                 this.root.getElementById('btn-measure').classList.remove('active');
-                this.controls.menu.toggleLayerMenuOption("ent_dota_tree", el.getAttribute('trees-enabled') == "yes");
+                this.controls.menu.toggleLayerMenuOption('ent_dota_tree', el.getAttribute('trees-enabled') == 'yes');
                 this.controls.menu.changeMode('navigate');
-                this.controls.notification.show(el.getAttribute('trees-enabled') == "yes" ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
+                this.controls.notification.show(el.getAttribute('trees-enabled') == 'yes' ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
             });
 
-            this.root.getElementById('btn-ward').addEventListener('click', e => {
+            this.root.getElementById('btn-ward').addEventListener('click', (e) => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
                     el.setAttribute('ward-type', el.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
@@ -760,7 +753,7 @@ class InteractiveMap {
                 this.controls.menu.changeMode('ward');
             });
 
-            this.root.getElementById('btn-measure').addEventListener('click', e => {
+            this.root.getElementById('btn-measure').addEventListener('click', (e) => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
                     el.setAttribute('measure-type', el.getAttribute('measure-type') == 'line' ? 'circle' : 'line');

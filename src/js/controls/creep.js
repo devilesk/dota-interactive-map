@@ -1,73 +1,73 @@
 import Circle from 'ol/geom/Circle';
 import { unByKey } from 'ol/Observable';
-import mapConstants from './../mapConstants';
-import styles from './../styleDefinitions';
+import mapConstants from '../mapConstants';
+import styles from '../styleDefinitions';
 
 const laneData = {
     700: {
         npc_dota_spawner_good_bot: [1.25, 10],
         npc_dota_spawner_bad_bot: [0.75, 22],
         npc_dota_spawner_good_top: [0.75, 2],
-        npc_dota_spawner_bad_top: [1.25, 2]
+        npc_dota_spawner_bad_top: [1.25, 2],
     },
     706: {
         npc_dota_spawner_good_bot: [1.3, 16],
         npc_dota_spawner_bad_bot: [0.65, 22],
         npc_dota_spawner_good_top: [1.3, 8],
-        npc_dota_spawner_bad_top: [0.65, 8]
+        npc_dota_spawner_bad_top: [0.65, 8],
     },
     707: {
         npc_dota_spawner_good_bot: [1.3, 4],
         npc_dota_spawner_bad_bot: [0.65, 6],
         npc_dota_spawner_good_top: [1.3, 2],
-        npc_dota_spawner_bad_top: [0.65, 2]
+        npc_dota_spawner_bad_top: [0.65, 2],
     },
     709: {
         npc_dota_spawner_good_bot: [1.3, 4],
         npc_dota_spawner_bad_bot: [0.65, 6],
         npc_dota_spawner_good_top: [1.3, 2],
-        npc_dota_spawner_bad_top: [0.65, 2]
+        npc_dota_spawner_bad_top: [0.65, 2],
     },
     715: {
         npc_dota_spawner_good_bot: [1.3, 4],
         npc_dota_spawner_bad_bot: [0.65, 6],
         npc_dota_spawner_good_top: [1.3, 2],
-        npc_dota_spawner_bad_top: [0.65, 2]
+        npc_dota_spawner_bad_top: [0.65, 2],
     },
     719: {
         npc_dota_spawner_good_bot: [1.3, 4],
         npc_dota_spawner_bad_bot: [0.65, 6],
         npc_dota_spawner_good_top: [1.3, 2],
-        npc_dota_spawner_bad_top: [0.65, 2]
-    }
-}
+        npc_dota_spawner_bad_top: [0.65, 2],
+    },
+};
 
 const getDistance = (speed, elapsedTime) => speed * elapsedTime / 1000 * mapConstants.scale;
 
 const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) => {
-    elapsedTime = elapsedTime * playbackSpeed;
+    elapsedTime *= playbackSpeed;
     const base = mapConstants.creepBaseMovementSpeed;
     if (bNoAdjust) return getDistance(base, elapsedTime);
 
     switch (id) {
-        case 'npc_dota_spawner_good_bot':
-        case 'npc_dota_spawner_bad_top':
-        case 'npc_dota_spawner_good_top':
-        case 'npc_dota_spawner_bad_bot':
-            const boostMultiplier = laneData[version][id][0];
-            const boostDuration = laneData[version][id][1] * 1000;
-            if (elapsedTime < boostDuration) {
-                return getDistance(base * boostMultiplier, elapsedTime);
-            }
-            else {
-                return getDistance(base * boostMultiplier, boostDuration) + getDistance(base, elapsedTime - boostDuration);
-            }
+    case 'npc_dota_spawner_good_bot':
+    case 'npc_dota_spawner_bad_top':
+    case 'npc_dota_spawner_good_top':
+    case 'npc_dota_spawner_bad_bot':
+        const boostMultiplier = laneData[version][id][0];
+        const boostDuration = laneData[version][id][1] * 1000;
+        if (elapsedTime < boostDuration) {
+            return getDistance(base * boostMultiplier, elapsedTime);
+        }
+
+        return getDistance(base * boostMultiplier, boostDuration) + getDistance(base, elapsedTime - boostDuration);
+
         break;
-        default:
-            return getDistance(base, elapsedTime);
+    default:
+        return getDistance(base, elapsedTime);
         break;
     }
-}
+};
 
 class CreepControl {
     constructor(InteractiveMap, id) {
@@ -78,47 +78,47 @@ class CreepControl {
         this.paused = true;
         this.pauseTime = null;
         this.title = 'Lane Animation';
-        
+
         this.id = id;
         this.info = this.root.getElementById(id);
         this.infoContent = this.root.querySelector('#timer-time');
         this.playPauseBtn = this.root.querySelector('#timer-playPause');
         this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
-        
+
         this.stopBtn = this.root.querySelector('#timer-stop');
         this.stopBtn.addEventListener('click', () => this.stop(true), false);
-        
+
         this.fasterBtn = this.root.querySelector('#timer-faster');
         this.fasterBtn.addEventListener('click', () => this.faster(true), false);
-        
+
         this.slowerBtn = this.root.querySelector('#timer-slower');
         this.slowerBtn.addEventListener('click', () => this.slower(true), false);
     }
-    
+
     get root() {
         return this.InteractiveMap.root;
     }
-    
+
     show(message) {
         this.setContent(message);
         this.info.classList.remove('slideUp');
         this.info.classList.add('slideDown');
     }
-    
+
     setContent(html) {
         this.infoContent.innerHTML = html;
     }
-    
+
     open() {
         this.info.classList.add('slideDown');
         this.info.classList.remove('slideUp');
     }
-    
+
     close() {
         this.info.classList.add('slideUp');
         this.info.classList.remove('slideDown');
     }
-    
+
     slower() {
         const oldVal = this.playbackSpeed;
         this.playbackSpeed = Math.max(1, this.playbackSpeed - 1);
@@ -214,21 +214,19 @@ class CreepControl {
             if (this.pauseTime == null) this.pauseTime = frameState.time;
             this.currentTime = this.pauseTime;
         }
-        else {
-            if (this.pauseTime != null) {
-                for (let i = 0; i < features.length; i++) {
-                    const feature = features[i];
-                    const waveTimes = feature.get('waveTimes');
-                    if (waveTimes) {
-                        let j = waveTimes.length;
-                        while (j--) {
-                            waveTimes[j] += (this.currentTime - this.pauseTime);
-                        }
+        else if (this.pauseTime != null) {
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const waveTimes = feature.get('waveTimes');
+                if (waveTimes) {
+                    let j = waveTimes.length;
+                    while (j--) {
+                        waveTimes[j] += (this.currentTime - this.pauseTime);
                     }
                 }
-                this.startTime += (this.currentTime - this.pauseTime);
-                this.pauseTime = null;
             }
+            this.startTime += (this.currentTime - this.pauseTime);
+            this.pauseTime = null;
         }
         for (let i = 0; i < features.length; i++) {
             const feature = features[i];
@@ -243,7 +241,7 @@ class CreepControl {
                 waveTimes.push(this.currentTime);
             }
             let j = waveTimes.length;
-            while (j--) {                
+            while (j--) {
                 let path = feature.get('path');
                 let coords;
                 if (!path) {
@@ -272,8 +270,8 @@ class CreepControl {
                 vectorContext.drawCircle(point);
             }
         }
-        let timeText = (((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1) + 's';
-        if (this.playbackSpeed > 1) timeText += ', ' + this.playbackSpeed + 'x'
+        let timeText = `${(((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1)}s`;
+        if (this.playbackSpeed > 1) timeText += `, ${this.playbackSpeed}x`;
         this.setContent(timeText);
         frameState.animate = true;
     }

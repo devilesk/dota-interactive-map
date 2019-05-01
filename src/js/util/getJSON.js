@@ -1,6 +1,6 @@
 const getJSON = (path, callback) => {
     let retries = 3;
-    
+
     const makeReq = () => {
         const request = new XMLHttpRequest();
 
@@ -19,7 +19,7 @@ const getJSON = (path, callback) => {
                 }
             }
             else {
-                err = new Error("Error loading json " + request.status);
+                err = new Error(`Error loading json ${request.status}`);
             }
             callback(err, data);
         };
@@ -29,14 +29,14 @@ const getJSON = (path, callback) => {
                 setTimeout(makeReq, 1000);
             }
             else {
-                err = new Error("Error loading json " + request.status);
+                err = new Error(`Error loading json ${request.status}`);
                 callback(err);
             }
         };
         request.send();
-    }
-    
+    };
+
     makeReq();
-}
+};
 
 export default getJSON;

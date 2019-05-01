@@ -1,15 +1,15 @@
-import { setQueryString, getParameterByName } from './../util/queryString';
+import { setQueryString, getParameterByName } from '../util/queryString';
 
 class TreeControl {
     constructor(InteractiveMap) {
         this.InteractiveMap = InteractiveMap;
         this.allTreesCutState = false;
     }
-    
+
     get root() {
         return this.InteractiveMap.root;
     }
-    
+
     updateQueryString() {
         const keys = ['cut_trees', 'uncut_trees'];
         const layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
@@ -17,9 +17,9 @@ class TreeControl {
         const features = source.getFeatures();
         const values = features
             .filter(feature => !!feature.get('isCut') != this.allTreesCutState)
-            .map(feature => {
+            .map((feature) => {
                 const dotaProps = feature.get('dotaProps');
-                return dotaProps.x + ',' + dotaProps.y;
+                return `${dotaProps.x},${dotaProps.y}`;
             })
             .join(';');
         setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
@@ -32,9 +32,9 @@ class TreeControl {
         const source = layer.getSource();
         const features = source.getFeatures();
         const treeMap = {};
-        features.forEach(feature => {
+        features.forEach((feature) => {
             const dotaProps = feature.get('dotaProps');
-            const worldXY = dotaProps.x + ',' + dotaProps.y;
+            const worldXY = `${dotaProps.x},${dotaProps.y}`;
             treeMap[worldXY] = feature;
         });
         ['uncut_trees', 'cut_trees'].forEach((treeCutState, index) => {
@@ -42,7 +42,7 @@ class TreeControl {
             if (values) {
                 this.toggleAllTrees(!index, true);
                 values = values.split(';');
-                values.forEach(worldXY => {
+                values.forEach((worldXY) => {
                     const feature = treeMap[worldXY];
                     if (feature) {
                         if (!!feature.get('isCut') == !index) {
@@ -53,7 +53,7 @@ class TreeControl {
             }
         });
         this.updateQueryString();
-        
+
         this.InteractiveMap.controls.ward.updateAllWardVision();
     }
 
@@ -62,7 +62,7 @@ class TreeControl {
         this.InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
         feature.set('isCut', !feature.get('isCut'));
         if (!bSkipQueryStringUpdate) this.updateQueryString();
-        
+
         if (!bSkipWardVisionUpdate) this.InteractiveMap.controls.ward.updateAllWardVision();
     }
 
@@ -71,16 +71,15 @@ class TreeControl {
         const layer = this.InteractiveMap.getMapLayer('ent_dota_tree');
         const source = layer.getSource();
         const features = source.getFeatures();
-        features.forEach(feature => {
+        features.forEach((feature) => {
             if (!!feature.get('isCut') != state) {
                 this.toggleTree(feature, feature.get('dotaProps'), true, true);
             }
         });
         if (!bSkipQueryStringUpdate) this.updateQueryString();
-        
+
         if (!bSkipWardVisionUpdate) this.InteractiveMap.controls.ward.updateAllWardVision();
     }
-
 }
 
 export default TreeControl;

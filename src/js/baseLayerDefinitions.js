@@ -5,9 +5,9 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
+                name: 'Default',
+            },
+        ],
     },
     {
         id: '719',
@@ -15,9 +15,9 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
+                name: 'Default',
+            },
+        ],
     },
     {
         id: '715',
@@ -25,9 +25,9 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
+                name: 'Default',
+            },
+        ],
     },
     {
         id: '709',
@@ -35,9 +35,9 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
+                name: 'Default',
+            },
+        ],
     },
     {
         id: '707',
@@ -45,9 +45,9 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
+                name: 'Default',
+            },
+        ],
     },
     {
         id: '706',
@@ -55,37 +55,37 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
+                name: 'Default',
             },
             {
                 id: 'autumn',
-                name: 'Autumn'
+                name: 'Autumn',
             },
             {
                 id: 'desert',
-                name: 'Desert'
+                name: 'Desert',
             },
             {
                 id: 'immortalgardens',
-                name: 'Immortal Gardens'
+                name: 'Immortal Gardens',
             },
             {
                 id: 'journey',
-                name: 'New Journey'
+                name: 'New Journey',
             },
             {
                 id: 'reef',
-                name: 'Reef\'s Edge'
+                name: 'Reef\'s Edge',
             },
             {
                 id: 'spring',
-                name: 'Spring'
+                name: 'Spring',
             },
             {
                 id: 'winter',
-                name: 'Winter'
-            }
-        ]
+                name: 'Winter',
+            },
+        ],
     },
     {
         id: '700',
@@ -93,9 +93,9 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
+                name: 'Default',
+            },
+        ],
     },
     {
         id: '688',
@@ -103,10 +103,10 @@ const baseLayerDefinitions = [
         tilesets: [
             {
                 id: 'default',
-                name: 'Default'
-            }
-        ]
-    }
+                name: 'Default',
+            },
+        ],
+    },
 ];
 
 export default baseLayerDefinitions;
