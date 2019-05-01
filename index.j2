@@ -368,6 +368,6 @@
         {{ super() }}
         <script src="https://openlayers.org/en/v5.2.0/build/ol.js"></script>
         <script src="bundle.js"></script>
-        <script>new InteractiveMap("https://cdn.devilesk.com/", "img/map_data_720.png", "720")</script>
+        <script>new InteractiveMap(document, "https://cdn.devilesk.com/", "img/map_data_720.png", "720")</script>
     {% endblock js %}
 {% endblock body %}
