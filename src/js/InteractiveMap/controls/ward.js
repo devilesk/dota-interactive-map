@@ -88,16 +88,16 @@ class WardControl extends BaseControl {
 
     activate() {
         if (!this.pointerMoveListener) {
-            this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', (evt) => {
+            this.pointerMoveListener = this.map.on('pointermove', (evt) => {
                 if (evt.dragging) {
                     return;
                 }
 
-                const pixel = this.InteractiveMap.map.getEventPixel(evt.originalEvent);
+                const pixel = this.map.getEventPixel(evt.originalEvent);
 
                 // if mouse over a building feature, show info and highlight
                 let bBuildingHover = false;
-                let feature = this.InteractiveMap.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
+                let feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
                 if (feature) {
                     bBuildingHover = this.highlight(feature);
 
@@ -149,9 +149,9 @@ class WardControl extends BaseControl {
             });
         }
         if (!this.clickListener) {
-            this.clickListener = this.InteractiveMap.map.on('click', (evt) => {
+            this.clickListener = this.map.on('click', (evt) => {
                 this.unhighlight();
-                let feature = this.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
+                let feature = this.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
                 if (feature && this.InteractiveMap.hasVisionRadius(feature)) {
                     this.InteractiveMap.toggle(feature);
                     if (this.InteractiveMap.controls.vision.toggleVisionFeature(feature)) {
@@ -163,7 +163,7 @@ class WardControl extends BaseControl {
                     this.InteractiveMap.controls.cursor.source.clear(true);
                 }
                 else {
-                    feature = this.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.layerFilter });
+                    feature = this.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.layerFilter });
                     if (feature) {
                         this.removeWard(feature);
                         this.clearInfo(true);

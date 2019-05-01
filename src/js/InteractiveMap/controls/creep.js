@@ -152,10 +152,10 @@ class CreepControl extends BaseControl {
 
     start() {
         if (!this.postComposeListener) {
-            this.postComposeListener = this.InteractiveMap.map.on('postcompose', this.postComposeHandler);
+            this.postComposeListener = this.map.on('postcompose', this.postComposeHandler);
         }
         if (this.paused) this.playPause();
-        this.InteractiveMap.map.render();
+        this.map.render();
     }
 
     stop() {
@@ -172,7 +172,7 @@ class CreepControl extends BaseControl {
         this.startTime = null;
         if (!this.paused) this.playPause();
         this.pauseTime = null;
-        this.InteractiveMap.map.render();
+        this.map.render();
         this.setContent(this.title);
     }
 

@@ -13,7 +13,7 @@ class CoordinateControl extends BaseControl {
             projection: dotaProj,
             target: this.root.getElementById(elementId),
         });
-        this.InteractiveMap.map.addControl(this.mousePosition);
+        this.map.addControl(this.mousePosition);
     }
 }
 

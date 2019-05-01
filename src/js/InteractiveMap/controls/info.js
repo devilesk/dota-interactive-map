@@ -26,17 +26,17 @@ class InfoControl extends BaseControl {
 
     activate() {
         if (!this.pointerMoveListener) {
-            this.pointerMoveListener = this.InteractiveMap.map.on('pointermove', (evt) => {
+            this.pointerMoveListener = this.map.on('pointermove', (evt) => {
                 // When user was dragging map, then coordinates didn't change and there's
                 // no need to continue
                 if (evt.dragging) {
                     return;
                 }
 
-                const pixel = this.InteractiveMap.map.getEventPixel(evt.originalEvent);
+                const pixel = this.map.getEventPixel(evt.originalEvent);
 
                 // if mouse over a building feature, show info and highlight
-                let feature = this.InteractiveMap.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
+                let feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
                 if (feature) {
                     if (!this.isActive()) {
                         this.displayFeatureInfo(feature, false);
@@ -60,9 +60,9 @@ class InfoControl extends BaseControl {
             });
         }
         if (!this.clickListener) {
-            this.clickListener = this.InteractiveMap.map.on('click', (evt) => {
+            this.clickListener = this.map.on('click', (evt) => {
                 this.unhighlight();
-                let feature = this.InteractiveMap.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
+                let feature = this.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
                 if (feature) {
                     if (!feature.get('clicked')) {
                         this.InteractiveMap.deselectAll();
