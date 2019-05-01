@@ -4,3 +4,4 @@ dist/
 src/template/*.html
 .env*
 !.env.example
+scripts/generateGeoJson.js
