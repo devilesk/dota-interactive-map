@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import { unByKey } from 'ol/Observable';
 import Polygon from 'ol/geom/Polygon';
 import LinearRing from 'ol/geom/LinearRing';
@@ -8,23 +9,19 @@ import mapConstants from '../definitions/mapConstants';
 import { worldToLatLon } from '../conversion';
 import createCirclePointCoords from '../util/createCirclePointCoords';
 
-class InfoControl {
+class InfoControl extends BaseControl {
     constructor(InteractiveMap, id) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         // this.highlight = null;
         this.lastPointerMoveTime = Date.now();
         this.pointerMoveListener = null;
         this.clickListener = null;
 
         this.id = id;
-        this.info = InteractiveMap.root.getElementById(id);
-        this.infoContent = InteractiveMap.root.querySelector(`#${id} .message-content`);
-        this.closeBtn = InteractiveMap.root.querySelector(`#${id} .btn-close`);
+        this.info = this.root.getElementById(id);
+        this.infoContent = this.root.querySelector(`#${id} .message-content`);
+        this.closeBtn = this.root.querySelector(`#${id} .btn-close`);
         this.closeBtn.addEventListener('click', evt => this.close(true), false);
-    }
-
-    get root() {
-        this.InteractiveMap.root;
     }
 
     activate() {

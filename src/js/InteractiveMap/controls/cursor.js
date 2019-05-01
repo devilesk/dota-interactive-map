@@ -1,10 +1,11 @@
+import BaseControl from './base';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import styles from '../definitions/styles';
 
-class CursorControl {
+class CursorControl extends BaseControl {
     constructor(InteractiveMap) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.source = new SourceVector({});
         this.layer = new LayerVector({
             source: this.source,

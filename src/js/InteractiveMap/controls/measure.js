@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import Polygon from 'ol/geom/Polygon';
@@ -38,10 +39,9 @@ const formatLength = (InteractiveMap, line) => {
     return output;
 };
 
-class MeasureControl {
+class MeasureControl extends BaseControl {
     constructor(InteractiveMap) {
-        this.InteractiveMap = InteractiveMap;
-        this.map = InteractiveMap.map;
+        super(InteractiveMap);
         this.source = new SourceVector({});
 
         this.layer = new LayerVector({ source: this.source });
@@ -102,10 +102,6 @@ class MeasureControl {
         this.draw = null; // global so we can remove it later
 
         this.active = false;
-    }
-
-    get root() {
-        return this.InteractiveMap.root;
     }
 
     /**

@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import Polygon from 'ol/geom/Polygon';
@@ -14,10 +15,9 @@ import RotateFeatureInteraction from 'ol-rotate-feature';
 import heroIcons from '../heroIconManifest.json';
 import { KML } from 'ol/format';
 
-class DrawControl {
+class DrawControl extends BaseControl {
     constructor(InteractiveMap) {
-        this.InteractiveMap = InteractiveMap;
-        this.map = InteractiveMap.map;
+        super(InteractiveMap);
         this.source = new SourceVector({
             url: (source, extent, number, proj) => {
                 if (this.dataId) {
@@ -55,10 +55,6 @@ class DrawControl {
 
         this.undoHistory = [];
         this.redoHistory = [];
-    }
-
-    get root() {
-        return this.InteractiveMap.root;
     }
 
     getId() {

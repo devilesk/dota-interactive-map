@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import { setQueryString } from '../util/queryString';
 import modeNotificationText from '../modeNotificationText';
 import forEach from '../util/forEach';
@@ -121,9 +122,9 @@ class MenuPanel {
     }
 }
 
-class MenuControl {
+class MenuControl extends BaseControl {
     constructor(InteractiveMap) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.leftPanel = new MenuPanel(InteractiveMap.root, 'menu-left', 'menu-left-open-btn', 'menu-left-close-btn');
         this.rightPanel = new MenuPanel(InteractiveMap.root, 'menu-right', 'menu-right-open-btn', 'menu-right-close-btn');
         this.leftPanel.otherMenu = this.rightPanel;
@@ -167,10 +168,6 @@ class MenuControl {
             versionOption.innerHTML = group.name;
             versionSelect.appendChild(versionOption);
         });
-    }
-
-    get root() {
-        return this.InteractiveMap.root;
     }
 
     updateLayerAndQueryString(element, layerId) {

@@ -1,13 +1,10 @@
+import BaseControl from './base';
 import { setQueryString, getParameterByName } from '../util/queryString';
 
-class TreeControl {
+class TreeControl extends BaseControl {
     constructor(InteractiveMap) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.allTreesCutState = false;
-    }
-
-    get root() {
-        return this.InteractiveMap.root;
     }
 
     updateQueryString() {

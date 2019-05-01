@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import Feature from 'ol/Feature';
@@ -8,9 +9,9 @@ import mapConstants from '../definitions/mapConstants';
 import { latLonToWorld, worldToLatLon } from '../conversion';
 import { setQueryString, getParameterByName } from '../util/queryString';
 
-class WardControl {
+class WardControl extends BaseControl {
     constructor(InteractiveMap, throttleTime) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.throttleTime = throttleTime;
         this.source = new SourceVector({});
         this.layer = new LayerVector({

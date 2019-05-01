@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import Circle from 'ol/geom/Circle';
 import { unByKey } from 'ol/Observable';
 import mapConstants from '../definitions/mapConstants';
@@ -69,9 +70,9 @@ const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) 
     }
 };
 
-class CreepControl {
+class CreepControl extends BaseControl {
     constructor(InteractiveMap, id) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.postComposeListener = null;
         this.postComposeHandler = this.animateCreeps.bind(this);
         this.playbackSpeed = 1;
@@ -93,10 +94,6 @@ class CreepControl {
 
         this.slowerBtn = this.root.querySelector('#timer-slower');
         this.slowerBtn.addEventListener('click', () => this.slower(true), false);
-    }
-
-    get root() {
-        return this.InteractiveMap.root;
     }
 
     show(message) {

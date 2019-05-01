@@ -1,10 +1,11 @@
+import BaseControl from './base';
 import MousePosition from 'ol/control/MousePosition';
 import { createStringXY } from 'ol/coordinate';
 import { dotaProj } from '../definitions/projections';
 
-class CoordinateControl {
+class CoordinateControl extends BaseControl {
     constructor(InteractiveMap, elementId) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.createStringXY = createStringXY();
         this.mousePosition = new MousePosition({
             undefinedHTML: '<span></span>',
@@ -13,10 +14,6 @@ class CoordinateControl {
             target: this.root.getElementById(elementId),
         });
         this.InteractiveMap.map.addControl(this.mousePosition);
-    }
-
-    get root() {
-        return this.InteractiveMap.root;
     }
 }
 

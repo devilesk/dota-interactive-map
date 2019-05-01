@@ -1,3 +1,4 @@
+import BaseControl from './base';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import { latLonToWorld, worldToLatLon, getTileRadius } from '../conversion';
@@ -6,9 +7,9 @@ import styles from '../definitions/styles';
 import MultiPolygon from 'ol/geom/MultiPolygon';
 import Feature from 'ol/Feature';
 
-class VisionControl {
+class VisionControl extends BaseControl {
     constructor(InteractiveMap) {
-        this.InteractiveMap = InteractiveMap;
+        super(InteractiveMap);
         this.source = new SourceVector({});
         this.layer = new LayerVector({
             source: this.source,
