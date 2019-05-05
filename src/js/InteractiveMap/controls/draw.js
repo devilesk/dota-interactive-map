@@ -19,9 +19,7 @@ class DrawControl extends BaseControl {
     constructor(InteractiveMap) {
         super(InteractiveMap);
         this.source = new SourceVector({
-            url: (source, extent, number, proj) => {
-                return this.dataId ? `save/${this.dataId}.kml` : '';
-            },
+            url: (source, extent, number, proj) => (this.dataId ? `save/${this.dataId}.kml` : ''),
             format: new KML(),
         });
 

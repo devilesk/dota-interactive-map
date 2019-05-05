@@ -13,7 +13,7 @@ console.log(`Generating no_wards.json, ent_fow_blocker_node.json, and elevation.
 const vs = new VisionSimulation(worlddata);
 vs.initialize(`assets/img/map_data_${DOTA_PATCH_ID}.png`, () => {
     let t1;
-    
+
     if (INDEX === 0 || INDEX === -1) {
         t1 = Date.now();
         console.log('generating no_wards.json');
@@ -24,7 +24,7 @@ vs.initialize(`assets/img/map_data_${DOTA_PATCH_ID}.png`, () => {
     else {
         console.log('skipping no_wards.json');
     }
-    
+
     if (INDEX === 1 || INDEX === -1) {
         t1 = Date.now();
         console.log('ent_fow_blocker_node no_wards.json');
@@ -35,7 +35,7 @@ vs.initialize(`assets/img/map_data_${DOTA_PATCH_ID}.png`, () => {
     else {
         console.log('skipping ent_fow_blocker_node.json');
     }
-    
+
     if (INDEX === 2 || INDEX === -1) {
         const elevations = {};
         for (const [key, pt] of Object.entries(vs.elevationGrid)) {
@@ -44,7 +44,7 @@ vs.initialize(`assets/img/map_data_${DOTA_PATCH_ID}.png`, () => {
         }
         console.log('elevations', Object.keys(elevations));
         const resultCombined = {
-            type: "FeatureCollection",
+            type: 'FeatureCollection',
             features: [],
         };
         for (const [z, grid] of Object.entries(elevations)) {
@@ -52,7 +52,7 @@ vs.initialize(`assets/img/map_data_${DOTA_PATCH_ID}.png`, () => {
             console.log(`generating elevation_${z}.json`);
             const result = generateGeoJSON(vs, [grid], `assets/data/${DOTA_PATCH_ID}/elevation_${z}.json`);
             result.properties = { elevation: z };
-            //fs.writeFileSync(`assets/data/${DOTA_PATCH_ID}/elevation_${z}.json`, JSON.stringify(result), 'utf8');
+            // fs.writeFileSync(`assets/data/${DOTA_PATCH_ID}/elevation_${z}.json`, JSON.stringify(result), 'utf8');
             resultCombined.features.push(result);
             console.log(`elevation_${z}.json`, `${Date.now() - t1}ms`);
         }
