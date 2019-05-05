@@ -1,7 +1,5 @@
 import InteractiveMap from './InteractiveMap';
 
-import rollbar from './rollbar';
-
 import ModalControl from './InteractiveMap/controls/modal';
 
 class App {

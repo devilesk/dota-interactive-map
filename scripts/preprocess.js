@@ -6,6 +6,7 @@ const context = {
     ...process.env,
     NODE_ENV: process.env.NODE_ENV || 'development',
     COMMIT_HASH: git.short(),
+    CODE_VERSION: git.long(),
 };
 pp.preprocessFileSync('src/template/index.html', 'build/index.html', context);
 pp.preprocessFileSync('src/template/index.j2', 'build/index.j2', context);
