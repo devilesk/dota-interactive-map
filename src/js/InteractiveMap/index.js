@@ -50,6 +50,8 @@ class InteractiveMap {
             resolutions: [32, 16, 8, 4, 2, 1],
             isNight: false,
             isDarkness: false,
+            save: true,
+            download: true,
             ...options,
             controls: {
                 coordinate: true,
@@ -566,13 +568,13 @@ class InteractiveMap {
                 }, false);
             }
 
-            if ('#enable_save' === 'true') {
+            if (this.options.save) {
                 this.root.getElementById('save').addEventListener('click', () => this.save());
             }
 
             this.root.getElementById('share').addEventListener('click', () => this.share());
 
-            if ('#enable_download' === 'true') {
+            if (this.options.download) {
                 this.root.getElementById('export-map').addEventListener('click', () => this.export('map.png'));
             }
 

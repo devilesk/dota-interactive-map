@@ -333,6 +333,6 @@ var _rollbarConfig = {
         <!-- @if NODE_ENV='production' !>
         <script src="bundle-<!-- @echo COMMIT_HASH !>.min.js"></script>
         <!-- @endif -->
-        <script>new InteractiveMap(document, "<!-- @echo MAP_DATA_PATH !>", "<!-- @echo VISION_DATA_IMAGE_PATH !>", "<!-- @echo MAP_DATA_VERSION !>")</script>
+        <script>new InteractiveMap(document, "<!-- @echo MAP_DATA_PATH !>", "<!-- @echo VISION_DATA_IMAGE_PATH !>", "<!-- @echo MAP_DATA_VERSION !>", { save: <!-- @echo ENABLE_SAVE !>, download: <!-- @echo ENABLE_DOWNLOAD !> })</script>
     {% endblock js %}
 {% endblock body %}
