@@ -9,7 +9,7 @@ import LayerGroup from 'ol/layer/Group';
 import Collection from 'ol/Collection';
 import { dotaProj, pixelProj } from './definitions/projections';
 
-const loadGeoJSON = (map, layerDef, data, version) => {
+export const loadGeoJSON = (map, layerDef, data, version) => {
     try {
         const source = new SourceVector({
             url: `data/${version}/${layerDef.filename}`,
@@ -28,7 +28,7 @@ const loadGeoJSON = (map, layerDef, data, version) => {
     }
 };
 
-const loadPolygon = (map, layerDef, data, layer) => {
+export const loadPolygon = (map, layerDef, data, layer) => {
     const features = data.data[layerDef.id].map((obj) => {
         const points = obj.points;
         const ring = points.map(point => transform([point.x, point.y], dotaProj, pixelProj));
@@ -60,7 +60,7 @@ const loadPolygon = (map, layerDef, data, layer) => {
     return layer;
 };
 
-const loadJSON = (map, layerDef, data, layer) => {
+export const loadJSON = (map, layerDef, data, layer) => {
     const features = data.data[layerDef.id].map((point) => {
         const unitClass = point.subType ? `${layerDef.id}_${point.subType}` : layerDef.id;
         const stats = data.stats[unitClass];
@@ -104,7 +104,7 @@ const loadJSON = (map, layerDef, data, layer) => {
     return layer;
 };
 
-const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
+export const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
     const layers = [];
     for (let i = 0; i < layerDefs.length; i++) {
         const layerDef = layerDefs[i];
@@ -130,10 +130,4 @@ const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, laye
         title: 'Layers',
         layers: new Collection(layers),
     });
-};
-
-export {
-    loadGeoJSON,
-    loadJSON,
-    loadLayerGroupFromData,
 };
