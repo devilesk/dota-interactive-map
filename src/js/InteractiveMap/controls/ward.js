@@ -60,9 +60,8 @@ class WardControl extends BaseControl {
     showVisibilityInfo(feature, bClicked) {
         const visionFeature = feature ? feature.get('visionFeature') : null;
         const info = this.InteractiveMap.controls.info;
-        const vs = this.InteractiveMap.vs;
-        let lightArea = vs.lightArea;
-        let area = vs.area;
+        let lightArea = this.vs.lightArea;
+        let area = this.vs.area;
         if (feature) {
             const visionData = visionFeature ? visionFeature.get('visionData') : null;
             if (visionData) {

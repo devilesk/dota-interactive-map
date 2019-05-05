@@ -55,8 +55,8 @@ class TreeControl extends BaseControl {
     }
 
     toggleTree(feature, dotaProps, bSkipQueryStringUpdate, bSkipWardVisionUpdate) {
-        const gridXY = this.InteractiveMap.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
-        this.InteractiveMap.vs.toggleTree(gridXY.x, gridXY.y);
+        const gridXY = this.vs.WorldXYtoGridXY(dotaProps.x, dotaProps.y);
+        this.vs.toggleTree(gridXY.x, gridXY.y);
         feature.set('isCut', !feature.get('isCut'));
         if (!bSkipQueryStringUpdate) this.updateQueryString();
 

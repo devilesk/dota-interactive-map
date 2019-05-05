@@ -13,6 +13,10 @@ class BaseControl extends EventEmitter {
     get map() {
         return this.InteractiveMap.map;
     }
+
+    get vs() {
+        return this.InteractiveMap.vs;
+    }
 }
 
 export default BaseControl;
