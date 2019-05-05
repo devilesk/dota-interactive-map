@@ -6,6 +6,15 @@ import { dotaProj } from './projections';
 
 const layers = [
     {
+        id: 'elevation',
+        name: 'Elevation',
+        filename: 'elevation.json',
+        type: 'GeoJSON',
+        group: 'overlay',
+        projection: dotaProj,
+        style: styles.elevation,
+    },
+    {
         id: 'path_corner',
         name: 'Lanes',
         filename: 'path_corner.json',
