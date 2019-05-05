@@ -12,7 +12,7 @@ import Stroke from 'ol/style/Stroke';
 import { asArray as colorAsArray } from 'ol/color';
 import { unByKey } from 'ol/Observable';
 import RotateFeatureInteraction from 'ol-rotate-feature';
-import heroIcons from '../heroIconManifest.json';
+import heroIcons from '../definitions/heroIconManifest.json';
 import { KML } from 'ol/format';
 
 class DrawControl extends BaseControl {

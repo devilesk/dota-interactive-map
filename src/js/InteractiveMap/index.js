@@ -40,7 +40,7 @@ import { setQueryString, getParameterByName } from './util/queryString';
 import forEach from './util/forEach';
 import CP from './util/color-picker';
 import { saveAs } from 'file-saver/FileSaver';
-import heroIcons from './heroIconManifest.json';
+import heroIcons from './definitions/heroIconManifest.json';
 
 class InteractiveMap {
     constructor(root, mapTilePath, version, visionDataImagePath, options = {}) {
