@@ -18,7 +18,7 @@ class MenuControl extends BaseControl {
 
         this.InteractiveMap.layerDefs.forEach((layerDef) => {
             const group = layerDef.group;
-            const menu = this.root.querySelector(`#${group}-menu`);
+            const menu = this.root.getElementById(`${group}-menu`);
             const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, layerToggleHandler);
             menu.appendChild(menuItem);
         });
@@ -38,7 +38,7 @@ class MenuControl extends BaseControl {
             if (checked) checked = false;
 
             group.tilesets.forEach((tileset) => {
-                const menu = this.root.querySelector(`#base-${group.id}-menu`);
+                const menu = this.root.getElementById(`base-${group.id}-menu`);
                 const layerDef = { ...tileset, group: group.id };
                 const menuItem = MenuPanel.createMenuPanelItem(this.InteractiveMap, layerDef, baseLayerToggleHandler, 'radio', 'base-layer');
                 menu.appendChild(menuItem);
