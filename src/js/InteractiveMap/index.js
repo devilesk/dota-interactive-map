@@ -168,14 +168,14 @@ class InteractiveMap extends EventEmitter {
         this.controls = {
             menu: new MenuControl(this),
             info: new InfoControl(this, 'info'),
-            notification: new NotificationControl(this.root, 'notification'),
+            notification: new NotificationControl(this.root.getElementById('notification')),
             vision: new VisionControl(this),
             ward: new WardControl(this),
             tree: new TreeControl(this),
             cursor: new CursorControl(this),
-            coordinate: this.options.controls.coordinate && new CoordinateControl(this, 'coordinates'),
             measure: new MeasureControl(this),
             creep: new CreepControl(this, 'timer'),
+            coordinate: this.options.controls.coordinate && new CoordinateControl(this, this.root.getElementById('coordinates')),
             draw: new DrawControl(this),
         };
 
