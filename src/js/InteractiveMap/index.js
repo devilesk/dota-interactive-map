@@ -23,7 +23,7 @@ import { loadGeoJSON, loadJSON, loadLayerGroupFromData } from './dataLoader';
 import { getScaledRadius, worldToLatLon } from './conversion';
 import baseLayerDefinitions from './definitions/baseLayers';
 import layerDefinitions from './definitions/layers';
-import modeNotificationText from './modeNotificationText';
+import modeNotificationText from './definitions/modeNotificationText';
 import MenuControl from './controls/menu';
 import InfoControl from './controls/info';
 import NotificationControl from './controls/notification';

@@ -1,6 +1,5 @@
 import BaseControl from './base';
 import { setQueryString } from '../util/queryString';
-import modeNotificationText from '../modeNotificationText';
 
 class MenuPanel {
     constructor(root, panelId, openId, closeId, fullscreen) {
@@ -120,6 +119,7 @@ class MenuPanel {
         return menuItem;
     }
 }
+import modeNotificationText from '../definitions/modeNotificationText';
 
 class MenuControl extends BaseControl {
     constructor(InteractiveMap) {
