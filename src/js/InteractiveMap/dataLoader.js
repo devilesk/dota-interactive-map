@@ -106,8 +106,7 @@ export const loadJSON = (map, layerDef, data, layer) => {
 
 export const loadLayerGroupFromData = (InteractiveMap, data, version, layersIndex, layerDefs) => {
     const layers = [];
-    for (let i = 0; i < layerDefs.length; i++) {
-        const layerDef = layerDefs[i];
+    for (const layerDef of layerDefs) {
         if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version === '688')) continue;
         let layer;
         switch (layerDef.type) {

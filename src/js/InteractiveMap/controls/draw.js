@@ -271,8 +271,7 @@ class DrawControl extends BaseControl {
                 this.source.addFeature(clone);
             }
             else if (action.type === 'modify') {
-                for (let i = this.undoHistory.length - 1; i >= 0; i--) {
-                    const previousAction = this.undoHistory[i];
+                for (const previousAction of this.undoHistory) {
                     if (previousAction.id === action.id) {
                         this.source.removeFeature(this.source.getFeatureById(action.id));
                         const clone = previousAction.feature.clone();

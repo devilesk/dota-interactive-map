@@ -7,9 +7,9 @@ const xy2pt = VisionSimulation.prototype.xy2pt;
 const processNeighbors = (grid, lights, components, key, index) => {
     const pt = key2pt(key);
     const dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
-    for (let i = 0; i < dirs.length; i++) {
-        const aX = pt.x + dirs[i][0];
-        const aY = pt.y + dirs[i][1];
+    for (const dir of dirs) {
+        const aX = pt.x + dir[0];
+        const aY = pt.y + dir[1];
         if (!grid[aX] || !grid[aX][aY]) continue;
         const keyAdj = grid[aX][aY].key;
         if (components[keyAdj] || !lights[keyAdj]) continue;
