@@ -1,5 +1,15 @@
 const baseLayers = [
     {
+        id: '721',
+        name: '7.21',
+        tilesets: [
+            {
+                id: 'default',
+                name: 'Default',
+            },
+        ],
+    },
+    {
         id: '720',
         name: '7.20',
         tilesets: [
