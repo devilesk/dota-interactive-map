@@ -64,7 +64,7 @@ const getOutline = (grid, components, index) => {
     for (const key in components) {
         const pt = key2pt(key);
         dir = notSurrounded(grid, components, pt);
-        if (components[key] == index && dir !== null) {
+        if (components[key] === index && dir !== null) {
             startKey = key;
             break;
         }
@@ -83,7 +83,7 @@ const checkAdj = (grid, components, pt, key, dir, i, adjDir) => {
     const aY = pt.y + dir[1];
     if (!grid[aX] || !grid[aX][aY]) return;
     const ptAdj = grid[pt.x + dir[0]][pt.y + dir[1]];
-    if (components[ptAdj.key] == components[key] && isSideFree(grid, components, ptAdj, adjDir)) {
+    if (components[ptAdj.key] === components[key] && isSideFree(grid, components, ptAdj, adjDir)) {
         return {
             key: ptAdj.key,
             dir: i,

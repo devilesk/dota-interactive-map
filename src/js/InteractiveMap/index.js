@@ -86,7 +86,7 @@ class InteractiveMap extends EventEmitter {
         this.layerFilters = {
             marker: (layer) => {
                 const layerDef = layer.get('layerDef');
-                return layer.getVisible() && layerDef && (layerDef.group == 'structure' || layerDef.group == 'object');
+                return layer.getVisible() && layerDef && (layerDef.group === 'structure' || layerDef.group === 'object');
             },
         };
         this.map = new Map({
@@ -291,7 +291,7 @@ class InteractiveMap extends EventEmitter {
                 this.highlightedWard.setStyle(styles[this.highlightedWard.get('wardType')].normal);
             }
             if (feature) {
-                feature.setStyle(styles[feature.get('wardType')][this.mode == 'navigate' ? 'highlight' : 'remove']);
+                feature.setStyle(styles[feature.get('wardType')][this.mode === 'navigate' ? 'highlight' : 'remove']);
             }
             this.highlightedWard = feature;
         }
@@ -337,7 +337,7 @@ class InteractiveMap extends EventEmitter {
 
     select(feature) {
         if (feature && !feature.get('clicked')) {
-            if (feature == this.highlightedFeature) {
+            if (feature === this.highlightedFeature) {
                 this.unhighlight();
             }
             this.selectSource.addFeature(feature);
@@ -352,7 +352,7 @@ class InteractiveMap extends EventEmitter {
 
     deselect(feature) {
         if (feature && feature.get('clicked')) {
-            if (feature == this.highlightedFeature) {
+            if (feature === this.highlightedFeature) {
                 this.unhighlight();
             }
 
@@ -370,13 +370,13 @@ class InteractiveMap extends EventEmitter {
         unitClass = unitClass || dotaProps.unitClass;
         const unitStats = this.getStatData()[unitClass] || {};
         let radius;
-        if (unitClass == 'observer') {
+        if (unitClass === 'observer') {
             radius = this.visionRadius || mapConstants.visionRadius[unitClass];
             if (this.isDarkness) {
                 radius = Math.min(mapConstants.visionRadius.darkness, radius);
             }
         }
-        else if (unitClass == 'sentry') {
+        else if (unitClass === 'sentry') {
             radius = mapConstants.visionRadius[unitClass];
         }
         else {
@@ -444,7 +444,7 @@ class InteractiveMap extends EventEmitter {
             element = this.root.querySelector(`input[name="base-layer"][value="${baseLayerName}"]`);
             if (element) {
                 element.checked = true;
-                this.baseLayers.filter(layer => layer.get('layerId') == baseLayerName)[0].setVisible(true);
+                this.baseLayers.filter(layer => layer.get('layerId') === baseLayerName)[0].setVisible(true);
             }
         }
         if (!element) {
@@ -464,7 +464,7 @@ class InteractiveMap extends EventEmitter {
             else {
                 setQueryString(param, null);
             }
-            if (layerDef.id == 'ent_dota_tree') {
+            if (layerDef.id === 'ent_dota_tree') {
                 this.root.getElementById('btn-tree').setAttribute('trees-enabled', layerDef.visible ? 'yes' : 'no');
             }
         });
@@ -511,8 +511,8 @@ class InteractiveMap extends EventEmitter {
         xhr.open('POST', 'save.php', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
         xhr.onreadystatechange = () => {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                if (xhr.status == 200) {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
                     const data = JSON.parse(xhr.responseText);
                     if (data.file) {
                         setQueryString('data', data.file);
@@ -730,22 +730,22 @@ class InteractiveMap extends EventEmitter {
             this.root.getElementById('btn-tree').addEventListener('click', (e) => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
-                    el.setAttribute('trees-enabled', el.getAttribute('trees-enabled') == 'yes' ? 'no' : 'yes');
+                    el.setAttribute('trees-enabled', el.getAttribute('trees-enabled') === 'yes' ? 'no' : 'yes');
                 }
                 el.classList.add('active');
                 this.root.getElementById('btn-ward').classList.remove('active');
                 this.root.getElementById('btn-measure').classList.remove('active');
-                this.controls.menu.toggleLayerMenuOption('ent_dota_tree', el.getAttribute('trees-enabled') == 'yes');
+                this.controls.menu.toggleLayerMenuOption('ent_dota_tree', el.getAttribute('trees-enabled') === 'yes');
                 this.controls.menu.changeMode('navigate');
-                this.controls.notification.show(el.getAttribute('trees-enabled') == 'yes' ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
+                this.controls.notification.show(el.getAttribute('trees-enabled') === 'yes' ? modeNotificationText.treeEnable : modeNotificationText.treeDisable);
             });
 
             this.root.getElementById('btn-ward').addEventListener('click', (e) => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
-                    el.setAttribute('ward-type', el.getAttribute('ward-type') == 'observer' ? 'sentry' : 'observer');
+                    el.setAttribute('ward-type', el.getAttribute('ward-type') === 'observer' ? 'sentry' : 'observer');
                 }
-                if (el.getAttribute('ward-type') == 'sentry') {
+                if (el.getAttribute('ward-type') === 'sentry') {
                     this.root.querySelector('input[name="mode"][value="ward"]').checked = true;
                     this.root.querySelector('input[name="ward-type"][value="sentry"]').checked = true;
                 }
@@ -762,9 +762,9 @@ class InteractiveMap extends EventEmitter {
             this.root.getElementById('btn-measure').addEventListener('click', (e) => {
                 const el = e.currentTarget;
                 if (el.classList.contains('active')) {
-                    el.setAttribute('measure-type', el.getAttribute('measure-type') == 'line' ? 'circle' : 'line');
+                    el.setAttribute('measure-type', el.getAttribute('measure-type') === 'line' ? 'circle' : 'line');
                 }
-                if (el.getAttribute('measure-type') == 'circle') {
+                if (el.getAttribute('measure-type') === 'circle') {
                     this.root.querySelector('input[name="mode"][value="measure"]').checked = true;
                     this.root.querySelector('input[name="measure-type"][value="circle"]').checked = true;
                 }

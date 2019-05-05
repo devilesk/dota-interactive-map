@@ -193,7 +193,7 @@ class WardControl extends BaseControl {
                 values = values.split(';');
                 values.forEach((worldXY) => {
                     worldXY = worldXY.split(',');
-                    if (worldXY.length == 2) {
+                    if (worldXY.length === 2) {
                         worldXY = worldXY.map(parseFloat);
                         if (!worldXY.some(isNaN)) {
                             const coordinate = worldToLatLon(worldXY);
@@ -218,7 +218,7 @@ class WardControl extends BaseControl {
         feature.set('wardType', wardType, true);
         feature.setStyle(styles[wardType].normal);
         this.source.addFeature(feature);
-        if (wardType == 'observer') {
+        if (wardType === 'observer') {
             if (this.InteractiveMap.controls.vision.setVisionFeature(feature, coordinate, wardType)) {
                 this.showVisibilityInfo();
             }
@@ -226,7 +226,7 @@ class WardControl extends BaseControl {
 
         const circle = this.InteractiveMap.getRangeCircle(feature, coordinate, wardType);
         if (circle) {
-            circle.setStyle(wardType == 'observer' ? styles.dayVision : styles.trueSight);
+            circle.setStyle(wardType === 'observer' ? styles.dayVision : styles.trueSight);
             feature.set('wardRange', circle, true);
             this.InteractiveMap.wardRangeSource.addFeature(circle);
         }
@@ -255,12 +255,15 @@ class WardControl extends BaseControl {
         if (wardRange) {
             // loop to check that feature exists before trying to remove
             this.InteractiveMap.wardRangeSource.forEachFeature((f) => {
-                if (f == wardRange) this.InteractiveMap.wardRangeSource.removeFeature(f);
+                if (f === wardRange) this.InteractiveMap.wardRangeSource.removeFeature(f);
             });
         }
         // loop to check that feature exists before trying to remove
         this.source.forEachFeature((f) => {
-            if (f == feature) this.source.removeFeature(f);
+            if (f === feature) {
+                this.source.removeFeature(f);
+                console.log('removed feature');
+            }
         });
         this.InteractiveMap.controls.vision.removeVisionFeature(feature);
 

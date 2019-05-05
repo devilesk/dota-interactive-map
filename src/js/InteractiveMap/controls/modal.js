@@ -11,7 +11,7 @@ class ModalControl {
 
         this.closeBtn = this.root.getElementById(closeBtnId);
         const closeHandler = (evt) => {
-            if (evt.target == this.modal || evt.target == this.closeBtn) {
+            if (evt.target === this.modal || evt.target === this.closeBtn) {
                 this.modal.classList.add('modal-close');
                 this.modal.classList.remove('modal-open');
             }

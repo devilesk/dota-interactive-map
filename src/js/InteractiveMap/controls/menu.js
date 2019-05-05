@@ -68,7 +68,7 @@ class MenuControl extends BaseControl {
             layer.setVisible(element.checked);
             const param = layer.get('title').replace(/ /g, '');
             setQueryString(param, element.checked ? true : null);
-            if (layerId == 'ent_dota_tree') {
+            if (layerId === 'ent_dota_tree') {
                 this.root.getElementById('btn-tree').setAttribute('trees-enabled', element.checked ? 'yes' : 'no');
             }
         }
@@ -173,7 +173,7 @@ class MenuControl extends BaseControl {
             this.root.getElementById('btn-tree').classList.add('active');
             this.root.getElementById('btn-measure').classList.remove('active');
             this.root.getElementById('menu-left').classList.remove('draw');
-            setQueryString('mode', interactiveMap.mode == 'navigate' ? null : interactiveMap.mode);
+            setQueryString('mode', interactiveMap.mode === 'navigate' ? null : interactiveMap.mode);
             interactiveMap.controls.measure.deactivate();
             interactiveMap.controls.draw.deactivate();
             interactiveMap.controls.ward.deactivate();

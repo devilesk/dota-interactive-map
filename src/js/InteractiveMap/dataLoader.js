@@ -64,7 +64,7 @@ export const loadJSON = (map, layerDef, data, layer) => {
     const features = data.data[layerDef.id].map((point) => {
         const unitClass = point.subType ? `${layerDef.id}_${point.subType}` : layerDef.id;
         const stats = data.stats[unitClass];
-        const bounds = layerDef.id == 'ent_dota_tree' ? [64, 64] : stats.bounds;
+        const bounds = layerDef.id === 'ent_dota_tree' ? [64, 64] : stats.bounds;
         const geom = (bounds && bounds[0] > 0 && bounds[1] > 0)
             ? new Polygon([[
                 transform([point.x - bounds[0], point.y - bounds[1]], dotaProj, pixelProj),
@@ -108,7 +108,7 @@ export const loadLayerGroupFromData = (InteractiveMap, data, version, layersInde
     const layers = [];
     for (let i = 0; i < layerDefs.length; i++) {
         const layerDef = layerDefs[i];
-        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version == '688')) continue;
+        if (!data.data[layerDef.id] && ((layerDef.type !== 'pullRange' && layerDef.type !== 'GeoJSON') || version === '688')) continue;
         let layer;
         switch (layerDef.type) {
         case 'GeoJSON':

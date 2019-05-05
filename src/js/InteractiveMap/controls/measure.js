@@ -139,7 +139,7 @@ class MeasureControl extends BaseControl {
     }
 
     addInteraction() {
-        const type = (this.type == 'circle' ? 'Circle' : 'LineString');
+        const type = (this.type === 'circle' ? 'Circle' : 'LineString');
         this.draw = new Draw({
             source: this.source,
             type,

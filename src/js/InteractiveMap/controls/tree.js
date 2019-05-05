@@ -42,7 +42,7 @@ class TreeControl extends BaseControl {
                 values.forEach((worldXY) => {
                     const feature = treeMap[worldXY];
                     if (feature) {
-                        if (!!feature.get('isCut') == !index) {
+                        if (!!feature.get('isCut') === !index) {
                             this.toggleTree(feature, feature.get('dotaProps'), true, true);
                         }
                     }
