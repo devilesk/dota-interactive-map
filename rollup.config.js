@@ -61,12 +61,10 @@ export default {
     },
     plugins: [
         replace({
-            delimiters: ['#', ''],
-            build_date: `${new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')} UTC`,
-            release_tag: pkg.version,
-            code_version: git.long(),
-            rollbar_client_token: process.env.ROLLBAR_CLIENT_TOKEN,
-            rollbar_environment: process.env.NODE_ENV || 'development',
+            delimiters: ['%', '%'],
+            BUILD_DATE: `${new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')} UTC`,
+            RELEASE_TAG: pkg.version,
+            CODE_VERSION: git.long(),
         }),
         resolve({ browser: true }),
         commonjs({}),

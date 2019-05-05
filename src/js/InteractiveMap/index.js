@@ -43,6 +43,9 @@ import heroIcons from './definitions/heroIconManifest.json';
 
 class InteractiveMap {
     constructor(root, mapTilePath, version, visionDataImagePath, options = {}) {
+        this.buildDate = '%BUILD_DATE%';
+        this.releaseTag = '%RELEASE_TAG%';
+        this.codeVersion = '%CODE_VERSION%';
         this.root = root;
         this.options = {
             mode: 'navigate',
