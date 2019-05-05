@@ -30,6 +30,10 @@ class WardControl extends BaseControl {
         this.clickListener = null;
     }
 
+    get features() {
+        return this.source.getFeatures();
+    }
+
     toggleAll(layer, state) {
         if (state) {
             this.showAll(layer);
@@ -40,18 +44,14 @@ class WardControl extends BaseControl {
     }
 
     showAll(layer) {
-        const source = layer.getSource();
-        const features = source.getFeatures();
-        features.forEach((feature) => {
+        this.features.forEach((feature) => {
             this.InteractiveMap.select(feature);
             this.highlight(feature);
         });
     }
 
     hideAll(layer) {
-        const source = layer.getSource();
-        const features = source.getFeatures();
-        features.forEach((feature) => {
+        this.features.forEach((feature) => {
             this.InteractiveMap.deselect(feature);
             this.unhighlight(feature);
         });
@@ -243,8 +243,7 @@ class WardControl extends BaseControl {
     }
 
     clearWards() {
-        const features = this.source.getFeatures();
-        features.forEach(feature => this.removeWard(feature, true));
+        this.features.forEach(feature => this.removeWard(feature, true));
         this.updateQueryString('observer');
         this.updateQueryString('sentry');
     }

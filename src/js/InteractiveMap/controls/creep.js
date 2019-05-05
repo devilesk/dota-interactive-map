@@ -63,19 +63,31 @@ class CreepControl extends BaseControl {
         this.info.classList.remove('slideUp');
         this.info.classList.add('slideDown');
     }
+    get pathLayer() {
+        return this.InteractiveMap.getMapLayer('path_corner');
+    }
 
     setContent(html) {
         this.infoContent.innerHTML = html;
+    }
+    get layer() {
+        return this.InteractiveMap.getMapLayer('npc_dota_spawner');
     }
 
     open() {
         this.info.classList.add('slideDown');
         this.info.classList.remove('slideUp');
     }
+    get source() {
+        return this.layer.getSource();
+    }
 
     close() {
         this.info.classList.add('slideUp');
         this.info.classList.remove('slideDown');
+    }
+    get features() {
+        return this.source.getFeatures();
     }
 
     slower() {
@@ -91,14 +103,11 @@ class CreepControl extends BaseControl {
     }
 
     updatePlayback(oldVal, newVal) {
-        const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-        if (layer) {
-            const features = layer.getSource().getFeatures();
+        if (this.layer) {
             let elapsedTime = this.currentTime - this.startTime;
             let adjustedElapsedTime = elapsedTime * oldVal / newVal;
             this.startTime = this.currentTime - adjustedElapsedTime;
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
+            for (const feature of this.features) {
                 const waveTimes = feature.get('waveTimes');
                 if (waveTimes) {
                     let j = waveTimes.length;
@@ -123,13 +132,8 @@ class CreepControl extends BaseControl {
     stop() {
         unByKey(this.postComposeListener);
         this.postComposeListener = null;
-        const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-        if (layer) {
-            const features = layer.getSource().getFeatures();
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                feature.set('waveTimes', null, true);
-            }
+        if (this.layer) {
+            this.features.forEach(feature => feature.set('waveTimes', null, true));
         }
         this.startTime = null;
         if (!this.paused) this.playPause();
@@ -164,18 +168,14 @@ class CreepControl extends BaseControl {
         const vectorContext = event.vectorContext;
         const frameState = event.frameState;
         this.currentTime = frameState.time;
-        const layer = this.InteractiveMap.getMapLayer('npc_dota_spawner');
-        const pathLayer = this.InteractiveMap.getMapLayer('path_corner');
-        if (!layer || !pathLayer) return;
-        const features = layer.getSource().getFeatures();
+        if (!this.layer || !this.pathLayer) return;
         if (!this.startTime) this.startTime = this.currentTime;
         if (this.paused) {
             if (this.pauseTime == null) this.pauseTime = frameState.time;
             this.currentTime = this.pauseTime;
         }
         else if (this.pauseTime != null) {
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
+            for (const feature of this.features) {
                 const waveTimes = feature.get('waveTimes');
                 if (waveTimes) {
                     let j = waveTimes.length;
@@ -187,10 +187,10 @@ class CreepControl extends BaseControl {
             this.startTime += (this.currentTime - this.pauseTime);
             this.pauseTime = null;
         }
-        for (let i = 0; i < features.length; i++) {
-            const feature = features[i];
+        const pathLayerSource = this.pathLayer.getSource();
+        for (const feature of this.features) {
             const id = feature.getId();
-            const pathFeature = pathLayer.getSource().getFeatureById(id);
+            const pathFeature = pathLayerSource.getFeatureById(id);
             let waveTimes = feature.get('waveTimes');
             if (!waveTimes) {
                 waveTimes = [this.currentTime];
