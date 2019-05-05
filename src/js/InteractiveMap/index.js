@@ -1,3 +1,4 @@
+import EventEmitter from 'events';
 import VisionSimulation from 'dota-vision-simulation';
 import worlddata from 'dota-vision-simulation/src/worlddata.json';
 import View from 'ol/View';
@@ -41,8 +42,9 @@ import CP from './util/color-picker';
 import { saveAs } from 'file-saver/FileSaver';
 import heroIcons from './definitions/heroIconManifest.json';
 
-class InteractiveMap {
+class InteractiveMap extends EventEmitter {
     constructor(root, mapTilePath, version, visionDataImagePath, options = {}) {
+        super();
         this.buildDate = '%BUILD_DATE%';
         this.releaseTag = '%RELEASE_TAG%';
         this.codeVersion = '%CODE_VERSION%';

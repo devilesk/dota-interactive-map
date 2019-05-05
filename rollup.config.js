@@ -1,3 +1,4 @@
+import builtins from 'rollup-plugin-node-builtins';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import git from 'git-rev-sync';
@@ -66,6 +67,7 @@ export default {
             RELEASE_TAG: pkg.version,
             CODE_VERSION: git.long(),
         }),
+        builtins(),
         resolve({ browser: true }),
         commonjs({}),
         json({}),

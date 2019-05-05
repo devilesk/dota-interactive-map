@@ -1,5 +1,8 @@
-class BaseControl {
+import EventEmitter from 'events';
+
+class BaseControl extends EventEmitter {
     constructor(InteractiveMap) {
+        super();
         this.InteractiveMap = InteractiveMap;
     }
     
