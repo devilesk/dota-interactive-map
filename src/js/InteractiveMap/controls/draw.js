@@ -53,6 +53,22 @@ class DrawControl extends BaseControl {
         this.redoHistory = [];
     }
 
+    get strokeSize() {
+        return parseInt(this.root.getElementById('strokesize-option').value);
+    }
+
+    get strokeColor() {
+        const color = colorAsArray(this.root.getElementById('strokecolor-option').value).slice();
+        color[3] = parseInt(this.root.getElementById('strokeopacity-option').value) / 100;
+        return color;
+    }
+
+    get fillColor() {
+        const color = colorAsArray(this.root.getElementById('fillcolor-option').value).slice();
+        color[3] = parseInt(this.root.getElementById('fillopacity-option').value) / 100;
+        return color;
+    }
+
     getId() {
         return `_${Math.random().toString(36).substr(2, 9)}`;
     }
@@ -198,17 +214,17 @@ class DrawControl extends BaseControl {
         this.draw = new Draw(options);
         this.draw.on('drawend', (event) => {
             let style = new Style({
-                fill: new Fill({ color: this.fillColor() }),
+                fill: new Fill({ color: this.fillColor }),
                 stroke: new Stroke({
-                    color: this.strokeColor(),
-                    width: parseInt(this.root.getElementById('strokesize-option').value),
+                    color: this.strokeColor,
+                    width: this.strokeSize,
                 }),
             });
             if (this.type === 'point') {
                 style = new Style({
                     image: new Circle({
-                        radius: parseInt(this.root.getElementById('strokesize-option').value),
-                        fill: new Fill({ color: this.strokeColor() }),
+                        radius: this.strokeSize,
+                        fill: new Fill({ color: this.strokeColor }),
                     }),
                 });
             }
@@ -238,18 +254,6 @@ class DrawControl extends BaseControl {
             this.redoHistory.length = 0;
         });
         this.map.addInteraction(this.draw);
-    }
-
-    strokeColor() {
-        const color = colorAsArray(this.root.getElementById('strokecolor-option').value).slice();
-        color[3] = parseInt(this.root.getElementById('strokeopacity-option').value) / 100;
-        return color;
-    }
-
-    fillColor() {
-        const color = colorAsArray(this.root.getElementById('fillcolor-option').value).slice();
-        color[3] = parseInt(this.root.getElementById('fillopacity-option').value) / 100;
-        return color;
     }
 
     undo() {
