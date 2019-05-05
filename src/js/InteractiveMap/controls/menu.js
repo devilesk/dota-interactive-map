@@ -1,7 +1,6 @@
 import BaseControl from './base';
 import { setQueryString } from '../util/queryString';
 import modeNotificationText from '../modeNotificationText';
-import forEach from '../util/forEach';
 
 class MenuPanel {
     constructor(root, panelId, openId, closeId, fullscreen) {
@@ -202,7 +201,7 @@ class MenuControl extends BaseControl {
     // updates element visibility based on map layer index
     // updates layer visibility based on element state
     updateOverlayMenu() {
-        forEach(this.root.querySelectorAll('.data-layer > input'), (element) => {
+        for (const element of this.root.querySelectorAll('.data-layer > input')) {
             const label = element.nextSibling;
             const layerId = element.getAttribute('data-layer-id');
             const layer = this.InteractiveMap.getMapLayer(layerId);
@@ -213,7 +212,7 @@ class MenuControl extends BaseControl {
                 label.style.display = 'block';
                 layer.setVisible(element.checked);
             }
-        }, this);
+        }
     }
 
     changeMode(mode) {

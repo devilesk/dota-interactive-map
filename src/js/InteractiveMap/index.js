@@ -37,7 +37,6 @@ import CoordinateControl from './controls/coordinate';
 import DrawControl from './controls/draw';
 import getJSON from './util/getJSON';
 import { setQueryString, getParameterByName } from './util/queryString';
-import forEach from './util/forEach';
 import CP from './util/color-picker';
 import { saveAs } from 'file-saver/FileSaver';
 import heroIcons from './definitions/heroIconManifest.json';
@@ -561,11 +560,11 @@ class InteractiveMap {
                 }
             });
 
-            forEach(this.root.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]'), (element) => {
+            for (const element of this.root.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]')) {
                 element.addEventListener('change', (e) => {
                     this.controls.menu.changeMode(e.currentTarget.value);
                 }, false);
-            }, this);
+            }
 
             if ('#enable_save' === 'true') {
                 this.root.getElementById('save').addEventListener('click', () => this.save());
