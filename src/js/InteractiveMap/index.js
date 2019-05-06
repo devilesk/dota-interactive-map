@@ -167,15 +167,15 @@ class InteractiveMap extends EventEmitter {
 
         this.controls = {
             menu: new MenuControl(this),
-            info: new InfoControl(this, 'info'),
+            info: new InfoControl(this, this.root.getElementById('info')),
             notification: new NotificationControl(this.root.getElementById('notification')),
             vision: new VisionControl(this),
-            ward: new WardControl(this),
+            ward: new WardControl(this, this.root.getElementById('info')),
             tree: new TreeControl(this),
             cursor: new CursorControl(this),
-            measure: new MeasureControl(this),
-            creep: new CreepControl(this, 'timer'),
             coordinate: this.options.controls.coordinate && new CoordinateControl(this, this.root.getElementById('coordinates')),
+            measure: new MeasureControl(this, this.root.getElementById('info')),
+            creep: new CreepControl(this, this.root.getElementById('timer')),
             draw: new DrawControl(this),
         };
 
@@ -348,12 +348,6 @@ class InteractiveMap extends EventEmitter {
         });
     }
 
-    checkAndHighlightWard(pixel) {
-        const feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.controls.ward.layerFilter });
-        this.highlightWard(feature);
-        return feature;
-    }
-
     highlightWard(feature) {
         if (feature !== this.highlightedWard) {
             if (this.highlightedWard) {
@@ -392,22 +386,13 @@ class InteractiveMap extends EventEmitter {
         this.highlightedFeature = null;
     }
 
-    toggle(feature) {
-        if (feature) {
-            if (feature.get('clicked')) {
-                this.deselect(feature);
-                return false;
-            }
-
-            this.select(feature);
-            return true;
-        }
-    }
-
     select(feature) {
         if (feature && !feature.get('clicked')) {
             if (feature === this.highlightedFeature) {
                 this.unhighlight();
+            }
+            if (feature === this.highlightedWard) {
+                this.unhighlightWard();
             }
             this.selectSource.addFeature(feature);
             feature.set('clicked', true, true);
@@ -423,6 +408,9 @@ class InteractiveMap extends EventEmitter {
         if (feature && feature.get('clicked')) {
             if (feature === this.highlightedFeature) {
                 this.unhighlight();
+            }
+            if (feature === this.highlightedWard) {
+                this.unhighlightWard();
             }
 
             this.selectSource.removeFeature(feature);
@@ -634,6 +622,10 @@ class InteractiveMap extends EventEmitter {
                 else {
                     throw new Error(err);
                 }
+            });
+
+            this.controls.tree.on('allTreesCutState', (value) => {
+                this.root.getElementById('toggle-ent_dota_tree').checked = value;
             });
 
             for (const element of this.root.querySelectorAll('input[name="mode"], input[name="ward-type"], input[name="measure-type"], input[name="draw-type"]')) {

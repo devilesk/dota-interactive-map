@@ -4,7 +4,24 @@ import { setQueryString, getParameterByName } from '../util/queryString';
 class TreeControl extends BaseControl {
     constructor(InteractiveMap) {
         super(InteractiveMap);
-        this.allTreesCutState = false;
+        this._allTreesCutState = false;
+        this.activate();
+    }
+
+    onFeatureClick(feature, featureType, evt) {
+        if (featureType === 'tree') {
+            const dotaProps = feature.get('dotaProps');
+            this.toggleTree(feature, dotaProps);
+        }
+    }
+
+    get allTreesCutState() {
+        return this._allTreesCutState;
+    }
+
+    set allTreesCutState(value) {
+        this._allTreesCutState = value;
+        this.emit('allTreesCutState', value);
     }
 
     get layer() {
@@ -39,7 +56,6 @@ class TreeControl extends BaseControl {
             .join(';');
         setQueryString(keys[this.allTreesCutState ? 1 : 0], values || null);
         setQueryString(keys[this.allTreesCutState ? 0 : 1], null);
-        this.root.getElementById('toggle-ent_dota_tree').checked = this.allTreesCutState;
     }
 
     parseQueryString() {

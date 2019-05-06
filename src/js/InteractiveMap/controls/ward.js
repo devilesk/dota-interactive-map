@@ -1,17 +1,16 @@
-import BaseControl from './base';
+import BaseInfoControl from './baseInfo';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
-import { unByKey } from 'ol/Observable';
 import styles from '../definitions/styles';
 import mapConstants from '../definitions/mapConstants';
 import { latLonToWorld, worldToLatLon } from '../conversion';
 import { setQueryString, getParameterByName } from '../util/queryString';
 
-class WardControl extends BaseControl {
-    constructor(InteractiveMap, throttleTime) {
-        super(InteractiveMap);
+class WardControl extends BaseInfoControl {
+    constructor(InteractiveMap, element, throttleTime) {
+        super(InteractiveMap, element);
         this.throttleTime = throttleTime;
         this.source = new SourceVector({});
         this.layer = new LayerVector({
@@ -26,12 +25,64 @@ class WardControl extends BaseControl {
         };
 
         this.lastPointerMoveTime = Date.now();
-        this.pointerMoveListener = null;
-        this.clickListener = null;
     }
 
     get features() {
         return this.source.getFeatures();
+    }
+
+    onMapClick(feature, featureType, evt) {
+        if (!feature) {
+            this.addWard(evt.coordinate, this.InteractiveMap.mode);
+        }
+    }
+
+    onMapHover(feature, featureType, evt) {
+        if (!feature) {
+            // vision cursor
+            if (Date.now() - this.lastPointerMoveTime < this.throttleTime) {
+                return;
+            }
+            this.lastPointerMoveTime = Date.now();
+            const hoverFeature = this.InteractiveMap.controls.vision.getVisionFeature(null, evt.coordinate, this.InteractiveMap.visionRadius);
+            if (hoverFeature) {
+                this.InteractiveMap.controls.cursor.source.clear(true);
+                this.InteractiveMap.controls.cursor.source.addFeature(hoverFeature);
+                this.showVisibilityInfo();
+            }
+        }
+    }
+
+    onFeatureSelect(feature, featureType, evt) {
+        if (featureType === 'ward') {
+            this.removeWard(feature);
+            this.InteractiveMap.deselect(feature);
+        }
+        else if (this.InteractiveMap.hasVisionRadius(feature)) {
+            this.showVisibilityInfo();
+        }
+    }
+
+    onFeatureDeselect(feature, featureType, evt) {
+        if (featureType !== 'ward') {
+            this.clear();
+            this.InteractiveMap.controls.vision.removeVisionFeature(feature);
+            this.removeRangeCircles(feature);
+        }
+    }
+
+    onFeatureHighlight(feature, featureType, evt) {
+        if (featureType !== 'ward') {
+            this.highlight(feature);
+        }
+    }
+
+    onFeatureUnhighlight(feature, featureType, evt) {
+        console.log('onFeatureUnhighlight', feature, featureType, featureType !== 'ward');
+        if (featureType !== 'ward' && !feature.get('clicked')) {
+            this.InteractiveMap.controls.vision.removeVisionFeature(feature);
+            this.removeRangeCircles(feature);
+        }
     }
 
     toggleAll(layer, state) {
@@ -59,7 +110,6 @@ class WardControl extends BaseControl {
 
     showVisibilityInfo(feature, bClicked) {
         const visionFeature = feature ? feature.get('visionFeature') : null;
-        const info = this.InteractiveMap.controls.info;
         let lightArea = this.vs.lightArea;
         let area = this.vs.area;
         if (feature) {
@@ -67,122 +117,15 @@ class WardControl extends BaseControl {
             if (visionData) {
                 lightArea = visionData.lightArea;
                 area = visionData.area;
-                info.setContent(lightArea ? `Visibility: ${(lightArea / area * 100).toFixed()}% ${lightArea}/${area}` : '');
-                info.open(bClicked);
+                this.display(lightArea ? `Visibility: ${(lightArea / area * 100).toFixed()}% ${lightArea}/${area}` : '', bClicked);
             }
             else {
-                this.clearInfo();
+                this.clear();
             }
         }
         else {
-            info.setContent(lightArea ? `Visibility: ${(lightArea / area * 100).toFixed()}% ${lightArea}/${area}` : '');
-            info.open(bClicked);
+            this.display(lightArea ? `Visibility: ${(lightArea / area * 100).toFixed()}% ${lightArea}/${area}` : '', bClicked);
         }
-    }
-
-    clearInfo(bOverrideActive) {
-        this.InteractiveMap.controls.info.setContent('');
-        this.InteractiveMap.controls.info.close(bOverrideActive);
-    }
-
-    activate() {
-        if (!this.pointerMoveListener) {
-            this.pointerMoveListener = this.map.on('pointermove', (evt) => {
-                if (evt.dragging) {
-                    return;
-                }
-
-                const pixel = this.map.getEventPixel(evt.originalEvent);
-
-                // if mouse over a building feature, show info and highlight
-                let bBuildingHover = false;
-                let feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
-                if (feature) {
-                    bBuildingHover = this.highlight(feature);
-
-                    if (bBuildingHover) {
-                        this.showVisibilityInfo();
-                    }
-                }
-                else {
-                    // if mouse over a ward feature, highlight
-                    feature = this.InteractiveMap.checkAndHighlightWard(pixel);
-
-                    // no highlighted feature so unhighlight current feature
-                    if (!feature) {
-                        this.unhighlight();
-                    }
-                    else {
-                        this.showVisibilityInfo();
-                    }
-                }
-
-                // vision cursor
-                if (Date.now() - this.lastPointerMoveTime < this.throttleTime) {
-                    return;
-                }
-                this.lastPointerMoveTime = Date.now();
-                let hoverFeature;
-                if (bBuildingHover) {
-                    if (!feature.get('visionFeature')) {
-                        hoverFeature = this.InteractiveMap.controls.vision.getVisionFeature(feature);
-                    }
-                    else {
-                        this.InteractiveMap.controls.cursor.source.clear(true);
-                    }
-                }
-                else {
-                    hoverFeature = this.InteractiveMap.controls.vision.getVisionFeature(null, evt.coordinate, this.InteractiveMap.visionRadius);
-                }
-                if (hoverFeature) {
-                    this.InteractiveMap.controls.cursor.source.clear(true);
-                    this.InteractiveMap.controls.cursor.source.addFeature(hoverFeature);
-
-                    if (!bBuildingHover) {
-                        this.showVisibilityInfo();
-                    }
-                }
-                else if (!bBuildingHover) {
-                    this.clearInfo();
-                }
-            });
-        }
-        if (!this.clickListener) {
-            this.clickListener = this.map.on('click', (evt) => {
-                this.unhighlight();
-                let feature = this.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.InteractiveMap.layerFilters.marker });
-                if (feature && this.InteractiveMap.hasVisionRadius(feature)) {
-                    this.InteractiveMap.toggle(feature);
-                    if (this.InteractiveMap.controls.vision.toggleVisionFeature(feature)) {
-                        this.showVisibilityInfo();
-                    }
-                    else {
-                        this.clearInfo();
-                    }
-                    this.InteractiveMap.controls.cursor.source.clear(true);
-                }
-                else {
-                    feature = this.map.forEachFeatureAtPixel(evt.pixel, feature => feature, { layerFilter: this.layerFilter });
-                    if (feature) {
-                        this.removeWard(feature);
-                        this.clearInfo(true);
-                    }
-                    else {
-                        this.addWard(evt.coordinate, this.InteractiveMap.mode);
-                        this.InteractiveMap.controls.cursor.source.clear(true);
-                    }
-                }
-            });
-        }
-    }
-
-    deactivate() {
-        this.InteractiveMap.unhighlightWard();
-        this.InteractiveMap.controls.cursor.source.clear(true);
-        unByKey(this.pointerMoveListener);
-        this.pointerMoveListener = null;
-        unByKey(this.clickListener);
-        this.clickListener = null;
     }
 
     parseQueryString() {
@@ -281,12 +224,6 @@ class WardControl extends BaseControl {
     }
 
     unhighlight(feature) {
-        const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
-        if (highlightedFeature && !highlightedFeature.get('clicked')) {
-            this.InteractiveMap.controls.vision.removeVisionFeature(highlightedFeature);
-            this.removeRangeCircles(highlightedFeature);
-        }
-        this.InteractiveMap.unhighlight();
     }
 
     addRangeCircles(feature) {

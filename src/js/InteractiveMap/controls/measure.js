@@ -1,4 +1,4 @@
-import BaseControl from './base';
+import BaseInfoControl from './baseInfo';
 import SourceVector from 'ol/source/Vector';
 import LayerVector from 'ol/layer/Vector';
 import Polygon from 'ol/geom/Polygon';
@@ -39,9 +39,9 @@ const formatLength = (InteractiveMap, line) => {
     return output;
 };
 
-class MeasureControl extends BaseControl {
-    constructor(InteractiveMap) {
-        super(InteractiveMap);
+class MeasureControl extends BaseInfoControl {
+    constructor(InteractiveMap, element) {
+        super(InteractiveMap, element, { open: 'slideUp', close: 'slideDown' });
         this.source = new SourceVector({});
 
         this.layer = new LayerVector({ source: this.source });
@@ -152,8 +152,9 @@ class MeasureControl extends BaseControl {
         let listener;
         this.draw.on('drawstart', (evt) => {
             this.source.clear(true);
-            this.InteractiveMap.controls.info.setContent('');
-            this.InteractiveMap.controls.info.close(true);
+            this.content = '';
+            this.opened = false;
+            this.active = false;
             // set sketch
             this.sketch = evt.feature;
             /** @type {ol.Coordinate|undefined} */
@@ -170,8 +171,8 @@ class MeasureControl extends BaseControl {
                     output = formatLength(this.InteractiveMap, geom);
                     tooltipCoord = geom.getLastCoordinate();
                 }
-                this.InteractiveMap.controls.info.setContent(output);
-                this.InteractiveMap.controls.info.open(true);
+                this.content = output;
+                this.opened = true;
             });
         });
 

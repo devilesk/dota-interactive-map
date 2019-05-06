@@ -1,4 +1,4 @@
-import BaseControl from './base';
+import BaseInfoControl from './baseInfo';
 import Circle from 'ol/geom/Circle';
 import { unByKey } from 'ol/Observable';
 import mapConstants from '../definitions/mapConstants';
@@ -32,60 +32,71 @@ const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) 
     }
 };
 
-class CreepControl extends BaseControl {
-    constructor(InteractiveMap, id) {
-        super(InteractiveMap);
+class CreepControl extends BaseInfoControl {
+    constructor(InteractiveMap, element) {
+        super(InteractiveMap, element, {
+            close: 'slideUp',
+            open: 'slideDown',
+        });
         this.postComposeListener = null;
         this.postComposeHandler = this.animateCreeps.bind(this);
         this.playbackSpeed = 1;
-        this.paused = true;
+        this._paused = true;
         this.pauseTime = null;
         this.title = 'Lane Animation';
 
-        this.id = id;
-        this.info = this.root.getElementById(id);
-        this.infoContent = this.root.querySelector('#timer-time');
-        this.playPauseBtn = this.root.querySelector('#timer-playPause');
-        this.playPauseBtn.addEventListener('click', () => this.playPause(true), false);
+        this.on('unpaused', () => this.play());
+        this.on('stop', () => this.stop());
+        this.on('faster', () => this.faster());
+        this.on('slower', () => this.slower());
 
-        this.stopBtn = this.root.querySelector('#timer-stop');
-        this.stopBtn.addEventListener('click', () => this.stop(true), false);
-
-        this.fasterBtn = this.root.querySelector('#timer-faster');
-        this.fasterBtn.addEventListener('click', () => this.faster(true), false);
-
-        this.slowerBtn = this.root.querySelector('#timer-slower');
-        this.slowerBtn.addEventListener('click', () => this.slower(true), false);
+        const btnPlayPause = this.element.querySelector('#timer-playPause');
+        if (btnPlayPause) {
+            btnPlayPause.addEventListener('click', () => {
+                this.paused = !this.paused;
+            }, false);
+            this.on('paused', () => {
+                btnPlayPause.classList.add('icon-play');
+                btnPlayPause.classList.remove('icon-pause');
+            });
+            this.on('unpaused', () => {
+                btnPlayPause.classList.add('icon-pause');
+                btnPlayPause.classList.remove('icon-play');
+            });
+        }
+        const btnStop = this.element.querySelector('#timer-stop');
+        if (btnStop) btnStop.addEventListener('click', () => this.emit('stop'), false);
+        const btnFaster = this.element.querySelector('#timer-faster');
+        if (btnFaster) btnFaster.addEventListener('click', () => this.emit('faster'), false);
+        const btnSlower = this.element.querySelector('#timer-slower');
+        if (btnSlower) btnSlower.addEventListener('click', () => this.emit('slower'), false);
     }
 
-    show(message) {
-        this.setContent(message);
-        this.info.classList.remove('slideUp');
-        this.info.classList.add('slideDown');
+    get contentElement() {
+        return this.element.querySelector('#timer-time');
     }
+
+    get paused() {
+        return this._paused;
+    }
+
+    set paused(value) {
+        this._paused = value;
+        this.emit(value ? 'paused' : 'unpaused');
+    }
+
     get pathLayer() {
         return this.InteractiveMap.getMapLayer('path_corner');
     }
 
-    setContent(html) {
-        this.infoContent.innerHTML = html;
-    }
     get layer() {
         return this.InteractiveMap.getMapLayer('npc_dota_spawner');
     }
 
-    open() {
-        this.info.classList.add('slideDown');
-        this.info.classList.remove('slideUp');
-    }
     get source() {
         return this.layer.getSource();
     }
 
-    close() {
-        this.info.classList.add('slideUp');
-        this.info.classList.remove('slideDown');
-    }
     get features() {
         return this.source.getFeatures();
     }
@@ -121,11 +132,10 @@ class CreepControl extends BaseControl {
         }
     }
 
-    start() {
+    play() {
         if (!this.postComposeListener) {
             this.postComposeListener = this.map.on('postcompose', this.postComposeHandler);
         }
-        if (this.paused) this.playPause();
         this.map.render();
     }
 
@@ -136,32 +146,20 @@ class CreepControl extends BaseControl {
             this.features.forEach(feature => feature.set('waveTimes', null, true));
         }
         this.startTime = null;
-        if (!this.paused) this.playPause();
+        this.paused = true;
         this.pauseTime = null;
         this.map.render();
-        this.setContent(this.title);
-    }
-
-    playPause() {
-        this.paused = !this.paused;
-        if (this.paused) {
-            this.playPauseBtn.classList.add('icon-play');
-            this.playPauseBtn.classList.remove('icon-pause');
-        }
-        else {
-            this.playPauseBtn.classList.add('icon-pause');
-            this.playPauseBtn.classList.remove('icon-play');
-            this.start();
-        }
+        this.content = this.title;
     }
 
     activate() {
-        this.show(this.title);
+        this.content = this.title;
+        this.opened = true;
     }
 
     deactivate() {
         this.stop();
-        this.close();
+        this.opened = false;
     }
 
     animateCreeps(event) {
@@ -231,7 +229,7 @@ class CreepControl extends BaseControl {
         }
         let timeText = `${(((this.currentTime - this.startTime) % (60000 / this.playbackSpeed)) / 1000 * this.playbackSpeed).toFixed(1)}s`;
         if (this.playbackSpeed > 1) timeText += `, ${this.playbackSpeed}x`;
-        this.setContent(timeText);
+        this.content = timeText;
         frameState.animate = true;
     }
 }
