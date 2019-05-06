@@ -268,10 +268,6 @@ class InteractiveMap extends EventEmitter {
         return this.getMapData(version).data || {};
     }
 
-    getOverlayData(version) {
-        return this.getData(version).data || {};
-    }
-
     getStatData(version) {
         return this.getData(version).stats || {};
     }
