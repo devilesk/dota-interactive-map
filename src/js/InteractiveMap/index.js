@@ -179,16 +179,85 @@ class InteractiveMap extends EventEmitter {
             draw: new DrawControl(this),
         };
 
-        this.map.on('moveend', (evt) => {
-            const map = evt.map;
-            const ext = map.getView().calculateExtent(map.getSize());
-            const center = getCenter(ext);
-            const worldXY = transform(center, pixelProj, dotaProj);
-            const coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
-            setQueryString('x', coordinate[0]);
-            setQueryString('y', coordinate[1]);
-            setQueryString('zoom', Math.round(this.view.getZoom()));
-        });
+        this.map.on('moveend', this.onMoveEnd.bind(this));
+        this.map.on('pointermove', this.onMouseEvent.bind(this));
+        this.map.on('click', this.onMouseEvent.bind(this));
+        this.on('map.pointermove', this.onMapHover.bind(this));
+        this.on('map.click', this.onMapClick.bind(this));
+    }
+
+    onMoveEnd(evt) {
+        const map = evt.map;
+        const ext = map.getView().calculateExtent(map.getSize());
+        const center = getCenter(ext);
+        const worldXY = transform(center, pixelProj, dotaProj);
+        const coordinate = [Math.round(worldXY[0]), Math.round(worldXY[1])];
+        setQueryString('x', coordinate[0]);
+        setQueryString('y', coordinate[1]);
+        setQueryString('zoom', Math.round(this.view.getZoom()));
+    }
+
+    onMouseEvent(evt) {
+        // When user was dragging map, then coordinates didn't change and there's
+        // no need to continue
+        if (evt.type === 'pointermove' && evt.dragging) return;
+
+        const pixel = this.map.getEventPixel(evt.originalEvent);
+        let feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.layerFilters.marker });
+        if (feature) {
+            if (feature.get('dotaProps').id === 'ent_dota_tree') {
+                this.emit(`map.${evt.type}`, feature, 'tree', evt);
+            }
+            else {
+                this.emit(`map.${evt.type}`, feature, 'marker', evt);
+            }
+        }
+        else {
+            feature = this.map.forEachFeatureAtPixel(pixel, feature => feature, { layerFilter: this.controls.ward.layerFilter });
+            if (feature) {
+                this.emit(`map.${evt.type}`, feature, 'ward', evt);
+            }
+            else {
+                this.emit(`map.${evt.type}`, null, null, evt);
+            }
+        }
+    }
+
+    onMapHover(feature, featureType, evt) {
+        if (this.highlightedFeature && this.highlightedFeature !== feature) {
+            this.emit('unhighlight', this.highlightedFeature, 'marker', evt);
+            this.unhighlight();
+        }
+        else if (this.highlightedWard && this.highlightedWard !== feature) {
+            this.emit('unhighlight', this.highlightedWard, 'ward', evt);
+            this.unhighlightWard();
+        }
+        if (feature) {
+            if (featureType === 'marker' || featureType === 'tree') {
+                this.highlight(feature);
+            }
+            else if (featureType === 'ward') {
+                this.highlightWard(feature);
+            }
+            this.emit('highlight', feature, featureType, evt);
+        }
+    }
+
+    onMapClick(feature, featureType, evt) {
+        if (feature) {
+            if (!feature.get('clicked')) {
+                this.select(feature);
+                this.emit('select', feature, featureType, evt);
+            }
+            else {
+                this.deselect(feature);
+                this.emit('deselect', feature, featureType, evt);
+            }
+            this.emit('click', feature, featureType, evt);
+        }
+        else {
+            this.deselectAll();
+        }
     }
 
     getMapData(version) {
