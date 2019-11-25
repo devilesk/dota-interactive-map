@@ -20,9 +20,7 @@ class DrawControl {
         this.map = InteractiveMap.map;
         this.source = new SourceVector({
             url: (source, extent, number, proj) => {
-                if (this.dataId) {
-                    return `save/${this.dataId}.kml`;
-                }
+                return this.dataId ? `save/${this.dataId}.kml` : '';
             },
             format: new KML(),
         });
