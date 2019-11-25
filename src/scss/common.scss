@@ -29,15 +29,20 @@ select:hover {
     text-align: center;
     line-height: 50px;
     transition-duration: 0.1s;
+    background-size: cover;
     
     &.active:hover,
     &:hover {
-        @include transform(scale(0.9));
+        //@include transform(scale(0.9));
+        background-color: lighten($bg-color, 10%);
+        cursor: pointer;
     }
 
-    &.active,
-    &:active:hover {
-        @include transform(scale(0.8));
+    &.active {
+        //@include transform(scale(0.8));
+        background-color: $bg-color;
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        box-sizing: border-box;
     }
 }
 

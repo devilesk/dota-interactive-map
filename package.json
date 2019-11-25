@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "dota-vision-simulation": "^0.17.0",
+    "materialize-css": "^1.0.0-rc.2",
     "ol": "^5.2.0",
     "ol-rotate-feature": "^2.0.0"
   }

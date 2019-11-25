@@ -15,13 +15,16 @@ export const loadGeoJSON = (map, layerDef, data, version) => {
             url: `data/${version}/${layerDef.filename}`,
             format: new GeoJSON({ dataProjection: layerDef.projection || pixelProj }),
         });
-        return new LayerVector({
+        const layer = new LayerVector({
             title: layerDef.name,
             projection: layerDef.projection || pixelProj,
             source,
             visible: !!layerDef.visible,
             style: layerDef.style,
         });
+        layer.set('layerId', layerDef.id, true);
+        layer.set('layerDef', layerDef, true);
+        return layer;
     }
     catch (e) {
 

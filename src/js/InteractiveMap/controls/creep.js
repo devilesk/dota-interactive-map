@@ -70,6 +70,21 @@ class CreepControl extends BaseInfoControl {
         if (btnFaster) btnFaster.addEventListener('click', () => this.emit('faster'), false);
         const btnSlower = this.element.querySelector('#timer-slower');
         if (btnSlower) btnSlower.addEventListener('click', () => this.emit('slower'), false);
+        
+        this.InteractiveMap.on('creepControl', (value) => {
+            if (value) {
+                this.activate();
+            }
+            else {
+                this.deactivate();
+            }
+        });
+        
+        this.InteractiveMap.on('version', () => {
+            this.deactivate();
+            this.root.getElementById('creepControl').disabled = !this.InteractiveMap.getMapLayer('npc_dota_spawner');
+            this.root.getElementById('creepControl').checked = false;
+        });
     }
 
     get contentElement() {
@@ -153,11 +168,13 @@ class CreepControl extends BaseInfoControl {
     }
 
     activate() {
+        super.activate();
         this.content = this.title;
         this.opened = true;
     }
 
     deactivate() {
+        super.deactivate();
         this.stop();
         this.opened = false;
     }

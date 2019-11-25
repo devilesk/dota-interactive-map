@@ -1,10 +1,20 @@
+import BaseControl from './base';
 import styles from '../definitions/styles';
+import modeNotificationText from '../definitions/modeNotificationText';
 
-class NotificationControl {
-    constructor(root) {
+class NotificationControl extends BaseControl {
+    constructor(InteractiveMap, root) {
+        super(InteractiveMap);
         this.timer = null;
         this.info = root;
         this.infoContent = this.info.querySelector('.message-content');
+        
+        this.InteractiveMap.on('isNight', value => this.show(value ? modeNotificationText.nightOn : modeNotificationText.nightOff));
+        this.InteractiveMap.on('isDarkness', value => this.show(value ? modeNotificationText.darknessOn : modeNotificationText.darknessOff));
+        this.InteractiveMap.on('treesEnabled', value => this.show(value ? modeNotificationText.treeEnable : modeNotificationText.treeDisable));
+        this.InteractiveMap.on('dataId', value => this.show(value ? modeNotificationText.saveSuccess : modeNotificationText.saveFailed));
+        this.InteractiveMap.on('share', value => this.show(modeNotificationText.share));
+        this.InteractiveMap.on('mode', value => this.show(modeNotificationText[value]));
     }
 
     show(message) {

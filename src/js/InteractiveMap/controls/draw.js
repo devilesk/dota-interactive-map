@@ -14,6 +14,7 @@ import { unByKey } from 'ol/Observable';
 import RotateFeatureInteraction from 'ol-rotate-feature';
 import heroIcons from '../definitions/heroIconManifest.json';
 import { KML } from 'ol/format';
+import CP from '../util/color-picker';
 
 class DrawControl extends BaseControl {
     constructor(InteractiveMap) {
@@ -26,6 +27,7 @@ class DrawControl extends BaseControl {
         this.layer = new LayerVector({
             title: 'Draw',
             source: this.source,
+            zIndex: 210,
         });
 
         this.dataId = null;
@@ -42,8 +44,6 @@ class DrawControl extends BaseControl {
 
         this.pendingModification = null;
 
-        this.active = false;
-
         this.markerType = 'abaddon';
 
         this.freehandType = 'LineString';
@@ -51,6 +51,32 @@ class DrawControl extends BaseControl {
 
         this.undoHistory = [];
         this.redoHistory = [];
+
+        this.InteractiveMap.on('dataId', value => (this.dataId = value));
+        this.InteractiveMap.on('layer.draw', value => this.layer.setVisible(value));
+        this.InteractiveMap.on('mode', (value) => {
+            switch (value) {
+            case 'brush':
+            case 'marker':
+            case 'point':
+            case 'linestring':
+            case 'polygon':
+            case 'shape':
+            case 'modify':
+            case 'rotate':
+            case 'scale':
+            case 'skew':
+            case 'translate':
+            case 'delete':
+            case 'draw':
+                this.change(value);
+                this.activate();
+                break;
+            default:
+                this.deactivate();
+                break;
+            }
+        });
     }
 
     get strokeSize() {
@@ -71,10 +97,6 @@ class DrawControl extends BaseControl {
 
     getId() {
         return `_${Math.random().toString(36).substr(2, 9)}`;
-    }
-
-    setDataId(id) {
-        this.dataId = id;
     }
 
     onFeatureModified(event, sourceFeature) {
@@ -322,7 +344,6 @@ class DrawControl extends BaseControl {
         this.map.removeInteraction(this.select);
         this.map.removeInteraction(this.rotate);
         this.addInteraction();
-        this.active = true;
     }
 
     changeFreehandType(type) {
@@ -340,27 +361,106 @@ class DrawControl extends BaseControl {
         this.change(this.type);
     }
 
-    clear() {
+    initialize() {
+        const heroData = Object.keys(heroIcons).map((id) => {
+            heroIcons[id].id = id;
+            return heroIcons[id];
+        });
+        heroData.sort((a, b) => {
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
+            return 0;
+        });
+        const markerSelect = this.root.getElementById('marker-select');
+        for (const data of heroData) {
+            markerSelect.options[markerSelect.options.length] = new Option(data.name, data.id);
+        }
+
+        this.root.getElementById('marker-select').addEventListener('change', (e) => {
+            const el = e.currentTarget;
+            this.changeMarkerType(el.value);
+            this.root.getElementById('marker-preview').className = '';
+            this.root.getElementById('marker-preview').classList.add(`miniheroes-sprite-${el.value}`);
+        });
+
+        this.root.getElementById('freehand-select').addEventListener('change', (e) => {
+            const el = e.currentTarget;
+            this.changeFreehandType(el.value);
+        });
+
+        this.root.getElementById('sides-option').addEventListener('change', (e) => {
+            const el = e.currentTarget;
+            this.changeSides(parseInt(el.value));
+        });
+
+        this.root.getElementById('undo').addEventListener('click', () => this.undo());
+        this.root.getElementById('redo').addEventListener('click', () => this.redo());
+        
+        const self = this;
+        
+        const strokePicker = new CP(this.root.getElementById('strokecolor-option'), false, this.root.getElementById('strokecolor-picker-container'));
+        strokePicker.on('change', function (color) {
+            this.target.value = `#${color}`;
+            self.root.getElementById('strokecolor-preview').style.backgroundColor = `#${color}`;
+        });
+        strokePicker.target.oncut = strokePicker.target.onpaste = strokePicker.target.onkeyup = strokePicker.target.oninput = function () {
+            strokePicker.set(this.value);
+        };
+
+        this.root.getElementById('strokecolor-option').addEventListener('blur', () => {
+            this.root.getElementById('strokecolor-picker-container').classList.remove('open');
+        });
+        this.root.getElementById('strokecolor-option').addEventListener('click', () => {
+            this.root.getElementById('strokecolor-picker-container').classList.add('open');
+            strokePicker.fit = function () { // do nothing ...
+                this.picker.style.left = this.picker.style.top = '';
+            };
+            strokePicker.enter();
+        });
+
+        const fillPicker = new CP(this.root.getElementById('fillcolor-option'), false, this.root.getElementById('fillcolor-picker-container'));
+        fillPicker.on('change', function (color) {
+            this.target.value = `#${color}`;
+            self.root.getElementById('fillcolor-preview').style.backgroundColor = `#${color}`;
+        });
+        fillPicker.target.oncut = fillPicker.target.onpaste = fillPicker.target.onkeyup = fillPicker.target.oninput = function () {
+            fillPicker.set(this.value);
+        };
+
+        this.root.getElementById('fillcolor-option').addEventListener('blur', () => {
+            this.root.getElementById('fillcolor-picker-container').classList.remove('open');
+        });
+        this.root.getElementById('fillcolor-option').addEventListener('click', () => {
+            this.root.getElementById('fillcolor-picker-container').classList.add('open');
+            fillPicker.fit = function () { // do nothing ...
+                this.picker.style.left = this.picker.style.top = '';
+            };
+            fillPicker.enter();
+        });
+    }
+    
+    reset() {
         this.source.clear();
         this.undoHistory.length = 0;
         this.redoHistory.length = 0;
         this.pendingModification = null;
         this.dataId = null;
     }
-
-    activate() {
-        if (!this.active) {
-
-        }
-        this.active = true;
+    
+    setMapLayers() {
+        this.InteractiveMap.map.addLayer(this.layer);
     }
-
+    
+    getMapLayers() {
+        return [this.layer];
+    }
+    
     deactivate() {
+        super.deactivate();
         this.map.removeInteraction(this.draw);
         this.map.removeInteraction(this.modify);
         this.map.removeInteraction(this.select);
         this.map.removeInteraction(this.rotate);
-        this.active = false;
     }
 }
 

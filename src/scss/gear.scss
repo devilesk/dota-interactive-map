@@ -7,11 +7,11 @@
     position: relative;
     margin: 15px;
     
-    &:hover {
+    .btn:hover & {
         @include animation('rotate 0.5s ease-out 1');
     }
     
-    &:active:hover {
+    .btn:active:hover & {
         @include transform(scale(0.9));
     }
     

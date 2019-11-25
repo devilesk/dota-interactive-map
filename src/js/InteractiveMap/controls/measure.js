@@ -8,6 +8,7 @@ import Draw from 'ol/interaction/Draw';
 import Overlay from 'ol/Overlay';
 import { unByKey } from 'ol/Observable';
 import styles from '../definitions/styles';
+import mapConstants from '../definitions/mapConstants';
 
 /**
  * Format area output.
@@ -33,9 +34,9 @@ const formatRadius = (circle) => {
  * @param {ol.geom.LineString} line The line.
  * @return {string} The formatted length.
  */
-const formatLength = (InteractiveMap, line) => {
+const formatLength = (movementSpeed, line) => {
     const length = Math.round(line.getLength());
-    const output = `Distance: ${length} ` + `units<br>Travel Time: ${(length / InteractiveMap.movementSpeed).toFixed(2)}s at ${InteractiveMap.movementSpeed}ms`;
+    const output = `Distance: ${length} ` + `units<br>Travel Time: ${(length / movementSpeed).toFixed(2)}s at ${movementSpeed}ms`;
     return output;
 };
 
@@ -44,7 +45,10 @@ class MeasureControl extends BaseInfoControl {
         super(InteractiveMap, element, { open: 'slideUp', close: 'slideDown' });
         this.source = new SourceVector({});
 
-        this.layer = new LayerVector({ source: this.source });
+        this.layer = new LayerVector({
+            source: this.source,
+            zIndex: 100,
+        });
 
         /**
          * Currently drawn feature.
@@ -102,6 +106,19 @@ class MeasureControl extends BaseInfoControl {
         this.draw = null; // global so we can remove it later
 
         this.active = false;
+        
+        this.movementSpeed = mapConstants.defaultMovementSpeed;
+        
+        this.InteractiveMap.on('movementSpeed', value => (this.movementSpeed = value));
+        this.InteractiveMap.on('mode', (value) => {
+            if (value === 'measure' || value === 'line' || value === 'circle') {
+                this.change(value);
+                this.activate();
+            }
+            else {
+                this.deactivate();
+            }
+        });
     }
 
     /**
@@ -168,7 +185,7 @@ class MeasureControl extends BaseInfoControl {
                     tooltipCoord = geom.getLastCoordinate();
                 }
                 else if (geom instanceof LineString) {
-                    output = formatLength(this.InteractiveMap, geom);
+                    output = formatLength(this.movementSpeed, geom);
                     tooltipCoord = geom.getLastCoordinate();
                 }
                 this.content = output;
@@ -195,6 +212,7 @@ class MeasureControl extends BaseInfoControl {
     }
 
     activate() {
+        super.activate();
         if (!this.active) {
             this.pointerMoveListener = this.map.on('pointermove', (evt) => {
                 if (evt.dragging) {
@@ -225,11 +243,20 @@ class MeasureControl extends BaseInfoControl {
     }
 
     deactivate() {
+        super.deactivate();
         unByKey(this.pointerMoveListener);
         this.map.getViewport().removeEventListener('mouseout', this.mouseOutHandler);
         this.map.removeInteraction(this.draw);
         this.source.clear(true);
         this.active = false;
+    }
+    
+    setMapLayers() {
+        this.InteractiveMap.map.addLayer(this.layer);
+    }
+    
+    getMapLayers() {
+        return [this.layer];
     }
 }
 

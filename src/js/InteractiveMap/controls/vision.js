@@ -6,6 +6,7 @@ import getLightUnion from '../getLightUnion';
 import styles from '../definitions/styles';
 import MultiPolygon from 'ol/geom/MultiPolygon';
 import Feature from 'ol/Feature';
+import mapConstants from '../definitions/mapConstants';
 
 class VisionControl extends BaseControl {
     constructor(InteractiveMap) {
@@ -14,7 +15,16 @@ class VisionControl extends BaseControl {
         this.layer = new LayerVector({
             source: this.source,
             style: styles.visionSimulation,
+            zIndex: 120,
         });
+        this.visionRadius = mapConstants.visionRadius.observer;
+        this.isNight = false;
+        this.isDarkness = false;
+        
+        this.InteractiveMap.on('isNight', value => (this.isNight = value));
+        this.InteractiveMap.on('isDarkness', value => (this.isDarkness = value));
+        this.InteractiveMap.on('visionRadius', value => (this.visionRadius = value));
+        this.InteractiveMap.on('layer.vision', value => this.layer.setVisible(value));
     }
 
     getVisionFeature(feature, coordinate, radius) {
@@ -30,7 +40,7 @@ class VisionControl extends BaseControl {
         }
 
         // get radius from feature if not provided
-        radius = radius || this.InteractiveMap.getFeatureVisionRadius(feature, dotaProps);
+        radius = radius || this.getFeatureVisionRadius(feature, dotaProps);
         if (radius == null) return;
 
         const gridXY = this.vs.WorldXYtoGridXY(worldCoordinate[0], worldCoordinate[1]);
@@ -76,7 +86,7 @@ class VisionControl extends BaseControl {
         this.removeVisionFeature(feature);
 
         // determine radius according to unit type
-        const radius = this.InteractiveMap.getFeatureVisionRadius(feature, feature.get('dotaProps'), unitClass);
+        const radius = this.getFeatureVisionRadius(feature, feature.get('dotaProps'), unitClass);
         // create and add vision feature
         const visionFeature = this.getVisionFeature(feature, coordinate, radius);
         if (visionFeature) {
@@ -84,6 +94,62 @@ class VisionControl extends BaseControl {
         }
         feature.set('visionFeature', visionFeature, true);
         return visionFeature;
+    }
+
+    hasVisionRadius(feature) {
+        return this.getFeatureVisionRadius(feature) != null;
+    }
+
+    getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType) {
+        dotaProps = dotaProps || feature.get('dotaProps');
+        unitClass = unitClass || dotaProps.unitClass;
+        const unitStats = this.InteractiveMap.statData[unitClass] || {};
+        let radius;
+        if (unitClass === 'observer') {
+            radius = this.visionRadius || mapConstants.visionRadius[unitClass];
+            if (this.isDarkness) {
+                radius = Math.min(mapConstants.visionRadius.darkness, radius);
+            }
+        }
+        else if (unitClass === 'sentry') {
+            radius = mapConstants.visionRadius[unitClass];
+        }
+        else {
+            if (rangeType && !unitStats.hasOwnProperty(rangeType)) return null;
+
+            switch (rangeType) {
+            case 'dayVision':
+            case 'nightVision':
+                radius = unitStats[rangeType];
+                if (this.isDarkness) {
+                    radius = Math.min(mapConstants.visionRadius.darkness, radius);
+                }
+            case 'trueSight':
+            case 'attackRange':
+                radius = unitStats[rangeType];
+                break;
+            default:
+                if (this.isNight) {
+                    radius = unitStats.nightVision;
+                }
+                else {
+                    radius = unitStats.dayVision;
+                }
+                if (this.isDarkness) {
+                    radius = Math.min(mapConstants.visionRadius.darkness, radius);
+                }
+                break;
+            }
+        }
+        return radius;
+    }
+    
+    setMapLayers() {
+        this.InteractiveMap.map.addLayer(this.layer);
+    }
+    
+    getMapLayers() {
+        return [this.layer];
     }
 }
 

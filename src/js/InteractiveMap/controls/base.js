@@ -25,6 +25,26 @@ class BaseControl extends EventEmitter {
     get vs() {
         return this.InteractiveMap.vs;
     }
+    
+    initialize() {
+        
+    }
+    
+    setDefaults() {
+        
+    }
+    
+    setMapLayers() {
+        
+    }
+    
+    getMapLayers() {
+        return [];
+    }
+    
+    reset() {
+        
+    }
 
     activate() {
         if (!this.activated) {

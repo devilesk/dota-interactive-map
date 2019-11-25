@@ -28,23 +28,39 @@
     background-image: url('img/dota_cursor.png');
     &[trees-enabled="yes"] {
         background-image: url('img/btn-quelling_blade.png');
+        
+        &.active:hover {
+            background-image: url('img/btn-quelling_blade_hover.png');
+        }
+    }
+    
+    &.active:hover {
+        background-image: url('img/dota_cursor_hover.png');
     }
 }
 #btn-ward[ward-type="observer"] {
     background-image: url('img/ward_dispenser_observer.png');
+    
+    &.active:hover {
+        background-image: url('img/ward_dispenser_sentry_hover.png');
+    }
 }
 #btn-ward[ward-type="sentry"] {
     background-image: url('img/ward_dispenser_sentry.png');
+    
+    &.active:hover {
+        background-image: url('img/ward_dispenser_observer_hover.png');
+    }
 }
 #btn-measure {
     position: relative;
 }
 .zoom-label  {
-    width: 50px;
-    line-height: 50px;
     font-size: 50px;
-    left: 0;
-    position: absolute;
+    
+    .btn:active:hover & {
+        @include transform(scale(0.9));
+    }
 }
 #btn-zoom-in:hover,
 #btn-zoom-out:hover  {

@@ -3,8 +3,8 @@
         height: 0px;
         position: absolute;
         width: 30px;
-        left: 6px;
-        top: 20px;
+        left: 4px;
+        top: 19px;
         border: 2px dotted $text-color;
         @include transform(rotate(-45deg));
     }
@@ -14,8 +14,8 @@
         width: 8px;
         border-radius: 50%;
         position: absolute;
-        right: 6px;
-        bottom: 4px;
+        right: 7px;
+        bottom: 7px;
         border: 3px dotted $text-color;
     }
     
@@ -24,18 +24,21 @@
         
         &.active:hover,
         &:hover {
-            @include transform(scale(-0.9));
+            //@include transform(scale(-0.9));
         }
         
         &:hover:active {
-            @include transform(scale(-0.8));
+            //@include transform(scale(-0.8));
         }
         
         &.active {
-            @include transform(scale(0.8) scaleX(-1) scaleY(-1));
+            //@include transform(scale(0.8) scaleX(-1) scaleY(-1));
+            @include transform(scaleX(-1) scaleY(-1));
         
             .line-icon {
                 border-style: solid;
+                left: 2px;
+                right: 17px;
             }
         }
     }
@@ -43,30 +46,37 @@
     &[measure-type="circle"] {
         .line-icon {
             width: 16px;
-            left: 3px;
-            top: 10px;
+            left: 4px;
+            top: 11px;
         }
         .circle-icon {
             height: 20px;
             width: 20px;
-            right: 9px;
-            top: 15px;
+            right: 6px;
+            top: 17px;
         }
         
         &.active:hover,
         &:hover {
-            @include transform(scale(0.9));
+            //@include transform(scale(0.9));
         }
         
         &:hover:active {
-            @include transform(scale(0.8));
+            //@include transform(scale(0.8));
         }
         
         &.active {
-            @include transform(scale(0.8));
+            //@include transform(scale(0.8));
+            
+            .line-icon {
+                left: 2px;
+                right: 17px;
+            }
             
             .circle-icon {
                 border-style: solid;
+                right: 5px;
+                top: 13px;
             }
         }
     }

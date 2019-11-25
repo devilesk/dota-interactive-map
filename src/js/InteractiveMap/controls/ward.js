@@ -5,26 +5,92 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import styles from '../definitions/styles';
 import mapConstants from '../definitions/mapConstants';
-import { latLonToWorld, worldToLatLon } from '../conversion';
+import { getScaledRadius, latLonToWorld, worldToLatLon } from '../conversion';
 import { setQueryString, getParameterByName } from '../util/queryString';
+import Circle from 'ol/geom/Circle';
 
 class WardControl extends BaseInfoControl {
     constructor(InteractiveMap, element, throttleTime) {
         super(InteractiveMap, element);
-        this.throttleTime = throttleTime;
+        this.throttleTime = throttleTime || 0;
         this.source = new SourceVector({});
         this.layer = new LayerVector({
             title: 'Ward',
             source: this.source,
+            zIndex: 130,
         });
         this.layerFilter = layer => layer === this.layer;
+        
+        this.wardType = 'observer';
 
         this.placedWardCoordinates = {
             observer: {},
             sentry: {},
         };
+        
+        this.cursorSource = new SourceVector({});
+        this.cursorLayer = new LayerVector({
+            source: this.cursorSource,
+            style: styles.cursor,
+            zIndex: 110,
+        });
+
+        this.wardRangeSource = new SourceVector({});
+        this.wardRangeLayer = new LayerVector({
+            source: this.wardRangeSource,
+            zIndex: 160,
+        });
+        
+        this.rangeSources = {
+            dayVision: new SourceVector({}),
+            nightVision: new SourceVector({}),
+            trueSight: new SourceVector({}),
+            attackRange: new SourceVector({}),
+        };
+        this.rangeLayers = {
+            dayVision: new LayerVector({
+                source: this.rangeSources.dayVision,
+                style: styles.dayVision,
+                zIndex: 170,
+            }),
+            nightVision: new LayerVector({
+                source: this.rangeSources.nightVision,
+                style: styles.nightVision,
+                zIndex: 180,
+            }),
+            trueSight: new LayerVector({
+                source: this.rangeSources.trueSight,
+                style: styles.trueSight,
+                zIndex: 190,
+            }),
+            attackRange: new LayerVector({
+                source: this.rangeSources.attackRange,
+                style: styles.attackRange,
+                zIndex: 200,
+            }),
+        };
 
         this.lastPointerMoveTime = Date.now();
+        
+        this.InteractiveMap.on('wardType', value => (this.wardType = value));
+        this.InteractiveMap.on('version', () => this.reset());
+        this.InteractiveMap.on('dayVision', value => this.rangeLayers.dayVision.setVisible(value));
+        this.InteractiveMap.on('nightVision', value => this.rangeLayers.nightVision.setVisible(value));
+        this.InteractiveMap.on('trueSight', value => this.rangeLayers.trueSight.setVisible(value));
+        this.InteractiveMap.on('attackRange', value => this.rangeLayers.attackRange.setVisible(value));
+        this.InteractiveMap.on('mode', (value) => {
+            if (value === 'ward' || value === 'observer' || value === 'sentry') {
+                this.activate();
+            }
+            else {
+                this.deactivate();
+            }
+        });
+        
+        this.InteractiveMap.on('layer.ward', value => {
+            this.wardRangeLayer.setVisible(value);
+            this.layer.setVisible(value);
+        });
     }
 
     get features() {
@@ -33,7 +99,7 @@ class WardControl extends BaseInfoControl {
 
     onMapClick(feature, featureType, evt) {
         if (!feature) {
-            this.addWard(evt.coordinate, this.InteractiveMap.mode);
+            this.addWard(evt.coordinate, this.wardType);
         }
     }
 
@@ -44,11 +110,14 @@ class WardControl extends BaseInfoControl {
                 return;
             }
             this.lastPointerMoveTime = Date.now();
-            const hoverFeature = this.InteractiveMap.controls.vision.getVisionFeature(null, evt.coordinate, this.InteractiveMap.visionRadius);
+            const hoverFeature = this.InteractiveMap.controls.vision.getVisionFeature(null, evt.coordinate, this.InteractiveMap.controls.vision.visionRadius);
+            this.cursorSource.clear(true);
             if (hoverFeature) {
-                this.InteractiveMap.controls.cursor.source.clear(true);
-                this.InteractiveMap.controls.cursor.source.addFeature(hoverFeature);
+                this.cursorSource.addFeature(hoverFeature);
                 this.showVisibilityInfo();
+            }
+            else {
+                this.clear();
             }
         }
     }
@@ -58,7 +127,7 @@ class WardControl extends BaseInfoControl {
             this.removeWard(feature);
             this.InteractiveMap.deselect(feature);
         }
-        else if (this.InteractiveMap.hasVisionRadius(feature)) {
+        else if (this.InteractiveMap.controls.vision.hasVisionRadius(feature)) {
             this.showVisibilityInfo();
         }
     }
@@ -78,7 +147,6 @@ class WardControl extends BaseInfoControl {
     }
 
     onFeatureUnhighlight(feature, featureType, evt) {
-        console.log('onFeatureUnhighlight', feature, featureType, featureType !== 'ward');
         if (featureType !== 'ward' && !feature.get('clicked')) {
             this.InteractiveMap.controls.vision.removeVisionFeature(feature);
             this.removeRangeCircles(feature);
@@ -95,14 +163,18 @@ class WardControl extends BaseInfoControl {
     }
 
     showAll(layer) {
-        this.features.forEach((feature) => {
+        const source = layer.getSource();
+        const features = source.getFeatures();
+        features.forEach((feature) => {
             this.InteractiveMap.select(feature);
             this.highlight(feature);
         });
     }
 
     hideAll(layer) {
-        this.features.forEach((feature) => {
+        const source = layer.getSource();
+        const features = source.getFeatures();
+        features.forEach((feature) => {
             this.InteractiveMap.deselect(feature);
             this.unhighlight(feature);
         });
@@ -153,6 +225,17 @@ class WardControl extends BaseInfoControl {
         setQueryString(wardType, values || null);
     }
 
+    getRangeCircle(feature, coordinate, unitClass, rangeType, radius) {
+        const dotaProps = feature.get('dotaProps');
+        radius = radius || this.InteractiveMap.controls.vision.getFeatureVisionRadius(feature, dotaProps, unitClass, rangeType);
+        if (radius == null) return null;
+        if (!coordinate) {
+            coordinate = worldToLatLon([dotaProps.x, dotaProps.y]);
+        }
+        const circle = new Feature(new Circle(coordinate, getScaledRadius(radius)));
+        return circle;
+    }
+
     addWard(coordinate, wardType, bSkipQueryStringUpdate) {
         if (coordinate[0] < 0 || coordinate[0] > mapConstants.map_w || coordinate[1] < 0 || coordinate[1] > mapConstants.map_h) return;
         const geom = new Point(coordinate);
@@ -166,11 +249,11 @@ class WardControl extends BaseInfoControl {
             }
         }
 
-        const circle = this.InteractiveMap.getRangeCircle(feature, coordinate, wardType);
+        const circle = this.getRangeCircle(feature, coordinate, wardType);
         if (circle) {
             circle.setStyle(wardType === 'observer' ? styles.dayVision : styles.trueSight);
             feature.set('wardRange', circle, true);
-            this.InteractiveMap.wardRangeSource.addFeature(circle);
+            this.wardRangeSource.addFeature(circle);
         }
         const worldXY = latLonToWorld(coordinate).map(Math.round).join(',');
         this.placedWardCoordinates[wardType][worldXY] = true;
@@ -195,15 +278,14 @@ class WardControl extends BaseInfoControl {
         const wardRange = feature.get('wardRange');
         if (wardRange) {
             // loop to check that feature exists before trying to remove
-            this.InteractiveMap.wardRangeSource.forEachFeature((f) => {
-                if (f === wardRange) this.InteractiveMap.wardRangeSource.removeFeature(f);
+            this.wardRangeSource.forEachFeature((f) => {
+                if (f === wardRange) this.wardRangeSource.removeFeature(f);
             });
         }
         // loop to check that feature exists before trying to remove
         this.source.forEachFeature((f) => {
             if (f === feature) {
                 this.source.removeFeature(f);
-                console.log('removed feature');
             }
         });
         this.InteractiveMap.controls.vision.removeVisionFeature(feature);
@@ -215,7 +297,7 @@ class WardControl extends BaseInfoControl {
     }
 
     highlight(feature) {
-        this.InteractiveMap.controls.cursor.source.clear(true);
+        this.cursorSource.clear(true);
         this.unhighlight();
         const visionFeature = this.InteractiveMap.controls.vision.setVisionFeature(feature);
         this.addRangeCircles(feature);
@@ -224,6 +306,12 @@ class WardControl extends BaseInfoControl {
     }
 
     unhighlight(feature) {
+        const highlightedFeature = feature || this.InteractiveMap.highlightedFeature;
+        if (highlightedFeature && !highlightedFeature.get("clicked")) {
+            this.InteractiveMap.controls.vision.removeVisionFeature(highlightedFeature);
+            this.removeRangeCircles(highlightedFeature);
+        }
+        this.InteractiveMap.unhighlight();
     }
 
     addRangeCircles(feature) {
@@ -242,10 +330,10 @@ class WardControl extends BaseInfoControl {
 
     addRangeCircle(feature, rangeType) {
         if (!feature.get(rangeType)) {
-            const circle = this.InteractiveMap.getRangeCircle(feature, null, null, rangeType);
+            const circle = this.getRangeCircle(feature, null, null, rangeType);
             if (circle) {
                 feature.set(rangeType, circle, true);
-                this.InteractiveMap.rangeSources[rangeType].addFeature(circle);
+                this.rangeSources[rangeType].addFeature(circle);
             }
         }
     }
@@ -254,8 +342,41 @@ class WardControl extends BaseInfoControl {
         const circle = feature.get(rangeType);
         if (circle) {
             feature.set(rangeType, null, true);
-            this.InteractiveMap.rangeSources[rangeType].removeFeature(circle);
+            this.rangeSources[rangeType].removeFeature(circle);
         }
+    }
+    
+    deactivate() {
+        super.deactivate();
+        this.InteractiveMap.unhighlightWard();
+        this.cursorSource.clear(true);
+    }
+    
+    reset() {
+        this.clearWards();
+        this.parseQueryString();
+    }
+    
+    setMapLayers() {
+        this.InteractiveMap.map.addLayer(this.layer);
+        this.InteractiveMap.map.addLayer(this.cursorLayer);
+        this.InteractiveMap.map.addLayer(this.wardRangeLayer);
+        this.InteractiveMap.map.addLayer(this.rangeLayers.dayVision);
+        this.InteractiveMap.map.addLayer(this.rangeLayers.nightVision);
+        this.InteractiveMap.map.addLayer(this.rangeLayers.trueSight);
+        this.InteractiveMap.map.addLayer(this.rangeLayers.attackRange);
+    }
+    
+    getMapLayers() {
+        return [
+            this.layer,
+            this.cursorLayer,
+            this.wardRangeLayer,
+            this.rangeLayers.dayVision,
+            this.rangeLayers.nightVision,
+            this.rangeLayers.trueSight,
+            this.rangeLayers.attackRange,
+        ];
     }
 }
 

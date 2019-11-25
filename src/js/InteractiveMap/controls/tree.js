@@ -5,7 +5,10 @@ class TreeControl extends BaseControl {
     constructor(InteractiveMap) {
         super(InteractiveMap);
         this._allTreesCutState = false;
+        this._treeMap = {};
         this.activate();
+        
+        this.InteractiveMap.on('version', () => this.reset());
     }
 
     onFeatureClick(feature, featureType, evt) {
@@ -21,7 +24,7 @@ class TreeControl extends BaseControl {
 
     set allTreesCutState(value) {
         this._allTreesCutState = value;
-        this.emit('allTreesCutState', value);
+        this.InteractiveMap.emit('allTreesCutState', value);
     }
 
     get layer() {
@@ -40,9 +43,9 @@ class TreeControl extends BaseControl {
         this.features.forEach((feature) => {
             const dotaProps = feature.get('dotaProps');
             const worldXY = `${dotaProps.x},${dotaProps.y}`;
-            treeMap[worldXY] = feature;
+            this._treeMap[worldXY] = feature;
         });
-        return treeMap;
+        return this._treeMap;
     }
 
     updateQueryString() {
@@ -98,6 +101,11 @@ class TreeControl extends BaseControl {
         if (!bSkipQueryStringUpdate) this.updateQueryString();
 
         if (!bSkipWardVisionUpdate) this.InteractiveMap.controls.ward.updateAllWardVision();
+    }
+    
+    reset() {
+        this.toggleAllTrees(false, true);
+        this.parseQueryString();
     }
 }
 
