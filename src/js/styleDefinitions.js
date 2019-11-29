@@ -233,6 +233,17 @@ const styles = {
             geometry: getFeatureCenter,
         }),
     ],
+    npc_dota_watch_tower: [
+        defaultStyle,
+        new Style({
+            image: new Icon({
+                src: 'img/svgs/lighthouse-15.svg',
+                anchor: [0.5, 0.5],
+                imgSize: [21, 21],
+            }),
+            geometry: getFeatureCenter,
+        }),
+    ],
     measure: new Style({
         fill: new Fill({ color: 'rgba(255, 255, 255, 0.3)' }),
         stroke: new Stroke({

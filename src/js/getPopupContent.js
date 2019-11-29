@@ -12,6 +12,7 @@ const unitNames = {
     npc_dota_tower: 'Tower',
     npc_dota_barracks: 'Barracks',
     npc_dota_filler: 'Building',
+    npc_dota_watch_tower: 'Outpost',
     trigger_multiple: 'Neutral Camp Spawn Box',
     npc_dota_neutral_spawner: 'Neutral Camp',
     observer: 'Observer Ward',

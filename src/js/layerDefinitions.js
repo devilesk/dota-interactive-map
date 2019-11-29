@@ -145,6 +145,13 @@ const layerDefinitions = [
         style: styles.npc_dota_healer,
         toggle: true,
     },
+    {
+        id: 'npc_dota_watch_tower',
+        name: 'Outpost',
+        group: 'structure',
+        style: styles.npc_dota_watch_tower,
+        toggle: true,
+    },
 ];
 
 export default layerDefinitions;
