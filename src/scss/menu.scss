@@ -166,7 +166,7 @@
         
         &:checked {
             & + .checkbox, & + .checkbox + .sub-menu, & + .checkbox, & + .checkbox + .sub-menu .sub-menu, & + .checkbox {
-                max-height: 999px;
+                max-height: 9999px;
                 display: block;
             }
         }
@@ -192,7 +192,7 @@
 
     &:checked + .btn-back + .back-group .menu-contents .menu-item label.root {
         display: block;
-        max-height: 999px;
+        max-height: 9999px;
     }
 
     &:not(:checked) + .btn-back + .back-group .menu-contents .menu-item input[name="right-menu"]:not(:checked) + label.root {
@@ -328,58 +328,58 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
     }
     
     &.brush .menu-item.brush {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.marker .menu-item.marker {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.point .menu-item.point {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.linestring .menu-item.linestring {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.polygon .menu-item.polygon {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.shape .menu-item.shape {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.modify .menu-item.modify {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.rotate .menu-item.rotate {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.translate .menu-item.translate {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
     
     &.delete .menu-item.delete {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
 }
 
 .hide-draw {
-    max-height: 999px;
+    max-height: 9999px;
     display: block;
     
     #menu-left.draw & {
@@ -396,7 +396,7 @@ div#menu-right.expand-horizontal #menu-right-close-btn {
     overflow: hidden;
     
     &.open {
-        max-height: 999px;
+        max-height: 9999px;
         display: block;
     }
 }
