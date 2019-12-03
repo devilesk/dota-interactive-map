@@ -40,9 +40,17 @@ const laneData = {
         npc_dota_spawner_good_top: [1.3, 2],
         npc_dota_spawner_bad_top: [0.65, 2],
     },
+    default: {
+        npc_dota_spawner_good_bot: [0, 0],
+        npc_dota_spawner_bad_bot: [0, 0],
+        npc_dota_spawner_good_top: [0, 0],
+        npc_dota_spawner_bad_top: [0, 0],
+    },
 };
 
 const getDistance = (speed, elapsedTime) => speed * elapsedTime / 1000 * mapConstants.scale;
+
+const getLaneData = (version, id, index) => (laneData[version] || laneData.default)[id][index];
 
 const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) => {
     elapsedTime *= playbackSpeed;
@@ -54,8 +62,8 @@ const getElapsedDistance = (version, id, elapsedTime, playbackSpeed, bNoAdjust) 
     case 'npc_dota_spawner_bad_top':
     case 'npc_dota_spawner_good_top':
     case 'npc_dota_spawner_bad_bot':
-        const boostMultiplier = laneData[version][id][0];
-        const boostDuration = laneData[version][id][1] * 1000;
+        const boostMultiplier = getLaneData(version, id, 0);
+        const boostDuration = getLaneData(version, id, 1) * 1000;
         if (elapsedTime < boostDuration) {
             return getDistance(base * boostMultiplier, elapsedTime);
         }
