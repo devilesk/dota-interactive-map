@@ -146,6 +146,7 @@ class InteractiveMap {
                     }),
                     projection: pixelProj,
                     url: `${this.mapTilePath + layerDef.group}/${layerDef.id}/{z}/tile_{x}_{y}.jpg`,
+                    crossOrigin: 'Anonymous',
                 }),
                 visible: !!layerDef.visible,
             });
